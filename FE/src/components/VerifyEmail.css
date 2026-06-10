@@ -1,0 +1,126 @@
+.verify-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f7fa;
+    padding: 20px;
+    flex-direction: column;
+}
+
+.verify-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 40px;
+}
+
+.verify-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+.icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background-color: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 24px;
+}
+
+.icon-wrapper svg {
+    width: 32px;
+    height: 32px;
+    color: #111827;
+}
+
+.verify-text {
+    font-size: 15px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+.otp-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.otp-input {
+    width: 48px;
+    height: 56px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    color: #111827;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.otp-input:focus {
+    border-color: #0d1b2a;
+    box-shadow: 0 0 0 2px rgba(13, 27, 42, 0.1);
+}
+
+.verify-btn {
+    width: 100%;
+    padding: 16px;
+    background-color: #0d1b2a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 24px;
+}
+
+.verify-btn:hover {
+    background-color: #1a2c40;
+}
+
+.verify-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.resend-container {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.resend-link {
+    color: #111827;
+    font-weight: 600;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px;
+}
+
+.resend-link:hover {
+    text-decoration: underline;
+}
+
+.resend-link:disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+    text-decoration: none;
+}
