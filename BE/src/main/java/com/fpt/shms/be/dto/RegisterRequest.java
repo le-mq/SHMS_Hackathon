@@ -19,24 +19,19 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     // BR-ACC-01: Strong password
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,}$", 
-             message = "Password must be at least 8 characters long and contain at least one letter and one number")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,}$",
+            message = "Password must be at least 8 characters long and contain at least one letter and one number")
     private String password;
 
     @NotBlank(message = "Target University is required")
     private String targetUniversity;
 
     @NotBlank(message = "Student Identification Number (MSSV) is required")
-    // BR-ACC-03: MSSV format (e.g., SE123456)
-    @Pattern(regexp = "^[A-Z]{2}\\d{6}$", message = "MSSV must start with 2 uppercase letters followed by 6 digits")
     private String mssv;
 
     @NotBlank(message = "Major is required")
     private String major;
 
     @NotBlank(message = "Corporate Email is required")
-    @Email(message = "Invalid email format")
-    // BR-ACC-02: Corporate Email format (typically ends with .edu.vn for universities)
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Must be a valid corporate email")
     private String corporateEmail;
 }

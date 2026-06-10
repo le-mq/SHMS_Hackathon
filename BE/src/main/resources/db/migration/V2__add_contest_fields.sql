@@ -1,0 +1,9 @@
+ALTER TABLE Contest ADD registration_start DATE NULL;
+ALTER TABLE Contest ADD registration_end DATE NULL;
+ALTER TABLE Contest ADD development_start DATE NULL;
+ALTER TABLE Contest ADD development_end DATE NULL;
+ALTER TABLE Contest ADD allowed_corporate_domains NVARCHAR(500) NULL;
+ALTER TABLE Contest ADD track_themes NVARCHAR(500) NULL;
+ALTER TABLE Contest ADD compliance_rules NVARCHAR(MAX) NULL;
+ALTER TABLE Contest ADD tiered_prize_structures NVARCHAR(MAX) NULL;
+ALTER TABLE Contest ADD hero_branding_banner VARCHAR(255) NULL;

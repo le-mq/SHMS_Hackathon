@@ -1,0 +1,165 @@
+.deliverables-container {
+    background-color: #f1f5f9;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+.deliverables-content {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.deliv-header {
+    margin-bottom: 32px;
+}
+
+.deliv-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.deliv-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.deliv-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.deliv-stat-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.deliv-stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.deliv-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.deliv-table-wrap {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    overflow: hidden;
+}
+
+.deliv-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.deliv-table th {
+    background: #e2e8f0;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.deliv-table td {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.deliv-team-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.deliv-track {
+    font-size: 14px;
+    color: #475569;
+}
+
+.btn-asset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-code {
+    background: #0f172a;
+    color: white;
+}
+
+.btn-pdf {
+    background: white;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+.btn-demo {
+    background: #0f172a;
+    color: white;
+}
+
+.empty-txt {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.deliv-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.ds-ready { color: #16a34a; border: 1px solid #16a34a; }
+.ds-submit { color: #ca8a04; border: 1px solid #ca8a04; }
+.ds-inc { color: #dc2626; border: 1px solid #dc2626; }
+
+.deliv-footer {
+    padding: 16px 24px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.deliv-pager {
+    display: flex;
+    gap: 8px;
+}
+
+.deliv-pager button {
+    padding: 6px 12px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+}

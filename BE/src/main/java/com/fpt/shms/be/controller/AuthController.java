@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Auth", description = "Authentication and Registration APIs")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -30,7 +32,8 @@ public class AuthController {
         try {
             String message = authService.register(request);
             return ResponseEntity.ok(Map.of("message", message));
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
+            log.error("Exception occurred during registration flow for username: '{}'", request.getUsername(), e);
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -82,12 +85,12 @@ public class AuthController {
             if (token == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid token"));
             }
-            
+
             String targetRole = payload.get("role");
             if (targetRole == null || targetRole.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Target role is required"));
             }
-            
+
             java.util.Map<String, Object> result = authService.switchRole(token, targetRole);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {

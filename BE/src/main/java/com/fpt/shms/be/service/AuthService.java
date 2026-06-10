@@ -17,6 +17,7 @@ import com.fpt.shms.be.repository.UniversityRepository;
 import com.fpt.shms.be.repository.VerificationTokenRepository;
 import com.fpt.shms.be.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -86,12 +88,12 @@ public class AuthService {
         result.put("role", activeRole);
         result.put("allRoles", userRoles);
         result.put("username", user.getUsername());
-        
+
         studentProfile.ifPresent(s -> {
             result.put("fullName", s.getFullName());
             result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
         });
-        
+
         return result;
     }
 
@@ -100,20 +102,20 @@ public class AuthService {
         String username = jwtUtils.extractUsername(currentToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
+
         java.util.List<String> userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(java.util.stream.Collectors.toList());
 
         boolean hasRole = false;
         String mappedRole = targetRole.toUpperCase();
-        
+
         if (userRoles.contains(mappedRole)) {
             hasRole = true;
         } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
             hasRole = true;
         }
-        
+
         if (!hasRole) {
             throw new IllegalArgumentException("User does not have the requested role: " + targetRole);
         }
@@ -124,47 +126,89 @@ public class AuthService {
         result.put("role", mappedRole);
         result.put("allRoles", userRoles);
         result.put("username", user.getUsername());
-        
+
         studentRepository.findByUser(user).ifPresent(s -> {
             result.put("fullName", s.getFullName());
             result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
         });
-        
+
         return result;
     }
 
     @Transactional
     public String register(RegisterRequest request) {
+        log.info("Received registration request - username: '{}', email: '{}', mssv: '{}', fullName: '{}', university: '{}', major: '{}'",
+                request.getUsername(), request.getCorporateEmail(), request.getMssv(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
+
         // Check if username exists
         if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
             throw new IllegalArgumentException("Username is already taken");
         }
 
         // Check if MSSV or Email already registered
         if (studentRepository.existsByMssv(request.getMssv())) {
+            log.warn("Registration failed: MSSV '{}' is already registered", request.getMssv());
             throw new IllegalArgumentException("MSSV is already registered");
         }
         if (studentRepository.existsByCorporateEmail(request.getCorporateEmail())) {
+            log.warn("Registration failed: Email '{}' is already registered", request.getCorporateEmail());
             throw new IllegalArgumentException("Email is already registered");
         }
 
-        // BR-ACC-04: Cross-check with StudentVerificationData
-        StudentVerificationData verificationData = verificationDataRepository.findByMssv(request.getMssv())
-                .orElseThrow(() -> new IllegalArgumentException("MSSV not found in University Verification Data"));
+        // Load university from DB
+        log.info("Loading university: '{}'", request.getTargetUniversity());
+        University university = universityRepository.findByName(request.getTargetUniversity())
+                .orElseThrow(() -> {
+                    log.error("Registration failed: University '{}' not found in database", request.getTargetUniversity());
+                    return new IllegalArgumentException("University not found");
+                });
+
+        // Dynamic email validation
+        String emailRegex = university.getEmailRegex();
+        log.info("Loaded emailRegex for '{}': '{}'", university.getName(), emailRegex);
+        if (emailRegex != null && !emailRegex.isBlank()) {
+            boolean emailMatches = java.util.regex.Pattern.matches(emailRegex, request.getCorporateEmail());
+            log.info("Email matching outcome: {}", emailMatches);
+            if (!emailMatches) {
+                log.warn("Registration failed: Corporate Email '{}' does not match university pattern '{}'", request.getCorporateEmail(), emailRegex);
+                throw new IllegalArgumentException("Invalid university email format");
+            }
+        }
+
+        // Dynamic student code (MSSV) validation
+        String studentCodeRegex = university.getStudentCodeRegex();
+        log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
+        if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
+            boolean mssvMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getMssv());
+            log.info("Student code matching outcome: {}", mssvMatches);
+            if (!mssvMatches) {
+                log.warn("Registration failed: MSSV '{}' does not match university pattern '{}'", request.getMssv(), studentCodeRegex);
+                throw new IllegalArgumentException("Invalid student code format");
+            }
+        }
+
+        // BR-ACC-04: Cross-check with StudentVerificationData using university_id, student_code, and email
+        log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
+                university.getId(), request.getMssv(), request.getCorporateEmail());
+        StudentVerificationData verificationData = verificationDataRepository
+                .findByUniversityIdAndMssvAndCorporateEmail(university.getId(), request.getMssv(), request.getCorporateEmail())
+                .orElseThrow(() -> {
+                    log.warn("Registration failed: Student verification record not found for university_id={}, mssv='{}', email='{}'",
+                            university.getId(), request.getMssv(), request.getCorporateEmail());
+                    return new IllegalArgumentException("Student not found in university verification data");
+                });
+
+        log.info("Verification record found: mssv='{}', fullName='{}', major='{}'",
+                verificationData.getMssv(), verificationData.getFullName(), verificationData.getMajor());
 
         if (!verificationData.getFullName().equalsIgnoreCase(request.getFullName())) {
+            log.warn("Registration failed: Full Name '{}' does not match verification data '{}'", request.getFullName(), verificationData.getFullName());
             throw new IllegalArgumentException("Full Name does not match Verification Data");
         }
-        if (!verificationData.getCorporateEmail().equalsIgnoreCase(request.getCorporateEmail())) {
-            throw new IllegalArgumentException("Corporate Email does not match Verification Data");
-        }
         if (!verificationData.getMajor().equalsIgnoreCase(request.getMajor())) {
+            log.warn("Registration failed: Major '{}' does not match verification data '{}'", request.getMajor(), verificationData.getMajor());
             throw new IllegalArgumentException("Major does not match Verification Data");
-        }
-        
-        String verifiedUniversity = verificationData.getUniversityName();
-        if (verifiedUniversity == null || !verifiedUniversity.equalsIgnoreCase(request.getTargetUniversity())) {
-            throw new IllegalArgumentException("University does not match Verification Data");
         }
 
         Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER")
@@ -180,13 +224,6 @@ public class AuthService {
                 .status(User.UserStatus.PENDING)
                 .isEmailVerified(false)
                 .build();
-
-        University university = universityRepository.findByName(request.getTargetUniversity())
-                .orElseGet(() -> universityRepository.save(University.builder()
-                        .name(request.getTargetUniversity())
-                        .emailDomain(extractDomain(request.getCorporateEmail()))
-                        .status("ACTIVE")
-                        .build()));
 
         // Create Student linked to User
         Student student = Student.builder()

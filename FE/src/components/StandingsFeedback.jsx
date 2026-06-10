@@ -1,0 +1,150 @@
+import { useState, useEffect } from 'react';
+import './StandingsFeedback.css';
+import NavbarStudent from './NavbarStudent';
+
+const StandingsFeedback = () => {
+    const [scoreData, setScoreData] = useState(null);
+
+    useEffect(() => {
+        const fetchScore = async () => {
+            try {
+                const token = localStorage.getItem('shms_token');
+                const response = await fetch('http://localhost:8080/api/v1/student/team-score-details', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setScoreData(data);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchScore();
+    }, []);
+
+    const data = scoreData || {
+        totalScore: 91.25,
+        teamName: 'Team Alpha',
+        projectName: 'Sentinel Guard AI',
+        detailedScores: [
+            { criteriaName: "Technical Complexity", weight: 30.0, pointsAwarded: 90.0, feedback: "Excellent architecture." },
+            { criteriaName: "Innovation", weight: 20.0, pointsAwarded: 95.0, feedback: "Very creative approach." }
+        ]
+    };
+
+    const [selectedDetail, setSelectedDetail] = useState(null);
+
+    return (
+        <div className="standings-container">
+            <NavbarStudent />
+
+            <div className="standings-content">
+                <div className="standings-header">
+                    <h1 className="standings-title">Competition Standings & Feedback</h1>
+                    <p className="standings-subtitle">Official tournament results have been published for the Software Development category.</p>
+                </div>
+
+                <div className="my-result-card" style={{ marginTop: '20px' }}>
+                    <div className="result-top" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '16px' }}>
+                        <div className="result-info">
+                            <h3>My Team Result Summary</h3>
+                            <p>{data.teamName} | Project: "{data.projectName}"</p>
+                        </div>
+                        <div className="score-display" style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
+                            <div className="private-badge" style={{ alignSelf: 'flex-end', marginBottom: '8px' }}>
+                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                Private
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table className="history-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
+                        <thead>
+                            <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
+                                <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
+                                <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {scoreData?.rounds && scoreData.rounds.length > 0 ? scoreData.rounds.map((r, idx) => (
+                                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
+                                    <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>{r.totalScore.toFixed(2)} / 100</td>
+                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                        <button 
+                                            className="view-rubric-btn" 
+                                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
+                                            onClick={() => setSelectedDetail(r)}
+                                        >
+                                            View Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                    <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>Preliminary Round</td>
+                                    <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>{data.totalScore.toFixed(2)} / 100</td>
+                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                        <button 
+                                            className="view-rubric-btn" 
+                                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
+                                            onClick={() => setSelectedDetail(data)}
+                                        >
+                                            View Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {selectedDetail && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', borderRadius: '12px', width: '600px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>Score Details - {selectedDetail.roundName || 'Preliminary Round'}</h2>
+                            <button onClick={() => setSelectedDetail(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        {selectedDetail.detailedScores && selectedDetail.detailedScores.length > 0 ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
+                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Criteria</th>
+                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Weight</th>
+                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Points</th>
+                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedDetail.detailedScores.map((score, i) => (
+                                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b' }}>{score.criteriaName}</td>
+                                            <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>{score.weight}%</td>
+                                            <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#3b82f6' }}>{score.pointsAwarded}</td>
+                                            <td style={{ padding: '12px', color: '#475569', fontSize: '13px' }}>{score.feedback || 'No feedback provided.'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div style={{ padding: '40px 0', textAlign: 'center', color: '#64748b' }}>
+                                No detailed scores available yet.
+                            </div>
+                        )}
+                        <div style={{ marginTop: '24px', textAlign: 'right' }}>
+                            <button onClick={() => setSelectedDetail(null)} className="ph-btn-primary" style={{ padding: '8px 24px', borderRadius: '6px' }}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default StandingsFeedback;
