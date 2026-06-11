@@ -24,11 +24,11 @@ public class University {
     @Column(name = "university_code", unique = true, length = 50)
     private String universityCode;
 
-    @Column(name = "email_domain", length = 100)
-    private String emailDomain;
+    @Column(name = "email_regex", length = 100)
+    private String emailRegex;
 
-    @Column(name = "mssv_regex", length = 100)
-    private String studentIdRegex;
+    @Column(name = "student_code_regex", length = 100)
+    private String studentCodeRegex;
 
     @Column(name = "status", length = 50)
     private String status;

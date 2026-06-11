@@ -27,6 +27,24 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
 
+  # ─── Mail (Brevo SMTP Configuration) ────────
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${BREVO_SMTP_USERNAME:}
+    password: ${BREVO_SMTP_KEY:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  mail:
+    sender: sealhackathon26@gmail.com
+
 # ─── Server ─────────────────────────────────────────────────────────────────
 server:
   port: 8080
