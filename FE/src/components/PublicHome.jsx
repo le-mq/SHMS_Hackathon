@@ -105,7 +105,7 @@ function ContestCard({ contest, onSelectContest }) {
             </div>
 
             {!isUpcoming && (
-                <div className="ph-progress-bar-wrap" title={ {pct} + "% through contest"}>
+                <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}> {/*đã sửa title*/}
                     <div className="ph-progress-bar" style={{ width: `${pct}%` }} />
                 </div>
             )}
@@ -121,8 +121,8 @@ function ContestCard({ contest, onSelectContest }) {
     );
 }
 
-function TrackRow({ track }) {
-}
+// function TrackRow({ track }) {
+// }
 
 export default function PublicHome() {
     const [data, setData] = useState(null);
