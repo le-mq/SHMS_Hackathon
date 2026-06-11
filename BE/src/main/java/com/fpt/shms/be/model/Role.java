@@ -19,7 +19,7 @@ public class Role {
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "role_name", nullable = false, unique = true, length = 50)
-    private String name; // e.g., "PARTICIPANT", "ADMIN", "JUDGE"
+    private String name; // e.g., "ADMIN", "JUDGE"
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
