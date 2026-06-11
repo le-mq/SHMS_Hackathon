@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Register.css';
 import { Link, useNavigate } from 'react-router-dom';
-
+import NavbarHome from './NavbarHome';
 const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -148,6 +148,7 @@ const Register = () => {
 
     return (
         <>
+            <NavbarHome></NavbarHome>
             <div style={{ background: '#f4f7fa', minHeight: '100vh', paddingBottom: '40px' }}>
                 <div className="register-container">
                     <div className="register-card">

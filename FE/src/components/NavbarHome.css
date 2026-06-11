@@ -3,8 +3,9 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,0,0,.35);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .35);
 }
+
 .ph-nav-inner {
     padding: 0 40px;
     height: 64px;
@@ -20,32 +21,42 @@
     letter-spacing: .5px;
     justify-self: start;
 }
+
 .ph-nav-brand span {
     color: var(--accent-2);
 }
+
 .ph-nav-links {
     display: flex;
     gap: 28px;
     list-style: none;
 }
+
 .ph-nav-links a {
     font-size: 13px;
     font-weight: 500;
-    color: rgba(255,255,255,.72);
+    color: rgba(255, 255, 255, .72);
     text-decoration: none;
     padding-bottom: 2px;
     border-bottom: 2px solid transparent;
     transition: var(--transition);
 }
+
 .ph-nav-links a:hover,
 .ph-nav-links a.active {
     color: var(--white);
     border-color: var(--accent-2);
 }
-.ph-nav-actions { display: flex; gap: 10px; justify-self: end; }
+
+.ph-nav-actions {
+    display: flex;
+    gap: 10px;
+    justify-self: end;
+}
+
 .ph-btn-ghost {
     background: transparent;
-    border: 1px solid rgba(255,255,255,.3);
+    border: 1px solid rgba(255, 255, 255, .3);
     color: var(--white);
     padding: 6px 14px;
     border-radius: var(--radius-sm);
@@ -54,7 +65,11 @@
     cursor: pointer;
     transition: var(--transition);
 }
-.ph-btn-ghost:hover { background: rgba(255,255,255,.1); }
+
+.ph-btn-ghost:hover {
+    background: rgba(255, 255, 255, .1);
+}
+
 .ph-btn-primary {
     background: var(--accent);
     border: none;
@@ -66,4 +81,8 @@
     cursor: pointer;
     transition: var(--transition);
 }
-.ph-btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+
+.ph-btn-primary:hover {
+    background: var(--accent-2);
+    transform: translateY(-1px);
+}
