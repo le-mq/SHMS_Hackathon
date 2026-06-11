@@ -1,6 +1,5 @@
 package com.fpt.shms.be.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -26,7 +25,7 @@ public class RegisterRequest {
     @NotBlank(message = "Target University is required")
     private String targetUniversity;
 
-    @NotBlank(message = "Student Identification Number (MSSV) is required")
+    @NotBlank(message = "Student Identification Number is required")
     private String mssv;
 
     @NotBlank(message = "Major is required")

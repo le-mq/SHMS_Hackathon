@@ -13,4 +13,6 @@ public interface StudentVerificationDataRepository extends JpaRepository<Student
 
     @Query("select sv from StudentVerificationData sv where sv.university.name = :university")
     java.util.List<StudentVerificationData> findByUniversity(String university);
+
+    java.util.Optional<StudentVerificationData> findByUniversityIdAndMssvAndCorporateEmail(Long universityId, String mssv, String corporateEmail);
 }
