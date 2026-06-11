@@ -163,7 +163,7 @@ const Login = () => {
                     </div>
                     {/*dùng để demo cho nhanh */}
                     <details className="demo-accounts-section" style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#888', border: '1px solid #333', borderRadius: '8px', padding: '0.75rem' }}>
-                        <summary style={{ cursor: 'pointer', fontWeight: '600', color: '#aaa' }}>🔑 Demo Accounts (for testing)</summary>
+                        <summary style={{ cursor: 'pointer', fontWeight: '600', color: '#aaa' }}> Demo Accounts (for testing)</summary>
                         <table style={{ width: '100%', marginTop: '0.5rem', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ borderBottom: '1px solid #333' }}>
@@ -188,7 +188,7 @@ const Login = () => {
                                 ))}
                             </tbody>
                         </table>
-                        <p style={{ marginTop: '0.5rem', color: '#666' }}>💡 Click a row to auto-fill the form.</p>
+                        <p style={{ marginTop: '0.5rem', color: '#666' }}> Click a row to auto-fill the form.</p>
                     </details>
                 </div>
             </div>
