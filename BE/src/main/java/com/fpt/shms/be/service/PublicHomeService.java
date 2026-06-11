@@ -1,22 +1,11 @@
 package com.fpt.shms.be.service;
 
-//import com.fpt.shms.be.dto.AnnouncementDTO;
-//import com.fpt.shms.be.dto.ContestDTO;
 import com.fpt.shms.be.dto.PublicHomeResponse;
-//import com.fpt.shms.be.dto.TrackDTO;
-//import com.fpt.shms.be.model.Contest;
-//import com.fpt.shms.be.repository.AnnouncementRepository;
-//import com.fpt.shms.be.repository.CategoryRepository;
-//import com.fpt.shms.be.repository.ContestRepository;
-//import com.fpt.shms.be.repository.RankingResultRepository;
-//import com.fpt.shms.be.repository.RoundRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Business logic for the public home page data aggregation.

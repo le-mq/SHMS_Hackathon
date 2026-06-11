@@ -29,7 +29,6 @@ public class EmailService {
             log.info("Sent verification OTP to: {}", toEmail);
         } catch (Exception e) {
             log.error("Failed to send email to {}", toEmail, e);
-            // We log the error but don't strictly fail the registration in dev mode
         }
     }
 }

@@ -10,8 +10,6 @@ public class UniversityDto {
     @NotBlank(message = "Institution name is required")
     private String name;
 
-
-
     private String emailRegex;
 
     @NotBlank(message = "Student Code Regex is required")

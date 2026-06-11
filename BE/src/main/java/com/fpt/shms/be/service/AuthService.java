@@ -59,7 +59,7 @@ public class AuthService {
             throw new IllegalArgumentException("Account is not active. Current status: " + user.getStatus());
         }
 
-        // Dynamic Role Context Matching without request parameter
+
         java.util.List<String> userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(java.util.stream.Collectors.toList());
@@ -96,43 +96,6 @@ public class AuthService {
         return result;
     }
 
-    @Transactional
-    public java.util.Map<String, Object> switchRole(String currentToken, String targetRole) {
-        String username = jwtUtils.extractUsername(currentToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        java.util.List<String> userRoles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(java.util.stream.Collectors.toList());
-
-        boolean hasRole = false;
-        String mappedRole = targetRole.toUpperCase();
-
-        if (userRoles.contains(mappedRole)) {
-            hasRole = true;
-        } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
-            hasRole = true;
-        }
-
-        if (!hasRole) {
-            throw new IllegalArgumentException("User does not have the requested role: " + targetRole);
-        }
-
-        String token = jwtUtils.generateToken(user.getUsername(), mappedRole);
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        result.put("token", token);
-        result.put("role", mappedRole);
-        result.put("allRoles", userRoles);
-        result.put("username", user.getUsername());
-
-        studentRepository.findByUser(user).ifPresent(s -> {
-            result.put("fullName", s.getFullName());
-            result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
-        });
-
-        return result;
-    }
 
     @Transactional
     public String register(RegisterRequest request) {
@@ -218,7 +181,7 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())
                 .fullName(request.getFullName())
-                .password(request.getPassword()) // Note: Should be encoded with BCrypt in a real app
+                .password(request.getPassword())
                 .roles(new java.util.HashSet<>(java.util.Collections.singletonList(teamMemberRole)))
                 .status(User.UserStatus.PENDING)
                 .isEmailVerified(false)
@@ -234,13 +197,13 @@ public class AuthService {
                 .user(user)
                 .build();
 
-        studentRepository.save(student); // Saves both because of CascadeType.ALL on User
+        studentRepository.save(student);
 
         // Generate OTP and send email
         String otp = String.format("%06d", new Random().nextInt(999999));
         VerificationToken token = VerificationToken.builder()
                 .token(otp)
-                .expiryDate(LocalDateTime.now().plusMinutes(3)) // 3 minutes expiration
+                .expiryDate(LocalDateTime.now().plusMinutes(3))
                 .user(user)
                 .build();
         tokenRepository.save(token);
@@ -270,12 +233,11 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP token");
         }
 
-        // Mark Email as Verified and activate the account
+
         user.setIsEmailVerified(true);
         user.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(user);
 
-        // Remove token
         tokenRepository.deleteByUser(user);
 
         return "Email verified successfully. Account activated.";
