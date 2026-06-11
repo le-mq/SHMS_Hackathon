@@ -11,28 +11,28 @@ const MOCK_DATA = {
         {
             id: 1, name: 'Innovation Sprint', season: 'SPRING', year: 2026,
             registrationStart: '2026-02-01', registrationEnd: '2026-03-15',
-            competitionStart:  '2026-03-20', competitionEnd:  '2026-04-10',
+            competitionStart: '2026-03-20', competitionEnd: '2026-04-10',
             status: 'CLOSED', description: 'Build innovative solutions to real-world problems.',
         },
         {
             id: 2, name: 'The Grand Challenge', season: 'SUMMER', year: 2026,
             registrationStart: '2026-03-01', registrationEnd: '2026-03-15',
-            competitionStart:  '2026-04-20', competitionEnd:  '2026-08-10',
+            competitionStart: '2026-04-20', competitionEnd: '2026-08-10',
             status: 'ACTIVE', description: 'The flagship summer hackathon – push boundaries.',
         },
         {
             id: 3, name: 'Enterprise Architect', season: 'FALL', year: 2026,
             registrationStart: '2026-10-01', registrationEnd: '2026-11-15',
-            competitionStart:  '2026-11-20', competitionEnd:  '2026-12-10',
+            competitionStart: '2026-11-20', competitionEnd: '2026-12-10',
             status: 'UPCOMING', description: 'Design scalable enterprise-grade systems.',
         },
     ],
     tracks: [
-        { id: 1, name: 'AI & Machine Learning',      category: 'Technology',        status: 'OPEN'   },
-        { id: 2, name: 'FinTech Solutions',           category: 'Banking & Finance', status: 'OPEN'   },
-        { id: 3, name: 'Blockchain for Governance',   category: 'Cryptography',      status: 'SOON'   },
-        { id: 4, name: 'Sustainable Green-Tech',      category: 'Environment',       status: 'OPEN'   },
-        { id: 5, name: 'Mobile App Innovation',       category: 'General Software',  status: 'OPEN'   },
+        { id: 1, name: 'AI & Machine Learning', category: 'Technology', status: 'OPEN' },
+        { id: 2, name: 'FinTech Solutions', category: 'Banking & Finance', status: 'OPEN' },
+        { id: 3, name: 'Blockchain for Governance', category: 'Cryptography', status: 'SOON' },
+        { id: 4, name: 'Sustainable Green-Tech', category: 'Environment', status: 'OPEN' },
+        { id: 5, name: 'Mobile App Innovation', category: 'General Software', status: 'OPEN' },
     ],
     announcements: [
         {
@@ -88,9 +88,9 @@ function ContestCard({ contest, onSelectContest }) {
     return (
         <div className="ph-contest-card">
             <div className="ph-contest-card-header">
-        <span className={`ph-season-badge ph-season-${season}`}>
-          {season} {year}
-        </span>
+                <span className={`ph-season-badge ph-season-${season}`}>
+                    {season} {year}
+                </span>
             </div>
             <h3>{name}</h3>
             <div className="ph-contest-dates">
@@ -105,7 +105,7 @@ function ContestCard({ contest, onSelectContest }) {
             </div>
 
             {!isUpcoming && (
-                <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}> {/*đã sửa title*/}
+                <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}>
                     <div className="ph-progress-bar" style={{ width: `${pct}%` }} />
                 </div>
             )}
@@ -115,7 +115,7 @@ function ContestCard({ contest, onSelectContest }) {
                     <button className="ph-btn-card ph-btn-card-closed" disabled>
                         Contest Closed
                     </button>
-                ) : ( <button className="ph-btn-card" onClick={() => onSelectContest(contest)}>Details</button> )}
+                ) : (<button className="ph-btn-card" onClick={() => onSelectContest(contest)}>Details</button>)}
             </div>
         </div>
     );
@@ -146,7 +146,7 @@ export default function PublicHome() {
                     </div>
                     <div className="ph-hero-image">
                         <img src="https://t3.ftcdn.net/jpg/03/27/84/86/360_F_327848677_rKdWq48QDo8apoN6kZlWa241HRlw5aWn.jpg"
-                             alt="Hackathon contest image" />
+                            alt="Hackathon contest image" />
                     </div>
                 </div>
             </section>

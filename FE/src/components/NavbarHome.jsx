@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './NavbarHome.css';
 
 export default function NavbarHome() {
@@ -12,8 +12,8 @@ export default function NavbarHome() {
                     <li><Link to="/leaderboard">Leaderboard</Link></li>
                 </ul>
                 <div className="ph-nav-actions">
-                    <Link to="/login" className="ph-btn-ghost">Login</Link>
-                    <Link to="/register" className="ph-btn-primary">Register</Link>
+                    <Link to="/login"><button className="ph-btn-ghost">Login</button></Link>
+                    <Link to="/register"><button className="ph-btn-primary">Register</button></Link>
                 </div>
             </div>
         </nav>
