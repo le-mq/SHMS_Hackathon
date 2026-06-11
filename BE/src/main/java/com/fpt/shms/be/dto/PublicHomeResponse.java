@@ -1,7 +1,6 @@
 package com.fpt.shms.be.dto;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Aggregated response payload for GET /api/v1/public/home.

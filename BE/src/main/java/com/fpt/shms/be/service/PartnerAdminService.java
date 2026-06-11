@@ -1,17 +1,11 @@
 package com.fpt.shms.be.service;
 
 import com.fpt.shms.be.dto.UniversityDto;
-import com.fpt.shms.be.model.University;
 import com.fpt.shms.be.repository.UniversityRepository;
-//import com.fpt.shms.be.model.ContestUniversity;
-//import com.fpt.shms.be.model.Contest;
-//import com.fpt.shms.be.repository.ContestUniversityRepository;
-//import com.fpt.shms.be.repository.ContestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import com.fpt.shms.be.dto.StudentVerificationDataDto;
