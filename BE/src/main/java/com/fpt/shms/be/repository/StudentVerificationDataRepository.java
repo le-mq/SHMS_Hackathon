@@ -1,0 +1,16 @@
+package com.fpt.shms.be.repository;
+
+import com.fpt.shms.be.model.StudentVerificationData;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface StudentVerificationDataRepository extends JpaRepository<StudentVerificationData, Long> {
+    Optional<StudentVerificationData> findByMssv(String mssv);
+
+    @Query("select sv from StudentVerificationData sv where sv.university.name = :university")
+    java.util.List<StudentVerificationData> findByUniversity(String university);
+}
