@@ -5,6 +5,7 @@ import PublicHome from './components/PublicHome'
 import Register from './components/Register'
 import VerifyEmail from './components/VerifyEmail'
 import Login from './components/Login'
+import StudentDashboard from './components/StudentDashboard'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
       </Routes>
       <Footer />
     </Router>
