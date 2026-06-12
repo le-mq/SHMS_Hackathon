@@ -30,7 +30,7 @@ GO
 CREATE TABLE [Role] (
                         role_id BIGINT IDENTITY(1,1) NOT NULL,
     role_name NVARCHAR(50) NOT NULL,
-    description TEXT NULL,
+    description NVARCHAR(255) NULL,
     CONSTRAINT pk_role PRIMARY KEY (role_id),
     CONSTRAINT uq_role_name UNIQUE (role_name)
     );
@@ -402,4 +402,120 @@ CREATE TABLE RankingResult (
                                CONSTRAINT fk_rr_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
                                CONSTRAINT fk_rr_coordinator FOREIGN KEY (user_id) REFERENCES Coordinator(user_id)
 );
+GO
+
+INSERT INTO University (university_name, university_code, student_code_regex, email_regex, status)
+VALUES
+(
+    N'Đại học FPT',
+    'FPT',
+    '^[S|C][A-Z][0-9]{6}$',
+    '^.*@fpt\.edu\.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Nông Lâm TP.HCM',
+    'HCMUAF',
+    '^[0-9]{8}$',
+    '^[0-9]{8}@st.hcmuaf.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Bách Khoa TP.HCM',
+    'HCMUT',
+    '^[0-9]{7}$',
+    '^[a-zA-Z0-9.-]+@hcmut.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Khoa học Tự nhiên TP.HCM',
+    'HCMUS',
+    '^[0-9]{8}$',
+    '^[0-9]{8}@student.hcmus.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Ngoại ngữ - Tin học TP.HCM',
+    'HUFLIT',
+    '^[0-9]{2}[A-Z]{2}[0-9]{6}$',
+    '^[0-9]{2}[A-Z]{2}[0-9]{6}@st.huflit.edu.vn$',
+    'ACTIVE'
+);
+GO
+
+INSERT INTO [Role] (role_name, description) VALUES ('ADMIN', N'Quản trị viên hệ thống');
+INSERT INTO [Role] (role_name, description) VALUES ('STUDENT', N'Sinh viên tham gia Hackathon');
+INSERT INTO [Role] (role_name, description) VALUES ('JUDGE', N'Ban giám khảo chấm thi');
+INSERT INTO [Role] (role_name, description) VALUES ('MENTOR', N'Người hướng dẫn dự án');
+GO
+
+INSERT INTO [User] (username, email, password, full_name, email_verified, status) VALUES
+('admin1', 'admin1@gmail.com', 'Admin1234', N'Admin', 1, 'ACTIVE'),
+('nhatmy12', 'nhatmysocutedl@gmail.com', 'nhatmy12', N'Nguyễn Trần Nhật Mỹ', 1, 'ACTIVE'),
+('tuanhne', 'vuthituanh123@gmail.com', 'tuanh123', N'Vũ Thị Tú Anh', 1, 'ACTIVE'),
+('haiyen90', 'huongtuongyen1982@gmail.com', 'haiyen90', N'Nguyễn Thị Hải Yến', 1, 'ACTIVE'),
+('xuanbach2', 'vuxuanbach2508@gmail.com', 'bach2508', N'Vũ Xuân Bách', 1, 'ACTIVE'),
+('quangne', 'nguyendangduyquang@gmail.com', 'Quang5123', N'Nguyễn Đặng Duy Quang', 1, 'ACTIVE'),
+('tuan789', 'buianhtuan123@gmail.com', 'tuan3456', N'Bùi Anh Tuấn', 1, 'ACTIVE'),
+('hien23', 'thuhien456@gmail.com', 'hien1010', N'Trần Thị Thu Hiền', 1, 'ACTIVE'),
+('phuonguyen45', 'phuonguyen@gmail.com', 'uyen4567', N'Lê Ngọc Phương Uyên', 1, 'ACTIVE'),
+('trinhnguyen1', 'dntotrinh@gmail.com', 'Totrinh56', N'Dương Nguyễn Tố Trinh', 1, 'ACTIVE'),
+('nhanha12', 'phannha@gmail.com', 'nhasi1000', N'Phan Nha', 1, 'ACTIVE'),
+('judge1', 'judge1@gmail.com', 'Judge1123', N'Giám Khảo 1', 1, 'ACTIVE'),
+('mentor1', 'mentor1@gamil.com', 'Mentor1234', N'Mentor 1', 1, 'ACTIVE'),
+('admin_mentor', 'admin_mentor@fpt.edu.vn', 'AdminMentor123', N'Người dùng 2 Role', 1, 'ACTIVE');
+GO
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'admin1' AND r.role_name = 'ADMIN';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username IN ('nhatmy12', 'tuanhne', 'haiyen90', 'xuanbach2', 'quangne', 'tuan789', 'hien23', 'phuonguyen45', 'trinhnguyen1', 'nhanha12')
+  AND r.role_name = 'STUDENT';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'judge1' AND r.role_name = 'JUDGE';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'mentor1' AND r.role_name = 'MENTOR';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'admin_mentor' AND r.role_name IN ('ADMIN', 'MENTOR');
+GO
+
+DECLARE @UniId BIGINT = (SELECT TOP 1 university_id FROM University WHERE university_code = 'FPT');
+IF @UniId IS NOT NULL
+BEGIN
+INSERT INTO StudentVerificationData (university_id, student_code, email, full_name, major, is_current_student)
+VALUES
+    (@UniId, 'SE185041', 'nhatmysocutedl@gmail.com', N'Nguyễn Trần Nhật Mỹ', 'SE', 1),
+    (@UniId, 'SE185042', 'vuthituanh123@gmail.com', N'Vũ Thị Tú Anh', 'SE', 1),
+    (@UniId, 'SE185043', 'huongtuongyen1982@gmail.com', N'Nguyễn Thị Hải Yến', 'SE', 1),
+    (@UniId, 'SE185044', 'vuxuanbach2508@gmail.com', N'Vũ Xuân Bách', 'SE', 1),
+    (@UniId, 'SE185045', 'nguyendangduyquang@gmail.com', N'Nguyễn Đặng Duy Quang', 'SE', 1),
+    (@UniId, 'SE185046', 'buianhtuan123@gmail.com', N'Bùi Anh Tuấn', 'SE', 1),
+    (@UniId, 'SE185047', 'thuhien456@gmail.com', N'Trần Thị Thu Hiền', 'SE', 1),
+    (@UniId, 'SE185048', 'phuonguyen@gmail.com', N'Lê Ngọc Phương Uyên', 'SE', 1),
+    (@UniId, 'SE185049', 'dntotrinh@gmail.com', N'Dương Nguyễn Tố Trinh', 'SE', 1),
+    (@UniId, 'SE185050', 'phannha@gmail.com', N'Phan Nha', 'SE', 1);
+
+INSERT INTO Student (user_id, university_id, student_code, major, student_email, status)
+SELECT u.user_id, @UniId, v.student_code, v.major, u.email, 'ACTIVE'
+FROM [User] u JOIN StudentVerificationData v ON u.email = v.email
+WHERE u.email IN ('nhatmysocutedl@gmail.com', 'vuthituanh123@gmail.com', 'huongtuongyen1982@gmail.com',
+    'vuxuanbach2508@gmail.com', 'nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com',
+    'thuhien456@gmail.com', 'phuonguyen@gmail.com', 'dntotrinh@gmail.com', 'phannha@gmail.com');
+END
+GO
+
+INSERT INTO Judge (user_id, expertise, status)
+SELECT user_id, 'Software Engineering', 'ACTIVE' FROM [User] WHERE username = 'judge1';
+
+INSERT INTO Mentor (user_id, status)
+SELECT user_id, 'ACTIVE' FROM [User] WHERE username IN ('mentor1', 'admin_mentor');
 GO
