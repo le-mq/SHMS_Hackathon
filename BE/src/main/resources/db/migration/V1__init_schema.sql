@@ -30,7 +30,7 @@ GO
 CREATE TABLE [Role] (
                         role_id BIGINT IDENTITY(1,1) NOT NULL,
     role_name NVARCHAR(50) NOT NULL,
-    description TEXT NULL,
+    description NVARCHAR(255) NULL,
     CONSTRAINT pk_role PRIMARY KEY (role_id),
     CONSTRAINT uq_role_name UNIQUE (role_name)
     );
@@ -401,6 +401,45 @@ CREATE TABLE RankingResult (
                                CONSTRAINT fk_rr_category FOREIGN KEY (category_id) REFERENCES Category(category_id),
                                CONSTRAINT fk_rr_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
                                CONSTRAINT fk_rr_coordinator FOREIGN KEY (user_id) REFERENCES Coordinator(user_id)
+);
+GO
+
+INSERT INTO University (university_name, university_code, student_code_regex, email_regex, status)
+VALUES
+(
+    N'Đại học FPT',
+    'FPT',
+    '^[S|C][A-Z][0-9]{6}$',
+    '^.*@fpt\.edu\.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Nông Lâm TP.HCM',
+    'HCMUAF',
+    '^[0-9]{8}$',
+    '^[0-9]{8}@st.hcmuaf.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Bách Khoa TP.HCM',
+    'HCMUT',
+    '^[0-9]{7}$',
+    '^[a-zA-Z0-9.-]+@hcmut.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Khoa học Tự nhiên TP.HCM',
+    'HCMUS',
+    '^[0-9]{8}$',
+    '^[0-9]{8}@student.hcmus.edu.vn$',
+    'ACTIVE'
+),
+(
+    N'Đại học Ngoại ngữ - Tin học TP.HCM',
+    'HUFLIT',
+    '^[0-9]{2}[A-Z]{2}[0-9]{6}$',
+    '^[0-9]{2}[A-Z]{2}[0-9]{6}@st.huflit.edu.vn$',
+    'ACTIVE'
 );
 GO
 
