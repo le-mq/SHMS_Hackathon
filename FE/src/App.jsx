@@ -6,7 +6,7 @@ import Register from './components/Register'
 import VerifyEmail from './components/VerifyEmail'
 import Login from './components/Login'
 import StudentDashboard from './components/StudentDashboard'
-
+import AdminProfile from './components/AdminProfile'
 function App() {
   return (
     <Router>
@@ -16,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
       </Routes>
       <Footer />
     </Router>
