@@ -1,0 +1,116 @@
+{
+  "users": {
+    "data": [
+      {
+        "id": "U001",
+        "username": "admin123",
+        "email": "admin@shms.com",
+        "role": "Admin",
+        "fullName": "Nguyễn Văn Admin",
+        "avatar": "https://via.placeholder.com/150",
+        "status": "Active"
+      },
+      {
+        "id": "U002",
+        "username": "student1",
+        "email": "student1@fpt.edu.vn",
+        "role": "Student",
+        "fullName": "Trần Thị Sinh Viên",
+        "university": "FPT University",
+        "status": "Active"
+      },
+      {
+        "id": "U003",
+        "username": "judge1",
+        "email": "judge@tech.com",
+        "role": "Judge",
+        "fullName": "Lê Giám Khảo",
+        "expertise": "AI, Web Development",
+        "status": "Active"
+      }
+    ]
+  },
+
+  "contests": {
+    "data": [
+      {
+        "id": "C001", "name": "FPT Hackathon 2025", "season": "SPRING",
+        "year": "2025", "status": "ACTIVE",
+        "registrationStart": "2025-03-01", "registrationEnd": "2025-03-15",
+        "developmentStart":  "2025-03-18", "developmentEnd":  "2025-03-31",
+        "description": "Cuộc thi lập trình lớn nhất năm 2025 dành cho sinh viên.",
+        "categories": ["Web", "Mobile"],
+        "rounds": [
+          {"phaseName": "Idea Submission", "submissionOpen": "2025-02-01", "submissionDeadline": "2025-02-20" },
+          {"phaseName": "Final Sprint", "submissionOpen": "2025-03-01", "submissionDeadline": "2025-03-15" }
+        ]
+      },
+      {
+        "id": "C002", "name": "Techfest Spring", "season": "SUMMER",
+        "year":"2026", "status": "UPCOMING",
+        "registrationStart": "2026-07-01", "registrationEnd": "2026-07-15",
+        "developmentStart":  "2026-07-18", "developmentEnd":  "2026-07-31",
+        "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
+        "categories": ["Web", "Mobile"],
+        "rounds": [
+          {"phaseName": "Idea Submission", "submissionOpen": "2026-02-01", "submissionDeadline": "2026-02-20" },
+          {"phaseName": "Final Sprint", "submissionOpen": "2026-03-01", "submissionDeadline": "2026-03-15" }
+        ]
+      }
+    ]
+  },
+
+  "teams": {
+    "data": [
+      {
+        "id": "T001",
+        "contestId": "C001",
+        "name": "CodeCrafters",
+        "leaderId": "U002",
+        "members": ["U002", "U004", "U005"],
+        "projectTitle": "Smart Hackathon Management",
+        "status": "Approved"
+      }
+    ]
+  },
+
+  "leaderboard": {
+    "_description": "Dùng để test trang Bảng xếp hạng (Leaderboard) public và private, test hiển thị điểm số, xếp hạng theo Track.",
+    "data": {
+      "contestId": "C001",
+      "results": [
+        {
+          "rank": 1,
+          "teamId": "T001",
+          "teamName": "CodeCrafters",
+          "track": "Web",
+          "totalScore": 95.5,
+          "prizes": ["First Prize"]
+        },
+        {
+          "rank": 2,
+          "teamId": "T002",
+          "teamName": "BugHunters",
+          "track": "Web",
+          "totalScore": 89.0,
+          "prizes": ["Second Prize"]
+        }
+      ]
+    }
+  },
+
+  "rubrics": {
+    "_description": "Dùng để test trang Quản lý Rubric (Rubric Management) của Admin/Coordinator và màn hình Chấm điểm (Grading) của Judge.",
+    "data": [
+      {
+        "id": "R001",
+        "name": "Standard Web App Rubric",
+        "criteria": [
+          { "id": "CR1", "name": "Innovation", "weight": 30 },
+          { "id": "CR2", "name": "Technical Complexity", "weight": 40 },
+          { "id": "CR3", "name": "UI/UX", "weight": 30 }
+        ]
+      }
+    ]
+  }
+}
