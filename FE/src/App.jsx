@@ -7,6 +7,7 @@ import VerifyEmail from './components/VerifyEmail'
 import Login from './components/Login'
 import StudentDashboard from './components/StudentDashboard'
 import StudentProfile from './components/StudentProfile'
+import AdminProfile from './components/AdminProfile'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
       </Routes>
       <Footer />
     </Router>
