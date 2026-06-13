@@ -39,25 +39,25 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger UI (dev / staging only)
+                        // Swagger UI
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        // Public home endpoint — no token required
+                        // Public home endpoint
                         .requestMatchers("/api/v1/public/**").permitAll()
                         // Auth endpoints (register, login)
                         .requestMatchers("/api/v1/auth/**", "/error").permitAll()
-                        // Student endpoints (controller handles JWT validation manually)
+                        // Student endpoints
                         .requestMatchers("/api/v1/student/**").permitAll()
                         // Admin endpoints
                         .requestMatchers("/api/v1/admin/**").permitAll()
-                        // Judge endpoints
-                        .requestMatchers("/api/v1/judge/**").permitAll()
-                        // Mentor endpoints
-                        .requestMatchers("/api/v1/mentor/**").permitAll()
-                        // All other API calls require authentication
+//                        // Judge endpoints
+//                        .requestMatchers("/api/v1/judge/**").permitAll()
+//                        // Mentor endpoints
+//                        .requestMatchers("/api/v1/mentor/**").permitAll()
+//                        // All other API calls require authentication
                         .anyRequest().authenticated()
                 );
 
