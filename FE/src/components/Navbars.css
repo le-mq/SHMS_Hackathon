@@ -1,6 +1,10 @@
 /* Shared styling for all Navbars across the application */
 
-.admin-nav, .student-nav, .evaluator-nav, .mentor-nav, .public-nav {
+.admin-nav,
+.student-nav,
+.evaluator-nav,
+.mentor-nav,
+.public-nav {
     background-color: #0f172a;
     color: white;
     padding: 0 40px;
@@ -14,7 +18,11 @@
     z-index: 2000;
 }
 
-.admin-nav-brand, .student-nav-brand, .evaluator-nav-brand, .mentor-nav-brand, .public-nav-brand {
+.admin-nav-brand,
+.student-nav-brand,
+.evaluator-nav-brand,
+.mentor-nav-brand,
+.public-nav-brand {
     font-weight: 700;
     font-size: 16px;
     letter-spacing: 0.5px;
@@ -22,7 +30,19 @@
     justify-self: start;
 }
 
-.admin-nav-links, .student-nav-links, .evaluator-nav-links, .mentor-nav-links, .public-nav-links {
+.admin-nav-brand span,
+.student-nav-brand span,
+.evaluator-nav-brand span,
+.mentor-nav-brand span,
+.public-nav-brand span {
+    color: var(--accent-2);
+}
+
+.admin-nav-links,
+.student-nav-links,
+.evaluator-nav-links,
+.mentor-nav-links,
+.public-nav-links {
     display: flex;
     gap: 32px;
     align-items: center;
@@ -31,7 +51,11 @@
     padding: 0;
 }
 
-.admin-nav-link, .student-nav-link, .evaluator-nav-link, .mentor-nav-link, .public-nav-links a {
+.admin-nav-link,
+.student-nav-link,
+.evaluator-nav-link,
+.mentor-nav-link,
+.public-nav-links a {
     font-size: 13px;
     font-weight: 600;
     color: #94a3b8;
@@ -45,15 +69,27 @@
     box-sizing: border-box;
 }
 
-.admin-nav-link:hover, .student-nav-link:hover, .evaluator-nav-link:hover, .mentor-nav-link:hover, .public-nav-links a:hover {
+.admin-nav-link:hover,
+.student-nav-link:hover,
+.evaluator-nav-link:hover,
+.mentor-nav-link:hover,
+.public-nav-links a:hover {
     color: white;
 }
 
-.admin-nav-link.active, .student-nav-link.active, .evaluator-nav-link.active, .mentor-nav-link.active, .public-nav-links a.active {
+.admin-nav-link.active,
+.student-nav-link.active,
+.evaluator-nav-link.active,
+.mentor-nav-link.active,
+.public-nav-links a.active {
     color: white;
 }
 
-.admin-nav-link.active::after, .student-nav-link.active::after, .evaluator-nav-link.active::after, .mentor-nav-link.active::after, .public-nav-links a.active::after {
+.admin-nav-link.active::after,
+.student-nav-link.active::after,
+.evaluator-nav-link.active::after,
+.mentor-nav-link.active::after,
+.public-nav-links a.active::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -63,7 +99,10 @@
     background-color: white;
 }
 
-.admin-nav-user, .student-nav-user, .evaluator-nav-user, .mentor-nav-user {
+.admin-nav-user,
+.student-nav-user,
+.evaluator-nav-user,
+.mentor-nav-user {
     display: flex;
     align-items: center;
     gap: 24px;
@@ -82,9 +121,11 @@
     color: #94a3b8;
     transition: color 0.2s;
 }
+
 .nav-notification:hover {
     color: white;
 }
+
 .nav-notif-badge {
     position: absolute;
     top: -4px;
@@ -111,6 +152,7 @@
     gap: 8px;
     cursor: pointer;
 }
+
 .nav-avatar {
     width: 28px;
     height: 28px;
@@ -135,6 +177,7 @@
     z-index: 1000;
     border: 1px solid #e2e8f0;
 }
+
 .nav-dropdown-item {
     padding: 12px 16px;
     font-size: 13px;
@@ -146,9 +189,11 @@
     gap: 8px;
     transition: background-color 0.2s;
 }
+
 .nav-dropdown-item:hover {
     background-color: #f1f5f9;
 }
+
 .nav-dropdown-item.logout {
     color: #ef4444;
     border-top: 1px solid #f1f5f9;
