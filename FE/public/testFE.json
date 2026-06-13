@@ -75,28 +75,18 @@
   },
 
   "leaderboard": {
-    "_description": "Dùng để test trang Bảng xếp hạng (Leaderboard) public và private, test hiển thị điểm số, xếp hạng theo Track.",
-    "data": {
-      "contestId": "C001",
-      "results": [
-        {
-          "rank": 1,
-          "teamId": "T001",
-          "teamName": "CodeCrafters",
-          "track": "Web",
-          "totalScore": 95.5,
-          "prizes": ["First Prize"]
-        },
-        {
-          "rank": 2,
-          "teamId": "T002",
-          "teamName": "BugHunters",
-          "track": "Web",
-          "totalScore": 89.0,
-          "prizes": ["Second Prize"]
-        }
-      ]
-    }
+    "data": [
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "CodeCrafters", "rank": 1, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 95.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "BugHunters", "rank": 2, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 89.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "DevRangers", "rank": 3, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 82.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "ByteMe", "rank": 4, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 78.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "TechTitans", "rank": 5, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 72.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "Innovators", "rank": 1, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 92.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "PixelPerfect", "rank": 2, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 88.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "AppMasters", "rank": 3, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 84.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "CodeNinjas", "rank": 4, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 80.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2025", "teamName": "StackOverflowed", "rank": 5, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 75.5 }
+    ]
   },
 
   "rubrics": {
