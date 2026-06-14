@@ -8,8 +8,8 @@ import Login from './components/Login'
 import StudentDashboard from './components/StudentDashboard'
 import StudentProfile from './components/StudentProfile'
 import AdminProfile from './components/AdminProfile'
+import RankingsConsole from './components/RankingsConsole'
 import Leaderboard from './components/LeaderboardDashboard.jsx'
-
 
 function App() {
   return (
@@ -22,6 +22,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
+        <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
       <Footer />
