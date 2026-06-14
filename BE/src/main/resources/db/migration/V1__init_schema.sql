@@ -478,6 +478,18 @@ WHERE u.username = 'mentor1' AND r.role_name = 'MENTOR';
 
 INSERT INTO UserRole (user_id, role_id, is_active)
 SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'admin2' AND r.role_name = 'ADMIN';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'judge2' AND r.role_name = 'JUDGE';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
+WHERE u.username = 'mentor2' AND r.role_name = 'MENTOR';
+
+INSERT INTO UserRole (user_id, role_id, is_active)
+SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
 WHERE u.username = 'judge_mentor' AND r.role_name IN ('JUDGE', 'MENTOR');
 GO
 
