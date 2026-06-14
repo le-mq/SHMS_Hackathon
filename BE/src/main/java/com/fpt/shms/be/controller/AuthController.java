@@ -73,5 +73,31 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/switch-role")
+    @Operation(summary = "Switch Role Context", description = "Generates a new token for a different role context if the user has multiple roles.")
+    public ResponseEntity<?> switchRole(jakarta.servlet.http.HttpServletRequest request, @RequestBody Map<String, String> payload) {
+        try {
+            String header = request.getHeader("Authorization");
+            String token = null;
+            if (header != null && header.startsWith("Bearer ")) {
+                token = header.substring(7);
+            }
+            if (token == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid token"));
+            }
+
+            String targetRole = payload.get("role");
+            if (targetRole == null || targetRole.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Target role is required"));
+            }
+
+            java.util.Map<String, Object> result = authService.switchRole(token, targetRole);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
 
 }

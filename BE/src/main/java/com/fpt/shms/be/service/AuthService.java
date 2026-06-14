@@ -273,4 +273,42 @@ public class AuthService {
         }
         return email.substring(email.indexOf('@') + 1);
     }
+
+    @Transactional
+    public java.util.Map<String, Object> switchRole(String currentToken, String targetRole) {
+        String username = jwtUtils.extractUsername(currentToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        java.util.List<String> userRoles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(java.util.stream.Collectors.toList());
+
+        boolean hasRole = false;
+        String mappedRole = targetRole.toUpperCase();
+
+        if (userRoles.contains(mappedRole)) {
+            hasRole = true;
+        } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
+            hasRole = true;
+        }
+
+        if (!hasRole) {
+            throw new IllegalArgumentException("User does not have the requested role: " + targetRole);
+        }
+
+        String token = jwtUtils.generateToken(user.getUsername(), mappedRole);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("token", token);
+        result.put("role", mappedRole);
+        result.put("allRoles", userRoles);
+        result.put("username", user.getUsername());
+
+        studentRepository.findByUser(user).ifPresent(s -> {
+            result.put("fullName", s.getFullName());
+            result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
+        });
+
+        return result;
+    }
 }

@@ -57,38 +57,4 @@ public class Team {
             this.createdAt = LocalDateTime.now();
         }
     }
-
-//    @Transient
-//    public Category getCategory() {
-//        return registrations.stream()
-//                .filter(r -> r.getCategory() != null)
-//                .max(Comparator.comparing(
-//                        TeamRegistration::getSubmittedAt,
-//                        Comparator.nullsFirst(Comparator.naturalOrder())
-//                ))
-//                .map(TeamRegistration::getCategory)
-//                .orElse(null);
-//    }
-
-//    public void setCategory(Category category) {
-//        if (category == null) {
-//            registrations.clear();
-//            return;
-//        }
-//        TeamRegistration registration = registrations.stream().findFirst().orElse(null);
-//        if (registration == null) {
-//            registration = TeamRegistration.builder()
-//                    .team(this)
-//                    .status(this.status)
-//                    .submittedAt(LocalDateTime.now())
-//                    .build();
-//            registrations.add(registration);
-//        }
-//        registration.setCategory(category);
-//    }
-//
-//    @Transient
-//    public User getMentorUser() {
-//        return mentor != null ? mentor.getUser() : null;
-//    }
 }
