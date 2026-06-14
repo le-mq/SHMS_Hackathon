@@ -51,9 +51,7 @@ const EvaluatorDashboard = () => {
     return (
         <div className="evaluator-container">
             <NavbarJudge/>
-            <div style={{padding: '0 32px 32px', maxWidth: 1200, margin: '0 auto'}}>
-                <LatestAnnouncements/>
-            </div>
+            <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
             <div className="evaluator-content">
                 <div className="evaluator-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                     <div><h1 className="evaluator-title">Evaluator Panel Dashboard</h1>
@@ -145,7 +143,7 @@ const EvaluatorDashboard = () => {
                                         <span className="team-name-txt">{team.teamName}</span>
                                     </div>
                                 </td>
-                                <td><span className="track-txt">{team.categoryName}</span></td>
+                                <td><span className="category-txt">{team.categoryName}</span></td>
                                 <td><span className="round-txt">{team.roundName}</span></td>
                                 <td>
                                         <span className={`status-pill ${['SUBMITTED', 'EVALUATED'].includes(team.submissionState?.toUpperCase()) ? 'pill-submitted' : 'pill-pending'}`}>
