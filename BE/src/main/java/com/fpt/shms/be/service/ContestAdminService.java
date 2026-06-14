@@ -6,20 +6,15 @@ import com.fpt.shms.be.model.ContestUniversity;
 import com.fpt.shms.be.model.Semester;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.model.Round;
-//import com.fpt.shms.be.model.Announcement;
 import com.fpt.shms.be.dto.CreateTrackRoundRequest;
 import com.fpt.shms.be.repository.ContestRepository;
 import com.fpt.shms.be.repository.ContestUniversityRepository;
 import com.fpt.shms.be.repository.SemesterRepository;
 import com.fpt.shms.be.repository.CategoryRepository;
 import com.fpt.shms.be.repository.RoundRepository;
-//import com.fpt.shms.be.repository.TeamRepository;
-import com.fpt.shms.be.model.Team;
 import com.fpt.shms.be.repository.UserRepository;
 import com.fpt.shms.be.repository.RoleRepository;
-//import com.fpt.shms.be.repository.AnnouncementRepository;
 import com.fpt.shms.be.repository.UniversityRepository;
-//import com.fpt.shms.be.dto.CreateAnnouncementRequest;
 import com.fpt.shms.be.model.User;
 import com.fpt.shms.be.model.Role;
 import com.fpt.shms.be.model.University;
@@ -44,8 +39,6 @@ public class ContestAdminService {
     private final RoundRepository roundRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-//    private final TeamRepository teamRepository;
-//    private final AnnouncementRepository announcementRepository;
     private final UniversityRepository universityRepository;
 
     public List<Contest> getAllContests() {

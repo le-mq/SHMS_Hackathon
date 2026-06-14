@@ -53,11 +53,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/student/**").permitAll()
                         // Admin endpoints
                         .requestMatchers("/api/v1/admin/**").permitAll()
-//                        // Judge endpoints
-//                        .requestMatchers("/api/v1/judge/**").permitAll()
-//                        // Mentor endpoints
-//                        .requestMatchers("/api/v1/mentor/**").permitAll()
-//                        // All other API calls require authentication
                         .anyRequest().authenticated()
                 );
 
