@@ -1,0 +1,128 @@
+{
+  "users": {
+    "data": [
+      {
+        "id": "1",
+        "username": "admin123",
+        "email": "admin@shms.com",
+        "role": "Admin",
+        "fullName": "Nguyễn Văn Admin",
+        "avatar": "https://via.placeholder.com/150",
+        "status": "Active"
+      },
+      {
+        "id": "2",
+        "username": "student1",
+        "email": "student1@fpt.edu.vn",
+        "role": "Student",
+        "fullName": "Trần Thị Sinh Viên",
+        "university": "FPT University",
+        "status": "Active"
+      },
+      {
+        "id": "3",
+        "username": "judge1",
+        "email": "judge@tech.com",
+        "role": "Judge",
+        "fullName": "Lê Giám Khảo",
+        "expertise": "AI, Web Development",
+        "status": "Active"
+      }
+    ]
+  },
+
+  "contests": {
+    "data": [
+      {
+        "id": "1", "name": "FPT Hackathon Summer", "season": "SUMMER",
+        "year": "2026", "status": "ACTIVE",
+        "registrationStart": "2026-06-01", "registrationEnd": "2026-06-15",
+        "competitionStart":  "2026-06-18", "competitionEnd":  "2026-06-30",
+        "description": "Cuộc thi lập trình lớn nhất năm 2025 dành cho sinh viên.",
+        "categories": ["Web", "Mobile"],
+        "rounds": [
+          {"phaseName": "Idea Submission", "submissionOpen": "2026-06-18", "submissionDeadline": "2026-06-20" },
+          {"phaseName": "Final Sprint", "submissionOpen": "2025-06-21", "submissionDeadline": "2025-06-30" }
+        ]
+      },
+      {
+        "id": "2", "name": "Techfest Fall", "season": "FALL",
+        "year":"2026", "status": "UPCOMING",
+        "registrationStart": "2026-07-01", "registrationEnd": "2026-07-15",
+        "competitionStart":  "2026-07-18", "competitionEnd":  "2026-07-31",
+        "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
+        "categories": ["Web", "Mobile"],
+        "rounds": [
+          {"phaseName": "Idea Submission", "submissionOpen": "2026-02-01", "submissionDeadline": "2026-02-20" },
+          {"phaseName": "Final Sprint", "submissionOpen": "2026-03-01", "submissionDeadline": "2026-03-15" }
+        ]
+      },
+      {
+        "id": "3", "name": "Techfest Spring", "season": "SPRING",
+        "year":"2025", "status": "CLOSED",
+        "registrationStart": "2025-03-01", "registrationEnd": "2025-03-15",
+        "competitionStart":  "2025-03-18", "competitionEnd":  "2025-03-31",
+        "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
+        "categories": ["Web", "Mobile"],
+        "rounds": [
+          {"phaseName": "Idea Submission", "submissionOpen": "2025-03-18", "submissionDeadline": "2025-03-20" },
+          {"phaseName": "Final Sprint", "submissionOpen": "2026-03-21", "submissionDeadline": "2025-03-31" }
+        ]
+      }
+    ]
+  },
+
+  "teams": {
+    "data": [
+      {
+        "id": "T001",
+        "contestId": "C001",
+        "name": "CodeCrafters",
+        "leaderId": "U002",
+        "members": ["U002", "U004", "U005"],
+        "projectTitle": "Smart Hackathon Management",
+        "status": "Approved"
+      }
+    ]
+  },
+
+  "leaderboard": {
+    "data": [
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "CodeCrafters", "rank": 1, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 95.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "BugHunters", "rank": 2, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 89.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "DevRangers", "rank": 3, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 82.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "ByteMe", "rank": 4, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 78.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "TechTitans", "rank": 5, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 72.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "Innovators", "rank": 1, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 92.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "PixelPerfect", "rank": 2, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 88.5 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "AppMasters", "rank": 3, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 84.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "CodeNinjas", "rank": 4, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 80.0 },
+      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "StackOverflowed", "rank": 5, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 70.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Coders", "rank": 1, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 92.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Hunters", "rank": 2, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 83.0 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Dev", "rank": 3, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 80.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Me", "rank": 4, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Titans", "rank": 5, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Innovators", "rank": 1, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 90.0 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Pixel", "rank": 3, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 82.5 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Masters", "rank": 2, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 84.0 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "CodeNinjas", "rank": 4, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 80.0 },
+      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "StackOverflowed", "rank": 5, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 75.5 }
+    ]
+  },
+
+  "rubrics": {
+    "_description": "Dùng để test trang Quản lý Rubric (Rubric Management) của Admin/Coordinator và màn hình Chấm điểm (Grading) của Judge.",
+    "data": [
+      {
+        "id": "1",
+        "name": "Standard Web App Rubric",
+        "criteria": [
+          { "id": "1", "name": "Innovation", "weight": 30 },
+          { "id": "2", "name": "Technical Complexity", "weight": 40 },
+          { "id": "3", "name": "UI/UX", "weight": 30 }
+        ]
+      }
+    ]
+  }
+}

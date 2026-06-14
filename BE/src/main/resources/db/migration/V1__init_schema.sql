@@ -602,3 +602,7 @@ GO
 INSERT INTO Coordinator (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin2';
 GO
+
+INSERT INTO Judge (user_id, expertise, status)
+SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
+GO
