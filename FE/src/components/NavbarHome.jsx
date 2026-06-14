@@ -6,7 +6,8 @@ export default function NavbarHome() {
     return (
         <nav className="ph-nav">
             <div className="ph-nav-inner">
-                <div className="ph-nav-brand">S-HMS | <span>SEAL Hackathon</span></div>
+                <div className="ph-nav-brand" onClick={() => navigate('/')}
+                     style={{ cursor: 'pointer' }}>S-HMS | <span>SEAL Hackathon</span></div>
                 <ul className="ph-nav-links">
                     <li><NavLink to="/">Home</NavLink></li>
                     <li><NavLink to="/leaderboard">Leaderboard</NavLink></li>
