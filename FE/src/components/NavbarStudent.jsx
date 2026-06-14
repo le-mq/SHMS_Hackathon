@@ -30,17 +30,9 @@ const NavbarStudent = () => {
     const [showAnnouncements, setShowAnnouncements] = useState(false);
     const notifs = useUnreadAnnouncements();
 
-    const isLeaderboard = location.hash === '#leaderboard';
-
     const handleNav = (path) => {
-        if (path === '#leaderboard') {
-            window.location.hash = 'leaderboard';
-        } else {
-            if (location.hash) window.location.hash = '';
-            navigate(path);
-        }
-    };
-
+    navigate(path);
+};
     return (
         <>
             <nav className="student-nav">

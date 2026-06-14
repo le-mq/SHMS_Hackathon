@@ -1,15 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import './NavbarHome.css';
 
 export default function NavbarHome() {
     return (
         <nav className="ph-nav">
             <div className="ph-nav-inner">
-                <div className="ph-nav-brand">S-HMS | <span>SEAL Hackathon</span></div>
+                <div className="ph-nav-brand" onClick={() => navigate('/')}
+                     style={{ cursor: 'pointer' }}>S-HMS | <span>SEAL Hackathon</span></div>
                 <ul className="ph-nav-links">
-                    <li><Link to="/" className="active">Home</Link></li>
-                    <li><Link to="/leaderboard">Leaderboard</Link></li>
+                    <li><NavLink to="/">Home</NavLink></li>
+                    <li><NavLink to="/leaderboard">Leaderboard</NavLink></li>
                 </ul>
                 <div className="ph-nav-actions">
                     <Link to="/login"><button className="ph-btn-ghost">Login</button></Link>

@@ -68,7 +68,6 @@ const Login = () => {
                     localStorage.removeItem('shms_fullname');
                 }
 
-                // điều hướng theo vai trò
                 const role = data.role || '';
                 const roleRoutes = {
                     ADMIN: '/admin/config',
@@ -93,13 +92,10 @@ const Login = () => {
                     <h1 className="login-title">Account Authentication</h1>
                     <p className="login-subtitle">Access your S-HMS administrative or participant portal</p>
                 </div>
-
                 <div className="login-card">
                     <h3>Sign In</h3>
                     <p>Enter your credentials to continue</p>
-
                     {error && <div className="alert alert-error">{error}</div>}
-
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <div className="form-group-header">
@@ -119,7 +115,6 @@ const Login = () => {
                                 />
                             </div>
                         </div>
-
                         <div className="form-group">
                             <div className="form-group-header">
                                 <label className="form-label">Password</label>
