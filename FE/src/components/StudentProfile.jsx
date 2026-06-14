@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
 
-import { studentProfileApi } from '../api/studentProfileApi';
+// import { studentProfileApi } from '../api/studentProfileApi';
 
 const StudentProfile = () => {
     const navigate = useNavigate();
