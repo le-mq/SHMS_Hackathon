@@ -70,7 +70,7 @@ const Login = () => {
 
                 const role = data.role || '';
                 const roleRoutes = {
-                    COORDINATOR: '/admin/config',
+                    ADMIN: '/admin/config',
                     JUDGE: '/judge/workspace',
                     MENTOR: '/mentor/workspace',
                     STUDENT: '/student/dashboard',

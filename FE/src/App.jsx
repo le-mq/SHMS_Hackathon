@@ -8,9 +8,10 @@ import StudentDashboard from './components/StudentDashboard'
 import StudentProfile from './components/StudentProfile'
 import AdminProfile from './components/AdminProfile'
 import RankingsConsole from './components/RankingsConsole'
-import Leaderboard from './components/LeaderboardDashboard.jsx'
-// import EvaluationWorkspace from './components/EvaluationWorkspace.jsx'
-import EvaluatorDashboard from './components/EvaluatorDashboard.jsx'
+import Leaderboard from './components/LeaderboardDashboard'
+// import EvaluationWorkspace from './components/EvaluationWorkspace'
+import EvaluatorDashboard from './components/EvaluatorDashboard'
+import HackathonConfig from './components/HackathonConfig'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
+        <Route path="/admin/config" element={<HackathonConfig />} />
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
