@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
 
+import { studentProfileApi } from '../api/studentProfileApi';
+
 const StudentProfile = () => {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
@@ -22,6 +24,30 @@ const StudentProfile = () => {
     }, []);
 
     const fetchProfile = async () => {
+
+        // Test 
+            // try {
+        // const data = await studentProfileApi.getProfile();
+
+        // setProfile(data);
+        // setFormData(prev => ({
+            // ...prev,
+            // telephoneNumber: data.telephoneNumber || ''
+        // }));
+
+        // if (data.avatarBase64) {
+            // setAvatarPreview(data.avatarBase64);
+        // }
+
+        // setIsLoading(false);
+        // return;
+    // } catch (err) {
+        // setError('Failed to load fake profile data');
+        // setIsLoading(false);
+        // return;
+    // }
+        // Test end
+
         const token = localStorage.getItem('shms_token');
         if (!token) {
             navigate('/login');
