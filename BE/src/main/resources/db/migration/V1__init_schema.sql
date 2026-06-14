@@ -423,7 +423,10 @@ INSERT INTO [User] (username, email, password, full_name, email_verified, status
 ('admin1', 'admin1@gmail.com', 'Admin1234', N'Admin', 1, 'ACTIVE'),
 ('judge1', 'judge1@gmail.com', 'Judge1123', N'Giám Khảo 1', 1, 'ACTIVE'),
 ('mentor1', 'mentor1@gamil.com', 'Mentor1234', N'Mentor 1', 1, 'ACTIVE'),
-('admin_mentor', 'admin_mentor@fpt.edu.vn', 'AdminMentor123', N'Người dùng 2 Role', 1, 'ACTIVE'),
+('admin2', 'admin2@gmail.com', 'Admin2234', N'Admin Số 2', 1, 'ACTIVE'),
+('judge2', 'judge2@gmail.com', 'Judge2123', N'Giám Khảo Số 2', 1, 'ACTIVE'),
+('mentor2', 'mentor2@gmail.com', 'Mentor2234', N'Mentor Số 2', 1, 'ACTIVE'),
+('judge_mentor', 'judge_mentor@gmail.com', 'AdminMentor123', N'Người dùng 2 Role', 1, 'ACTIVE'),
 
 --DH FPT
 ('nhatmy12', 'nhatmysocutedl@gmail.com', 'nhatmy12', N'Nguyễn Trần Nhật Mỹ', 1, 'ACTIVE'),
@@ -475,7 +478,7 @@ WHERE u.username = 'mentor1' AND r.role_name = 'MENTOR';
 
 INSERT INTO UserRole (user_id, role_id, is_active)
 SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
-WHERE u.username = 'admin_mentor' AND r.role_name IN ('ADMIN', 'MENTOR');
+WHERE u.username = 'judge_mentor' AND r.role_name IN ('JUDGE', 'MENTOR');
 GO
 
 DECLARE @UniId_FPT BIGINT = (SELECT TOP 1 university_id FROM University WHERE university_code = 'FPT');
@@ -569,5 +572,25 @@ INSERT INTO Judge (user_id, expertise, status)
 SELECT user_id, 'Software Engineering', 'ACTIVE' FROM [User] WHERE username = 'judge1';
 
 INSERT INTO Mentor (user_id, status)
-SELECT user_id, 'ACTIVE' FROM [User] WHERE username IN ('mentor1', 'admin_mentor');
+SELECT user_id, 'ACTIVE' FROM [User] WHERE username IN ('mentor1', 'judge_mentor');
+GO
+
+INSERT INTO Judge (user_id, expertise, status)
+SELECT user_id, 'Software Architecture', 'ACTIVE' FROM [User] WHERE username = 'judge2';
+GO
+
+INSERT INTO Mentor (user_id, status)
+SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'mentor2';
+GO
+
+INSERT INTO Coordinator (user_id, status)
+SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin1';
+GO
+
+INSERT INTO Coordinator (user_id, status)
+SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin2';
+GO
+
+INSERT INTO Judge (user_id, expertise, status)
+SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
 GO
