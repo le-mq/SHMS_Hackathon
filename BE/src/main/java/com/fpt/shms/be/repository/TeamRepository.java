@@ -13,10 +13,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByInvitationCode(String invitationCode);
     long countByContestIdAndStatus(Long contestId, String status);
 
-    @Query("select distinct t from Team t join t.registrations r where r.category.id in :categoryIds")
-    List<Team> findByCategoryIdIn(List<Long> categoryIds);
-
-    @Query("select distinct t from Team t join t.registrations r where r.category.id = :categoryId")
-    List<Team> findByCategoryId(Long categoryId);
+//    @Query("select distinct t from Team t join t.registrations r where r.category.id in :categoryIds")
+//    List<Team> findByCategoryIdIn(List<Long> categoryIds);
+//
+//    @Query("select distinct t from Team t join t.registrations r where r.category.id = :categoryId")
+//    List<Team> findByCategoryId(Long categoryId);
     List<Team> findByContestId(Long contestId);
 }
