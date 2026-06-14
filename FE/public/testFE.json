@@ -124,5 +124,50 @@
         ]
       }
     ]
+  },
+  "evaluatorDashboard": {
+    "data": {
+      "assignedCategoryCount": 2,
+      "totalAllocatedTeams": 4,
+      "evaluatedCount": 1,
+      "contests": [
+        { "id": 1, "name": "FPT Hackathon Summer 2026" },
+        { "id": 2, "name": "Techfest Fall 2026" }
+      ],
+      "queue": [
+        {
+          "teamId": "T1",
+          "contestId": 1,
+          "teamName": "CodeCrafters",
+          "categoryName": "Web",
+          "roundName": "Final Sprint",
+          "submissionState": "SUBMITTED"
+        },
+        {
+          "teamId": "T2",
+          "contestId": 1,
+          "teamName": "BugHunters",
+          "categoryName": "Mobile",
+          "roundName": "Final Sprint",
+          "submissionState": "EVALUATED"
+        },
+        {
+          "teamId": "T3",
+          "contestId": 2,
+          "teamName": "DevRangers",
+          "categoryName": "Web",
+          "roundName": "Idea Submission",
+          "submissionState": "PENDING"
+        },
+        {
+          "teamId": "T4",
+          "contestId": 2,
+          "teamName": "ByteMe",
+          "categoryName": "Mobile",
+          "roundName": "Idea Submission",
+          "submissionState": "SUBMITTED"
+        }
+      ]
+    }
   }
 }
