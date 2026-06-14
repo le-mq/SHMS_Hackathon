@@ -27,12 +27,8 @@ const RankingsConsole = () => {
             try {
                 const cdata = await getContests();
                 setContests(cdata);
-                if (contestRes.ok) {
-                    const cData = await contestRes.json();
-                    setContests(cData);
-                    if (cData.length > 0) {
-                        setSelectedContestId(cData[0].id);
-                    }
+                if (cData.length > 0) {
+                    setSelectedContestId(cdata[0].id);
                 }
             } catch (err) {
                 console.error(err);
