@@ -15,20 +15,16 @@ const MentorCategory = () => {
             try {
                 const token = localStorage.getItem('shms_token');
                 const response = await fetch('http://localhost:8080/api/v1/mentor/assigned-teams', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    const result = await response.json();
-                    setData(result);
-                } else {
-                    throw new Error('API failed');
-                }
+                if (!response.ok) throw new Error('API failed');
+                setData(await response.json());
             } catch (err) {
                 console.error("API failed, falling back to mock data:", err);
                 try {
-                    const fallbackResponse = await fetch('/testFE.json');
-                    const mockData = await fallbackResponse.json();
-                    setData(mockData.mentorCategory.data);
+                    const fallback = await fetch('/testFE.json');
+                    const mock = await fallback.json();
+                    setData(mock.mentorCategory.data);
                 } catch (mockErr) {
                     setError('Could not connect to server and no mock data found.');
                 }
@@ -36,38 +32,51 @@ const MentorCategory = () => {
                 setIsLoading(false);
             }
         };
-
         fetchMentorData();
     }, []);
 
     if (isLoading) return <div className="mentor-container">Loading...</div>;
     if (error && !data) return <div className="mentor-container">Error: {error}</div>;
 
-    const mentorData = data || { trackOverviews: [], allocatedTeams: [] };
-
-    const filteredTeams = mentorData.allocatedTeams ? mentorData.allocatedTeams.filter(team => {
+    const { contestName = "N/A", trackOverviews = [], allocatedTeams = [] } = data || {};
+    const filteredTeams = allocatedTeams.filter(team => {
         const searchStr = searchQuery.toLowerCase();
-        const tName = team.teamName || "";
-        const lName = team.leaderName || "";
-        const tTrack = String(team.trackName || team.categoryName || "").trim().toLowerCase();
-        const filterCatStr = String(filterCategory).trim().toLowerCase();
-
-        const matchesSearch = tName.toLowerCase().includes(searchStr) || lName.toLowerCase().includes(searchStr);
+        const tName = (team.teamName || "").toLowerCase();
+        const lName = (team.leaderName || "").toLowerCase();
+        const tTrack = (team.trackName || team.categoryName || "").trim().toLowerCase();
+        const filterCatStr = filterCategory.trim().toLowerCase();
+        const matchesSearch = tName.includes(searchStr) || lName.includes(searchStr);
         const matchesFilter = filterCategory === 'All' || tTrack === filterCatStr;
         return matchesSearch && matchesFilter;
-    }) : [];
+    });
+
+    const renderLinks = (team) => {
+        const links = [
+            { url: team.githubRepoUrl, label: 'GitHub Repo', color: '#3b82f6' },
+            { url: team.liveDemoUrl, label: 'Live Demo', color: '#10b981' },
+            { url: team.docsUrl, label: 'Documentation', color: '#f59e0b' },
+            { url: team.slideUrl, label: 'Slides', color: '#ef4444' }
+        ].filter(l => l.url);
+        if (!links.length) return <span style={{fontSize: '12px', color: '#94a3b8'}}>No links</span>;
+        return links.map((l, i) => (
+            <a key={i} href={l.url} target="_blank" rel="noreferrer" title={l.label}
+               style={{ color: l.color, textDecoration: 'underline', fontSize: '13px' }}>
+                {l.label}
+            </a>
+        ));
+    };
 
     return (
         <div className="mentor-container">
             <NavbarMentor />
             <div className="mentor-content">
+                <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
                 <div className="mentor-header">
-                    <h1 className="mentor-title">Contest: {mentorData.contestName || "N/A"}</h1>
+                    <h1 className="mentor-title">Contest: {contestName}</h1>
                     <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
                 </div>
-                <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
                 <div className="track-cards">
-                    {mentorData.trackOverviews.map((track, idx) => (
+                    {trackOverviews.map((track, idx) => (
                         <div className="track-card" key={idx}>
                             <div className="track-card-header">
                                 <div className="track-name">{track.trackName}</div>
@@ -87,22 +96,23 @@ const MentorCategory = () => {
                         </div>
                     ))}
                 </div>
+
                 <div className="teams-section">
                     <div className="teams-header">
                         <h2 className="teams-title">Allocated Student Teams</h2>
                         <div className="teams-actions">
                             <div className="search-box">
-                                <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
                                 <input type="text" placeholder="Search teams..." value={searchQuery}
-                                       onChange={(e) => setSearchQuery(e.target.value)}
-                                />
+                                       onChange={(e) => setSearchQuery(e.target.value)} />
                             </div>
                             <select className="filter-btn" value={filterCategory}
                                     onChange={(e) => setFilterCategory(e.target.value)}
-                                    style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}
-                            >
+                                    style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
                                 <option value="All">All Categories</option>
-                                {mentorData.trackOverviews.map((track, idx) => {
+                                {trackOverviews.map((track, idx) => {
                                     const tName = track.trackName || track.categoryName;
                                     return <option key={idx} value={tName}>{tName}</option>;
                                 })}
@@ -129,13 +139,7 @@ const MentorCategory = () => {
                                 <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
                                 <td><span className="team-leader">{team.leaderName}</span></td>
                                 <td>
-                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                                        {team.githubRepoUrl && <a href={team.githubRepoUrl} target="_blank" rel="noreferrer" title="GitHub Repo" style={{color: '#3b82f6', textDecoration: 'underline', fontSize: '13px'}}>GitHub Repo</a>}
-                                        {team.liveDemoUrl && <a href={team.liveDemoUrl} target="_blank" rel="noreferrer" title="Live Demo" style={{color: '#10b981', textDecoration: 'underline', fontSize: '13px'}}>Live Demo</a>}
-                                        {team.docsUrl && <a href={team.docsUrl} target="_blank" rel="noreferrer" title="Documentation" style={{color: '#f59e0b', textDecoration: 'underline', fontSize: '13px'}}>Documentation</a>}
-                                        {team.slideUrl && <a href={team.slideUrl} target="_blank" rel="noreferrer" title="Slides" style={{color: '#ef4444', textDecoration: 'underline', fontSize: '13px'}}>Slides</a>}
-                                        {(!team.githubRepoUrl && !team.liveDemoUrl && !team.docsUrl && !team.slideUrl) && <span style={{fontSize: '12px', color: '#94a3b8'}}>No links</span>}
-                                    </div>
+                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>{renderLinks(team)}</div>
                                 </td>
                             </tr>
                         ))}
