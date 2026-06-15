@@ -406,7 +406,7 @@ GO
 
 INSERT INTO University (university_name, university_code, student_code_regex, email_regex, status)
 VALUES
-(N'Đại học FPT', 'FPT', '^[S|C][A-Z][0-9]{6}$','^.*@fpt\.edu\.vn$', 'ACTIVE'),
+(N'Đại học FPT', 'FPT', '^[S|C][A-Z][0-9]{6}$','^[a-zA-Z0-9._%+-]+@(fpt\.edu\.vn|gmail\.com)$', 'ACTIVE'),
 (N'Đại học Nông Lâm TP.HCM','HCMUAF','^[0-9]{8}$','^[0-9]{8}@st.hcmuaf.edu.vn$','ACTIVE'),
 (N'Đại học Bách Khoa TP.HCM','HCMUT','^[0-9]{7}$','^[a-zA-Z0-9.-]+@hcmut.edu.vn$','ACTIVE'),
 (N'Đại học Khoa học Tự nhiên TP.HCM','HCMUS','^[0-9]{8}$','^[0-9]{8}@student.hcmus.edu.vn$','ACTIVE'),
@@ -605,4 +605,18 @@ GO
 
 INSERT INTO Judge (user_id, expertise, status)
 SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
+GO
+
+INSERT INTO Semester (term, [year], semester_code)
+VALUES ('Summer', 2026, 'SU26');
+GO
+
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, development_start, development_end, compliance_rules)
+VALUES (1, 'FPT Hackathon 2026', 'AI', 25, 'ACTIVE',
+        DATEADD(day, -7, GETDATE()), DATEADD(day, 7, GETDATE()),
+        DATEADD(day, 8, GETDATE()), DATEADD(day, 14, GETDATE()), 'Nop bai dung han');
+GO
+
+INSERT INTO Category (contest_id, category_name, description, status)
+VALUES (1, 'AI', 'Bang dau danh cho AI', 'ACTIVE');
 GO
