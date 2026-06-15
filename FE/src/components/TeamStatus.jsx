@@ -115,30 +115,6 @@ const TeamStatus = () => {
         }
     };
 
-    const handleRemoveMember = async (studentId) => {
-        if (!window.confirm(`Are you sure you want to remove student ${studentId} from the team?`)) return;
-
-        try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch(`http://localhost:8080/api/v1/student/teams/members/${studentId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert('Member removed successfully!');
-                window.location.reload();
-            } else {
-                setError(result.error || result.message || 'Failed to remove member.');
-            }
-        } catch (err) {
-            setError('Could not connect to server to remove member.');
-        }
-    };
-
     const handleLeaveTeam = async () => {
     if (data.status === 'NO TEAM') return;
 
@@ -259,7 +235,6 @@ const TeamStatus = () => {
                                 <th>STUDENT ID</th>
                                 <th>EMAIL</th>
                                 <th>INTERNAL ROLE</th>
-                                <th>ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -277,18 +252,6 @@ const TeamStatus = () => {
                                         <span className={`role-badge ${member.internalRole === 'LEADER' ? 'role-leader' : 'role-member'}`}>
                                             {member.internalRole}
                                         </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-dots">
-                                            {!isSubmitted && member.internalRole !== 'LEADER' && (
-                                                <button 
-                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                                                    onClick={() => handleRemoveMember(member.studentId)}
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
-                                        </div>
                                     </td>
                                 </tr>
                             )) : (
