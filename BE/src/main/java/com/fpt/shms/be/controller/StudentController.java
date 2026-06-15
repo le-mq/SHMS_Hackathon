@@ -183,4 +183,21 @@ public class StudentController {
         }
     }
 
+    @GetMapping("/workspace")
+    @Operation(summary = "Get Leader Workspace Data", description = "Returns dashboard metrics for team leader.")
+    public ResponseEntity<?> getWorkspaceData(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            return ResponseEntity.ok(teamService.getWorkspaceData(username));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
 }

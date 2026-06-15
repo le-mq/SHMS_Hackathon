@@ -406,7 +406,7 @@ GO
 
 INSERT INTO University (university_name, university_code, student_code_regex, email_regex, status)
 VALUES
-(N'Đại học FPT', 'FPT', '^[S|C][A-Z][0-9]{6}$', '^.*@gmail\.com$', 'ACTIVE'),
+(N'Đại học FPT', 'FPT', '^[S|C][A-Z][0-9]{6}$','^.*@fpt\.edu\.vn$', 'ACTIVE'),
 (N'Đại học Nông Lâm TP.HCM','HCMUAF','^[0-9]{8}$','^[0-9]{8}@st.hcmuaf.edu.vn$','ACTIVE'),
 (N'Đại học Bách Khoa TP.HCM','HCMUT','^[0-9]{7}$','^[a-zA-Z0-9.-]+@hcmut.edu.vn$','ACTIVE'),
 (N'Đại học Khoa học Tự nhiên TP.HCM','HCMUS','^[0-9]{8}$','^[0-9]{8}@student.hcmus.edu.vn$','ACTIVE'),
