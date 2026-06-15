@@ -178,7 +178,7 @@ public class PartnerAdminService {
             keptIds.add(u.getId());
         }
 
-        // Handle deleted universities
+
         List<University> allUnis = universityRepository.findAll();
         for (University u : allUnis) {
             if (!keptIds.contains(u.getId())) {
@@ -186,21 +186,20 @@ public class PartnerAdminService {
                 boolean hasContests = contestUniversityRepository.existsByUniversity(u);
 
                 if (hasStudents || hasContests) {
-                    // Cannot safely delete because actual users or contests rely on this university
+
                     u.setStatus("INACTIVE");
                     universityRepository.save(u);
                 } else {
                     try {
-                        // Clean up dependent StudentVerificationData first
+
                         List<StudentVerificationData> childStudents = studentVerificationDataRepository.findByUniversity(u.getName());
                         if (childStudents != null && !childStudents.isEmpty()) {
                             studentVerificationDataRepository.deleteAll(childStudents);
                         }
 
-                        // Proceed to delete the university
                         universityRepository.delete(u);
                     } catch (Exception e) {
-                        // Fallback just in case of any other unknown constraint
+
                         u.setStatus("INACTIVE");
                         universityRepository.save(u);
                     }

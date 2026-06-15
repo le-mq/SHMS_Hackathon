@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +23,7 @@ public class UniversityAdminController {
     private final PartnerAdminService partnerAdminService;
     private final JwtUtils jwtUtils;
 
-    private void requireAdminOrCoordinatorRole(HttpServletRequest request) {
+    private void requireAdminRole(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             throw new IllegalArgumentException("Missing or invalid Authorization header");
@@ -41,7 +40,7 @@ public class UniversityAdminController {
     @Operation(summary = "Get all Universities", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllUniversities(HttpServletRequest request) {
         try {
-            requireAdminOrCoordinatorRole(request);
+            requireAdminRole(request);
             List<UniversityDto> universities = partnerAdminService.getAllUniversities();
             return ResponseEntity.ok(universities);
         } catch (SecurityException e) {
@@ -52,10 +51,10 @@ public class UniversityAdminController {
     }
 
     @PostMapping
-    @Operation(summary = "Save/Update all Universities", description = "Requires ADMIN or COORDINATOR role.")
+    @Operation(summary = "Save/Update all Universities", description = "Requires ADMIN role.")
     public ResponseEntity<?> saveAllUniversities(HttpServletRequest request, @Valid @RequestBody List<UniversityDto> universities) {
         try {
-            requireAdminOrCoordinatorRole(request);
+            requireAdminRole(request);
             partnerAdminService.saveAllUniversities(universities);
             return ResponseEntity.ok(Map.of("message", "University verification protocols updated successfully"));
         } catch (SecurityException e) {
@@ -71,7 +70,7 @@ public class UniversityAdminController {
     @Operation(summary = "Get Student Verification Data for a University", description = "Requires ADMIN role.")
     public ResponseEntity<?> getStudentVerificationData(HttpServletRequest request, @RequestParam String university) {
         try {
-            requireAdminOrCoordinatorRole(request);
+            requireAdminRole(request);
             List<StudentVerificationDataDto> students = partnerAdminService.getStudentVerificationData(university);
             return ResponseEntity.ok(students);
         } catch (SecurityException e) {
@@ -82,10 +81,10 @@ public class UniversityAdminController {
     }
 
     @PostMapping("/students")
-    @Operation(summary = "Save Student Verification Data for a University", description = "Requires ADMIN or COORDINATOR role.")
+    @Operation(summary = "Save Student Verification Data for a University", description = "Requires ADMIN role.")
     public ResponseEntity<?> saveStudentVerificationData(HttpServletRequest request, @RequestParam String university, @RequestBody List<StudentVerificationDataDto> students) {
         try {
-            requireAdminOrCoordinatorRole(request);
+            requireAdminRole(request);
             partnerAdminService.saveStudentVerificationData(university, students);
             return ResponseEntity.ok(Map.of("message", "Student verification data updated successfully"));
         } catch (SecurityException e) {
