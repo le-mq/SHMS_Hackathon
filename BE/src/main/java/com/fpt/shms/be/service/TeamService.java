@@ -120,34 +120,6 @@ public class TeamService{
     }
 
     @Transactional
-    public void updateTeamStatus(Long teamId, String status) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
-
-        team.setStatus(status.toUpperCase());
-        teamRepository.save(team);
-
-        if ("APPROVED".equalsIgnoreCase(status)) {
-            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
-            for (TeamMembership tm : memberships) {
-                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
-                    User leader = tm.getUser();
-
-                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER")
-                            .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_LEADER").build()));
-                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
-
-                    if (teamMemberRole != null) {
-                        leader.getRoles().remove(teamMemberRole);
-                    }
-                    leader.getRoles().add(teamLeaderRole);
-                    userRepository.save(leader);
-                }
-            }
-        }
-    }
-
-    @Transactional
     public void removeTeamMember(String leaderUsername, String memberStudentId) {
         User leader = userRepository.findByUsername(leaderUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
