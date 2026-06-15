@@ -12,7 +12,7 @@ import Leaderboard from './components/LeaderboardDashboard'
 // import EvaluationWorkspace from './components/EvaluationWorkspace'
 import EvaluatorDashboard from './components/EvaluatorDashboard'
 import HackathonConfig from './components/HackathonConfig'
-
+import TeamStatus from './components/TeamStatus'
 function App() {
   return (
     <Router>
@@ -28,6 +28,7 @@ function App() {
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/student/team/status" element={<TeamStatus />} />
       </Routes>
       <Footer />
     </Router>
