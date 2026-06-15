@@ -155,6 +155,26 @@ public class TeamService{
     }
 
     @Transactional
+    public void leaveTeam(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId());
+        if (memberships.isEmpty()) {
+            throw new IllegalArgumentException("You are not currently in any team.");
+        }
+
+        TeamMembership membership = memberships.get(0);
+        Team team = membership.getTeam();
+        
+        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
+            throw new IllegalArgumentException("Cannot leave team while registration is pending or approved.");
+        }
+
+        teamMembershipRepository.delete(membership);
+    }
+
+    @Transactional
     public TeamRegistrationResponse registerOfficialTeam(TeamRegistrationRequest request, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

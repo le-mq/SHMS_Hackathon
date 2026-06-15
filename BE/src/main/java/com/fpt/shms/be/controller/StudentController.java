@@ -183,6 +183,26 @@ public class StudentController {
         }
     }
 
+    @DeleteMapping("/teams/leave")
+    @Operation(summary = "Leave Team", description = "Allows a member to voluntarily leave their current team before registration.")
+    public ResponseEntity<?> leaveTeam(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            teamService.leaveTeam(username);
+
+            return ResponseEntity.ok(Map.of("message", "Successfully left the team"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
     @GetMapping("/workspace")
     @Operation(summary = "Get Leader Workspace Data", description = "Returns dashboard metrics for team leader.")
     public ResponseEntity<?> getWorkspaceData(HttpServletRequest request) {
