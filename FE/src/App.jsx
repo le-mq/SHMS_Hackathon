@@ -15,6 +15,8 @@ import PartnerConfig from './components/PartnerVerification.jsx'
 import ExpertProvision from './components/ExpertProvision.jsx'
 import HackathonConfig from './components/HackathonConfig'
 import TeamStatus from './components/TeamStatus'
+import MentorCategory from './components/MentorCategory'
+
 function App() {
   return (
     <Router>
@@ -29,6 +31,7 @@ function App() {
         <Route path="/admin/config" element={<HackathonConfig />} />
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
+        <Route path="/mentor/workspace" element={<MentorCategory />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />

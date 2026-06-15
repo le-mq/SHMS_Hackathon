@@ -22,6 +22,9 @@
 
 .config-header {
     margin-bottom: 32px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
 }
 
 .config-title {
