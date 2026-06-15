@@ -32,12 +32,12 @@ public class UniversityAdminController {
         String role = jwtUtils.extractRole(token);
 
         if (role == null || (!role.equals("ADMIN") && !role.equals("COORDINATOR"))) {
-            throw new SecurityException("Access Denied: Requires ADMIN or COORDINATOR role");
+            throw new SecurityException("Access Denied: Requires ADMIN role");
         }
     }
 
     @GetMapping
-    @Operation(summary = "Get all Universities", description = "Requires ADMIN or COORDINATOR role.")
+    @Operation(summary = "Get all Universities", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllUniversities(HttpServletRequest request) {
         try {
             requireAdminOrCoordinatorRole(request);
@@ -51,7 +51,7 @@ public class UniversityAdminController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Get Student Verification Data for a University", description = "Requires ADMIN or COORDINATOR role.")
+    @Operation(summary = "Get Student Verification Data for a University", description = "Requires ADMIN role.")
     public ResponseEntity<?> getStudentVerificationData(HttpServletRequest request, @RequestParam String university) {
         try {
             requireAdminOrCoordinatorRole(request);

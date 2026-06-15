@@ -1,11 +1,13 @@
 package com.fpt.shms.be.controller;
-import com.fpt.shms.be.dto.ProfileResponse;
-import com.fpt.shms.be.dto.UpdateProfileRequest;
+import com.fpt.shms.be.dto.*;
+import com.fpt.shms.be.model.Team;
 import com.fpt.shms.be.service.StudentService;
+import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ public class StudentController {
 
     private final StudentService studentService;
     private final JwtUtils jwtUtils;
+    private final TeamService teamService;
 
     private String extractUsernameFromToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -77,4 +80,107 @@ public class StudentController {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
+
+    @PostMapping("/teams/create")
+    @Operation(summary = "Initialize New Team", description = "Creates a team and generates an invitation code. Assigns leader role.")
+    public ResponseEntity<?> createTeam(HttpServletRequest request, @Valid @RequestBody CreateTeamRequest teamRequest) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            Team team = teamService.createTeam(teamRequest, username);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Team initialized successfully",
+                    "teamId", team.getId(),
+                    "invitationCode", team.getInvitationCode()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/teams/register-official")
+    @Operation(summary = "Submit Official Team Registration", description = "Submits the team registration. Checks size, capacity, and time.")
+    public ResponseEntity<?> registerOfficialTeam(HttpServletRequest request, @Valid @RequestBody TeamRegistrationRequest registrationRequest) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            TeamRegistrationResponse response = teamService.registerOfficialTeam(registrationRequest, username);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/teams/join")
+    @Operation(summary = "Join Team via Code", description = "Validates code and assigns user to a team.")
+    public ResponseEntity<?> joinTeam(HttpServletRequest request, @Valid @RequestBody JoinTeamRequest joinRequest) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            teamService.joinTeam(joinRequest.getInvitationCode(), username);
+
+            return ResponseEntity.ok(Map.of("message", "Successfully joined the team"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/teams/status")
+    @Operation(summary = "Get Team Status", description = "Returns team metadata, roster, and status.")
+    public ResponseEntity<?> getTeamStatus(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            return ResponseEntity.ok(teamService.getTeamStatus(username));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @DeleteMapping("/teams/members/{studentId}")
+    @Operation(summary = "Remove Team Member", description = "Removes a member from the team.")
+    public ResponseEntity<?> removeTeamMember(HttpServletRequest request, @PathVariable String studentId) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            teamService.removeTeamMember(username, studentId);
+
+            return ResponseEntity.ok(Map.of("message", "Member removed successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
 }

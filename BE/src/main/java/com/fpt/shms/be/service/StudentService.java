@@ -76,6 +76,6 @@ public class StudentService {
 
         tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
         studentRepository.delete(student);
-
+        userRepository.delete(user);
     }
 }

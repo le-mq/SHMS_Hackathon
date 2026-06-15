@@ -13,6 +13,8 @@ import Leaderboard from './components/LeaderboardDashboard.jsx'
 import EvaluatorDashboard from './components/EvaluatorDashboard.jsx'
 import PartnerConfig from './components/PartnerVerification.jsx'
 import ExpertProvision from './components/ExpertProvision.jsx'
+import HackathonConfig from './components/HackathonConfig'
+
 function App() {
   return (
     <Router>
@@ -24,6 +26,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
+        <Route path="/admin/config" element={<HackathonConfig />} />
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
