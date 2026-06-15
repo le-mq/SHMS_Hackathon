@@ -28,7 +28,7 @@ function App() {
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
-        <Route path="/admin/expert" element={<ExpertProvision />} />
+        <Route path="/admin/experts/provision" element={<ExpertProvision />} />
       </Routes>
       <Footer />
     </Router>

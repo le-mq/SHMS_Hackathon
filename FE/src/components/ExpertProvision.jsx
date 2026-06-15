@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './ExpertProvisioning.css';
+import './ExpertProvision.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const ExpertProvisioning = () => {
