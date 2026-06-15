@@ -43,7 +43,6 @@ const Register = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear specific error on change
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -66,7 +65,6 @@ const Register = () => {
         const selectedUni = universities.find(u => u.name === formData.targetUniversity);
 
         if (selectedUni) {
-            // Validate Student ID (mssv)
             if (selectedUni.studentCodeRegex) {
                 try {
                     const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
@@ -80,7 +78,6 @@ const Register = () => {
                 if (!formData.mssv.trim()) newErrors.mssv = 'Student Identification Number is required';
             }
 
-            // Validate Email (corporateEmail)
             if (selectedUni.emailRegex) {
                 try {
                     const emailPattern = new RegExp(selectedUni.emailRegex);
@@ -153,58 +150,30 @@ const Register = () => {
                 <div className="register-container">
                     <div className="register-card">
                         <h1 className="register-title">Create System Account</h1>
-
                         {serverError && <div className="alert alert-error">{serverError}</div>}
                         {successMsg && <div className="alert alert-success">{successMsg}</div>}
-
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label className="form-label">Full Name</label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    className={`form-input ${errors.fullName ? 'is-invalid' : ''}`}
-                                    placeholder="Enter your full name"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                />
+                                <input type="text" name="fullName" className={`form-input ${errors.fullName ? 'is-invalid' : ''}`} placeholder="Enter your full name" value={formData.fullName} onChange={handleChange} />
                                 {errors.fullName && <div className="invalid-feedback">{errors.fullName}</div>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">Username</label>
-                                <input
-                                    type="text"
-                                    name="username"
-                                    className={`form-input ${errors.username ? 'is-invalid' : ''}`}
-                                    placeholder="Choose a username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                />
+                                <input type="text" name="username" className={`form-input ${errors.username ? 'is-invalid' : ''}`} placeholder="Choose a username" value={formData.username} onChange={handleChange} />
                                 {errors.username && <div className="invalid-feedback">{errors.username}</div>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">Password</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    className={`form-input ${errors.password ? 'is-invalid' : ''}`}
-                                    placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                />
+                                <input type="password" name="password" className={`form-input ${errors.password ? 'is-invalid' : ''}`} placeholder="••••••••" value={formData.password} onChange={handleChange} />
                                 {errors.password && <div className="invalid-feedback">{errors.password}</div>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">University</label>
-                                <select
-                                    name="targetUniversity"
-                                    className={`form-select ${errors.targetUniversity ? 'is-invalid' : ''}`}
-                                    value={formData.targetUniversity}
-                                    onChange={handleChange}
-                                >
+                                <select name="targetUniversity" className={`form-select ${errors.targetUniversity ? 'is-invalid' : ''}`} value={formData.targetUniversity} onChange={handleChange} >
                                     <option value="">Select University</option>
                                     {universities.map((uni, idx) => (
                                         <option key={idx} value={uni.name}>{uni.name}</option>
@@ -215,40 +184,19 @@ const Register = () => {
 
                             <div className="form-group">
                                 <label className="form-label">Student Identification Number</label>
-                                <input
-                                    type="text"
-                                    name="mssv"
-                                    className={`form-input ${errors.mssv ? 'is-invalid' : ''}`}
-                                    placeholder="e.g. SE123456"
-                                    value={formData.mssv}
-                                    onChange={handleChange}
-                                />
+                                <input type="text" name="mssv" className={`form-input ${errors.mssv ? 'is-invalid' : ''}`} placeholder="e.g. SE123456" value={formData.mssv} onChange={handleChange} />
                                 {errors.mssv && <div className="invalid-feedback">{errors.mssv}</div>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">Email</label>
-                                <input
-                                    type="email"
-                                    name="corporateEmail"
-                                    className={`form-input ${errors.corporateEmail ? 'is-invalid' : ''}`}
-                                    placeholder="example@university.edu.vn"
-                                    value={formData.corporateEmail}
-                                    onChange={handleChange}
-                                />
+                                <input type="email" name="corporateEmail" className={`form-input ${errors.corporateEmail ? 'is-invalid' : ''}`} placeholder="example@university.edu.vn" value={formData.corporateEmail} onChange={handleChange} />
                                 {errors.corporateEmail && <div className="invalid-feedback">{errors.corporateEmail}</div>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">Major</label>
-                                <input
-                                    type="text"
-                                    name="major"
-                                    className={`form-input ${errors.major ? 'is-invalid' : ''}`}
-                                    placeholder="e.g. Software Engineering"
-                                    value={formData.major}
-                                    onChange={handleChange}
-                                />
+                                <input type="text" name="major" className={`form-input ${errors.major ? 'is-invalid' : ''}`} placeholder="e.g. Software Engineering" value={formData.major} onChange={handleChange} />
                                 {errors.major && <div className="invalid-feedback">{errors.major}</div>}
                             </div>
 

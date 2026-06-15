@@ -44,9 +44,9 @@ public class Team {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-//    @Builder.Default
-//    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<TeamRegistration> registrations = new ArrayList<>();
+    @Builder.Default
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TeamRegistration> registrations = new ArrayList<>();
 
     @PrePersist
     public void generateInvitationCode() {
@@ -58,37 +58,32 @@ public class Team {
         }
     }
 
-//    @Transient
-//    public Category getCategory() {
-//        return registrations.stream()
-//                .filter(r -> r.getCategory() != null)
-//                .max(Comparator.comparing(
-//                        TeamRegistration::getSubmittedAt,
-//                        Comparator.nullsFirst(Comparator.naturalOrder())
-//                ))
-//                .map(TeamRegistration::getCategory)
-//                .orElse(null);
-//    }
+    @Transient
+    public Category getCategory() {
+        return registrations.stream()
+                .filter(r -> r.getCategory() != null)
+                .max(Comparator.comparing(
+                        TeamRegistration::getSubmittedAt,
+                        Comparator.nullsFirst(Comparator.naturalOrder())
+                ))
+                .map(TeamRegistration::getCategory)
+                .orElse(null);
+    }
 
-//    public void setCategory(Category category) {
-//        if (category == null) {
-//            registrations.clear();
-//            return;
-//        }
-//        TeamRegistration registration = registrations.stream().findFirst().orElse(null);
-//        if (registration == null) {
-//            registration = TeamRegistration.builder()
-//                    .team(this)
-//                    .status(this.status)
-//                    .submittedAt(LocalDateTime.now())
-//                    .build();
-//            registrations.add(registration);
-//        }
-//        registration.setCategory(category);
-//    }
-//
-//    @Transient
-//    public User getMentorUser() {
-//        return mentor != null ? mentor.getUser() : null;
-//    }
+    public void setCategory(Category category) {
+        if (category == null) {
+            registrations.clear();
+            return;
+        }
+        TeamRegistration registration = registrations.stream().findFirst().orElse(null);
+        if (registration == null) {
+            registration = TeamRegistration.builder()
+                    .team(this)
+                    .status(this.status)
+                    .submittedAt(LocalDateTime.now())
+                    .build();
+            registrations.add(registration);
+        }
+        registration.setCategory(category);
+    }
 }

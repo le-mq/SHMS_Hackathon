@@ -6,6 +6,7 @@ import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.service.ContestAdminService;
 import com.fpt.shms.be.service.ExpertAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;
+import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,7 @@ public class AdminController {
     private final ContestAdminService contestAdminService;
     private final PartnerAdminService partnerAdminService;
     private final ExpertAdminService expertAdminService;
+    private final TeamService teamService;
     private final JwtUtils jwtUtils;
 
     private void requireAdminRole(HttpServletRequest request) {

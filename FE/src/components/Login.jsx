@@ -31,10 +31,8 @@ const Login = () => {
             setError('Please enter both username and password');
             return;
         }
-
         setIsLoading(true);
         setError('');
-
         try {
             const response = await fetch('http://localhost:8080/api/v1/auth/login', {
                 method: 'POST',
@@ -68,10 +66,9 @@ const Login = () => {
                     localStorage.removeItem('shms_fullname');
                 }
 
-                // điều hướng theo vai trò
                 const role = data.role || '';
                 const roleRoutes = {
-                    COORDINATOR: '/admin/config',
+                    ADMIN: '/admin/config',
                     JUDGE: '/judge/workspace',
                     MENTOR: '/mentor/workspace',
                     STUDENT: '/student/dashboard',
@@ -93,13 +90,14 @@ const Login = () => {
                     <h1 className="login-title">Account Authentication</h1>
                     <p className="login-subtitle">Access your S-HMS administrative or participant portal</p>
                 </div>
-
                 <div className="login-card">
                     <h3>Sign In</h3>
                     <p>Enter your credentials to continue</p>
-
-                    {error && <div className="alert alert-error">{error}</div>}
-
+                    {error && (
+                        <div className="login-error">
+                            {error}
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <div className="form-group-header">
@@ -119,7 +117,6 @@ const Login = () => {
                                 />
                             </div>
                         </div>
-
                         <div className="form-group">
                             <div className="form-group-header">
                                 <label className="form-label">Password</label>
@@ -150,46 +147,13 @@ const Login = () => {
                                 </button>
                             </div>
                         </div>
-
                         <button type="submit" className="login-btn" disabled={isLoading}>
                             {isLoading ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
-
-
-
                     <div className="register-link-container">
                         New to the hackathon? <Link to="/register" className="register-link">Register New Account</Link>
                     </div>
-                    {/*dùng để demo cho nhanh */}
-                    <details className="demo-accounts-section" style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#888', border: '1px solid #333', borderRadius: '8px', padding: '0.75rem' }}>
-                        <summary style={{ cursor: 'pointer', fontWeight: '600', color: '#aaa' }}> Demo Accounts (for testing)</summary>
-                        <table style={{ width: '100%', marginTop: '0.5rem', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid #333' }}>
-                                    <th style={{ textAlign: 'left', padding: '4px 8px' }}>Username</th>
-                                    <th style={{ textAlign: 'left', padding: '4px 8px' }}>Password</th>
-                                    <th style={{ textAlign: 'left', padding: '4px 8px' }}>Role</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[
-                                    ['coordinator@shms.edu.vn', 'Coord@123', 'COORDINATOR'],
-                                    ['judge@shms.edu.vn', 'Judge@123', 'JUDGE'],
-                                    ['mentor@shms.edu.vn', 'Mentor@123', 'MENTOR'],
-                                    ['alexrivera', 'Password123!', 'STUDENT'],
-                                ].map(([email, pwd, role]) => (
-                                    <tr key={email} style={{ borderBottom: '1px solid #222', cursor: 'pointer' }}
-                                        onClick={() => setFormData({ username: email, password: pwd })}>
-                                        <td style={{ padding: '4px 8px', color: '#58a6ff' }}>{email}</td>
-                                        <td style={{ padding: '4px 8px' }}>{pwd}</td>
-                                        <td style={{ padding: '4px 8px', color: '#3fb950' }}>{role}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <p style={{ marginTop: '0.5rem', color: '#666' }}> Click a row to auto-fill the form.</p>
-                    </details>
                 </div>
             </div>
         </>
