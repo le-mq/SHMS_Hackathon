@@ -1,12 +1,10 @@
 package com.fpt.shms.be.controller;
 
-import com.fpt.shms.be.dto.CreateContestRequest;
-import com.fpt.shms.be.dto.CreateTrackRoundRequest;
-import com.fpt.shms.be.dto.StudentVerificationDataDto;
-import com.fpt.shms.be.dto.UniversityDto;
+import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.service.ContestAdminService;
+import com.fpt.shms.be.service.ExpertAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +26,7 @@ public class AdminController {
 
     private final ContestAdminService contestAdminService;
     private final PartnerAdminService partnerAdminService;
-//    private final TeamService teamService;
+    private final ExpertAdminService expertAdminService;
     private final JwtUtils jwtUtils;
 
     private void requireAdminOrCoordinatorRole(HttpServletRequest request) {
@@ -167,6 +165,35 @@ public class AdminController {
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/experts/create")
+    @Operation(summary = "Provision Expert Credentials", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> createExpert(HttpServletRequest request, @Valid @RequestBody CreateExpertRequest expertRequest) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            expertAdminService.createExpert(expertRequest);
+            return ResponseEntity.ok(Map.of("message", "Expert credentials provisioned successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/experts")
+    @Operation(summary = "Get all Experts", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> getAllExperts(HttpServletRequest request) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            return ResponseEntity.ok(expertAdminService.getAllExperts());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+    
+
 
 
 }

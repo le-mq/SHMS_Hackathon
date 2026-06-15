@@ -138,7 +138,7 @@ public class AuthService {
             }
         }
 
-        // Dynamic student code (MSSV) validation
+        // Xác thực mã sinh viên (MSSV)
         String studentCodeRegex = university.getStudentCodeRegex();
         log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
         if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
