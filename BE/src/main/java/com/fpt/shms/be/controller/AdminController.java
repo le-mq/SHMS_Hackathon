@@ -2,7 +2,6 @@ package com.fpt.shms.be.controller;
 
 import com.fpt.shms.be.dto.CreateContestRequest;
 import com.fpt.shms.be.dto.CreateTrackRoundRequest;
-import com.fpt.shms.be.dto.CreateRubricRequest;
 import com.fpt.shms.be.dto.StudentVerificationDataDto;
 import com.fpt.shms.be.dto.UniversityDto;
 import com.fpt.shms.be.model.Contest;
