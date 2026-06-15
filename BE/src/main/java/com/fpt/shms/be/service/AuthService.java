@@ -150,7 +150,7 @@ public class AuthService {
             }
         }
 
-        // BR-ACC-04: Cross-check with StudentVerificationData using university_id, student_code, and email
+        // BR-ACC-04:
         log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
                 university.getId(), request.getMssv(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
