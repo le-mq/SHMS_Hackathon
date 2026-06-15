@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUnreadAnnouncements } from './useUnreadAnnouncements';
 import './Navbars.css';
-import { LeaderboardContent } from './LeaderboardDashboard';
 import LatestAnnouncements from './LatestAnnouncements';
 
 const MENTOR_LINKS = [
-    { label: 'Dashboard',          path: '/mentor/workspace' },
-    { label: 'Leaderboard',        path: '/leaderboard' },
+    { label: 'Dashboard', path: '/mentor/workspace' },
+    { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
 const NavbarMentor = () => {
@@ -58,30 +57,20 @@ const NavbarMentor = () => {
     const [showAnnouncements, setShowAnnouncements] = useState(false);
     const notifs = useUnreadAnnouncements();
 
-    const isLeaderboard = location.hash === '#leaderboard';
-
     const handleNav = (path) => {
-        if (path === '#leaderboard') {
-            window.location.hash = 'leaderboard';
-        } else {
-            if (location.hash) window.location.hash = '';
-            navigate(path);
-        }
+        navigate(path);
     };
 
     return (
         <>
             <nav className="mentor-nav">
                 <div className="mentor-nav-brand" onClick={() => handleNav('/mentor/workspace')} style={{cursor:'pointer'}}>
-                    S-HMS | SEAL Hackathon
+                    S-HMS | <span>SEAL Hackathon</span>
                 </div>
                 <div className="mentor-nav-links">
                     {MENTOR_LINKS.map(link => (
-                        <div
-                            key={link.path}
-                            className={`mentor-nav-link ${(link.path === '#leaderboard' ? isLeaderboard : (location.pathname === link.path && !isLeaderboard)) ? 'active' : ''}`}
-                            onClick={() => handleNav(link.path)}
-                            style={{cursor:'pointer'}}
+                        <div key={link.path} className={`mentor-nav-link ${location.pathname === link.path ? 'active' : ''}`}
+                            onClick={() => handleNav(link.path)} style={{cursor:'pointer'}}
                         >
                             {link.label}
                         </div>
@@ -92,13 +81,11 @@ const NavbarMentor = () => {
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                         {notifs > 0 && <span className="nav-notif-badge">{notifs}</span>}
                     </div>
-
                     <div className="nav-user-profile" onClick={() => setShowDropdown(!showDropdown)}>
                         <div className="nav-avatar">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         </div>
                         <span>{username}</span>
-
                         {showDropdown && (
                             <div className="nav-dropdown">
                                 <div className="nav-dropdown-item" onClick={() => navigate('/expert/profile')}>
@@ -121,11 +108,6 @@ const NavbarMentor = () => {
                 </div>
                 {showAnnouncements && <LatestAnnouncements isModal={true} onClose={() => setShowAnnouncements(false)} />}
             </nav>
-            {isLeaderboard && (
-                <div style={{ position: 'fixed', top: 64, left: 0, right: 0, bottom: 0, overflowY: 'auto', background: '#f8fafc', zIndex: 1000 }}>
-                    <LeaderboardContent />
-                </div>
-            )}
         </>
     );
 };

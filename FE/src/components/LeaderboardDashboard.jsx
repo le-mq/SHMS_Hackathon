@@ -1,7 +1,7 @@
 import './LeaderboardDashboard.css';
 import './NavbarHome.jsx';
 import NavbarStudent from './NavbarStudent';
-// import NavbarMentor from './NavbarMentor';
+import NavbarMentor from './NavbarMentor';
 import NavbarJudge from './NavbarJudge';
 import NavbarAdmin from './NavbarAdmin';
 import {useState, useEffect} from 'react';
