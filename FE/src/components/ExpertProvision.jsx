@@ -341,9 +341,6 @@ const ExpertProvisioning = () => {
                         <div className="form-card" style={{ marginTop: '24px' }}>
                             <div className="form-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="form-title">Manage Expert</div>
-                                <button className="ph-btn-ghost" style={{ padding: '6px 12px', fontSize: '14px' }} onClick={fetchExperts}>
-                                    Load Experts
-                                </button>
                             </div>
 
                             <div className="form-row">

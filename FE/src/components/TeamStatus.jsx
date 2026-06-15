@@ -9,7 +9,7 @@ const TeamStatus = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    
+    const [isLeaving, setIsLeaving] = useState(false);
     // Form state
     const [formTeamName, setFormTeamName] = useState('');
     const [selectedContestId, setSelectedContestId] = useState('');
@@ -115,30 +115,57 @@ const TeamStatus = () => {
         }
     };
 
-    const handleRemoveMember = async (studentId) => {
-        if (!window.confirm(`Are you sure you want to remove student ${studentId} from the team?`)) return;
+    const handleLeaveTeam = async () => {
+    if (data.status === 'NO TEAM') return;
 
-        try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch(`http://localhost:8080/api/v1/student/teams/members/${studentId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+    if (isSubmitted) {
+        setError('Cannot leave team while registration is pending or approved.');
+        return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to leave this team?');
+    if (!confirmed) return;
+
+    try {
+        setIsLeaving(true);
+        setError('');
+        setSuccessMessage('');
+
+        const token = localStorage.getItem('shms_token');
+
+        const response = await fetch('http://localhost:8080/api/v1/student/teams/leave', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            setTeamData({
+                teamName: 'Not available',
+                categoryName: 'Not available',
+                invitationCode: 'N/A',
+                status: 'NO TEAM',
+                roster: []
             });
 
-            const result = await response.json();
-            if (response.ok) {
-                alert('Member removed successfully!');
-                window.location.reload();
-            } else {
-                setError(result.error || result.message || 'Failed to remove member.');
-            }
-        } catch (err) {
-            setError('Could not connect to server to remove member.');
-        }
-    };
+            setFormTeamName('');
+            setSelectedContestId('');
+            setSelectedCategoryId('');
+            setSelectedLeader('');
 
+            setSuccessMessage(result.message || 'You have left the team successfully.');
+        } else {
+            setError(result.error || result.message || 'Failed to leave team.');
+        }
+    } catch (err) {
+        setError('Could not connect to server to leave team.');
+    } finally {
+        setIsLeaving(false);
+    }
+};
     return (
         <div className="status-container">
             {/* Top Navbar */}
@@ -150,10 +177,22 @@ const TeamStatus = () => {
                         <h1 className="status-title">My Team Status</h1>
                         
                     </div>
-                    <div className={`team-badge ${data.status.toLowerCase().replace(' ', '-')}`}>
-                        <div className="team-badge-dot"></div>
-                        {data.status === 'PENDING' ? 'Pending Approval' : data.status === 'NO TEAM' ? 'No Team' : data.status}
-                    </div>
+                    <div className="header-actions">
+                        {data.status !== 'NO TEAM' && !isSubmitted && (
+                            <button
+                                className="leave-team-btn"
+                                 onClick={handleLeaveTeam}
+                                disabled={isLeaving}
+                    >
+                        {isLeaving ? 'Leaving...' : 'Leave Team'}
+                    </button>
+            )}
+
+            <div className={`team-badge ${data.status.toLowerCase().replace(' ', '-')}`}>
+                <div className="team-badge-dot"></div>
+                {data.status === 'PENDING' ? 'Pending Approval' : data.status === 'NO TEAM' ? 'No Team' : data.status}
+                </div>
+        </div>
                 </div>
 
                 {error && <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>}
@@ -196,7 +235,6 @@ const TeamStatus = () => {
                                 <th>STUDENT ID</th>
                                 <th>EMAIL</th>
                                 <th>INTERNAL ROLE</th>
-                                <th>ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -214,18 +252,6 @@ const TeamStatus = () => {
                                         <span className={`role-badge ${member.internalRole === 'LEADER' ? 'role-leader' : 'role-member'}`}>
                                             {member.internalRole}
                                         </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-dots">
-                                            {!isSubmitted && member.internalRole !== 'LEADER' && (
-                                                <button 
-                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                                                    onClick={() => handleRemoveMember(member.studentId)}
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
-                                        </div>
                                     </td>
                                 </tr>
                             )) : (
