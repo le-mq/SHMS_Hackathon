@@ -7,6 +7,7 @@ import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,22 @@ public class UniversityAdminController {
         }
     }
 
+    @PostMapping
+    @Operation(summary = "Save/Update all Universities", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> saveAllUniversities(HttpServletRequest request, @Valid @RequestBody List<UniversityDto> universities) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            partnerAdminService.saveAllUniversities(universities);
+            return ResponseEntity.ok(Map.of("message", "University verification protocols updated successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/students")
     @Operation(summary = "Get Student Verification Data for a University", description = "Requires ADMIN role.")
     public ResponseEntity<?> getStudentVerificationData(HttpServletRequest request, @RequestParam String university) {
@@ -59,6 +76,22 @@ public class UniversityAdminController {
             return ResponseEntity.ok(students);
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/students")
+    @Operation(summary = "Save Student Verification Data for a University", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> saveStudentVerificationData(HttpServletRequest request, @RequestParam String university, @RequestBody List<StudentVerificationDataDto> students) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            partnerAdminService.saveStudentVerificationData(university, students);
+            return ResponseEntity.ok(Map.of("message", "Student verification data updated successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
