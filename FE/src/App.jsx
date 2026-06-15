@@ -11,7 +11,8 @@ import RankingsConsole from './components/RankingsConsole'
 import Leaderboard from './components/LeaderboardDashboard.jsx'
 // import EvaluationWorkspace from './components/EvaluationWorkspace.jsx'
 import EvaluatorDashboard from './components/EvaluatorDashboard.jsx'
-
+import PartnerConfig from './components/PartnerVerification.jsx'
+import ExpertProvision from './components/ExpertProvision.jsx'
 function App() {
   return (
     <Router>
@@ -26,6 +27,8 @@ function App() {
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/admin/partners" element={<PartnerConfig />} />
+        <Router path="/admin/expert" element={<ExpertProvision />} />
       </Routes>
       <Footer />
     </Router>
