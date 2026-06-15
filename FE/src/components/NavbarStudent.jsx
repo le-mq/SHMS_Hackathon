@@ -43,7 +43,7 @@ const NavbarStudent = () => {
                     {STUDENT_LINKS.map(link => (
                         <div
                             key={link.path}
-                            className={`student-nav-link ${location.pathname === link.path ? 'active' : ''}`}
+                           className={`student-nav-link ${location.pathname === link.path ? 'active' : ''}`}
                             onClick={() => handleNav(link.path)}
                             style={{ cursor: 'pointer' }}
                         >

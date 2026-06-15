@@ -432,22 +432,12 @@ const ExpertProvisioning = () => {
                                     {extendLoading ? 'Extending...' : 'Extend Expiry'}
                                 </button>
 
-                                <button className="ph-btn-ghost"
+                                <button
+                                    className="ph-btn-ghost"
                                     style={{
-                                        border: '1px solid #ef4444',
-                                        color: '#ef4444',
-                                        width: 'auto',
-                                        padding: '0 24px',
-                                        margin: '0',
-                                        borderRadius: '8px',
-                                        height: '46px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
-                                        background: 'transparent'
+                                        border: '1px solid #ef4444', color: '#ef4444', width: 'auto', padding: '0 24px',
+                                        margin: '0', borderRadius: '8px', height: '46px', display: 'flex', alignItems: 'center',
+                                        justifyContent: 'center', fontSize: '14px', fontWeight: '600', cursor: 'pointer', background: 'transparent'
                                     }}
                                     onClick={handleDelete}
                                     disabled={extendLoading || !extendUserId}
