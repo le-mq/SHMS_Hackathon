@@ -14,7 +14,7 @@ import EvaluatorDashboard from './components/EvaluatorDashboard.jsx'
 import PartnerConfig from './components/PartnerVerification.jsx'
 import ExpertProvision from './components/ExpertProvision.jsx'
 import HackathonConfig from './components/HackathonConfig'
-
+import TeamStatus from './components/TeamStatus'
 function App() {
   return (
     <Router>
@@ -30,6 +30,7 @@ function App() {
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/expert" element={<ExpertProvision />} />
       </Routes>
