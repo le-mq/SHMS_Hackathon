@@ -9,7 +9,7 @@ const TeamStatus = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    
+    const [isLeaving, setIsLeaving] = useState(false);
     // Form state
     const [formTeamName, setFormTeamName] = useState('');
     const [selectedContestId, setSelectedContestId] = useState('');
@@ -139,6 +139,57 @@ const TeamStatus = () => {
         }
     };
 
+    const handleLeaveTeam = async () => {
+    if (data.status === 'NO TEAM') return;
+
+    if (isSubmitted) {
+        setError('Cannot leave team while registration is pending or approved.');
+        return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to leave this team?');
+    if (!confirmed) return;
+
+    try {
+        setIsLeaving(true);
+        setError('');
+        setSuccessMessage('');
+
+        const token = localStorage.getItem('shms_token');
+
+        const response = await fetch('http://localhost:8080/api/v1/student/teams/leave', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            setTeamData({
+                teamName: 'Not available',
+                categoryName: 'Not available',
+                invitationCode: 'N/A',
+                status: 'NO TEAM',
+                roster: []
+            });
+
+            setFormTeamName('');
+            setSelectedContestId('');
+            setSelectedCategoryId('');
+            setSelectedLeader('');
+
+            setSuccessMessage(result.message || 'You have left the team successfully.');
+        } else {
+            setError(result.error || result.message || 'Failed to leave team.');
+        }
+    } catch (err) {
+        setError('Could not connect to server to leave team.');
+    } finally {
+        setIsLeaving(false);
+    }
+};
     return (
         <div className="status-container">
             {/* Top Navbar */}
@@ -150,10 +201,22 @@ const TeamStatus = () => {
                         <h1 className="status-title">My Team Status</h1>
                         
                     </div>
-                    <div className={`team-badge ${data.status.toLowerCase().replace(' ', '-')}`}>
-                        <div className="team-badge-dot"></div>
-                        {data.status === 'PENDING' ? 'Pending Approval' : data.status === 'NO TEAM' ? 'No Team' : data.status}
-                    </div>
+                    <div className="header-actions">
+                        {data.status !== 'NO TEAM' && !isSubmitted && (
+                            <button
+                                className="leave-team-btn"
+                                 onClick={handleLeaveTeam}
+                                disabled={isLeaving}
+                    >
+                        {isLeaving ? 'Leaving...' : 'Leave Team'}
+                    </button>
+            )}
+
+            <div className={`team-badge ${data.status.toLowerCase().replace(' ', '-')}`}>
+                <div className="team-badge-dot"></div>
+                {data.status === 'PENDING' ? 'Pending Approval' : data.status === 'NO TEAM' ? 'No Team' : data.status}
+                </div>
+        </div>
                 </div>
 
                 {error && <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>}
