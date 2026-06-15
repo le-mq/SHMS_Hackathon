@@ -23,7 +23,7 @@ const RankingsConsole = () => {
     });
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const fetchInitialtData = async () => {
             try {
                 const cdata = await getContests();
                 setContests(cdata);
