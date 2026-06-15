@@ -46,9 +46,14 @@ const MentorCategory = () => {
     const mentorData = data || { trackOverviews: [], allocatedTeams: [] };
 
     const filteredTeams = mentorData.allocatedTeams ? mentorData.allocatedTeams.filter(team => {
-        const matchesSearch = team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            team.leaderName.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = filterCategory === 'All' || team.trackName === filterCategory;
+        const searchStr = searchQuery.toLowerCase();
+        const tName = team.teamName || "";
+        const lName = team.leaderName || "";
+        const tTrack = String(team.trackName || team.categoryName || "").trim().toLowerCase();
+        const filterCatStr = String(filterCategory).trim().toLowerCase();
+
+        const matchesSearch = tName.toLowerCase().includes(searchStr) || lName.toLowerCase().includes(searchStr);
+        const matchesFilter = filterCategory === 'All' || tTrack === filterCatStr;
         return matchesSearch && matchesFilter;
     }) : [];
 
@@ -81,6 +86,61 @@ const MentorCategory = () => {
                             <div className="progress-label">{track.completionPercentage}% teams submitted</div>
                         </div>
                     ))}
+                </div>
+                <div className="teams-section">
+                    <div className="teams-header">
+                        <h2 className="teams-title">Allocated Student Teams</h2>
+                        <div className="teams-actions">
+                            <div className="search-box">
+                                <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                <input type="text" placeholder="Search teams..." value={searchQuery}
+                                       onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            <select className="filter-btn" value={filterCategory}
+                                    onChange={(e) => setFilterCategory(e.target.value)}
+                                    style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}
+                            >
+                                <option value="All">All Categories</option>
+                                {mentorData.trackOverviews.map((track, idx) => {
+                                    const tName = track.trackName || track.categoryName;
+                                    return <option key={idx} value={tName}>{tName}</option>;
+                                })}
+                            </select>
+                        </div>
+                    </div>
+                    <table className="teams-table">
+                        <thead>
+                        <tr>
+                            <th>TEAM NAME</th>
+                            <th>SELECTED CATEGORY</th>
+                            <th>LEADER NAME</th>
+                            <th>PRODUCT</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredTeams.map((team) => (
+                            <tr key={team.teamId}>
+                                <td>
+                                    <div className="team-name-col">
+                                        <span className="team-name">{team.teamName}</span>
+                                    </div>
+                                </td>
+                                <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
+                                <td><span className="team-leader">{team.leaderName}</span></td>
+                                <td>
+                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                        {team.githubRepoUrl && <a href={team.githubRepoUrl} target="_blank" rel="noreferrer" title="GitHub Repo" style={{color: '#3b82f6', textDecoration: 'underline', fontSize: '13px'}}>GitHub Repo</a>}
+                                        {team.liveDemoUrl && <a href={team.liveDemoUrl} target="_blank" rel="noreferrer" title="Live Demo" style={{color: '#10b981', textDecoration: 'underline', fontSize: '13px'}}>Live Demo</a>}
+                                        {team.docsUrl && <a href={team.docsUrl} target="_blank" rel="noreferrer" title="Documentation" style={{color: '#f59e0b', textDecoration: 'underline', fontSize: '13px'}}>Documentation</a>}
+                                        {team.slideUrl && <a href={team.slideUrl} target="_blank" rel="noreferrer" title="Slides" style={{color: '#ef4444', textDecoration: 'underline', fontSize: '13px'}}>Slides</a>}
+                                        {(!team.githubRepoUrl && !team.liveDemoUrl && !team.docsUrl && !team.slideUrl) && <span style={{fontSize: '12px', color: '#94a3b8'}}>No links</span>}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

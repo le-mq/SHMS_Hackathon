@@ -37,6 +37,7 @@
         "id": "1", "name": "FPT Hackathon Summer", "season": "SUMMER",
         "year": "2026", "status": "ACTIVE",
         "registrationStart": "2026-06-01", "registrationEnd": "2026-06-15",
+        "competitionStart":  "2026-06-18", "competitionEnd":  "2026-06-30",
         "description": "Cuộc thi lập trình lớn nhất năm 2025 dành cho sinh viên.",
         "categories": ["Web", "Mobile"],
         "rounds": [
@@ -48,6 +49,7 @@
         "id": "2", "name": "Techfest Fall", "season": "FALL",
         "year":"2026", "status": "UPCOMING",
         "registrationStart": "2026-07-01", "registrationEnd": "2026-07-15",
+        "competitionStart":  "2026-07-18", "competitionEnd":  "2026-07-31",
         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
         "categories": ["Web", "Mobile"],
         "rounds": [
@@ -59,6 +61,7 @@
         "id": "3", "name": "Techfest Spring", "season": "SPRING",
         "year":"2025", "status": "CLOSED",
         "registrationStart": "2025-03-01", "registrationEnd": "2025-03-15",
+        "competitionStart":  "2025-03-18", "competitionEnd":  "2025-03-31",
         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
         "categories": ["Web", "Mobile"],
         "rounds": [
@@ -214,17 +217,60 @@
   },
   "mentorCategory": {
     "data": {
-      "contestName": "FPT Hackathon Summer 2026",
+      "contestName": "SEAL Summer Tech Sprint 2026",
       "trackOverviews": [
-        { "trackId": 1, "trackName": "AI & Machine Learning", "assignedTeams": 12, "activeSessions": 4, "completionPercentage": 65 },
-        { "trackId": 2, "trackName": "Web3 & Blockchain", "assignedTeams": 8, "activeSessions": 2, "completionPercentage": 42 },
-        { "trackId": 3, "trackName": "Cloud Native Architecture", "assignedTeams": 15, "activeSessions": 7, "completionPercentage": 88 }
+        {
+          "trackId": 1,
+          "trackName": "Web3 & Blockchain",
+          "assignedTeams": 2,
+          "activeSessions": 0,
+          "completionPercentage": 50
+        },
+        {
+          "trackId": 2,
+          "trackName": "AI & Machine Learning Innovation",
+          "assignedTeams": 1,
+          "activeSessions": 0,
+          "completionPercentage": 100
+        }
       ],
       "allocatedTeams": [
-        { "teamId": 101, "teamName": "Neural Titans", "trackName": "AI & ML", "leaderName": "John Doe", "totalMembers": 5, "progressStatus": "Development" },
-        { "teamId": 102, "teamName": "BlockChamps", "trackName": "Blockchain", "leaderName": "Alice Wong", "totalMembers": 3, "progressStatus": "Ideation" },
-        { "teamId": 103, "teamName": "Cloud Force", "trackName": "Cloud Native", "leaderName": "Mark Smith", "totalMembers": 4, "progressStatus": "Testing" },
-        { "teamId": 104, "teamName": "Sky Vault", "trackName": "Cloud Native", "leaderName": "Sarah Connor", "totalMembers": 3, "progressStatus": "Development" }
+        {
+          "teamId": 1,
+          "teamName": "Crypto Wizards",
+          "trackName": "Web3 & Blockchain",
+          "leaderName": "Nguyen Van A",
+          "totalMembers": 4,
+          "progressStatus": "Submitted",
+          "githubRepoUrl": "https://github.com",
+          "liveDemoUrl": null,
+          "docsUrl": null,
+          "slideUrl": null
+        },
+        {
+          "teamId": 2,
+          "teamName": "Block Builders",
+          "trackName": "Web3 & Blockchain",
+          "leaderName": "Tran Thi B",
+          "totalMembers": 3,
+          "progressStatus": "Ideation",
+          "githubRepoUrl": null,
+          "liveDemoUrl": null,
+          "docsUrl": null,
+          "slideUrl": null
+        },
+        {
+          "teamId": 3,
+          "teamName": "AI Pioneers",
+          "trackName": "AI & Machine Learning Innovation",
+          "leaderName": "Le Van C",
+          "totalMembers": 5,
+          "progressStatus": "Submitted",
+          "githubRepoUrl": "https://github.com",
+          "liveDemoUrl": "https://demo.com",
+          "docsUrl": null,
+          "slideUrl": null
+        }
       ]
     }
   }
