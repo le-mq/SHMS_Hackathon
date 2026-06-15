@@ -192,8 +192,48 @@ public class AdminController {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
-    
 
+    @PutMapping("/experts/{userId}/expiry")
+    @Operation(summary = "Extend Expert Expiry", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> extendExpertExpiry(HttpServletRequest request, @PathVariable Long userId, @Valid @RequestBody com.fpt.shms.be.dto.ExtendExpiryRequest extendRequest) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            expertAdminService.extendExpiry(userId, extendRequest.getNewExpiry());
+            return ResponseEntity.ok(Map.of("message", "Expiry extended successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
 
+    @PutMapping("/experts/{userId}/roles")
+    @Operation(summary = "Update Expert Roles", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> updateExpertRoles(HttpServletRequest request, @PathVariable Long userId, @RequestBody java.util.Map<String, java.util.List<String>> rolesMap) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            java.util.List<String> roles = rolesMap.get("roles");
+            if (roles == null || roles.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Roles cannot be empty"));
+            }
+            expertAdminService.updateExpertRoles(userId, roles);
+            return ResponseEntity.ok(Map.of("message", "Roles updated successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/experts/{userId}")
+    @Operation(summary = "Delete an Expert", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> deleteExpert(HttpServletRequest request, @PathVariable Long userId) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            expertAdminService.deleteExpert(userId);
+            return ResponseEntity.ok(Map.of("message", "Expert deleted successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
 
 }
