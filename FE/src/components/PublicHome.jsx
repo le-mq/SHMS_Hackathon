@@ -29,13 +29,19 @@ function progress(start, end) {
 }
 
 function ContestCard({contest, onSelectContest}) {
-    const {
-        name, season, year, registrationStart, registrationEnd,
-        competitionStart, competitionEnd, status
-    } = contest;
+    const { name, season, year, registrationStart, registrationEnd, status, rounds } = contest;
     const isClosed = status === 'CLOSED';
     const isUpcoming = status === 'UPCOMING';
-    const pct = progress(registrationStart, competitionEnd);
+    let compStart = null;
+    let compEnd = null;
+    if (rounds && rounds.length > 0) {
+        const opens = rounds.map(r => new Date(r.submissionOpen).getTime()).filter(t => !isNaN(t));
+        const closes = rounds.map(r => new Date(r.submissionDeadline).getTime()).filter(t => !isNaN(t));
+        if (opens.length > 0) compStart = new Date(Math.min(...opens)).toISOString();
+        if (closes.length > 0) compEnd = new Date(Math.max(...closes)).toISOString();
+    }
+
+    const pct = progress(registrationStart, compEnd);
 
     return (
         <div className="ph-contest-card">
@@ -51,7 +57,7 @@ function ContestCard({contest, onSelectContest}) {
                 </div>
                 <div className="ph-date-row">
                     <span className="ph-date-label">Competition</span>
-                    <span>{fmtShortDate(competitionStart)} – {fmtShortDate(competitionEnd)}</span>
+                    <span>{fmtShortDate(compStart)} – {fmtShortDate(compEnd)}</span>
                 </div>
             </div>
 
@@ -166,7 +172,7 @@ export default function PublicHome() {
                         <p>Details of categories and timeline
                             for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
                     </div>
-                    <div className="ph-categories-table">
+                    <div className="ph-tracks-table">
                         <table>
                             <thead>
                             <tr>
@@ -179,10 +185,10 @@ export default function PublicHome() {
                             <tbody>
                             {!selectedContest || !selectedContest.categories || selectedContest.categories.length === 0 ? (
                                 <tr><td colSpan={4} style={{textAlign: 'center', color: '#9ca3af', padding: 32}}>
-                                        No categories available for this contest.</td>
+                                    No categories available for this contest.</td>
                                 </tr>) : ((() => {
                                     const allCatNames = Array.isArray(selectedContest.categories)
-                                        ? selectedContest.categories.join(', ') : '';
+                                        ? selectedContest.categories.map(c => c.name || c).join(', ') : '';
                                     const rounds = selectedContest.rounds || [];
                                     if (rounds.length === 0) {
                                         return (
@@ -195,7 +201,7 @@ export default function PublicHome() {
                                     return rounds.map((r, rId) => (
                                         <tr key={"round-"+rId}>
                                             {rId === 0 && <td className="ph-category-name" rowSpan={rounds.length}
-                                                               style={{verticalAlign: 'middle', fontWeight: 600}}>{allCatNames}</td>}
+                                                              style={{verticalAlign: 'middle', fontWeight: 600}}>{allCatNames}</td>}
                                             <td>{r.phaseName}</td>
                                             <td>{fmtDate(r.submissionOpen)}</td>
                                             <td>{fmtDate(r.submissionDeadline)}</td>

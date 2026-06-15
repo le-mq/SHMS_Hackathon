@@ -232,7 +232,6 @@ const HackathonConfig = () => {
                     }
                 }
             }
-
             setSuccess(selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!');
             fetchContests();
         } catch (err) {
@@ -367,9 +366,9 @@ const HackathonConfig = () => {
                             <div className="form-group">
                                 <label className="form-label">Region Scope</label>
                                 <select name="regionScope" className="form-select" value={formData.regionScope} onChange={handleChange}>
-                                    <option value="Hanoi">Ha Noi</option>
-                                    <option value="Danang">Da Nang</option>
-                                    <option value="HCMC">Ho Chi Minh</option>
+                                    <option value="Ha Noi">Ha Noi</option>
+                                    <option value="Da Nang">Da Nang</option>
+                                    <option value="Ho Chi Minh">Ho Chi Minh</option>
                                     <option value="Can Tho">Can Tho</option>
                                     <option value="Quy Nhon">Quy Nhon</option>
                                 </select>

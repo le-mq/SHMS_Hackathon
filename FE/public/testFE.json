@@ -37,7 +37,6 @@
         "id": "1", "name": "FPT Hackathon Summer", "season": "SUMMER",
         "year": "2026", "status": "ACTIVE",
         "registrationStart": "2026-06-01", "registrationEnd": "2026-06-15",
-        "competitionStart":  "2026-06-18", "competitionEnd":  "2026-06-30",
         "description": "Cuộc thi lập trình lớn nhất năm 2025 dành cho sinh viên.",
         "categories": ["Web", "Mobile"],
         "rounds": [
@@ -49,7 +48,6 @@
         "id": "2", "name": "Techfest Fall", "season": "FALL",
         "year":"2026", "status": "UPCOMING",
         "registrationStart": "2026-07-01", "registrationEnd": "2026-07-15",
-        "competitionStart":  "2026-07-18", "competitionEnd":  "2026-07-31",
         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
         "categories": ["Web", "Mobile"],
         "rounds": [
@@ -61,7 +59,6 @@
         "id": "3", "name": "Techfest Spring", "season": "SPRING",
         "year":"2025", "status": "CLOSED",
         "registrationStart": "2025-03-01", "registrationEnd": "2025-03-15",
-        "competitionStart":  "2025-03-18", "competitionEnd":  "2025-03-31",
         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
         "categories": ["Web", "Mobile"],
         "rounds": [
