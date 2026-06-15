@@ -169,5 +169,50 @@
         }
       ]
     }
+  },
+  "hackathonConfig": {
+    "universities": [
+      { "id": 1, "name": "FPT University" },
+      { "id": 2, "name": "Hanoi University of Science and Technology" },
+      { "id": 3, "name": "National Economics University" },
+      { "id": 4, "name": "RMIT University" }
+    ],
+    "contestDetail": {
+      "name": "SEAL Summer Tech Sprint 2026",
+      "term": "SUMMER",
+      "year": "2026",
+      "regionScope": "Hanoi",
+      "maximumAllowedTeams": 50,
+      "registrationStart": "2026-05-01",
+      "registrationEnd": "2026-05-31",
+      "complianceRules": "1. All code must be original.\n2. Teams must have 3-5 members.",
+      "tieredPrizeStructures": "Grand Prize: $5000\nRunner-up: $2000",
+      "status": "UPCOMING",
+      "universities": ["FPT University", "RMIT University"],
+      "tracks": [
+        {
+          "id": 1,
+          "categoryName": "AI & Machine Learning Innovation",
+          "categoryDescription": "Develop AI solutions for real-world problems.",
+          "guidelineUrl": "https://docs.hackathon.com/ai-guidelines",
+          "rounds": [
+            {
+              "id": 1,
+              "phaseName": "Phase 01: Screening",
+              "submissionOpen": "2026-06-01T08:00",
+              "submissionDeadline": "2026-06-15T23:59",
+              "state": "UPCOMING"
+            },
+            {
+              "id": 2,
+              "phaseName": "Phase 02: Final",
+              "submissionOpen": "2026-06-20T08:00",
+              "submissionDeadline": "2026-06-30T23:59",
+              "state": "UPCOMING"
+            }
+          ]
+        }
+      ]
+    }
   }
 }
