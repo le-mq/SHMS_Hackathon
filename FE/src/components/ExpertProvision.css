@@ -28,6 +28,7 @@
 }
 
 .config-title {
+    display: block;
     font-size: 24px;
     font-weight: 700;
     color: #111827;
@@ -35,6 +36,7 @@
 }
 
 .config-subtitle {
+    display: block;
     font-size: 14px;
     color: #6b7280;
     margin: 0;
