@@ -93,7 +93,7 @@ const HackathonConfig = () => {
                 if (data.tracks && data.tracks.length > 0) {
                     setCategories(data.tracks.map((t, idx) => ({
                         id: t.id || idx + 1,
-                        trackName: t.trackName || '',
+                        trackName: t.categoryName || '',
                         trackDescription: t.trackDescription || '',
                         guidelineUrl: t.guidelineUrl || ''
                     })));
@@ -204,7 +204,7 @@ const HackathonConfig = () => {
                 for (const category of validCategories) {
                     const categoryPayload = {
                         contestId: data.contestId,
-                        trackName: category.trackName,
+                        categoryName: category.trackName,
                         trackDescription: category.trackDescription || 'No description',
                         guidelineUrl: category.guidelineUrl || '',
                         rounds: validRounds.length > 0 ? validRounds.map(r => ({
@@ -439,7 +439,7 @@ const HackathonConfig = () => {
                                                 className="form-input"
                                                 placeholder="e.g. AI & Machine Learning Innovation"
                                                 value={t.trackName}
-                                                onChange={(e) => handleCategoryChange(t.id, 'categoryName', e.target.value)}
+                                                onChange={(e) => handleCategoryChange(t.id, 'trackName', e.target.value)}
                                             />
                                         </div>
 
@@ -449,7 +449,7 @@ const HackathonConfig = () => {
                                                 className="form-textarea"
                                                 placeholder="Describe the focus areas, technical requirements..."
                                                 value={t.trackDescription}
-                                                onChange={(e) => handleCategoryChange(t.id, 'categoryDescription', e.target.value)}
+                                                onChange={(e) => handleCategoryChange(t.id, 'trackDescription', e.target.value)}
                                             ></textarea>
                                         </div>
 
