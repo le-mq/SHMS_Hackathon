@@ -153,20 +153,20 @@ export default function PublicHome() {
                             (<ContestCard key={c.id} contest={c} onSelectContest={
                                     () => {
                                         setSelectedContest(c);
-                                        document.getElementById("tracks-section")?.scrollIntoView({behavior: 'smooth'});
+                                        document.getElementById("categories-section")?.scrollIntoView({behavior: 'smooth'});
                                     }}/>
                             ))}</div>)}
                 </div>
             </section>
             {/* Open Competitive Tracks */}
-            <section className="ph-section" id="tracks-section">
+            <section className="ph-section" id="categories-section">
                 <div className="ph-container">
                     <div className="ph-section-header">
                         <h2>Open Competitive Tracks</h2>
                         <p>Details of categories and timeline
                             for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
                     </div>
-                    <div className="ph-tracks-table">
+                    <div className="ph-categories-table">
                         <table>
                             <thead>
                             <tr>
@@ -179,7 +179,7 @@ export default function PublicHome() {
                             <tbody>
                             {!selectedContest || !selectedContest.categories || selectedContest.categories.length === 0 ? (
                                 <tr><td colSpan={4} style={{textAlign: 'center', color: '#9ca3af', padding: 32}}>
-                                        No tracks available for this contest.</td>
+                                        No categories available for this contest.</td>
                                 </tr>) : ((() => {
                                     const allCatNames = Array.isArray(selectedContest.categories)
                                         ? selectedContest.categories.join(', ') : '';
@@ -187,14 +187,14 @@ export default function PublicHome() {
                                     if (rounds.length === 0) {
                                         return (
                                             <tr>
-                                                <td className="ph-track-name">{allCatNames}</td>
+                                                <td className="ph-category-name">{allCatNames}</td>
                                                 <td colSpan={3}>No rounds defined</td>
                                             </tr>
                                         );
                                     }
                                     return rounds.map((r, rId) => (
                                         <tr key={"round-"+rId}>
-                                            {rId === 0 && <td className="ph-track-name" rowSpan={rounds.length}
+                                            {rId === 0 && <td className="ph-category-name" rowSpan={rounds.length}
                                                                style={{verticalAlign: 'middle', fontWeight: 600}}>{allCatNames}</td>}
                                             <td>{r.phaseName}</td>
                                             <td>{fmtDate(r.submissionOpen)}</td>

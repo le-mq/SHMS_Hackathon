@@ -10,7 +10,6 @@ import com.fpt.shms.be.repository.ContestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,27 +88,23 @@ public class PartnerAdminService {
             return;
         }
 
-        // Find the university
         University university = universityRepository.findByName(universityName)
                 .orElseThrow(() -> new IllegalArgumentException("University not found"));
 
-        // Get all current students in DB for this university
+
         List<StudentVerificationData> existingList = studentVerificationDataRepository.findByUniversity(universityName);
 
-        // Find which ones are in the incoming dtos
         List<String> incomingMssvs = dtos.stream()
                 .map(StudentVerificationDataDto::getMssv)
                 .filter(mssv -> mssv != null && !mssv.isEmpty())
                 .collect(Collectors.toList());
 
-        // Delete students that are in DB but NOT in incoming dtos
         for (StudentVerificationData sv : existingList) {
             if (!incomingMssvs.contains(sv.getMssv())) {
                 studentVerificationDataRepository.delete(sv);
             }
         }
-
-        // Save/update incoming ones
+//
         for (StudentVerificationDataDto dto : dtos) {
             if (dto.getMssv() == null || dto.getMssv().isEmpty()) continue;
 

@@ -10,7 +10,7 @@ const STUDENT_LINKS = [
     { label: 'Workspace', path: '/student/workspace' },
     { label: 'Submission', path: '/student/submission' },
     { label: 'Results', path: '/student/results' },
-    { label: 'Leaderboard', path: '#leaderboard' },
+    { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
 const NavbarStudent = () => {
@@ -43,7 +43,7 @@ const NavbarStudent = () => {
                     {STUDENT_LINKS.map(link => (
                         <div
                             key={link.path}
-                            className={`student-nav-link ${(link.path === '#leaderboard' ? isLeaderboard : (location.pathname === link.path && !isLeaderboard)) ? 'active' : ''}`}
+                           className={`student-nav-link ${location.pathname === link.path ? 'active' : ''}`}
                             onClick={() => handleNav(link.path)}
                             style={{ cursor: 'pointer' }}
                         >
@@ -79,11 +79,7 @@ const NavbarStudent = () => {
                 </div>
                 {showAnnouncements && <LatestAnnouncements isModal={true} onClose={() => setShowAnnouncements(false)} />}
             </nav>
-            {isLeaderboard && (
-                <div style={{ position: 'fixed', top: 64, left: 0, right: 0, bottom: 0, overflowY: 'auto', background: '#f8fafc', zIndex: 1000 }}>
-                    <LeaderboardContent />
-                </div>
-            )}
+
         </>
     );
 };

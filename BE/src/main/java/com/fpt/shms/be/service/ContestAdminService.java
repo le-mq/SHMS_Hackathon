@@ -68,23 +68,13 @@ public class ContestAdminService {
                 return roundMap;
             }).toList();
 
-//            List<Team> catTeams = teamRepository.findByCategoryId(c.getId());
-//            List<Map<String, Object>> teamMaps = catTeams.stream()
-//                    .filter(t -> "APPROVED".equals(t.getStatus()))
-//                    .map(t -> {
-//                        Map<String, Object> tm = new HashMap<>();
-//                        tm.put("id", t.getId());
-//                        tm.put("name", t.getName());
-//                        return tm;
-//                    }).toList();
-
             Map<String, Object> trackMap = new HashMap<>();
             trackMap.put("id", c.getId());
             trackMap.put("categoryName", c.getName());
             trackMap.put("trackDescription", c.getDescription() != null ? c.getDescription() : "");
             trackMap.put("guidelineUrl", c.getGuidelineUrl() != null ? c.getGuidelineUrl() : "");
             trackMap.put("rounds", roundsList);
-//            trackMap.put("teams", teamMaps);
+//
             return trackMap;
         }).toList();
 
