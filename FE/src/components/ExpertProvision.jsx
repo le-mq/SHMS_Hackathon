@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './ExpertProvisioning.css';
+import './ExpertProvision.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const ExpertProvisioning = () => {
@@ -223,10 +223,6 @@ const ExpertProvisioning = () => {
             <NavbarAdmin />
 
             <div className="config-wrapper">
-                <div className="breadcrumbs">
-                    Accounts & Panels &rsaquo; <span>Credentials Provisioning</span>
-                </div>
-
                 <div className="config-header">
                     <h1 className="config-title">Expert Credentials Provisioning</h1>
                     <p className="config-subtitle">Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.</p>
@@ -235,48 +231,11 @@ const ExpertProvisioning = () => {
                 {error && <div className="alert-msg alert-error">{error}</div>}
                 {success && <div className="alert-msg alert-success">{success}</div>}
 
-                <div className="provisioning-grid">
-                    {/* Left Column */}
-                    <div>
-                        <div className="policy-card">
-                            <h3 className="policy-title">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                Security Policy
-                            </h3>
-                            <ul className="policy-list">
-                                <li>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    Credentials are hashed and transmitted over encrypted channels only.
-                                </li>
-                                <li>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    Multi-factor authentication is required for all Mentor and Judge roles.
-                                </li>
-                                <li>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    Guest access is automatically revoked after the specified lifespan.
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="sessions-card">
-                            <div className="sessions-title">ACTIVE SESSIONS</div>
-                            <div className="sessions-count">12 / 50</div>
-                            <div className="sessions-bar-bg">
-                                <div className="sessions-bar-fill"></div>
-                            </div>
-                            <div className="sessions-desc">
-                                24% of maximum provisioning capacity utilized for the current hackathon season.
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column */}
+                <div>
                     <div>
                         <div className="form-card">
                             <div className="form-header">
                                 <div className="form-title">System Provisioning Form</div>
-                                <div className="step-badge">Step 1 of 2</div>
                             </div>
 
                             <div className="form-row">
@@ -288,7 +247,7 @@ const ExpertProvisioning = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Professional Email</label>
-                                    <inpu type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail}
+                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail}
                                         onChange={handleChange}
                                     />
                                 </div>
@@ -370,17 +329,12 @@ const ExpertProvisioning = () => {
                                     onChange={handleChange}
                                     style={{ maxWidth: '300px' }}
                                 />
-                                <div className="expiry-info">Access will be automatically terminated at 11:59 PM on the selected date.</div>
                             </div>
 
                             <button className="generate-btn" onClick={handleGenerate} disabled={isLoading}>
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                                 {isLoading ? 'Generating...' : 'Generate Account Credentials'}
                             </button>
-
-                            <p className="form-footer-note">
-                                By clicking generate, an invitation with temporary login links will be sent to the professional email provided above.
-                            </p>
                         </div>
 
                         {/* Search & Extend Expiry Card */}

@@ -95,7 +95,11 @@ const Login = () => {
                 <div className="login-card">
                     <h3>Sign In</h3>
                     <p>Enter your credentials to continue</p>
-                    {error && <div className="alert alert-error">{error}</div>}
+                    {error && (
+                        <div className="login-error">
+                            {error}
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <div className="form-group-header">
