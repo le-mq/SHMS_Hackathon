@@ -1,16 +1,13 @@
 package com.fpt.shms.be.controller;
 
-import com.fpt.shms.be.dto.CreateContestRequest;
-import com.fpt.shms.be.dto.CreateTrackRoundRequest;
-import com.fpt.shms.be.dto.CreateRubricRequest;
-import com.fpt.shms.be.dto.StudentVerificationDataDto;
-import com.fpt.shms.be.dto.UniversityDto;
+import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.model.ContestRubric;
 import com.fpt.shms.be.service.ContestAdminService;
 import com.fpt.shms.be.service.RubricAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;
+import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +29,7 @@ public class AdminController {
     private final ContestAdminService contestAdminService;
     private final RubricAdminService rubricAdminService;
     private final PartnerAdminService partnerAdminService;
-//    private final TeamService teamService;
+    private final TeamService teamService;
     private final JwtUtils jwtUtils;
 
     private void requireAdminOrCoordinatorRole(HttpServletRequest request) {
@@ -285,5 +282,18 @@ public class AdminController {
         }
     }
 
+    @PutMapping("/teams/registration-status")
+    @Operation(summary = "Approve or Reject Team Registration", description = "Admin sets team status (APPROVED or REJECTED).")
+    public ResponseEntity<?> updateTeamStatus(HttpServletRequest request, @Valid @RequestBody UpdateTeamStatusRequest statusRequest) {
+        try {
+            requireAdminOrCoordinatorRole(request);
+            teamService.updateTeamStatus(statusRequest.getTeamId(), statusRequest.getStatus());
+            return ResponseEntity.ok(Map.of("message", "Team status updated to " + statusRequest.getStatus()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
 
 }
