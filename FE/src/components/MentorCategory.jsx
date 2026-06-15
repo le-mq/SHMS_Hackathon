@@ -15,22 +15,23 @@ const MentorCategory = () => {
             try {
                 const token = localStorage.getItem('shms_token');
                 const response = await fetch('http://localhost:8080/api/v1/mentor/assigned-teams', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                const result = await response.json();
-
                 if (response.ok) {
+                    const result = await response.json();
                     setData(result);
                 } else {
-                    setError(result.error || 'Failed to load mentor data');
+                    throw new Error('API failed');
                 }
             } catch (err) {
-                // Ignore error and use mock if API not up
-                console.error(err);
-                setError('Could not connect to server.');
+                console.error("API failed, falling back to mock data:", err);
+                try {
+                    const fallbackResponse = await fetch('/testFE.json');
+                    const mockData = await fallbackResponse.json();
+                    setData(mockData.mentorCategory.data);
+                } catch (mockErr) {
+                    setError('Could not connect to server and no mock data found.');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -39,42 +40,47 @@ const MentorCategory = () => {
         fetchMentorData();
     }, []);
 
-    const mentorData = data || {
-        trackOverviews: [
-            { trackId: 1, trackName: 'AI & Machine Learning', assignedTeams: 12, activeSessions: 4, completionPercentage: 65 },
-            { trackId: 2, trackName: 'Web3 & Blockchain', assignedTeams: 8, activeSessions: 2, completionPercentage: 42 },
-            { trackId: 3, trackName: 'Cloud Native Architecture', assignedTeams: 15, activeSessions: 7, completionPercentage: 88 }
-        ],
-        allocatedTeams: [
-            { teamId: 101, teamName: 'Neural Titans', trackName: 'AI & ML', leaderName: 'John Doe', totalMembers: 5, progressStatus: 'Development' },
-            { teamId: 102, teamName: 'BlockChamps', trackName: 'Blockchain', leaderName: 'Alice Wong', totalMembers: 3, progressStatus: 'Ideation' },
-            { teamId: 103, teamName: 'Cloud Force', trackName: 'Cloud Native', leaderName: 'Mark Smith', totalMembers: 4, progressStatus: 'Testing' },
-            { teamId: 104, teamName: 'Sky Vault', trackName: 'Cloud Native', leaderName: 'Sarah Connor', totalMembers: 3, progressStatus: 'Development' }
-        ]
-    };
+    if (isLoading) return <div className="mentor-container">Loading...</div>;
+    if (error && !data) return <div className="mentor-container">Error: {error}</div>;
 
+    const mentorData = data || { trackOverviews: [], allocatedTeams: [] };
 
-
-    const filteredTeams = mentorData.allocatedTeams.filter(team => {
+    const filteredTeams = mentorData.allocatedTeams ? mentorData.allocatedTeams.filter(team => {
         const matchesSearch = team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             team.leaderName.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesFilter = filterCategory === 'All' || team.trackName === filterCategory;
         return matchesSearch && matchesFilter;
-    });
+    }) : [];
 
     return (
         <div className="mentor-container">
-            {/* Top Navbar */}
             <NavbarMentor />
-
             <div className="mentor-content">
                 <div className="mentor-header">
                     <h1 className="mentor-title">Contest: {mentorData.contestName || "N/A"}</h1>
                     <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
                 </div>
-
-                <div style={{ marginTop: '32px' }}>
-                    <LatestAnnouncements />
+                <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
+                <div className="track-cards">
+                    {mentorData.trackOverviews.map((track, idx) => (
+                        <div className="track-card" key={idx}>
+                            <div className="track-card-header">
+                                <div className="track-name">{track.trackName}</div>
+                            </div>
+                            <div className="track-stat-row">
+                                <span className="track-stat-label">Assigned Teams</span>
+                                <span className="track-stat-value">{track.assignedTeams} Teams</span>
+                            </div>
+                            <div className="track-stat-row">
+                                <span className="track-stat-label">Submission Rate</span>
+                                <span className="track-stat-value">{track.completionPercentage}%</span>
+                            </div>
+                            <div className="progress-bar-bg">
+                                <div className="progress-bar-fill" style={{width: `${track.completionPercentage}%`}}></div>
+                            </div>
+                            <div className="progress-label">{track.completionPercentage}% teams submitted</div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

@@ -211,5 +211,21 @@
         }
       ]
     }
+  },
+  "mentorCategory": {
+    "data": {
+      "contestName": "FPT Hackathon Summer 2026",
+      "trackOverviews": [
+        { "trackId": 1, "trackName": "AI & Machine Learning", "assignedTeams": 12, "activeSessions": 4, "completionPercentage": 65 },
+        { "trackId": 2, "trackName": "Web3 & Blockchain", "assignedTeams": 8, "activeSessions": 2, "completionPercentage": 42 },
+        { "trackId": 3, "trackName": "Cloud Native Architecture", "assignedTeams": 15, "activeSessions": 7, "completionPercentage": 88 }
+      ],
+      "allocatedTeams": [
+        { "teamId": 101, "teamName": "Neural Titans", "trackName": "AI & ML", "leaderName": "John Doe", "totalMembers": 5, "progressStatus": "Development" },
+        { "teamId": 102, "teamName": "BlockChamps", "trackName": "Blockchain", "leaderName": "Alice Wong", "totalMembers": 3, "progressStatus": "Ideation" },
+        { "teamId": 103, "teamName": "Cloud Force", "trackName": "Cloud Native", "leaderName": "Mark Smith", "totalMembers": 4, "progressStatus": "Testing" },
+        { "teamId": 104, "teamName": "Sky Vault", "trackName": "Cloud Native", "leaderName": "Sarah Connor", "totalMembers": 3, "progressStatus": "Development" }
+      ]
+    }
   }
 }
