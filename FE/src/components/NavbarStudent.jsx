@@ -31,8 +31,8 @@ const NavbarStudent = () => {
     const notifs = useUnreadAnnouncements();
 
     const handleNav = (path) => {
-    navigate(path);
-};
+        navigate(path);
+    };
     return (
         <>
             <nav className="student-nav">

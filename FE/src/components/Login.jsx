@@ -31,10 +31,8 @@ const Login = () => {
             setError('Please enter both username and password');
             return;
         }
-
         setIsLoading(true);
         setError('');
-
         try {
             const response = await fetch('http://localhost:8080/api/v1/auth/login', {
                 method: 'POST',
