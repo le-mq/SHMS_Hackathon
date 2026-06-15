@@ -1,14 +1,13 @@
 package com.fpt.shms.be.service;
 
-import com.fpt.shms.be.dto.CreateTeamRequest;
-import com.fpt.shms.be.dto.TeamRegistrationRequest;
-import com.fpt.shms.be.dto.TeamRegistrationResponse;
-import com.fpt.shms.be.dto.TeamStatusResponse;
+import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.*;
 import com.fpt.shms.be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -20,6 +19,8 @@ public class TeamService{
     private final RoleRepository roleRepository;
     private final ContestRepository contestRepository;
     private final CategoryRepository categoryRepository;
+    private final RoundRepository roundRepository;
+    private final SubmissionRepository submissionRepository;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -251,6 +252,71 @@ public class TeamService{
             }
         }
         return new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
+    }
+
+    public WorkspaceResponse getWorkspaceData(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId());
+        if (memberships.isEmpty()) {
+            throw new IllegalArgumentException("User is not in any team");
+        }
+
+        TeamMembership activeMembership = memberships.get(0);
+        Team team = activeMembership.getTeam();
+
+        List<TeamMembership> teamMembers = teamMembershipRepository.findByTeamId(team.getId());
+        List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
+
+        boolean isSubmitted = submissions.stream().anyMatch(s -> "SUBMITTED".equals(s.getStatus()));
+
+        LocalDateTime deadline = null;
+        Contest roundContest = team.getContest() != null ? team.getContest()
+                : (team.getCategory() != null ? team.getCategory().getContest() : null);
+        if (roundContest != null) {
+            List<Round> rounds = roundRepository.findByContestId(roundContest.getId());
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nearestDeadline = null;
+            for (Round r : rounds) {
+                if (r.getSubmissionDeadline() != null && r.getSubmissionDeadline().isAfter(now)) {
+                    if (nearestDeadline == null || r.getSubmissionDeadline().isBefore(nearestDeadline)) {
+                        nearestDeadline = r.getSubmissionDeadline();
+                    }
+                }
+            }
+            deadline = nearestDeadline;
+        }
+
+        int maxMembers = 5;
+        if (team.getContest() != null && team.getContest().getMaximumAllowedTeams() != null) {
+            // maxMembers per team is not in contest, usually hardcoded to 5 in rules, so keep 5.
+        }
+
+        return WorkspaceResponse.builder()
+                .teamStatus(team.getStatus() != null ? team.getStatus() : "FORMING")
+                .submissionDeadline(deadline)
+                .currentMembers(teamMembers.size())
+                .maxMembers(maxMembers)
+                .isSubmitted(isSubmitted)
+                .currentRank(isSubmitted ? 12 : null) // Keep mock rank
+                .announcements(List.of(
+                        WorkspaceResponse.AnnouncementDto.builder()
+                                .id(1L)
+                                .title("Tournament Schedule Update")
+                                .subtitle("Final presentation slots have been randomized.")
+                                .category("Schedule")
+                                .datePosted(LocalDateTime.now().minusHours(2))
+                                .build(),
+                        WorkspaceResponse.AnnouncementDto.builder()
+                                .id(2L)
+                                .title("Workshop: Scaling with JWT")
+                                .subtitle("Guest lecture starts in 2 hours at Hall A.")
+                                .category("Workshop")
+                                .datePosted(LocalDateTime.now().minusHours(4))
+                                .build()
+                ))
+                .build();
     }
 
     private Student requireStudent(User user) {
