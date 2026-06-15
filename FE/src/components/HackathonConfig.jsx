@@ -15,7 +15,7 @@ const HackathonConfig = () => {
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
 
     const [categories, setCategories] = useState([
-        { id: '', categoryName: '', categoryDescription: '', guidelineUrl: '' }
+        { id: '', trackName: '', trackDescription: '', guidelineUrl: '' }
     ]);
 
     const [rounds, setRounds] = useState([
@@ -55,7 +55,7 @@ const HackathonConfig = () => {
                 maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '', complianceRules: '', tieredPrizeStructures: '', heroBrandingBanner: '', status: 'UPCOMING'
             });
             setUniversities(['FPT University']);
-            setCategories([{ id: 1, categoryName: '', categoryDescription: '', guidelineUrl: '' }]);
+            setCategories([{ id: 1, trackName: '', trackDescription: '', guidelineUrl: '' }]);
             setRounds([
                 { id: 1, phaseName: 'Phase 01: Screening', submissionOpen: '', submissionDeadline: '' },
                 { id: 2, phaseName: 'Phase 02: Semi-final', submissionOpen: '', submissionDeadline: '' },
@@ -93,8 +93,8 @@ const HackathonConfig = () => {
                 if (data.tracks && data.tracks.length > 0) {
                     setCategories(data.tracks.map((t, idx) => ({
                         id: t.id || idx + 1,
-                        categoryName: t.categoryName || '',
-                        categoryDescription: t.categoryDescription || '',
+                        trackName: t.trackName || '',
+                        trackDescription: t.trackDescription || '',
                         guidelineUrl: t.guidelineUrl || ''
                     })));
 
@@ -108,7 +108,7 @@ const HackathonConfig = () => {
                         })));
                     }
                 } else {
-                    setCategories([{ id: 1, categoryName: '', categoryDescription: '', guidelineUrl: '' }]);
+                    setCategories([{ id: 1, trackName: '', trackDescription: '', guidelineUrl: '' }]);
                     setRounds([{ id: 1, phaseName: 'Phase 01: Screening', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }]);
                 }
             } else {
@@ -136,7 +136,7 @@ const HackathonConfig = () => {
 
     const handleAddCategory = () => {
         const newId = categories.length > 0 ? Math.max(...categories.map(t => t.id)) + 1 : 1;
-        setCategories([...categories, { id: newId, categoryName: '', categoryDescription: '', guidelineUrl: '' }]);
+        setCategories([...categories, { id: newId, trackName: '', trackDescription: '', guidelineUrl: '' }]);
     };
 
     const handleDeleteCategory = (id) => {
@@ -198,19 +198,20 @@ const HackathonConfig = () => {
                 return;
             }
 
-            const validCategories = categories.filter(t => t.categoryName.trim() !== '');
+            const validCategories = categories.filter(t => t.trackName.trim() !== '');
             const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
             if (validCategories.length > 0) {
                 for (const category of validCategories) {
                     const categoryPayload = {
                         contestId: data.contestId,
-                        categoryName: category.categoryName,
-                        categoryDescription: category.categoryDescription || 'No description',
+                        trackName: category.trackName,
+                        trackDescription: category.trackDescription || 'No description',
                         guidelineUrl: category.guidelineUrl || '',
                         rounds: validRounds.length > 0 ? validRounds.map(r => ({
+                            id: r.id,
                             phaseName: r.phaseName,
-                            submissionOpen: r.submissionOpen,
-                            submissionDeadline: r.submissionDeadline,
+                            submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
+                            submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
                             submissionFormat: 'PDF',
                             state: r.state || 'UPCOMING'
                         })) : []
@@ -227,7 +228,7 @@ const HackathonConfig = () => {
 
                     if (!categoryResponse.ok) {
                         const categoryData = await categoryResponse.json();
-                        console.warn('Failed to save category:', category.categoryName, categoryData);
+                        console.warn('Failed to save category:', category.trackName, categoryData);
                     }
                 }
             }
@@ -437,7 +438,7 @@ const HackathonConfig = () => {
                                                 type="text"
                                                 className="form-input"
                                                 placeholder="e.g. AI & Machine Learning Innovation"
-                                                value={t.categoryName}
+                                                value={t.trackName}
                                                 onChange={(e) => handleCategoryChange(t.id, 'categoryName', e.target.value)}
                                             />
                                         </div>
@@ -447,7 +448,7 @@ const HackathonConfig = () => {
                                             <textarea
                                                 className="form-textarea"
                                                 placeholder="Describe the focus areas, technical requirements..."
-                                                value={t.categoryDescription}
+                                                value={t.trackDescription}
                                                 onChange={(e) => handleCategoryChange(t.id, 'categoryDescription', e.target.value)}
                                             ></textarea>
                                         </div>
