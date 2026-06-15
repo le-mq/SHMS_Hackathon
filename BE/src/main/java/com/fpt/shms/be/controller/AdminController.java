@@ -8,6 +8,7 @@ import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.service.ContestAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;
+import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +29,7 @@ public class AdminController {
 
     private final ContestAdminService contestAdminService;
     private final PartnerAdminService partnerAdminService;
-//    private final TeamService teamService;
+    private final TeamService teamService;
     private final JwtUtils jwtUtils;
 
     private void requireAdminOrCoordinatorRole(HttpServletRequest request) {
@@ -167,6 +168,4 @@ public class AdminController {
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
     }
-
-
 }

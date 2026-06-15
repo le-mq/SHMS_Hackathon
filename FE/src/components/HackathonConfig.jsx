@@ -28,35 +28,19 @@ const HackathonConfig = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const fetchAllUniversities = async () => {
+    const fetchData = async (url, mockKey) => {
         try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch('http://localhost:8080/api/v1/admin/universities', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setAllUniversities(data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch universities', err);
-        }
+            const data = await (await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } })).json();
+            if (Object.keys(data || {}).length > 0) return data;
+        } catch (e) {}
+        const mock = await (await fetch('/testFE.json')).json();
+        return mockKey === 'uni' ? mock.hackathonConfig?.universities || []
+            : mockKey === 'contests' ? mock.contests?.data || []
+                : mock.hackathonConfig?.contestDetail || {};
     };
 
-    const fetchContests = async () => {
-        try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch('http://localhost:8080/api/v1/admin/contests', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setContests(data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch contests', err);
-        }
-    };
+    const fetchAllUniversities = async () => setAllUniversities(await fetchData('http://localhost:8080/api/v1/admin/universities', 'uni'));
+    const fetchContests = async () => setContests(await fetchData('http://localhost:8080/api/v1/admin/contests', 'contests'));
 
     useEffect(() => {
         fetchContests();
@@ -79,20 +63,13 @@ const HackathonConfig = () => {
             ]);
             return;
         }
-
         setSelectedContestId(id);
         setIsLoading(true);
         setError('');
         setSuccess('');
-
         try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch(`http://localhost:8080/api/v1/admin/contests/${id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
+            const data = await fetchData(`http://localhost:8080/api/v1/admin/contests/${id}`, '/testFE.json');
+            if (data) {
                 setFormData({
                     name: data.name || '',
                     term: data.term || '',
@@ -132,9 +109,7 @@ const HackathonConfig = () => {
                     }
                 } else {
                     setCategories([{ id: 1, categoryName: '', categoryDescription: '', guidelineUrl: '' }]);
-                    setRounds([
-                        { id: 1, phaseName: 'Phase 01: Screening', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }
-                    ]);
+                    setRounds([{ id: 1, phaseName: 'Phase 01: Screening', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }]);
                 }
             } else {
                 setError('Failed to fetch contest details');
@@ -177,12 +152,8 @@ const HackathonConfig = () => {
     const handleAddPhase = () => {
         const newId = rounds.length > 0 ? Math.max(...rounds.map(r => r.id)) + 1 : 1;
         const phaseNumber = rounds.length + 1;
-        setRounds([...rounds, {
-            id: newId,
-            phaseName: `Phase 0${phaseNumber}: New Phase`,
-            submissionOpen: '',
-            submissionDeadline: '',
-            state: 'UPCOMING'
+        setRounds([...rounds, {id: newId,phaseName: `Phase 0${phaseNumber}: New Phase`,
+            submissionOpen: '', submissionDeadline: '', state: 'UPCOMING'
         }]);
     };
 
@@ -207,19 +178,12 @@ const HackathonConfig = () => {
             setError('Please fill all required core settings and add at least one university.');
             return;
         }
-
         setIsLoading(true);
         setError('');
         setSuccess('');
-
         try {
-            // For testing: simulate an admin token or fetch from actual login
             const token = localStorage.getItem('shms_token');
-            const payload = {
-                ...formData,
-                allowedCorporateDomains: universities.join(',')
-            };
-
+            const payload = {...formData, allowedCorporateDomains: universities.join(',')};
             const response = await fetch('http://localhost:8080/api/v1/admin/contests', {
                 method: 'POST',
                 headers: {
@@ -228,9 +192,7 @@ const HackathonConfig = () => {
                 },
                 body: JSON.stringify(payload)
             });
-
             const data = await response.json();
-
             if (!response.ok) {
                 setError(data.error || 'Failed to create contest configuration');
                 return;
@@ -238,7 +200,6 @@ const HackathonConfig = () => {
 
             const validCategories = categories.filter(t => t.categoryName.trim() !== '');
             const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
-
             if (validCategories.length > 0) {
                 for (const category of validCategories) {
                     const categoryPayload = {
@@ -299,9 +260,8 @@ const HackathonConfig = () => {
                     <p style={{ fontSize: '13px', color: '#6b7280', margin: '10px 0' }}>Select an existing contest to adjust its timeline or status, or leave unselected to initialize a new one.</p>
 
                     <div className="search-box">
-                        <input type="text" className="search-input"
-                            placeholder="Search by contest name or season (e.g. SPRING 2026)"
-                            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                        <input type="text" className="search-input" placeholder="Search by contest name or season (e.g. SPRING 2026)"
+                               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                         /><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
 
@@ -363,7 +323,7 @@ const HackathonConfig = () => {
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <label style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563' }}>Status:</label>
-                                    <select name="status" className="form-select" value={formData.status} onChange={handleChange} style={{ padding: '4px 30px 4px 4px', fontSize: '13px', height: 'auto'}}>
+                                    <select name="status" className="form-select" value={formData.status} onChange={handleChange} style={{ padding: '4px 30px 4px 4px', fontSize: '13px', height: 'auto' }}>
                                         <option value="UPCOMING">UPCOMING</option>
                                         <option value="ACTIVE">ACTIVE</option>
                                         <option value="CLOSED">CLOSED</option>
@@ -417,25 +377,25 @@ const HackathonConfig = () => {
                             <div className="form-group">
                                 <label className="form-label">Maximum Allowed Teams</label>
                                 <div style={{ position: 'relative' }}>
-                                    <input type="number" name="maximumAllowedTeams" className="form-input" value={formData.maximumAllowedTeams} onChange={handleChange} style={{ paddingRight: '50px' }} placeholder="e.g 30"/>
+                                    <input type="number" name="maximumAllowedTeams" className="form-input" value={formData.maximumAllowedTeams} onChange={handleChange} style={{ paddingRight: '50px' }} placeholder="e.g 30" />
                                     <span style={{ position: 'absolute', right: '12px', top: '10px', fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>Teams</span>
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">Participating Universities</label>
-                                <div style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                                     <select className="form-select" value={selectedUniToAdd}
-                                        onChange={(e) => setSelectedUniToAdd(e.target.value)}
-                                        style={{flex: 1}}
+                                            onChange={(e) => setSelectedUniToAdd(e.target.value)}
+                                            style={{ flex: 1 }}
                                     >
                                         <option value="">-- Select a University --</option>
-                                        {allUniversities .filter(u => !universities.includes(u.name)).map(u => (
-                                                <option key={u.id} value={u.name}>{u.name}</option>
-                                            ))
+                                        {allUniversities.filter(u => !universities.includes(u.name)).map(u => (
+                                            <option key={u.id} value={u.name}>{u.name}</option>
+                                        ))
                                         }
                                     </select>
-                                    <button type="button" onClick={handleAddUni} style={{padding: '0 16px', background: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '500'}}>Add</button>
+                                    <button type="button" onClick={handleAddUni} style={{ padding: '0 16px', background: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Add</button>
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                     {universities.map(uni => (
@@ -449,8 +409,6 @@ const HackathonConfig = () => {
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
                     {/* Right Column */}
                     <div>
@@ -498,8 +456,8 @@ const HackathonConfig = () => {
                                             <label className="form-label">Guideline URL</label>
                                             <div className="input-with-icon">
                                                 <input type="text" className="form-input" placeholder="https://docs.hackathon.com/guidelines"
-                                                    value={t.guidelineUrl} onChange={(e) => handleCategoryChange(t.id, 'guidelineUrl', e.target.value)}
-                                                    style={{ paddingLeft: '10px' }} />
+                                                       value={t.guidelineUrl} onChange={(e) => handleCategoryChange(t.id, 'guidelineUrl', e.target.value)}
+                                                       style={{ paddingLeft: '10px' }} />
                                             </div>
                                         </div>
                                     </div>
@@ -522,9 +480,9 @@ const HackathonConfig = () => {
                                 {rounds.map((round, index) => (
                                     <div key={round.id} className="phase-item" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                         <div className="phase-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                            <input type="text"  className="phase-title-input"
-                                                value={round.phaseName} onChange={(e) => handleRoundChange(round.id, 'phaseName', e.target.value)}
-                                                style={{ fontSize: '15px', fontWeight: '600', border: '1px solid transparent', background: 'transparent', padding: '4px 8px', borderRadius: '4px', width: '200px' }}
+                                            <input type="text" className="phase-title-input"
+                                                   value={round.phaseName} onChange={(e) => handleRoundChange(round.id, 'phaseName', e.target.value)}
+                                                   style={{ fontSize: '15px', fontWeight: '600', border: '1px solid transparent', background: 'transparent', padding: '4px 8px', borderRadius: '4px', width: '200px' }}
                                             />
                                             {index !== 0 && (
                                                 <button className="delete-phase-btn" onClick={() => handleDeletePhase(round.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -537,9 +495,8 @@ const HackathonConfig = () => {
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Status</label>
                                                 <select className="form-select" value={round.state || 'UPCOMING'}
-                                                    onChange={(e) => handleRoundChange(round.id, 'state', e.target.value)}
-                                                >
-                                                    <option value="UPCOMING">UPCOMING</option>
+                                                        onChange={(e) => handleRoundChange(round.id, 'state', e.target.value)}
+                                                >   <option value="UPCOMING">UPCOMING</option>
                                                     <option value="ACTIVE">ACTIVE</option>
                                                     <option value="CLOSED">CLOSED</option>
                                                 </select>
@@ -547,13 +504,13 @@ const HackathonConfig = () => {
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Submission Open</label>
                                                 <input type="datetime-local" className="form-input" value={round.submissionOpen}
-                                                    onChange={(e) => handleRoundChange(round.id, 'submissionOpen', e.target.value)}
+                                                       onChange={(e) => handleRoundChange(round.id, 'submissionOpen', e.target.value)}
                                                 />
                                             </div>
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Submission Deadline</label>
                                                 <input type="datetime-local" className="form-input" value={round.submissionDeadline}
-                                                    onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
+                                                       onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -575,7 +532,6 @@ const HackathonConfig = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="action-bar">
                     <button className="submit-btn" onClick={handleSubmit} disabled={isLoading}>
                         {isLoading ? 'Saving...' : selectedContestId ? 'Save Configuration' : 'Initialize Season Hackathon'}
