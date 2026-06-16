@@ -90,7 +90,7 @@ const Register = () => {
             } else {
                 if (!formData.corporateEmail.trim()) {
                     newErrors.corporateEmail = 'Email is required';
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
+                } else if (!/^[^\criteria@]+@[^\criteria@]+\.[^\criteria@]+$/.test(formData.corporateEmail)) {
                     newErrors.corporateEmail = 'Invalid Email format';
                 }
             }
@@ -98,7 +98,7 @@ const Register = () => {
             if (!formData.mssv.trim()) newErrors.mssv = 'Student Identification Number is required';
             if (!formData.corporateEmail.trim()) {
                 newErrors.corporateEmail = 'Email is required';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
+            } else if (!/^[^\criteria@]+@[^\criteria@]+\.[^\criteria@]+$/.test(formData.corporateEmail)) {
                 newErrors.corporateEmail = 'Invalid Email format';
             }
         }

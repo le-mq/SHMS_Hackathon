@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import './EvaluationWorkspace.css';
+import NavbarJudge from './NavbarJudge';
+
+const EvaluationWorkspace = () => {
+    const { teamId } = useParams();
+    const navigate = useNavigate();
+    const [evalData, setEvalData] = useState(null);
+    const [scores, setScores] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const fetchEvalData = async () => {
+            try {
+                const token = localStorage.getItem('shms_token');
+                const response = await fetch(`http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('API request failed');
+                const result = await response.json();
+                setEvalData(result);
+                setScores(result.criteria.map(c => ({ criteriaId: c.id, weight: c.weight, pointsAwarded: '', feedback: '' })));
+            } catch (err) {
+                console.warn('API call failed, falling back to mock data...');
+                try {
+                    const mockRes = await fetch('/testFE.json');
+                    const mockData = await mockRes.json();
+                    const result = mockData.evaluationWorkspace?.data;
+                    if (result) {
+                        setEvalData(result);
+                        setScores(result.criteria.map(c => ({ criteriaId: c.id, weight: c.weight, pointsAwarded: '', feedback: '' })));
+                    } else {
+                        alert('Failed to load evaluation data (no mock data found)');
+                    }
+                } catch (mockErr) {
+                    alert('Failed to load evaluation data');
+                }
+            }
+        };
+        if (teamId) fetchEvalData();
+    }, [teamId]);
+
+    const handleSubmit = async () => {
+        if (!isComplete) return;
+        setIsSubmitting(true);
+        const payload = {
+            submissionId: evalData?.submissionId,
+            scores: scores.map(s => ({
+                criteriaId: s.criteriaId,
+                pointsAwarded: parseFloat(s.pointsAwarded),
+                feedback: s.feedback
+            }))
+        };
+
+        try {
+            const token = localStorage.getItem('shms_token');
+            const response = await fetch('http://localhost:8080/api/v1/judge/submit-score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                alert('Scores submitted and locked successfully.');
+            } else {
+                const err = await response.json();
+                alert(`Error: ${err.error || 'Submission failed'}`);
+            }
+        } catch (err) {
+            alert('Could not submit score.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    const renderAssetLink = (url, label, iconPath) => {
+        const isValid = !!url;
+        return (
+            <a href={url || '#'} className={`asset-link ${isValid ? 'asset-valid' : 'asset-missing'}`}
+                target="_blank" rel="noreferrer"
+                onClick={e => !isValid && e.preventDefault()}
+            ><div className="asset-left">
+                    <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                    </svg>{label}
+            </div>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+            </a>
+        );
+    };
+
+    return (
+        <div className="eval-workspace-container">
+            <NavbarJudge />
+            <div className="eval-content">
+                <div className="eval-header" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <button onClick={() => navigate(-1)} className="rt-btn-ghost" style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff' }}>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: '6px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Back
+                    </button>
+                    <div>
+                        <h1 className="eval-title" style={{ marginBottom: '4px' }}>Independent Evaluation Workspace</h1>
+                        <p className="eval-subtitle" style={{ margin: 0 }}>Secure judge environment. All evaluations are confidential and blind to peer data.</p>
+                    </div>
+                </div>
+
+                <div className="eval-grid">
+                    <div className="deliverables-panel">
+                        <h2 className="panel-title">Project Deliverables</h2>
+                        {renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
+                        {renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
+                        {renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
+                        {renderAssetLink(evalData?.slideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                        <div className="project-id-box">
+                            <div className="pid-label">PROJECT ID</div>
+                            <div className="pid-val">{evalData?.projectId || 'N/A'} - {evalData?.teamName}</div>
+                        </div>
+                    </div>
+                    <div className="rubric-panel">
+                        <div className="rubric-header">
+                            <h2 className="rubric-title">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                Evaluation Rubric
+                            </h2>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default EvaluationWorkspace;

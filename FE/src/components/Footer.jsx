@@ -7,7 +7,7 @@ export default function Footer() {
                 <div className="ph-footer-brand">S-HMS | <span>SEAL Hackathon</span></div>
                 <p className="ph-footer-copy">
                     &copy; 2026 · Software Engineering Hackathon Management System<br/>
-                    FPT University HCMC. ALl rights reserved.
+                    FPT University HCMC. All rights reserved.
                 </p>
             </div>
         </footer>
