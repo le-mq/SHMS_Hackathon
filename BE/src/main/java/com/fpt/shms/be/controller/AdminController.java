@@ -266,5 +266,20 @@ public class AdminController {
         }
     }
 
+    // --- TEAM REGISTRATION APPROVAL ---
+
+    @PutMapping("/teams/registration-status")
+    @Operation(summary = "Approve or Reject Team Registration", description = "Admin sets team status (APPROVED or REJECTED).")
+    public ResponseEntity<?> updateTeamStatus(HttpServletRequest request, @Valid @RequestBody UpdateTeamStatusRequest statusRequest) {
+        try {
+            requireAdminRole(request);
+            teamService.updateTeamStatus(statusRequest.getTeamId(), statusRequest.getStatus());
+            return ResponseEntity.ok(Map.of("message", "Team status updated to " + statusRequest.getStatus()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
 
 }
