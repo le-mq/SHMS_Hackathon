@@ -173,6 +173,31 @@
     ]
   },
   
+  "leaderWorkspace": {
+  "data": {
+    "teamStatus": "APPROVED",
+    "currentMembers": 4,
+    "maxMembers": 5,
+    "isSubmitted": false,
+    "currentRank": null,
+    "submissionDeadline": "2026-06-20T23:59:00+07:00",
+    "announcements": [
+      {
+        "id": 1,
+        "title": "Round 1 submission is now open",
+        "category": "Submission",
+        "datePosted": "2026-06-15T08:00:00+07:00"
+      },
+      {
+        "id": 2,
+        "title": "Workshop for team leaders",
+        "category": "Workshop",
+        "datePosted": "2026-06-16T09:00:00+07:00"
+      }
+    ]
+  }
+},
+
   "teams": {
     "data": [
       {
