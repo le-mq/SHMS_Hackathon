@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Public REST endpoints — no authentication required.
- */
 @RestController
 @RequestMapping("/api/v1/public")
 @RequiredArgsConstructor
@@ -21,17 +18,6 @@ public class PublicHomeController {
 
     private final PublicHomeService publicHomeService;
 
-    /**
-     * GET /api/v1/public/home
-     * <p>
-     * Returns the aggregated data needed to render the public home page:
-     * <ul>
-     *   <li>Active / upcoming contests (seasonal hackathons)</li>
-     *   <li>Open competitive tracks</li>
-     *   <li>Active announcements</li>
-     *   <li>Contest statistics map for Chart.js</li>
-     * </ul>
-     */
     @GetMapping("/home")
     @Operation(
             summary     = "Get public home page data",

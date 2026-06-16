@@ -10,14 +10,11 @@ import com.fpt.shms.be.repository.RoundRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Business logic for the public home page data aggregation.
- */
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -29,12 +26,9 @@ public class PublicHomeService {
     private final com.fpt.shms.be.repository.UniversityRepository universityRepository;
     private final RoundRepository roundRepository;
 
-    /**
-     * Assembles the complete payload for GET /api/v1/public/home.
-     */
     public PublicHomeResponse getHomeData() {
 
-        // 1. Seasonal hackathons: ACTIVE + UPCOMING
+        // Seasonal hackathons: ACTIVE + UPCOMING
         List<Contest> activeContests = contestRepository.findByStatusIn(List.of(Contest.ContestStatus.ACTIVE, Contest.ContestStatus.UPCOMING));
 
         List<ContestDTO> contests = activeContests.stream()
@@ -60,19 +54,10 @@ public class PublicHomeService {
                 .distinct()
                 .toList();
 
-        // 2. Open competitive tracks: OPEN + SOON
         List<TrackDTO> tracks = categoryRepository.findAll()
                 .stream()
                 .map(TrackDTO::from)
                 .toList();
-
-        // 4. Statistics: count per status for Chart.js doughnut
-        Map<String, Long> stats = new HashMap<>();
-        contestRepository.countByStatus().forEach(row -> {
-            String statusLabel = row[0].toString();
-            Long   count       = (Long) row[1];
-            stats.put(statusLabel, count);
-        });
 
         // Get universities that can participate in active contests
         List<String> universities = universityRepository.findAll().stream()
