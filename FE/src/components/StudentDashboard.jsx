@@ -153,7 +153,7 @@ const StudentDashboard = () => {
                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                         </div>
                         <h3>Create a New Team</h3>
-                        <p>Be a leader. Initialize your squad, set goals, and invite your peers to innovate together.</p>
+                
                         <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setInvitationCode(''); setNewTeamName(''); setCreateError(''); }}>
                             Start Building
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -165,7 +165,7 @@ const StudentDashboard = () => {
                             <svg width="24" height="24" fill="none" stroke="#0f172a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                         </div>
                         <h3>Join via Code</h3>
-                        <p>Received an invite? Enter your team's unique identification code to join an existing project.</p>
+                        
                         <div className="join-input-wrap">
                             <input
                                 type="text"
