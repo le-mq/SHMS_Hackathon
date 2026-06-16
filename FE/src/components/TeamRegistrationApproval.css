@@ -1,0 +1,410 @@
+.approval-container {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+
+.approval-content {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.approval-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+}
+
+.approval-title-area {
+    flex: 1;
+}
+
+.approval-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.approval-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.approval-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f1f5f9;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 16px;
+    background: #f1f5f9;
+    width: 250px;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    background: transparent;
+    width: 100%;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.stat-card:nth-child(1)::before {
+    background: #eab308;
+}
+
+/* Pending */
+.stat-card:nth-child(2)::before {
+    background: #22c55e;
+}
+
+/* Approved */
+.stat-card:nth-child(3)::before {
+    background: #3b82f6;
+}
+
+/* Participants */
+.stat-card:nth-child(4)::before {
+    background: #0f172a;
+}
+
+/* System Load */
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.table-section {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    margin-bottom: 32px;
+}
+
+.teams-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.teams-table th {
+    background: #f8fafc;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.teams-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.team-name-col {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.team-avatar {
+    width: 32px;
+    height: 32px;
+    background: #1e293b;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.team-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.track-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.track-fintech {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.track-cyber {
+    background: #fae8ff;
+    color: #c026d3;
+}
+
+.track-sust {
+    background: #fef08a;
+    color: #a16207;
+}
+
+.date-col {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.details-btn {
+    color: #64748b;
+    cursor: pointer;
+}
+
+.action-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+}
+
+.action-btn:hover {
+    opacity: 0.8;
+}
+
+.btn-approve {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.btn-reject {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.audit-section {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.audit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.audit-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.audit-view-all {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+}
+
+.audit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.audit-item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.audit-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.audit-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+}
+
+.audit-dot.green {
+    background: #22c55e;
+}
+
+.audit-dot.red {
+    background: #ef4444;
+}
+
+.audit-dot.blue {
+    background: #3b82f6;
+}
+
+.audit-content {
+    flex: 1;
+}
+
+.audit-desc {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.audit-meta {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.capacity-section {
+    background: #0f172a;
+    color: white;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.capacity-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.capacity-subtitle {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-bottom: 24px;
+}
+
+.capacity-item {
+    margin-bottom: 16px;
+}
+
+.cap-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.cap-bar-bg {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.cap-bar-fill {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+}
+
+.download-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 24px;
+    cursor: pointer;
+}
+
+.download-btn:hover {
+    background: #f8fafc;
+}
