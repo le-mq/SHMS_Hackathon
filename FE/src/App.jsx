@@ -17,6 +17,7 @@ import HackathonConfig from './components/HackathonConfig'
 import TeamStatus from './components/TeamStatus'
 import MentorCategory from './components/MentorCategory'
 import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
+import LeaderWorkspace from './components/LeaderWorkspace'
 function App() {
   return (
     <Router>
@@ -37,6 +38,7 @@ function App() {
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
         <Route path="admin/team-approval" element={<TeamRegistrationApproval />} />
+        <Route path="/student/workspace" element={<LeaderWorkspace />} />
       </Routes>
       <Footer />
     </Router>
