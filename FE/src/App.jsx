@@ -9,7 +9,7 @@ import StudentProfile from './components/StudentProfile'
 import AdminProfile from './components/AdminProfile'
 import RankingsConsole from './components/RankingsConsole'
 import Leaderboard from './components/LeaderboardDashboard.jsx'
-// import EvaluationWorkspace from './components/EvaluationWorkspace.jsx'
+import EvaluationWorkspace from './components/EvaluationWorkspace.jsx'
 import EvaluatorDashboard from './components/EvaluatorDashboard.jsx'
 import PartnerConfig from './components/PartnerVerification.jsx'
 import ExpertProvision from './components/ExpertProvision.jsx'
@@ -31,6 +31,7 @@ function App() {
         <Route path="/admin/config" element={<HackathonConfig />} />
         <Route path="/admin/rankings" element={<RankingsConsole />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
+        <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
         <Route path="/mentor/workspace" element={<MentorCategory />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/student/team/status" element={<TeamStatus />} />
