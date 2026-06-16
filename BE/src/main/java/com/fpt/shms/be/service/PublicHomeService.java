@@ -54,19 +54,10 @@ public class PublicHomeService {
                 .distinct()
                 .toList();
 
-        // 2. Open competitive tracks: OPEN + SOON
         List<TrackDTO> tracks = categoryRepository.findAll()
                 .stream()
                 .map(TrackDTO::from)
                 .toList();
-
-//        // 4. Statistics: count per status for Chart.js doughnut
-//        Map<String, Long> stats = new HashMap<>();
-//        contestRepository.countByStatus().forEach(row -> {
-//            String statusLabel = row[0].toString();
-//            Long   count       = (Long) row[1];
-//            stats.put(statusLabel, count);
-//        });
 
         // Get universities that can participate in active contests
         List<String> universities = universityRepository.findAll().stream()
