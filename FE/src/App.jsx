@@ -40,7 +40,7 @@ function App() {
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
-        <Route path="admin/team/approval" element={<TeamRegistrationApproval />} />
+        <Route path="/admin/team/approval" element={<TeamRegistrationApproval />} />
         <Route path="/student/workspace" element={<LeaderWorkspace />} />
         <Route path="/admin/experts/allocation" element={<PanelAllocation />} />
       </Routes>
