@@ -3,10 +3,7 @@ package com.fpt.shms.be.controller;
 import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
-import com.fpt.shms.be.service.ContestAdminService;
-import com.fpt.shms.be.service.ExpertAdminService;
-import com.fpt.shms.be.service.PartnerAdminService;
-import com.fpt.shms.be.service.TeamService;
+import com.fpt.shms.be.service.*;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +24,7 @@ public class AdminController {
     private final ContestAdminService contestAdminService;
     private final PartnerAdminService partnerAdminService;
     private final ExpertAdminService expertAdminService;
+    private final AllocationAdminService allocationAdminService;
     private final TeamService teamService;
     private final JwtUtils jwtUtils;
 
@@ -237,5 +234,36 @@ public class AdminController {
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/allocations")
+    @Operation(summary = "Allocate Expert to Panels", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> allocateExpert(HttpServletRequest request, @Valid @RequestBody ExpertAllocationRequest allocationRequest) {
+        try {
+            requireAdminRole(request);
+            allocationAdminService.allocateExpert(allocationRequest);
+            return ResponseEntity.ok(Map.of("message", "Allocation mapping saved successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/allocations")
+    @Operation(summary = "Get All Allocations", description = "Get current mentor and judge assignments for experts.")
+    public ResponseEntity<?> getAllocations(HttpServletRequest request) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(allocationAdminService.getAllAllocations());
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
 
 }

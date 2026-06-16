@@ -38,7 +38,9 @@ public class Team {
     @Column(name = "status", nullable = false, length = 50)
     private String status = "FORMING"; // "FORMING", "PENDING", "APPROVED", "CANCELLED", "REJECTED"
 
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private Mentor mentor;
 
     @Builder.Default
     @Column(name = "created_at")

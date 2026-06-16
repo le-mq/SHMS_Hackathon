@@ -20,7 +20,7 @@ const MentorCategory = () => {
                 if (!response.ok) throw new Error('API failed');
                 setData(await response.json());
             } catch (err) {
-                console.error("API failed, falling back to mock data:", err);
+                console.warn("API failed, falling back to mock data...");
                 try {
                     const fallback = await fetch('/testFE.json');
                     const mock = await fallback.json();
@@ -28,25 +28,20 @@ const MentorCategory = () => {
                 } catch (mockErr) {
                     setError('Could not connect to server and no mock data found.');
                 }
-            } finally {
-                setIsLoading(false);
-            }
+            } finally { setIsLoading(false); }
         };
         fetchMentorData();
     }, []);
-
     if (isLoading) return <div className="mentor-container">Loading...</div>;
     if (error && !data) return <div className="mentor-container">Error: {error}</div>;
-
     const { contestName = "N/A", trackOverviews = [], allocatedTeams = [] } = data || {};
     const filteredTeams = allocatedTeams.filter(team => {
-        const searchStr = searchQuery.toLowerCase();
-        const tName = (team.teamName || "").toLowerCase();
-        const lName = (team.leaderName || "").toLowerCase();
-        const tTrack = (team.trackName || team.categoryName || "").trim().toLowerCase();
-        const filterCatStr = filterCategory.trim().toLowerCase();
-        const matchesSearch = tName.includes(searchStr) || lName.includes(searchStr);
-        const matchesFilter = filterCategory === 'All' || tTrack === filterCatStr;
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = !query || team.teamName?.toLowerCase().includes(query) ||
+            team.leaderName?.toLowerCase().includes(query);
+        const teamTrack = team.trackName || team.categoryName || '';
+        const matchesFilter = filterCategory === 'All' ||
+            teamTrack.trim().toLowerCase() === filterCategory.trim().toLowerCase();
         return matchesSearch && matchesFilter;
     });
 
@@ -57,7 +52,7 @@ const MentorCategory = () => {
             { url: team.docsUrl, label: 'Documentation', color: '#f59e0b' },
             { url: team.slideUrl, label: 'Slides', color: '#ef4444' }
         ].filter(l => l.url);
-        if (!links.length) return <span style={{fontSize: '12px', color: '#94a3b8'}}>No links</span>;
+        if (!links.length) return <span style={{ fontSize: '12px', color: '#94a3b8' }}>No links</span>;
         return links.map((l, i) => (
             <a key={i} href={l.url} target="_blank" rel="noreferrer" title={l.label}
                style={{ color: l.color, textDecoration: 'underline', fontSize: '13px' }}>
@@ -90,7 +85,7 @@ const MentorCategory = () => {
                                 <span className="track-stat-value">{track.completionPercentage}%</span>
                             </div>
                             <div className="progress-bar-bg">
-                                <div className="progress-bar-fill" style={{width: `${track.completionPercentage}%`}}></div>
+                                <div className="progress-bar-fill" style={{ width: `${track.completionPercentage}%` }}></div>
                             </div>
                             <div className="progress-label">{track.completionPercentage}% teams submitted</div>
                         </div>
@@ -105,11 +100,10 @@ const MentorCategory = () => {
                                 <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input type="text" placeholder="Search teams..." value={searchQuery}
-                                       onChange={(e) => setSearchQuery(e.target.value)} />
+                                <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                             </div>
-                            <select className="filter-btn" value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
+
+                            <select className="filter-btn" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
                                     style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
                                 <option value="All">All Categories</option>
                                 {trackOverviews.map((track, idx) => {
@@ -119,6 +113,7 @@ const MentorCategory = () => {
                             </select>
                         </div>
                     </div>
+
                     <table className="teams-table">
                         <thead>
                         <tr>
@@ -139,10 +134,15 @@ const MentorCategory = () => {
                                 <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
                                 <td><span className="team-leader">{team.leaderName}</span></td>
                                 <td>
-                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>{renderLinks(team)}</div>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{renderLinks(team)}</div>
                                 </td>
                             </tr>
                         ))}
+                        {filteredTeams.length === 0 && (
+                            <tr>
+                                <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
+                            </tr>
+                        )}
                         </tbody>
                     </table>
                 </div>

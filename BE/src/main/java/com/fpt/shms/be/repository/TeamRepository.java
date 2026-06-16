@@ -18,5 +18,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 //
 //    @Query("select distinct t from Team t join t.registrations r where r.category.id = :categoryId")
 //    List<Team> findByCategoryId(Long categoryId);
+
     List<Team> findByContestId(Long contestId);
+    List<Team> findByMentorId(Long mentorId);
 }
