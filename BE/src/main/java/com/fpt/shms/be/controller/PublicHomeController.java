@@ -33,6 +33,10 @@ public class PublicHomeController {
         return ResponseEntity.ok(publicHomeService.getUniversitiesDetailed());
     }
 
-
+    @GetMapping("/announcements")
+    @Operation(summary = "Get active announcements")
+    public ResponseEntity<?> getAnnouncements() {
+        return ResponseEntity.ok(publicHomeService.getAnnouncements());
+    }
 
 }
