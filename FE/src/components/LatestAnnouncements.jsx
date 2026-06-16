@@ -1,28 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import './LatestAnnouncements.css';
 
+// ─── Config ────────────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:8080/api/v1/public";
+
 const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAll, setShowAll] = useState(false);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
+
     useEffect(() => {
-        const fetchAnnouncements = async () => {
+        let cancelled = false;
+
+        async function fetchAnnouncements() {
             try {
-                const res = await fetch('http://localhost:8080/api/v1/public/announcements');
-                if (res.ok) {
-                    const data = await res.json();
-                    setAnnouncements(data);
+            const res = await fetch(API_BASE + "/announcements");
+                
+                if (!res.ok) {
+                    throw new Error("HTTP " + res.status);
                 }
-            } catch (err) {
-                console.error("Failed to fetch announcements:", err);
-            } finally {
+
+            const json = await res.json();
+
+            if (!cancelled) {
+                const announcementsData = Array.isArray(json)
+                    ? json
+                    : json.data || [];
+
+                setAnnouncements(announcementsData);
+            }
+        } catch (error) {
+            console.warn("API unavailable response", error.message);
+
+            try {
+                const localRes = await fetch("/testFE.json");
+
+                if (!localRes.ok) {
+                    throw new Error("Not found file");
+                }
+
+                const localJson = await localRes.json();
+
+                if (!cancelled) {
+                    setAnnouncements(localJson.announcements?.data || []);
+                }
+            } catch (localError) {
+                console.warn("Local mock unavailable", localError.message);
+
+                if (!cancelled) {
+                    setAnnouncements([]);
+                }
+            }
+        } finally {
+            if (!cancelled) {
                 setLoading(false);
             }
-        };
-        fetchAnnouncements();
-    }, []);
+        }
+    }
+
+    fetchAnnouncements();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
 
     const userEmail = localStorage.getItem('shms_user') || 'guest';
     const storageKey = `shms_read_announcements_${userEmail}`;

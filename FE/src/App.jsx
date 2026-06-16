@@ -16,7 +16,7 @@ import ExpertProvision from './components/ExpertProvision.jsx'
 import HackathonConfig from './components/HackathonConfig'
 import TeamStatus from './components/TeamStatus'
 import MentorCategory from './components/MentorCategory'
-
+import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
 function App() {
   return (
     <Router>
@@ -37,6 +37,7 @@ function App() {
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
+        <Route path="admin/team-approval" element={<TeamRegistrationApproval />} />
       </Routes>
       <Footer />
     </Router>
