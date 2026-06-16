@@ -10,7 +10,7 @@ const ADMIN_LINKS = [
     { label: 'Expert Provision', path: '/admin/experts/provision' },
     { label: 'Panel Allocation', path: '/admin/experts/allocation' },
     { label: 'Rubrics', path: '/admin/rubrics' },
-    { label: 'Team Approval', path: '/admin/team-approval' },
+    { label: 'Team Approval', path: '/admin/team/approval' },
     { label: 'Rankings', path: '/admin/rankings' },
     { label: 'Broadcast & Export', path: '/admin/publication' },
     { label: 'Audit Logs', path: '/admin/audit-logs' },

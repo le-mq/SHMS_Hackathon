@@ -118,29 +118,27 @@
       }
     ]
   },
-
   "categories": {
-  "data": [
-    {
-      "id": "1",
-      "name": "Web"
-    },
-    {
-      "id": "2",
-      "name": "Mobile"
-    },
-    {
-      "id": "3",
-      "name": "AI & Machine Learning Innovation"
-    },
-    {
-      "id": "4",
-      "name": "Design"
-    }
-  ]
-},
-
-    "announcements": {
+    "data": [
+      {
+        "id": "1",
+        "name": "Web"
+      },
+      {
+        "id": "2",
+        "name": "Mobile"
+      },
+      {
+        "id": "3",
+        "name": "AI & Machine Learning Innovation"
+      },
+      {
+        "id": "4",
+        "name": "Design"
+      }
+    ]
+  },
+  "announcements": {
     "data": [
       {
         "id": 1,
@@ -172,32 +170,30 @@
       }
     ]
   },
-  
   "leaderWorkspace": {
-  "data": {
-    "teamStatus": "APPROVED",
-    "currentMembers": 4,
-    "maxMembers": 5,
-    "isSubmitted": false,
-    "currentRank": null,
-    "submissionDeadline": "2026-06-20T23:59:00+07:00",
-    "announcements": [
-      {
-        "id": 1,
-        "title": "Round 1 submission is now open",
-        "category": "Submission",
-        "datePosted": "2026-06-15T08:00:00+07:00"
-      },
-      {
-        "id": 2,
-        "title": "Workshop for team leaders",
-        "category": "Workshop",
-        "datePosted": "2026-06-16T09:00:00+07:00"
-      }
-    ]
-  }
-},
-
+    "data": {
+      "teamStatus": "APPROVED",
+      "currentMembers": 4,
+      "maxMembers": 5,
+      "isSubmitted": false,
+      "currentRank": null,
+      "submissionDeadline": "2026-06-20T23:59:00+07:00",
+      "announcements": [
+        {
+          "id": 1,
+          "title": "Round 1 submission is now open",
+          "category": "Submission",
+          "datePosted": "2026-06-15T08:00:00+07:00"
+        },
+        {
+          "id": 2,
+          "title": "Workshop for team leaders",
+          "category": "Workshop",
+          "datePosted": "2026-06-16T09:00:00+07:00"
+        }
+      ]
+    }
+  },
   "teams": {
     "data": [
       {
@@ -445,21 +441,231 @@
       ]
     }
   },
-  "evaluationWorkspace": {
-    "data": {
-      "submissionId": "12345",
-      "projectId": "9876",
-      "teamName": "CodeCrafters",
-      "githubRepoUrl": "https://github.com/codecrafters/project",
-      "liveDemoUrl": "https://demo.codecrafters.com",
-      "docsUrl": "https://docs.codecrafters.com",
-      "slideUrl": "https://slides.codecrafters.com",
-      "criteria": [
-        { "id": 1, "name": "Technical Complexity", "description": "Architecture, code quality, and technical difficulty.", "weight": 30 },
-        { "id": 2, "name": "Innovation", "description": "Originality of the idea and creative problem-solving.", "weight": 20 },
-        { "id": 3, "name": "UI/UX Design", "description": "Visual aesthetic, accessibility, and user journey flow.", "weight": 25 },
-        { "id": 4, "name": "Pitch Quality", "description": "Clarity of presentation and ability to communicate value.", "weight": 25 }
+  "rankingConsole": {
+    "contests": {
+      "data": [
+        {
+          "id": "1",
+          "name": "Summer Hackathon 2026",
+          "tracks": [
+            {
+              "name": "AI",
+              "rounds": [
+                {
+                  "phaseName": "Phase 01: Screening"
+                },
+                {
+                  "phaseName": "Phase 02: Semi-Final"
+                },
+                {
+                  "phaseName": "Phase 03: Final"
+                }
+              ]
+            }
+          ]
+        }
       ]
+    },
+    "readiness": {
+      "summary": {
+        "totalTeams": 18,
+        "avgScore": 78.6,
+        "scoreRange": "42 - 96",
+        "bars": [
+          0,
+          1,
+          1,
+          2,
+          3,
+          4,
+          2,
+          3,
+          1,
+          1
+        ]
+      },
+      "evaluators": [
+        {
+          "name": "Nguyen Van A",
+          "dept": "Computer Science",
+          "status": "Finalized",
+          "date": "2026-06-15 08:30"
+        },
+        {
+          "name": "Tran Thi B",
+          "dept": "Artificial Intelligence",
+          "status": "Finalized",
+          "date": "2026-06-15 09:12"
+        },
+        {
+          "name": "Le Van C",
+          "dept": "Software Engineering",
+          "status": "Pending",
+          "date": "-"
+        }
+      ],
+      "allReady": false
+    },
+    "rankingResult": {
+      "roundName": "Phase 01: Screening",
+      "qualifiedCount": 10,
+      "eliminatedCount": 8,
+      "totalProcessed": 18,
+      "results": [
+        {
+          "rank": 1,
+          "teamName": "AI Warriors",
+          "averageScore": 95.4,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 2,
+          "teamName": "Data Miners",
+          "averageScore": 93.2,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 3,
+          "teamName": "Code Titans",
+          "averageScore": 91.8,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 4,
+          "teamName": "NextGen",
+          "averageScore": 89.7,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 5,
+          "teamName": "HackStorm",
+          "averageScore": 88.5,
+          "status": "QUALIFIED"
+        }
+      ]
+    }
+  },
+  "teamRegistrationApproval": {
+    "contests": [
+      {
+        "id": 1,
+        "name": "Summer Hackathon 2026",
+        "pendingReview": 4,
+        "approved": 8,
+        "totalParticipants": 36,
+        "teams": [
+          {
+            "id": 1,
+            "name": "AI Warriors",
+            "track": "Artificial Intelligence",
+            "trackClass": "ai"
+          },
+          {
+            "id": 2,
+            "name": "Code Titans",
+            "track": "Software Engineering",
+            "trackClass": "software"
+          },
+          {
+            "id": 3,
+            "name": "Data Miners",
+            "track": "Data Science",
+            "trackClass": "data"
+          },
+          {
+            "id": 4,
+            "name": "NextGen",
+            "track": "Cyber Security",
+            "trackClass": "cyber"
+          }
+        ],
+        "capacities": [
+          {
+            "categoryName": "Artificial Intelligence",
+            "percentage": 80
+          },
+          {
+            "categoryName": "Software Engineering",
+            "percentage": 60
+          },
+          {
+            "categoryName": "Data Science",
+            "percentage": 45
+          },
+          {
+            "categoryName": "Cyber Security",
+            "percentage": 30
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Winter Hackathon 2026",
+        "pendingReview": 2,
+        "approved": 5,
+        "totalParticipants": 21,
+        "teams": [
+          {
+            "id": 5,
+            "name": "Tech Heroes",
+            "track": "Artificial Intelligence",
+            "trackClass": "ai"
+          },
+          {
+            "id": 6,
+            "name": "HackStorm",
+            "track": "Cyber Security",
+            "trackClass": "cyber"
+          }
+        ],
+        "capacities": [
+          {
+            "categoryName": "Artificial Intelligence",
+            "percentage": 50
+          },
+          {
+            "categoryName": "Cyber Security",
+            "percentage": 70
+          }
+        ]
+      }
+    ],
+    "evaluationWorkspace": {
+      "data": {
+        "submissionId": "12345",
+        "projectId": "9876",
+        "teamName": "CodeCrafters",
+        "githubRepoUrl": "https://github.com/codecrafters/project",
+        "liveDemoUrl": "https://demo.codecrafters.com",
+        "docsUrl": "https://docs.codecrafters.com",
+        "slideUrl": "https://slides.codecrafters.com",
+        "criteria": [
+          {
+            "id": 1,
+            "name": "Technical Complexity",
+            "description": "Architecture, code quality, and technical difficulty.",
+            "weight": 30
+          },
+          {
+            "id": 2,
+            "name": "Innovation",
+            "description": "Originality of the idea and creative problem-solving.",
+            "weight": 20
+          },
+          {
+            "id": 3,
+            "name": "UI/UX Design",
+            "description": "Visual aesthetic, accessibility, and user journey flow.",
+            "weight": 25
+          },
+          {
+            "id": 4,
+            "name": "Pitch Quality",
+            "description": "Clarity of presentation and ability to communicate value.",
+            "weight": 25
+          }
+        ]
+      }
     }
   }
 }
