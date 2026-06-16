@@ -1,9 +1,11 @@
 package com.fpt.shms.be.service;
 
+import com.fpt.shms.be.dto.AnnouncementDTO;
 import com.fpt.shms.be.dto.ContestDTO;
 import com.fpt.shms.be.dto.PublicHomeResponse;
 import com.fpt.shms.be.dto.TrackDTO;
 import com.fpt.shms.be.model.Contest;
+import com.fpt.shms.be.repository.AnnouncementRepository;
 import com.fpt.shms.be.repository.CategoryRepository;
 import com.fpt.shms.be.repository.ContestRepository;
 import com.fpt.shms.be.repository.RoundRepository;
@@ -25,6 +27,7 @@ public class PublicHomeService {
     private final CategoryRepository categoryRepository;
     private final com.fpt.shms.be.repository.UniversityRepository universityRepository;
     private final RoundRepository roundRepository;
+    private final AnnouncementRepository announcementRepository;
 
     public PublicHomeResponse getHomeData() {
 
@@ -45,7 +48,6 @@ public class PublicHomeService {
                 })
                 .toList();
 
-        // Geographic scopes from active contests
         List<String> scopes = activeContests.stream()
                 .map(Contest::getRegionScope)
                 .filter(java.util.Objects::nonNull)
@@ -59,7 +61,6 @@ public class PublicHomeService {
                 .map(TrackDTO::from)
                 .toList();
 
-        // Get universities that can participate in active contests
         List<String> universities = universityRepository.findAll().stream()
                 .filter(u -> !"INACTIVE".equalsIgnoreCase(u.getStatus()))
                 .map(com.fpt.shms.be.model.University::getName)
@@ -86,6 +87,14 @@ public class PublicHomeService {
                     dto.setEmailRegex(u.getEmailRegex());
                     return dto;
                 })
+                .toList();
+    }
+
+    public List<AnnouncementDTO> getAnnouncements() {
+        return announcementRepository
+                .findByIsActiveTrueOrderByPublishedAtDesc()
+                .stream()
+                .map(AnnouncementDTO::from)
                 .toList();
     }
 }

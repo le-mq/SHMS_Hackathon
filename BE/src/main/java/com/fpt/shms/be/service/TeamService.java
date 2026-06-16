@@ -119,40 +119,7 @@ public class TeamService{
                 .roster(memberDtos)
                 .build();
     }
-
-    @Transactional
-    public void removeTeamMember(String leaderUsername, String memberStudentId) {
-        User leader = userRepository.findByUsername(leaderUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
-
-        List<TeamMembership> leaderMemberships = teamMembershipRepository.findByUserId(leader.getId());
-        if (leaderMemberships.isEmpty()) {
-            throw new IllegalArgumentException("User is not in any team");
-        }
-
-        TeamMembership leaderMembership = leaderMemberships.get(0);
-        if (!"LEADER".equals(leaderMembership.getRole())) {
-            throw new IllegalArgumentException("Only the team leader can remove members.");
-        }
-
-        Team team = leaderMembership.getTeam();
-
-        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
-            throw new IllegalArgumentException("Cannot remove members while team registration is pending or approved.");
-        }
-
-        Student memberStudent = studentRepository.findByMssv(memberStudentId)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
-
-        TeamMembership memberMembership = teamMembershipRepository.findByUserIdAndTeamId(memberStudent.getUser().getId(), team.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Member is not in this team"));
-
-        if (memberMembership.getUser().getId().equals(leader.getId())) {
-            throw new IllegalArgumentException("Leader cannot remove themselves from the team.");
-        }
-
-        teamMembershipRepository.delete(memberMembership);
-    }
+    
 
     @Transactional
     public void leaveTeam(String username) {
