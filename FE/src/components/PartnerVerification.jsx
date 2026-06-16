@@ -282,7 +282,7 @@ const PartnerVerification = () => {
                             Save carefully! Removing an existing university will also disable it for users.
                         </div>
                         <div className="footer-actions">
-                            <button className="discard-btn" onClick={fetchPartners}>Discard</button>
+
                             <button className="apply-btn" onClick={handleApply} disabled={isLoading}>
                                 {isLoading ? 'Saving...' : 'Save Settings'}
                             </button>
