@@ -286,8 +286,8 @@
   },
   "evaluationWorkspace": {
     "data": {
-      "submissionId": "S12345",
-      "projectId": "P9876",
+      "submissionId": "12345",
+      "projectId": "9876",
       "teamName": "CodeCrafters",
       "githubRepoUrl": "https://github.com/codecrafters/project",
       "liveDemoUrl": "https://demo.codecrafters.com",

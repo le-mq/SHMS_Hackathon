@@ -90,7 +90,7 @@ const Register = () => {
             } else {
                 if (!formData.corporateEmail.trim()) {
                     newErrors.corporateEmail = 'Email is required';
-                } else if (!/^[^\criteria@]+@[^\criteria@]+\.[^\criteria@]+$/.test(formData.corporateEmail)) {
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
                     newErrors.corporateEmail = 'Invalid Email format';
                 }
             }
@@ -98,7 +98,7 @@ const Register = () => {
             if (!formData.mssv.trim()) newErrors.mssv = 'Student Identification Number is required';
             if (!formData.corporateEmail.trim()) {
                 newErrors.corporateEmail = 'Email is required';
-            } else if (!/^[^\criteria@]+@[^\criteria@]+\.[^\criteria@]+$/.test(formData.corporateEmail)) {
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
                 newErrors.corporateEmail = 'Invalid Email format';
             }
         }
@@ -120,9 +120,7 @@ const Register = () => {
         try {
             const response = await fetch('http://localhost:8080/api/v1/auth/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
 

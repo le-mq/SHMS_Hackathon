@@ -41,6 +41,22 @@ const EvaluationWorkspace = () => {
         if (teamId) fetchEvalData();
     }, [teamId]);
 
+    const handleScoreChange = (id, field, value) => {
+        setScores(prev => prev.map(s => s.criteriaId === id ? { ...s, [field]: value } : s));
+    };
+
+    const calculateWeightedTotal = () => {
+        const total = scores.reduce((sum, criteria) => {
+            const pts = parseFloat(criteria.pointsAwarded);
+            return !isNaN(pts) ? sum + (pts * (criteria.weight / 100)) : sum;
+        }, 0);
+        return total.toFixed(2);
+    };
+
+    const isComplete = scores.length > 0 && scores.every(s =>
+        s.pointsAwarded !== '' && !isNaN(s.pointsAwarded) && s.pointsAwarded >= 0 && s.pointsAwarded <= 100
+    );
+
     const handleSubmit = async () => {
         if (!isComplete) return;
         setIsSubmitting(true);
@@ -79,12 +95,12 @@ const EvaluationWorkspace = () => {
         const isValid = !!url;
         return (
             <a href={url || '#'} className={`asset-link ${isValid ? 'asset-valid' : 'asset-missing'}`}
-                target="_blank" rel="noreferrer"
-                onClick={e => !isValid && e.preventDefault()}
+               target="_blank" rel="noreferrer"
+               onClick={e => !isValid && e.preventDefault()}
             ><div className="asset-left">
-                    <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                    </svg>{label}
+                <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                </svg>{label}
             </div>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -127,7 +143,42 @@ const EvaluationWorkspace = () => {
                                 Evaluation Rubric
                             </h2>
                         </div>
+                        <div className="criteria-list">
+                            {evalData?.criteria?.map((crit, idx) => (
+                                <div className="criteria-item" key={crit.id}>
+                                    <div className="criteria-header">
+                                        <div className="crit-left">
+                                            <span className="crit-name">{crit.name}</span>
+                                            <span className="crit-desc">{crit.description}</span>
+                                        </div>
+                                        <div className="crit-right">
+                                            <span className="crit-weight">Weight: {crit.weight}%</span>
+                                            <input type="number" className="score-input"
+                                                   placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
+                                                   onChange={(e) => handleScoreChange(crit.id, 'pointsAwarded', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <textarea className="crit-feedback" placeholder="Feedback Critique..."
+                                              value={scores[idx]?.feedback || ''}
+                                              onChange={(e) => handleScoreChange(crit.id, 'feedback', e.target.value)}
+                                    ></textarea>
+                                </div>
+                            ))}
+                        </div>
 
+                        <div className="rubric-footer">
+                            <div className="total-score-box">
+                                <div className="total-label">WEIGHTED SCORE TOTAL</div>
+                                <div className="total-val">
+                                    {calculateWeightedTotal()} <span>/ 100</span>
+                                </div>
+                            </div>
+                            <button className="save-btn" disabled={!isComplete || isSubmitting} onClick={handleSubmit}>
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                {isSubmitting ? 'Saving...' : 'Save and Lock Scores'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
