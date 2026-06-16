@@ -1,6 +1,8 @@
 package com.fpt.shms.be.controller;
 import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.Team;
+import com.fpt.shms.be.repository.CategoryRepository;
+import com.fpt.shms.be.repository.ContestRepository;
 import com.fpt.shms.be.service.StudentService;
 import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
@@ -23,6 +25,9 @@ public class StudentController {
     private final StudentService studentService;
     private final JwtUtils jwtUtils;
     private final TeamService teamService;
+    private final ContestRepository contestRepository;
+    private final CategoryRepository categoryRepository;
+
 
     private String extractUsernameFromToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -76,6 +81,24 @@ public class StudentController {
             return ResponseEntity.ok(Map.of("message", "Profile deleted successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/contests")
+    public ResponseEntity<?> getContests(HttpServletRequest request) {
+        try {
+            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<?> getCategories(HttpServletRequest request) {
+        try {
+            return ResponseEntity.ok(categoryRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
@@ -163,25 +186,6 @@ public class StudentController {
         }
     }
 
-    @DeleteMapping("/teams/members/{studentId}")
-    @Operation(summary = "Remove Team Member", description = "Removes a member from the team.")
-    public ResponseEntity<?> removeTeamMember(HttpServletRequest request, @PathVariable String studentId) {
-        try {
-            String token = jwtUtils.extractToken(request);
-            if (token == null || !jwtUtils.validateToken(token)) {
-                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
-            }
-
-            String username = jwtUtils.getUsernameFromToken(token);
-            teamService.removeTeamMember(username, studentId);
-
-            return ResponseEntity.ok(Map.of("message", "Member removed successfully"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
-        }
-    }
 
     @DeleteMapping("/teams/leave")
     @Operation(summary = "Leave Team", description = "Allows a member to voluntarily leave their current team before registration.")
