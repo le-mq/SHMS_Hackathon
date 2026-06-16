@@ -276,3 +276,49 @@
 .join-input-wrap input:focus {
     border-color: #0f172a;
 }
+
+.create-team-card {
+    background: #0f172a;
+    color: white;
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.create-team-card h3 {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+}
+
+.create-team-card p {
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 24px 0;
+}
+
+.create-team-link {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.create-team-link:hover {
+    text-decoration: underline;
+}
+
+.create-team-icon-bg {
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    width: 120px;
+    height: 120px;
+    color: rgba(255, 255, 255, 0.08);
+}
