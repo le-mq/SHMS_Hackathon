@@ -3,11 +3,10 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import { Bar } from 'react-chartjs-2';
 import './RankingsConsole.css';
 import NavbarAdmin from './NavbarAdmin';
-import { getContests, getContestById, getReadiness, processRanking, publishRanking } from '../data';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const BAR_PATTERNS = ['bar-mid', 'bar-mid', 'bar-dark', 'bar-mid', 'bar-dark', 'bar-mid', 'bar-light', 'bar-dark', 'bar-light', 'bar-mid'];
-
+const API_BASE = "http://localhost:8080/api/v1";
 const RankingsConsole = () => {
     const [topN, setTopN] = useState(10);
     const [contests, setContests] = useState([]);
@@ -23,18 +22,41 @@ const RankingsConsole = () => {
     });
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        let cancelled = false;
+        async function fetchInitialData() {
             try {
-                const cdata = await getContests();
-                setContests(cdata);
-                if (cData.length > 0) {
-                    setSelectedContestId(cdata[0].id);
+                const res = await fetch(API_BASE + "/contests");
+                if (!res.ok)
+                    throw new Error("HTTP " + res.status);
+                const json = await res.json();
+                const contestsData =
+                    Array.isArray(json)
+                        ? json
+                        : json.data || [];
+                if (!cancelled) {
+                    setContests(contestsData);
+                    if (contestsData.length > 0) {
+                        setSelectedContestId(contestsData[0].id);
+                    }
                 }
-            } catch (err) {
-                console.error(err);
             }
-        };
+            catch (error) {
+                console.warn(error.message);
+                const localRes = await fetch("/testFE.json");
+                const localJson = await localRes.json();
+                const contestsData = localJson.rankingConsole?.contests?.data || [];
+                if (!cancelled) {
+                    setContests(contestsData);
+                    if (contestsData.length > 0) {
+                        setSelectedContestId(contestsData[0].id);
+                    }
+                }
+            }
+        }
         fetchInitialData();
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     useEffect(() => {
@@ -42,23 +64,22 @@ const RankingsConsole = () => {
             if (!selectedContestId)
                 return;
             try {
-                const data = await getContestById(selectedContestId);
-                const phaseSet = new Set();
-                if (data.tracks) {
-                    data.tracks.forEach(t => {
-                        if (t.rounds) {
-                            t.rounds.forEach(r => {
-                                if (r.phaseName)
-                                    phaseSet.add(r.phaseName);
-                            });
-                        }
-                    });
+                let data;
+                try {
+                    const res = await fetch(API_BASE + `/contests/${selectedContestId}`);
+                    if (!res.ok)
+                        throw new Error();
+                    data = await res.json();
                 }
-                const dynamicRounds =
-                    Array.from(phaseSet);
-                if (dynamicRounds.length > 0) {
-                    setRounds(dynamicRounds);
-                    setRound(dynamicRounds[0]);
+                catch {
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    data = localJson.rankingConsole.contests.data.find(c => c.id == selectedContestId);
+                }
+                if (data.tracks) {
+                    const rounds = data.tracks.flatMap(track => track.rounds || [])
+                        .map(round => round.phaseName);
+                    setAvailableRounds(rounds);
                 }
             }
             catch (err) {
@@ -73,7 +94,20 @@ const RankingsConsole = () => {
             if (!selectedContestId || !round)
                 return;
             try {
-                const data = await getReadiness(selectedContestId, round);
+                let data;
+                try {
+                    const res = await fetch(API_BASE + `/rankings/readiness?contestId=${selectedContestId}&round=${round}`);
+                    if (!res.ok)
+                        throw new Error();
+                    data = await res.json();
+                }
+                catch {
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    data = localJson.rankingConsole?.readiness;
+                }
+                setReadinessData(data);
+                setResult(null);
                 setReadinessData(data);
                 setResult(null);
             }
@@ -93,12 +127,24 @@ const RankingsConsole = () => {
         };
         fetchReadiness();
     }, [selectedContestId, round]);
+
     const handleGenerate = async () => {
         if (!readinessData.allReady) return;
         setIsProcessing(true);
         setResult(null);
         try {
-            const data = await processRanking(selectedContestId, round, parseInt(topN));
+            let data;
+            try {
+                const res = await fetch(API_BASE + "/rankings/process", { method: "POST" });
+                if (!res.ok)
+                    throw new Error();
+                data = await res.json();
+            }
+            catch {
+                const localRes = await fetch("/testFE.json");
+                const localJson = await localRes.json();
+                data = localJson.rankingConsole?.rankingResult;
+            }
             setResult(data);
         } catch (err) {
             console.error(err);
@@ -112,7 +158,15 @@ const RankingsConsole = () => {
         if (!result)
             return;
         try {
-            await publishRanking(selectedContestId, round, parseInt(topN));
+            try {
+                const res = await fetch(API_BASE + "/rankings/publish", { method: "POST" });
+                if (!res.ok)
+                    throw new Error();
+                alert("Leaderboard published successfully!");
+            }
+            catch {
+                alert("Mock publish success!");
+            }
             alert("Leaderboard published successfully!");
         }
         catch (err) {
