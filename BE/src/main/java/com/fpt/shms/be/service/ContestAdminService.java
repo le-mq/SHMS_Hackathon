@@ -99,8 +99,7 @@ public class ContestAdminService {
 
     @Transactional
     public Contest createContest(CreateContestRequest request) {
-        // Find or create Semester
-        // Derive a short code: first 2 chars of term + last 2 digits of year (e.g. SP26)
+        // Tạo mã ngắn: 2 ký tự đầu tiên của thuật ngữ + 2 chữ số cuối của năm (ví dụ: SU26)
         String semesterCode = request.getTerm().substring(0, Math.min(2, request.getTerm().length())).toUpperCase()
                 + String.valueOf(request.getYear()).substring(2);
 
@@ -136,7 +135,7 @@ public class ContestAdminService {
             try {
                 Contest.ContestStatus newStatus = Contest.ContestStatus.valueOf(request.getStatus().toUpperCase());
                 if (newStatus == Contest.ContestStatus.CLOSED && contest.getStatus() != Contest.ContestStatus.CLOSED) {
-                    // Revert all TEAM_LEADER users to TEAM_MEMBER
+
                     Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
                     Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
 
@@ -153,15 +152,15 @@ public class ContestAdminService {
                 }
                 contest.setStatus(newStatus);
             } catch (IllegalArgumentException e) {
-                // Ignore invalid status string and keep the default UPCOMING
+
             }
         }
 
         contest = contestRepository.save(contest);
 
-        // Process Domains
+
         contestUniversityRepository.deleteByContest(contest);
-        // Do NOT delete categories to avoid FK constraint violations
+
         if (request.getAllowedCorporateDomains() != null && !request.getAllowedCorporateDomains().isEmpty()) {
             String[] domains = request.getAllowedCorporateDomains().split(",");
             for (String domain : domains) {
@@ -204,7 +203,7 @@ public class ContestAdminService {
                 throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
             }
 
-            // Determine state manually from UI
+
             Round.RoundState state = Round.RoundState.UPCOMING;
             if (roundDto.getState() != null) {
                 try {
@@ -226,7 +225,7 @@ public class ContestAdminService {
                         .orElse(null);
             }
 
-            // Fallback to phaseName if ID not found or not provided
+
             if (round == null) {
                 round = existingRounds.stream()
                         .filter(r -> r.getPhaseName().equals(roundDto.getPhaseName()))
@@ -250,15 +249,6 @@ public class ContestAdminService {
             round.setContest(contest);
             roundRepository.save(round);
         }
-
-        // Remove rounds that are no longer in the request
-        List<String> requestedPhaseNames = request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getPhaseName)
-                .toList();
-        List<Long> requestedIds = request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getId)
-                .filter(java.util.Objects::nonNull)
-                .toList();
 
         return categoryRepository.save(category);
     }
