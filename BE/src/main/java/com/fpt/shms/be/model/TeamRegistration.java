@@ -27,7 +27,7 @@ public class TeamRegistration {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id", nullable = false)
     private Category category;
 
-    @Column(name = "status", length = 50)
+    @Column(name = "status", length = 50, nullable = false)
     private String status;
 
     @Column(name = "submitted_at")
