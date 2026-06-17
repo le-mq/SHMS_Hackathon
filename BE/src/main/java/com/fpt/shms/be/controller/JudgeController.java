@@ -1,0 +1,41 @@
+package com.fpt.shms.be.controller;
+
+import com.fpt.shms.be.dto.EvaluatorDashboardResponse;
+import com.fpt.shms.be.service.JudgeService;
+import com.fpt.shms.be.util.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/judge")
+@RequiredArgsConstructor
+public class JudgeController {
+
+    private final JwtUtils jwtUtils;
+    private final JudgeService judgeService;
+
+    @GetMapping("/assigned-submissions")
+    @Operation(summary = "Get Assigned Submissions", description = "Returns teams and submissions allocated to the judge.")
+    public ResponseEntity<?> getAssignedSubmissions(HttpServletRequest request, 
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            EvaluatorDashboardResponse response = judgeService.getDashboardData(username, contestId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error"));
+        }
+    }
+
+}
