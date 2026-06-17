@@ -90,7 +90,7 @@ public class TeamService{
         teamMembershipRepository.save(newMember);
     }
 
-    public TeamStatusResponse getTeamStatus(String username) {
+    public TeamStatusResponse getTeamStatus(String username, Long contestId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -99,11 +99,23 @@ public class TeamService{
             throw new IllegalArgumentException("User is not in any team");
         }
 
-        Team team = memberships.get(0).getTeam();
-        List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId());
+        Team team = null;
 
-        if (roster.size() < 3 && "APPROVED".equals(team.getStatus())) {
+        if (contestId != null) {
+            for (TeamMembership m : memberships) {
+                if (m.getTeam().getContest() != null && m.getTeam().getContest().getId().equals(contestId)) {
+                    team = m.getTeam();
+                    break;
+                }
+            }
+            if (team == null) {
+                throw new IllegalArgumentException("You don't have a team in this contest");
+            }
+        } else {
+            team = memberships.get(0).getTeam();
         }
+
+        List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId());
 
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);

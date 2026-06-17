@@ -90,7 +90,7 @@ public class StudentController {
     @GetMapping("/contests")
     public ResponseEntity<?> getContests(HttpServletRequest request) {
         try {
-            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
+            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName(), "status", c.getStatus() )).toList());
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
@@ -209,7 +209,8 @@ public class StudentController {
 
     @GetMapping("/teams/status")
     @Operation(summary = "Get Team Status", description = "Returns team metadata, roster, and status.")
-    public ResponseEntity<?> getTeamStatus(HttpServletRequest request) {
+    public ResponseEntity<?> getTeamStatus(HttpServletRequest request,
+                                           @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
         try {
             String token = jwtUtils.extractToken(request);
             if (token == null || !jwtUtils.validateToken(token)) {
@@ -217,7 +218,8 @@ public class StudentController {
             }
 
             String username = jwtUtils.getUsernameFromToken(token);
-            return ResponseEntity.ok(teamService.getTeamStatus(username));
+
+            return ResponseEntity.ok(teamService.getTeamStatus(username, contestId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
