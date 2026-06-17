@@ -72,6 +72,10 @@ public class TeamService{
         Team team = teamRepository.findByInvitationCode(invitationCode)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid invitation code"));
 
+        if ("APPROVED".equals(team.getStatus()) || "PENDING".equals(team.getStatus())) {
+            throw new IllegalArgumentException("The team has already been approved and cannot accept new members.");
+        }
+
         List<TeamMembership> currentMembers = teamMembershipRepository.findByTeamId(team.getId());
         if (currentMembers.size() >= 5) {
             throw new IllegalArgumentException("Team has already reached the maximum limit of 5 members.");
