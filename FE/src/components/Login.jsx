@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import NavbarHome from './NavbarHome.jsx';
 
+const API_BASE = "http://localhost:8080/api/v1";
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -56,7 +57,7 @@ const Login = () => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await fetch("http://localhost:8080/api/v1/auth/login", {
+            const response = await fetch(API_BASE + "/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: formData.username, password: formData.password })

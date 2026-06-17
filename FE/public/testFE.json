@@ -1090,5 +1090,10 @@
       ],
       "fullName": "Pham Van Student"
     }
-  ]
+  ],
+  "adminProfile": {
+    "telephoneNumber": "+84 123 456 789",
+    "avatarBase64": null,
+    "fullName": "Nguyen Van Admin"
+  }
 }

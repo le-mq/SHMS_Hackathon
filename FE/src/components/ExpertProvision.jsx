@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ExpertProvision.css';
 import NavbarAdmin from './NavbarAdmin';
 
+const API_BASE = "http://localhost:8080/api/v1";
 const ExpertProvisioning = () => {
     const [formData, setFormData] = useState({
         fullName: '',
