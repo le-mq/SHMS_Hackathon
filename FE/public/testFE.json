@@ -194,6 +194,57 @@
       ]
     }
   },
+
+  "studentSubmission": {
+  "data": {
+    "contestName": "FPT Hackathon Summer",
+    "contestStatus": "ACTIVE",
+    "internalRole": "LEADER",
+    "teamName": "CodeCrafters",
+    "teamStatus": "APPROVED",
+    "rounds": [
+      {
+        "id": "R001",
+        "name": "Idea Submission",
+        "status": "OPEN",
+        "submissionOpen": "2026-06-18T00:00:00+07:00",
+        "submissionDeadline": "2026-06-20T23:59:00+07:00"
+      },
+      {
+        "id": "R002",
+        "name": "Final Sprint",
+        "status": "UPCOMING",
+        "submissionOpen": "2026-06-21T00:00:00+07:00",
+        "submissionDeadline": "2026-06-30T23:59:00+07:00"
+      }
+    ],
+    "history": [
+      {
+        "id": "S001",
+        "roundId": "R001",
+        "version": 1,
+        "timestamp": "2026-06-18T10:30:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-demo",
+        "liveDemoUrl": "https://shms-demo.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-slide",
+        "status": "ARCHIVED"
+      },
+      {
+        "id": "S002",
+        "roundId": "R001",
+        "version": 2,
+        "timestamp": "2026-06-19T21:15:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-final",
+        "liveDemoUrl": "https://shms-final.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-final-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide",
+        "status": "SUBMITTED"
+      }
+    ]
+  }
+},
+
   "teams": {
     "data": [
       {
