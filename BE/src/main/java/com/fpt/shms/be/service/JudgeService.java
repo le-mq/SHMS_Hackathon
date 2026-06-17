@@ -1,6 +1,7 @@
 //JudgeService
 package com.fpt.shms.be.service;
 
+import com.fpt.shms.be.dto.EvaluationDataResponse;
 import com.fpt.shms.be.dto.EvaluatorDashboardResponse;
 import com.fpt.shms.be.model.*;
 import com.fpt.shms.be.repository.*;
@@ -21,6 +22,8 @@ public class JudgeService {
     private final TeamRepository teamRepository;
     private final SubmissionRepository submissionRepository;
     private final ScoreRepository scoreRepository;
+    private final ContestRubricRepository contestRubricRepository;
+    private final ContestRubricDetailsRepository contestRubricDetailsRepository;
 
     @Transactional(readOnly = true)
     public EvaluatorDashboardResponse getDashboardData(String username, Long contestId) {
@@ -101,4 +104,70 @@ public class JudgeService {
                 .queue(queue)
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public EvaluationDataResponse getEvaluationData(String username, Long teamId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+
+        List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
+        boolean hasAccess = assignments.stream().anyMatch(a -> a.getCategory().getId().equals(team.getCategory().getId()));
+        if (!hasAccess) {
+            throw new IllegalArgumentException("You are not assigned to evaluate this team");
+        }
+
+        List<Submission> teamSubmissions = submissionRepository.findByTeamId(team.getId());
+        if (teamSubmissions.isEmpty()) {
+            throw new IllegalArgumentException("Team has no submissions");
+        }
+
+        Submission latestSubmission = teamSubmissions.stream()
+                .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                .orElseThrow();
+
+        List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
+        ContestRubric rubric = null;
+        if (latestSubmission.getRound() != null) {
+            rubric = contestRubricRepository.findByCategoryIdAndRoundId(
+                    team.getCategory().getId(), latestSubmission.getRound().getId()).orElse(null);
+        }
+
+        if (rubric == null) {
+            rubric = contestRubricRepository.findFirstByCategoryId(team.getCategory().getId()).orElse(null);
+        }
+
+        if (rubric != null) {
+            List<ContestRubricDetails> details = contestRubricDetailsRepository.findByContestRubricId(rubric.getId());
+            criteriaDtos = details.stream().map(d -> EvaluationDataResponse.CriteriaDto.builder()
+                    .id(d.getId())
+                    .name(d.getCriteriaName())
+                    .description(d.getDescription())
+                    .weight((int) Math.round(d.getPercentageWeight()))
+                    .build()).toList();
+        }
+
+        if (criteriaDtos.isEmpty()) {
+            criteriaDtos = List.of(
+                    EvaluationDataResponse.CriteriaDto.builder().id(1L).name("Technical Complexity").description("Architecture, code quality, and technical difficulty.").weight(30).build(),
+                    EvaluationDataResponse.CriteriaDto.builder().id(2L).name("Innovation").description("Originality of the idea and creative problem-solving.").weight(20).build(),
+                    EvaluationDataResponse.CriteriaDto.builder().id(3L).name("UI/UX Design").description("Visual aesthetic, accessibility, and user journey flow.").weight(25).build(),
+                    EvaluationDataResponse.CriteriaDto.builder().id(4L).name("Pitch Quality").description("Clarity of presentation and ability to communicate value.").weight(25).build()
+            );
+        }
+
+        return EvaluationDataResponse.builder()
+                .submissionId(latestSubmission.getId())
+                .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
+                .liveDemoUrl(latestSubmission.getDemoVideoUrl())
+                .docsUrl(latestSubmission.getDocumentationUrl())
+                .slideUrl(latestSubmission.getPresentationSlideUrl())
+                .projectId("#" + team.getInvitationCode())
+                .teamName(team.getName())
+                .criteria(criteriaDtos)
+                .build();
+    }
+
 }

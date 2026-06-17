@@ -38,4 +38,21 @@ public class JudgeController {
         }
     }
 
+    @GetMapping("/evaluation-data/{teamId}")
+    @Operation(summary = "Get Evaluation Data", description = "Returns team submission and rubric.")
+    public ResponseEntity<?> getEvaluationData(HttpServletRequest request, @org.springframework.web.bind.annotation.PathVariable Long teamId) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            return ResponseEntity.ok(judgeService.getEvaluationData(username, teamId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
 }
