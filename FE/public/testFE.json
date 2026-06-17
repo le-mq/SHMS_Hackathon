@@ -1099,5 +1099,50 @@
         }
       }
     }
+  },
+  "rubricTemplates": {
+    "data": [
+      {
+        "id": 1,
+        "name": "General Technical Rubric",
+        "description": "Standard template for technical projects",
+        "publicVisibility": true,
+        "weightedScoring": true,
+        "criteria": [
+          { "id": 101, "criteriaName": "Innovation", "description": "How innovative is the solution?", "maxScore": 10, "percentageWeight": 30 },
+          { "id": 102, "criteriaName": "Technical Complexity", "description": "Complexity of the implementation", "maxScore": 10, "percentageWeight": 40 },
+          { "id": 103, "criteriaName": "UI/UX", "description": "User interface and experience", "maxScore": 10, "percentageWeight": 30 }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Design Focused Rubric",
+        "description": "For UI/UX and design heavy projects",
+        "publicVisibility": true,
+        "weightedScoring": true,
+        "criteria": [
+          { "id": 201, "criteriaName": "Visual Appeal", "description": "Aesthetics and beauty", "maxScore": 10, "percentageWeight": 50 },
+          { "id": 202, "criteriaName": "Usability", "description": "Ease of use", "maxScore": 10, "percentageWeight": 50 }
+        ]
+      }
+    ]
+  },
+  "contestRubrics": {
+    "data": [
+      {
+        "id": 1,
+        "contestId": "1",
+        "categoryId": "1",
+        "roundId": "1",
+        "templateId": 1
+      },
+      {
+        "id": 2,
+        "contestId": "1",
+        "categoryId": "1",
+        "roundId": "2",
+        "templateId": 2
+      }
+    ]
   }
 }
