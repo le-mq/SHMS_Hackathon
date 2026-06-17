@@ -1,0 +1,35 @@
+package com.fpt.shms.be.dto;
+
+import lombok.Builder;
+import lombok.Data;
+import java.util.List;
+
+@Data
+@Builder
+public class EvaluatorDashboardResponse {
+    private int assignedTrackCount;
+    private int totalAllocatedTeams;
+    private int evaluatedCount;
+    
+    private List<ContestDto> contests;
+    private List<AssignedTeamQueueDto> queue;
+
+    @Data
+    @Builder
+    public static class ContestDto {
+        private Long id;
+        private String name;
+    }
+
+    @Data
+    @Builder
+    public static class AssignedTeamQueueDto {
+        private Long teamId;
+        private String teamName;
+        private String abbreviation;
+        private String trackName;
+        private String roundName;
+        private String submissionState;
+        private String themeClass;
+    }
+}
