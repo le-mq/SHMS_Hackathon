@@ -337,6 +337,75 @@ public class TeamService{
 
     }
 
+    @Transactional(readOnly = true)
+    public com.fpt.shms.be.dto.TeamRegistrationDashboardResponse getAdminTeamDashboardData() {
+        List<Contest> contests = contestRepository.findAll();
+        List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.ContestData> contestDataList = new java.util.ArrayList<>();
+
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy");
+
+        for (Contest contest : contests) {
+            List<Category> categories = categoryRepository.findByContestId(contest.getId());
+
+            int pendingReview = 0;
+            int approved = 0;
+            int totalParticipants = 0;
+
+            List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity> capacities = new java.util.ArrayList<>();
+            List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.TeamData> teamsData = new java.util.ArrayList<>();
+
+            for (Category category : categories) {
+                List<Team> teams = teamRepository.findByCategoryId(category.getId());
+
+                int trackTeams = teams.size();
+                int maxTeams = category.getContest().getMaximumAllowedTeams() != null ? category.getContest().getMaximumAllowedTeams() : 100; // rough estimate if no limit
+                int capacityPercentage = (trackTeams * 100) / Math.max(1, maxTeams);
+
+                capacities.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity.builder()
+                        .categoryName(category.getName())
+                        .percentage(Math.min(capacityPercentage, 100))
+                        .build());
+
+                for (Team team : teams) {
+                    if ("PENDING".equals(team.getStatus())) pendingReview++;
+                    if ("APPROVED".equals(team.getStatus())) approved++;
+
+                    List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
+                    if ("APPROVED".equals(team.getStatus())) {
+                        totalParticipants += members.size();
+                    }
+
+                    String trackClass = "track-default";
+                    if (category.getName().toLowerCase().contains("fintech") || category.getName().toLowerCase().contains("ai")) trackClass = "track-fintech";
+                    else if (category.getName().toLowerCase().contains("cyber")) trackClass = "track-cyber";
+                    else if (category.getName().toLowerCase().contains("sustain")) trackClass = "track-sust";
+
+                    teamsData.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.TeamData.builder()
+                            .id(team.getId())
+                            .name(team.getName())
+                            .track(category.getName())
+                            .trackClass(trackClass)
+                            .date(LocalDateTime.now().format(formatter)) // Real creation date usually, but we don't have it in Team model right now, mock to now
+                            .status(team.getStatus() != null ? team.getStatus() : "PENDING")
+                            .build());
+                }
+            }
+
+            contestDataList.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.ContestData.builder()
+                    .id(contest.getId())
+                    .name(contest.getName())
+                    .pendingReview(pendingReview)
+                    .approved(approved)
+                    .totalParticipants(totalParticipants)
+                    .capacities(capacities)
+                    .teams(teamsData)
+                    .build());
+        }
+
+        return com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.builder()
+                .contests(contestDataList)
+                .build();
+    }
 
     private Student requireStudent(User user) {
         return studentRepository.findByUser(user)
