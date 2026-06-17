@@ -282,4 +282,16 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/teams/dashboard-data")
+    @Operation(summary = "Get Dashboard Data for Team Registration Approval", description = "Admin dashboard data for teams.")
+    public ResponseEntity<?> getTeamDashboardData(HttpServletRequest request) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(teamService.getAdminTeamDashboardData());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
 }
