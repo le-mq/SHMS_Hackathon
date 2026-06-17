@@ -1095,5 +1095,40 @@
     "telephoneNumber": "+84 123 456 789",
     "avatarBase64": null,
     "fullName": "Nguyen Van Admin"
+  },
+  "expertProvisioning": {
+    "experts": [
+      {
+        "userId": 1,
+        "fullName": "Nguyen Van A",
+        "username": "mentor01",
+        "professionalEmail": "mentor01@fpt.edu.vn",
+        "roles": [
+          "Mentor"
+        ],
+        "accessExpiry": "2026-12-31T23:59:59"
+      },
+      {
+        "userId": 2,
+        "fullName": "Tran Thi B",
+        "username": "judge01",
+        "professionalEmail": "judge01@fpt.edu.vn",
+        "roles": [
+          "Judge"
+        ],
+        "accessExpiry": "2026-10-15T23:59:59"
+      },
+      {
+        "userId": 3,
+        "fullName": "Le Van C",
+        "username": "expert01",
+        "professionalEmail": "expert01@fpt.edu.vn",
+        "roles": [
+          "Mentor",
+          "Judge"
+        ],
+        "accessExpiry": "2026-08-30T23:59:59"
+      }
+    ]
   }
 }
