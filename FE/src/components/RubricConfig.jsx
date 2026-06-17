@@ -266,8 +266,141 @@ const RubricConfig = () => {
                         </>
                     );
                 })()}
+                {editorMode === null && (
+                    <button className="rt-btn-primary" style={{ marginBottom: 24 }} onClick={startNew}>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        New Template
+                    </button>
+                )}
 
+                {editorMode && editingTemplate && (
+                    <div className="rubric-grid">
+                        <div>
+                            <div className="criterion-card" style={{ marginBottom: 20 }}>
+                                <div className="criterion-header">
+                                    <div className="criterion-title">
+                                        {editorMode === 'edit' ? 'EDITING TEMPLATE' : 'NEW TEMPLATE'}
+                                    </div>
+                                    {editorMode === 'edit' && <span className="rt-editing-label">#{editingTemplate.id}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Template Name <span style={{color: 'red'}}>*</span></label>
+                                    <input className="form-input" type="text" value={editingTemplate.name} onChange={e => setEditingTemplate(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Standard Evaluation Rubric" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <textarea className="form-textarea" value={editingTemplate.description || ''} onChange={e => setEditingTemplate(p => ({ ...p, description: e.target.value }))} placeholder="Describe when to use this template..." />
+                                </div>
+                            </div>
 
+                            {editingTemplate.criteria.map((c, index) => (
+                                <div key={c._localId} className="criterion-card">
+                                    <div className="criterion-header">
+                                        <div className="criterion-title">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                                            CRITERION #{index + 1}
+                                        </div>
+                                        <button className="delete-btn" onClick={() => handleDeleteCriterion(c._localId)}>
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Criteria Name</label>
+                                            <input type="text" className="form-input" value={c.criteriaName} onChange={e => handleCriterionChange(c._localId, 'criteriaName', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Max Score</label>
+                                            <input type="number" className="form-input" value={c.maxScore} onChange={e => handleCriterionChange(c._localId, 'maxScore', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Criterion Description</label>
+                                        <textarea className="form-textarea" value={c.description || ''} onChange={e => handleCriterionChange(c._localId, 'description', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Percentage Weight (%)</label>
+                                        <input type="number" className="form-input" min="0" max="100" value={c.percentageWeight} onChange={e => handleCriterionChange(c._localId, 'percentageWeight', Number(e.target.value))} />
+                                    </div>
+                                </div>
+                            ))}
+
+                            <button className="add-criterion-btn" onClick={handleAddCriterion}>
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                ADD NEW CRITERION
+                            </button>
+                        </div>
+
+                        <div>
+                            <div className="summary-card">
+                                <h3 className="summary-title">Rubric Summary</h3>
+                                <div className="weight-display">
+                                    <div className="weight-display-label">Total Weightage</div>
+                                    <div className="weight-display-value" style={{ color: isBalanced ? '#111827' : '#b91c1c' }}>{totalWeight}%</div>
+                                </div>
+                                {!isBalanced && (
+                                    <div className="balance-error">
+                                        <div className="balance-error-title">
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                            Improper Balance
+                                        </div>
+                                        <p className="balance-error-desc">Total weight must equal exactly 100%.</p>
+                                    </div>
+                                )}
+                                <div className="stats-row" style={{ marginTop: 24 }}>
+                                    <span className="stats-label">Criteria Count</span>
+                                    <span className="stats-value">{editingTemplate.criteria.length}</span>
+                                </div>
+                                <div className="rt-action-btns">
+                                    <button className="save-btn" onClick={handleSave} disabled={isLoading || !isBalanced}>
+                                        {isLoading ? 'SAVING...' : editorMode === 'edit' ? 'UPDATE TEMPLATE' : (editingTemplate.bindRoundId ? 'SAVE OFFICIAL RUBRIC' : 'SAVE DRAFT TEMPLATE')}
+                                    </button>
+                                    <button className="preview-btn" onClick={cancelEditor}>CANCEL</button>
+                                </div>
+                                {editorMode && error && <div className="alert-main alert-error" style={{marginTop: 16}}>{error}</div>}
+                                {editorMode && success && <div className="alert-main alert-success" style={{marginTop: 16}}>{success}</div>}
+                            </div>
+                            <div className="settings-card">
+                                <div className="settings-title">TEMPLATE CONFIGURATION</div>
+                                <div className="rt-info-badge" style={{backgroundColor: editingTemplate.bindRoundId ? '#dcfce7' : '#fef3c7'}}>
+                                    {editingTemplate.bindRoundId ? (<span style={{color: '#16a34a'}}>Saving as Official Contest Rubric</span>
+                                    ) : (<span style={{color: '#d97706'}}>Saving as Draft in Template Bank</span>)}
+                                </div>
+                                <p className="rt-card-desc" style={{ marginBottom: 12, fontSize: 12 }}>
+                                    Each template must be associated with a category. To officially use it, select a round.</p>
+                                <div className="form-group">
+                                    <label className="form-label">Contest <span style={{color: 'red'}}>*</span></label>
+                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value, bindCategoryId: '', bindRoundId: '' }))}>
+                                        <option value="">— Choose contest —</option>
+                                        {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+
+                                {editingTemplate.bindContestId && (
+                                    <div className="form-group">
+                                        <label className="form-label">Category <span style={{color: 'red'}}>*</span></label>
+                                        <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value, bindRoundId: '' }))}>
+                                            <option value="">— Choose category —</option>
+                                            {bindCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.categoryName}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {editingTemplate.bindCategoryId && (
+                                    <div className="form-group">
+                                        <label className="form-label">Round - Optional</label>
+                                        <select className="form-select" value={editingTemplate.bindRoundId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindRoundId: e.target.value }))}>
+                                            <option value="">— Save as draft —</option>
+                                            {(bindCategories.find(c => c.id == editingTemplate.bindCategoryId)?.rounds || []).map(r =>
+                                                <option key={r.id} value={r.id}>{r.phaseName}</option>
+                                            )}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
