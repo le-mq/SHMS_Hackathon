@@ -166,7 +166,7 @@ CREATE TABLE Announcement (
                               contest_id BIGINT NULL,
                               user_id BIGINT NULL,
                               title NVARCHAR(100) NOT NULL,
-                              content NVARCHAR(255) NULL,
+                              content TEXT NULL,
                               announcement_type VARCHAR(50) NULL,
                               status VARCHAR(50) NULL,
                               published_at DATETIME NULL,

@@ -18,6 +18,10 @@ import RubricConfig from './components/RubricConfig.jsx'
 import TeamStatus from './components/TeamStatus'
 import MentorCategory from './components/MentorCategory'
 import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
+import LeaderWorkspace from './components/LeaderWorkspace'
+import PanelAllocation from './components/PanelAllocation.jsx'
+import ProjectSubmission from './components/ProjectSubmission'
+
 function App() {
   return (
     <Router>
@@ -33,6 +37,7 @@ function App() {
         <Route path="/admin/rubrics" element={<RubricConfig />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
+        <Route path="/admin/experts/allocation" element={<PanelAllocation />} />  
         <Route path="/admin/team-approval" element={<TeamRegistrationApproval />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
@@ -40,6 +45,8 @@ function App() {
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
+        <Route path="/student/workspace" element={<LeaderWorkspace />} />
+        <Route path="/student/submission" element={<ProjectSubmission />} />
       </Routes>
       <Footer />
     </Router>

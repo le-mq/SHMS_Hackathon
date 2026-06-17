@@ -119,40 +119,7 @@ public class TeamService{
                 .roster(memberDtos)
                 .build();
     }
-
-    @Transactional
-    public void removeTeamMember(String leaderUsername, String memberStudentId) {
-        User leader = userRepository.findByUsername(leaderUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
-
-        List<TeamMembership> leaderMemberships = teamMembershipRepository.findByUserId(leader.getId());
-        if (leaderMemberships.isEmpty()) {
-            throw new IllegalArgumentException("User is not in any team");
-        }
-
-        TeamMembership leaderMembership = leaderMemberships.get(0);
-        if (!"LEADER".equals(leaderMembership.getRole())) {
-            throw new IllegalArgumentException("Only the team leader can remove members.");
-        }
-
-        Team team = leaderMembership.getTeam();
-
-        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
-            throw new IllegalArgumentException("Cannot remove members while team registration is pending or approved.");
-        }
-
-        Student memberStudent = studentRepository.findByMssv(memberStudentId)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
-
-        TeamMembership memberMembership = teamMembershipRepository.findByUserIdAndTeamId(memberStudent.getUser().getId(), team.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Member is not in this team"));
-
-        if (memberMembership.getUser().getId().equals(leader.getId())) {
-            throw new IllegalArgumentException("Leader cannot remove themselves from the team.");
-        }
-
-        teamMembershipRepository.delete(memberMembership);
-    }
+    
 
     @Transactional
     public void leaveTeam(String username) {
@@ -338,6 +305,38 @@ public class TeamService{
                 ))
                 .build();
     }
+
+    @Transactional
+    public void updateTeamStatus(Long teamId, String status) {
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+
+        team.setStatus(status.toUpperCase());
+        teamRepository.save(team);
+
+        if("APPROVED".equalsIgnoreCase(status)) {
+            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
+            for (TeamMembership tm : memberships) {
+                if("LEADER".equalsIgnoreCase(tm.getRole())) {
+                    User leader = tm.getUser();
+
+                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER")
+                            .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_LEADER").build()));
+                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
+
+                    if(teamMemberRole != null) {
+                        leader.getRoles().remove(teamMemberRole);
+                    }
+                    leader.getRoles().add(teamLeaderRole);
+                    userRepository.save(leader);
+
+                }
+            }
+        }
+
+    }
+
 
     private Student requireStudent(User user) {
         return studentRepository.findByUser(user)

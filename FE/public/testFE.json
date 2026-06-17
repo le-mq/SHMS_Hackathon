@@ -118,29 +118,27 @@
       }
     ]
   },
-
   "categories": {
-  "data": [
-    {
-      "id": "1",
-      "name": "Web"
-    },
-    {
-      "id": "2",
-      "name": "Mobile"
-    },
-    {
-      "id": "3",
-      "name": "AI & Machine Learning Innovation"
-    },
-    {
-      "id": "4",
-      "name": "Design"
-    }
-  ]
-},
-
-    "announcements": {
+    "data": [
+      {
+        "id": "1",
+        "name": "Web"
+      },
+      {
+        "id": "2",
+        "name": "Mobile"
+      },
+      {
+        "id": "3",
+        "name": "AI & Machine Learning Innovation"
+      },
+      {
+        "id": "4",
+        "name": "Design"
+      }
+    ]
+  },
+  "announcements": {
     "data": [
       {
         "id": 1,
@@ -172,7 +170,81 @@
       }
     ]
   },
-  
+  "leaderWorkspace": {
+    "data": {
+      "teamStatus": "APPROVED",
+      "currentMembers": 4,
+      "maxMembers": 5,
+      "isSubmitted": false,
+      "currentRank": null,
+      "submissionDeadline": "2026-06-20T23:59:00+07:00",
+      "announcements": [
+        {
+          "id": 1,
+          "title": "Round 1 submission is now open",
+          "category": "Submission",
+          "datePosted": "2026-06-15T08:00:00+07:00"
+        },
+        {
+          "id": 2,
+          "title": "Workshop for team leaders",
+          "category": "Workshop",
+          "datePosted": "2026-06-16T09:00:00+07:00"
+        }
+      ]
+    }
+  },
+
+  "studentSubmission": {
+  "data": {
+    "contestName": "FPT Hackathon Summer",
+    "contestStatus": "ACTIVE",
+    "internalRole": "LEADER",
+    "teamName": "CodeCrafters",
+    "teamStatus": "APPROVED",
+    "rounds": [
+      {
+        "id": "R001",
+        "name": "Idea Submission",
+        "status": "OPEN",
+        "submissionOpen": "2026-06-18T00:00:00+07:00",
+        "submissionDeadline": "2026-06-20T23:59:00+07:00"
+      },
+      {
+        "id": "R002",
+        "name": "Final Sprint",
+        "status": "UPCOMING",
+        "submissionOpen": "2026-06-21T00:00:00+07:00",
+        "submissionDeadline": "2026-06-30T23:59:00+07:00"
+      }
+    ],
+    "history": [
+      {
+        "id": "S001",
+        "roundId": "R001",
+        "version": 1,
+        "timestamp": "2026-06-18T10:30:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-demo",
+        "liveDemoUrl": "https://shms-demo.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-slide",
+        "status": "ARCHIVED"
+      },
+      {
+        "id": "S002",
+        "roundId": "R001",
+        "version": 2,
+        "timestamp": "2026-06-19T21:15:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-final",
+        "liveDemoUrl": "https://shms-final.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-final-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide",
+        "status": "SUBMITTED"
+      }
+    ]
+  }
+},
+
   "teams": {
     "data": [
       {
@@ -192,36 +264,336 @@
   },
   "leaderboard": {
     "data": [
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "CodeCrafters", "rank": 1, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 95.5 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "BugHunters", "rank": 2, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 89.0 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "DevRangers", "rank": 3, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 82.5 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "ByteMe", "rank": 4, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 78.5 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "TechTitans", "rank": 5, "categoryName": "Web", "status": "QUALIFIED", "finalScore": 72.5 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "Innovators", "rank": 1, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 92.0 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "PixelPerfect", "rank": 2, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 88.5 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "AppMasters", "rank": 3, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 84.0 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "CodeNinjas", "rank": 4, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 80.0 },
-      { "contestId": 1, "roundName": "Final Sprint", "publishedAt": "2026-03-15", "contestName": "FPT Hackathon 2026", "teamName": "StackOverflowed", "rank": 5, "categoryName": "Mobile", "status": "QUALIFIED", "finalScore": 70.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Coders", "rank": 1, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 92.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Hunters", "rank": 2, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 83.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Dev", "rank": 3, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 80.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Me", "rank": 4, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Titans", "rank": 5, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.4 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Innovators", "rank": 1, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 90.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Pixel", "rank": 3, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 82.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "Masters", "rank": 2, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 84.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "CodeNinjas", "rank": 4, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 80.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "StackOverflowed", "rank": 5, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 79.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "A", "rank": 6, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.3 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "B", "rank": 7, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72.2 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "C", "rank": 8, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 72 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "D", "rank": 9, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 71.9 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "E", "rank": 10, "categoryName": "Design", "status": "QUALIFIED", "finalScore": 71.6 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "F", "rank": 6, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 79.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "G", "rank": 7, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 78.5 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "H", "rank": 8, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 78.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "I", "rank": 9, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 77.0 },
-      { "contestId": 2, "roundName": "Idea Submission", "publishedAt": "2025-06-15", "contestName": "FPT Hackathon Summer 2025", "teamName": "K", "rank": 10, "categoryName": "Test", "status": "QUALIFIED", "finalScore": 75.5}
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "CodeCrafters",
+        "rank": 1,
+        "categoryName": "Web",
+        "status": "QUALIFIED",
+        "finalScore": 95.5
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "BugHunters",
+        "rank": 2,
+        "categoryName": "Web",
+        "status": "QUALIFIED",
+        "finalScore": 89.0
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "DevRangers",
+        "rank": 3,
+        "categoryName": "Web",
+        "status": "QUALIFIED",
+        "finalScore": 82.5
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "ByteMe",
+        "rank": 4,
+        "categoryName": "Web",
+        "status": "QUALIFIED",
+        "finalScore": 78.5
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "TechTitans",
+        "rank": 5,
+        "categoryName": "Web",
+        "status": "QUALIFIED",
+        "finalScore": 72.5
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "Innovators",
+        "rank": 1,
+        "categoryName": "Mobile",
+        "status": "QUALIFIED",
+        "finalScore": 92.0
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "PixelPerfect",
+        "rank": 2,
+        "categoryName": "Mobile",
+        "status": "QUALIFIED",
+        "finalScore": 88.5
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "AppMasters",
+        "rank": 3,
+        "categoryName": "Mobile",
+        "status": "QUALIFIED",
+        "finalScore": 84.0
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "CodeNinjas",
+        "rank": 4,
+        "categoryName": "Mobile",
+        "status": "QUALIFIED",
+        "finalScore": 80.0
+      },
+      {
+        "contestId": 1,
+        "roundName": "Final Sprint",
+        "publishedAt": "2026-03-15",
+        "contestName": "FPT Hackathon 2026",
+        "teamName": "StackOverflowed",
+        "rank": 5,
+        "categoryName": "Mobile",
+        "status": "QUALIFIED",
+        "finalScore": 70.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Coders",
+        "rank": 1,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 92.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Hunters",
+        "rank": 2,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 83.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Dev",
+        "rank": 3,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 80.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Me",
+        "rank": 4,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 72.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Titans",
+        "rank": 5,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 72.4
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Innovators",
+        "rank": 1,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 90.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Pixel",
+        "rank": 3,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 82.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "Masters",
+        "rank": 2,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 84.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "CodeNinjas",
+        "rank": 4,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 80.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "StackOverflowed",
+        "rank": 5,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 79.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "A",
+        "rank": 6,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 72.3
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "B",
+        "rank": 7,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 72.2
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "C",
+        "rank": 8,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 72
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "D",
+        "rank": 9,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 71.9
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "E",
+        "rank": 10,
+        "categoryName": "Design",
+        "status": "QUALIFIED",
+        "finalScore": 71.6
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "F",
+        "rank": 6,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 79.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "G",
+        "rank": 7,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 78.5
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "H",
+        "rank": 8,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 78.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "I",
+        "rank": 9,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 77.0
+      },
+      {
+        "contestId": 2,
+        "roundName": "Idea Submission",
+        "publishedAt": "2025-06-15",
+        "contestName": "FPT Hackathon Summer 2025",
+        "teamName": "K",
+        "rank": 10,
+        "categoryName": "Test",
+        "status": "QUALIFIED",
+        "finalScore": 75.5
+      }
     ]
   },
   "rubrics": {
@@ -420,21 +792,312 @@
       ]
     }
   },
-  "evaluationWorkspace": {
-    "data": {
-      "submissionId": "12345",
-      "projectId": "9876",
-      "teamName": "CodeCrafters",
-      "githubRepoUrl": "https://github.com/codecrafters/project",
-      "liveDemoUrl": "https://demo.codecrafters.com",
-      "docsUrl": "https://docs.codecrafters.com",
-      "slideUrl": "https://slides.codecrafters.com",
-      "criteria": [
-        { "id": 1, "name": "Technical Complexity", "description": "Architecture, code quality, and technical difficulty.", "weight": 30 },
-        { "id": 2, "name": "Innovation", "description": "Originality of the idea and creative problem-solving.", "weight": 20 },
-        { "id": 3, "name": "UI/UX Design", "description": "Visual aesthetic, accessibility, and user journey flow.", "weight": 25 },
-        { "id": 4, "name": "Pitch Quality", "description": "Clarity of presentation and ability to communicate value.", "weight": 25 }
+  "rankingConsole": {
+    "contests": {
+      "data": [
+        {
+          "id": "1",
+          "name": "Summer Hackathon 2026",
+          "tracks": [
+            {
+              "name": "AI",
+              "rounds": [
+                {
+                  "phaseName": "Phase 01: Screening"
+                },
+                {
+                  "phaseName": "Phase 02: Semi-Final"
+                },
+                {
+                  "phaseName": "Phase 03: Final"
+                }
+              ]
+            }
+          ]
+        }
       ]
+    },
+    "readiness": {
+      "summary": {
+        "totalTeams": 18,
+        "avgScore": 78.6,
+        "scoreRange": "42 - 96",
+        "bars": [
+          0,
+          1,
+          1,
+          2,
+          3,
+          4,
+          2,
+          3,
+          1,
+          1
+        ]
+      },
+      "evaluators": [
+        {
+          "name": "Nguyen Van A",
+          "dept": "Computer Science",
+          "status": "Finalized",
+          "date": "2026-06-15 08:30"
+        },
+        {
+          "name": "Tran Thi B",
+          "dept": "Artificial Intelligence",
+          "status": "Finalized",
+          "date": "2026-06-15 09:12"
+        },
+        {
+          "name": "Le Van C",
+          "dept": "Software Engineering",
+          "status": "Pending",
+          "date": "-"
+        }
+      ],
+      "allReady": false
+    },
+    "rankingResult": {
+      "roundName": "Phase 01: Screening",
+      "qualifiedCount": 10,
+      "eliminatedCount": 8,
+      "totalProcessed": 18,
+      "results": [
+        {
+          "rank": 1,
+          "teamName": "AI Warriors",
+          "averageScore": 95.4,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 2,
+          "teamName": "Data Miners",
+          "averageScore": 93.2,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 3,
+          "teamName": "Code Titans",
+          "averageScore": 91.8,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 4,
+          "teamName": "NextGen",
+          "averageScore": 89.7,
+          "status": "QUALIFIED"
+        },
+        {
+          "rank": 5,
+          "teamName": "HackStorm",
+          "averageScore": 88.5,
+          "status": "QUALIFIED"
+        }
+      ]
+    }
+  },
+  "teamRegistrationApproval": {
+    "contests": [
+      {
+        "id": 1,
+        "name": "Summer Hackathon 2026",
+        "pendingReview": 4,
+        "approved": 8,
+        "totalParticipants": 36,
+        "teams": [
+          {
+            "id": 1,
+            "name": "AI Warriors",
+            "track": "Artificial Intelligence",
+            "trackClass": "ai"
+          },
+          {
+            "id": 2,
+            "name": "Code Titans",
+            "track": "Software Engineering",
+            "trackClass": "software"
+          },
+          {
+            "id": 3,
+            "name": "Data Miners",
+            "track": "Data Science",
+            "trackClass": "data"
+          },
+          {
+            "id": 4,
+            "name": "NextGen",
+            "track": "Cyber Security",
+            "trackClass": "cyber"
+          }
+        ],
+        "capacities": [
+          {
+            "categoryName": "Artificial Intelligence",
+            "percentage": 80
+          },
+          {
+            "categoryName": "Software Engineering",
+            "percentage": 60
+          },
+          {
+            "categoryName": "Data Science",
+            "percentage": 45
+          },
+          {
+            "categoryName": "Cyber Security",
+            "percentage": 30
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Winter Hackathon 2026",
+        "pendingReview": 2,
+        "approved": 5,
+        "totalParticipants": 21,
+        "teams": [
+          {
+            "id": 5,
+            "name": "Tech Heroes",
+            "track": "Artificial Intelligence",
+            "trackClass": "ai"
+          },
+          {
+            "id": 6,
+            "name": "HackStorm",
+            "track": "Cyber Security",
+            "trackClass": "cyber"
+          }
+        ],
+        "capacities": [
+          {
+            "categoryName": "Artificial Intelligence",
+            "percentage": 50
+          },
+          {
+            "categoryName": "Cyber Security",
+            "percentage": 70
+          }
+        ]
+      }
+    ],
+    "evaluationWorkspace": {
+      "data": {
+        "submissionId": "12345",
+        "projectId": "9876",
+        "teamName": "CodeCrafters",
+        "githubRepoUrl": "https://github.com/codecrafters/project",
+        "liveDemoUrl": "https://demo.codecrafters.com",
+        "docsUrl": "https://docs.codecrafters.com",
+        "slideUrl": "https://slides.codecrafters.com",
+        "criteria": [
+          {
+            "id": 1,
+            "name": "Technical Complexity",
+            "description": "Architecture, code quality, and technical difficulty.",
+            "weight": 30
+          },
+          {
+            "id": 2,
+            "name": "Innovation",
+            "description": "Originality of the idea and creative problem-solving.",
+            "weight": 20
+          },
+          {
+            "id": 3,
+            "name": "UI/UX Design",
+            "description": "Visual aesthetic, accessibility, and user journey flow.",
+            "weight": 25
+          },
+          {
+            "id": 4,
+            "name": "Pitch Quality",
+            "description": "Clarity of presentation and ability to communicate value.",
+            "weight": 25
+          }
+        ]
+      }
+    }
+  },
+  "panelAllocation": {
+    "contests": [
+      {
+        "id": 1,
+        "name": "Summer Hackathon",
+        "year": 2026,
+        "season": "Summer",
+        "tracks": [
+          {
+            "id": 1,
+            "categoryName": "Artificial Intelligence",
+            "trackDescription": "AI and Machine Learning",
+            "teams": [
+              {
+                "id": 1,
+                "name": "AI Warriors"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "categoryName": "Cyber Security",
+            "trackDescription": "Security Solutions",
+            "teams": [
+              {
+                "id": 3,
+                "name": "HackStorm"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "experts": [
+      {
+        "userId": 1,
+        "username": "mentor01",
+        "fullName": "Nguyen Van A",
+        "roles": [
+          "MENTOR"
+        ]
+      },
+      {
+        "userId": 2,
+        "username": "judge01",
+        "fullName": "Tran Thi B",
+        "roles": [
+          "JUDGE"
+        ]
+      },
+      {
+        "userId": 3,
+        "username": "expert01",
+        "fullName": "Le Van C",
+        "roles": [
+          "MENTOR",
+          "JUDGE"
+        ]
+      }
+    ],
+    "allocations": {
+      "1": {
+        "1": {
+          "isJudge": false,
+          "mentoredTeamIds": [
+            1
+          ]
+        },
+        "2": {
+          "isJudge": true,
+          "mentoredTeamIds": []
+        }
+      },
+      "2": {
+        "1": {
+          "isJudge": true,
+          "mentoredTeamIds": []
+        }
+      }
     }
   },
   "rubricTemplates": {

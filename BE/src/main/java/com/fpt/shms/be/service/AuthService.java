@@ -150,7 +150,7 @@ public class AuthService {
             }
         }
 
-        // BR-ACC-04:
+        // BR-ACC-04: Tài khoản mới phải xác minh email trước khi được kích hoạt.
         log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
                 university.getId(), request.getMssv(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
