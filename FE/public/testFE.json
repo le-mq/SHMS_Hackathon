@@ -1048,5 +1048,47 @@
         }
       }
     }
-  }
+  },
+  "loginMock": [
+    {
+      "username": "admin",
+      "password": "123456",
+      "token": "mock-admin-token",
+      "role": "ADMIN",
+      "allRoles": [
+        "ADMIN"
+      ],
+      "fullName": "Nguyen Van Admin"
+    },
+    {
+      "username": "judge",
+      "password": "123456",
+      "token": "mock-judge-token",
+      "role": "JUDGE",
+      "allRoles": [
+        "JUDGE"
+      ],
+      "fullName": "Tran Thi Judge"
+    },
+    {
+      "username": "mentor",
+      "password": "123456",
+      "token": "mock-mentor-token",
+      "role": "MENTOR",
+      "allRoles": [
+        "MENTOR"
+      ],
+      "fullName": "Le Van Mentor"
+    },
+    {
+      "username": "student",
+      "password": "123456",
+      "token": "mock-student-token",
+      "role": "STUDENT",
+      "allRoles": [
+        "STUDENT"
+      ],
+      "fullName": "Pham Van Student"
+    }
+  ]
 }
