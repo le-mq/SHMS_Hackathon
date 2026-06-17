@@ -19,6 +19,7 @@ import MentorCategory from './components/MentorCategory'
 import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
 import LeaderWorkspace from './components/LeaderWorkspace'
 import PanelAllocation from './components/PanelAllocation.jsx'
+import ProjectSubmission from './components/ProjectSubmission'
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
         <Route path="/admin/team/approval" element={<TeamRegistrationApproval />} />
         <Route path="/student/workspace" element={<LeaderWorkspace />} />
+        <Route path="/student/submission" element={<ProjectSubmission />} />
         <Route path="/admin/experts/allocation" element={<PanelAllocation />} />
       </Routes>
       <Footer />
