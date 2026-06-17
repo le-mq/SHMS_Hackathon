@@ -1130,5 +1130,39 @@
         "accessExpiry": "2026-08-30T23:59:59"
       }
     ]
-  }
+  },
+  "universities": [
+    {
+      "id": 1,
+      "name": "FPT University",
+      "universityCode": "FPT-HCMC",
+      "emailRegex": "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$",
+      "studentCodeRegex": "^SE\\d+$"
+    },
+    {
+      "id": 2,
+      "name": "HCMUT",
+      "universityCode": "HCMUT",
+      "emailRegex": "^[a-zA-Z0-9._%+-]+@hcmut\\.edu\\.vn$",
+      "studentCodeRegex": "^\\d+$"
+    }
+  ],
+  "students": [
+    {
+      "mssv": "SE180001",
+      "fullName": "Nguyen Van A",
+      "corporateEmail": "a@fpt.edu.vn",
+      "major": "SE",
+      "university": "FPT University",
+      "isCurrentStudent": true
+    },
+    {
+      "mssv": "2012345",
+      "fullName": "Tran Thi B",
+      "corporateEmail": "b@hcmut.edu.vn",
+      "major": "CS",
+      "university": "HCMUT",
+      "isCurrentStudent": true
+    }
+  ]
 }

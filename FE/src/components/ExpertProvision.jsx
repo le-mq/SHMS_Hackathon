@@ -48,7 +48,7 @@ const ExpertProvisioning = () => {
                 accessExpiry: `${formData.accessExpiry}T23:59:59`
             };
 
-            const response = await fetch(API_BASE + '/admin/contests/experts/create', {
+            const response = await fetch(`${API_BASE}/admin/contests/experts/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(API_BASE + `/admin/contests/experts/${extendUserId}/roles`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}/roles`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -192,7 +192,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(API_BASE + `/admin/contests/experts/${extendUserId}/expiry`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}/expiry`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(API_BASE + `/admin/contests/experts/${extendUserId}`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
