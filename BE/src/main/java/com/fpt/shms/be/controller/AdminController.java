@@ -60,7 +60,7 @@ public class AdminController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/contests")
     @Operation(summary = "Get all Hackathon Contests", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllContests(HttpServletRequest request) {
         try {
@@ -90,7 +90,7 @@ public class AdminController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/contests")
     @Operation(summary = "Create a new Hackathon Contest", description = "Requires ADMIN role.")
     public ResponseEntity<?> createContest(HttpServletRequest request,
                                            @Valid @RequestBody CreateContestRequest contestRequest) {

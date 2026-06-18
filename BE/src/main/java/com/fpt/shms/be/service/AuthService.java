@@ -45,11 +45,6 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
-        // if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-        //     throw new IllegalArgumentException("Invalid username or password");
-        // }
-
-        // Plain-text check for development (no encryption)
         if (!user.getPassword().equals(request.getPassword())) {
             throw new IllegalArgumentException("Invalid username or password");
         }
@@ -66,10 +61,17 @@ public class AuthService {
             throw new IllegalArgumentException("Account is not active. Current status: " + user.getStatus());
         }
 
-        // Dynamic Role Context Matching without request parameter
         java.util.List<String> userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(java.util.stream.Collectors.toList());
+
+        if (userRoles.contains("JUDGE") || userRoles.contains("MENTOR")) {
+            String roleToCheck = userRoles.contains("JUDGE") ? "JUDGE" : "MENTOR";
+            java.time.LocalDateTime roleExpiry = userRepository.getRoleExpiry(user.getId(), roleToCheck);
+            if (roleExpiry != null && java.time.LocalDateTime.now().isAfter(roleExpiry)) {
+                throw new IllegalArgumentException("Your account has expired!");
+            }
+        }
 
         if (userRoles.isEmpty()) {
             throw new IllegalArgumentException("User has no roles assigned");
