@@ -29,6 +29,41 @@ const VerifyEmail = () => {
         return () => clearInterval(timer);
     }, [username, navigate]);
 
+    useEffect(() => {
+        if (username && canResendImmediately) {
+            autoSendOtp();
+        }
+    }, [username, canResendImmediately]);
+
+    // Hàm gọi ngầm chuyên biệt cho việc tự động kích hoạt gửi
+    const autoSendOtp = async () => {
+        setError('');
+        setSuccess('Initiating automatic email verification...');
+        setIsResending(true);
+
+        try {
+            const response = await fetch('http://localhost:8080/api/v1/auth/resend-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || 'Failed to send automatic verification code.');
+            } else {
+                setTimeLeft(180); // Khởi động bộ đếm ngược 3 phút sau khi gửi thành công
+                setSuccess(data.message || 'An activation code has been automatically sent to your email.');
+                inputRefs.current[0]?.focus();
+            }
+        } catch (err) {
+            setError('Failed to auto-send verification code. Connection to server lost.');
+        } finally {
+            setIsResending(false);
+        }
+    };
+
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
@@ -65,7 +100,7 @@ const VerifyEmail = () => {
             if (index < 6) newOtp[index] = char;
         });
         setOtp(newOtp);
-        
+
         // Focus last filled input
         const focusIndex = Math.min(pastedData.length, 5);
         inputRefs.current[focusIndex].focus();
@@ -140,21 +175,21 @@ const VerifyEmail = () => {
     return (
         <div className="verify-container">
             <h1 className="verify-title">Verify Your Email</h1>
-            
+
             <div className="verify-card">
                 <div className="icon-wrapper">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                 </div>
-                
+
                 <p className="verify-text">
-                    An activation OTP code has been sent via email. Enter the<br/>
+                    An activation OTP code has been sent via email. Enter the<br />
                     token {timeLeft > 0 ? <>within <strong>{formatTime(timeLeft)}</strong> minutes</> : 'or request a new code'} to activate your profile
                 </p>
 
-                {error && <div className="alert alert-error" style={{marginBottom: '20px'}}>{error}</div>}
-                {success && <div className="alert alert-success" style={{marginBottom: '20px'}}>{success}</div>}
+                {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
+                {success && <div className="alert alert-success" style={{ marginBottom: '20px' }}>{success}</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="otp-inputs" onPaste={handlePaste}>
@@ -172,9 +207,9 @@ const VerifyEmail = () => {
                         ))}
                     </div>
 
-                    <button 
-                        type="submit" 
-                        className="verify-btn" 
+                    <button
+                        type="submit"
+                        className="verify-btn"
                         disabled={isLoading || otp.join('').length < 6}
                     >
                         {isLoading ? 'VERIFYING...' : 'CONFIRM OTP TOKEN'}
@@ -182,7 +217,7 @@ const VerifyEmail = () => {
                 </form>
 
                 <div className="resend-container">
-                    Didn't receive the code? 
+                    Didn't receive the code?
                     <button
                         type="button"
                         className="resend-link"
