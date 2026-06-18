@@ -28,7 +28,9 @@ const HackathonConfig = () => {
 
     const todayStr = new Date().toISOString().slice(0, 10);
     const nowLocalStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    const isDateError = error.toLowerCase().includes('time') || error.toLowerCase().includes('date') ||
+
+    const isDateError = error.toLowerCase().includes('time') ||
+        error.toLowerCase().includes('date') ||
         error.toLowerCase().includes('timeline');
     const getSemesterFromDate = (dateStr) => {
         if (!dateStr) return 'SPRING';
@@ -42,12 +44,39 @@ const HackathonConfig = () => {
     const getSemesterBounds = () => {
         const year = formData.year || new Date().getFullYear();
         const currentTerm = formData.term;
-        const currentMin = `${year}-01-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-01-01T00:00`;
-        if (currentTerm === 'SPRING') return { min: currentMin, max: `${year}-03-31T23:59` };
-        if (currentTerm === 'SUMMER') return { min: `${year}-04-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-04-01T00:00`, max: `${year}-06-30T23:59` };
-        if (currentTerm === 'FALL')   return { min: `${year}-07-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-07-01T00:00`, max: `${year}-09-30T23:59` };
-        return { min: `${year}-10-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-10-01T00:00`, max: `${year}-12-31T23:59` };
+
+        if (currentTerm === 'SPRING') {
+            return {
+                start: new Date(year, 0, 1, 0, 0, 0),
+                end: new Date(year, 2, 31, 23, 59, 59),
+                min: `${year}-01-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-01-01T00:00`,
+                max: `${year}-03-31T23:59`
+            };
+        }
+        if (currentTerm === 'SUMMER') {
+            return {
+                start: new Date(year, 3, 1, 0, 0, 0),
+                end: new Date(year, 5, 30, 23, 59, 59),
+                min: `${year}-04-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-04-01T00:00`,
+                max: `${year}-06-30T23:59`
+            };
+        }
+        if (currentTerm === 'FALL') {
+            return {
+                start: new Date(year, 6, 1, 0, 0, 0),
+                end: new Date(year, 8, 30, 23, 59, 59),
+                min: `${year}-07-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-07-01T00:00`,
+                max: `${year}-09-30T23:59`
+            };
+        }
+        return {
+            start: new Date(year, 9, 1, 0, 0, 0),
+            end: new Date(year, 11, 31, 23, 59, 59),
+            min: `${year}-10-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-10-01T00:00`,
+            max: `${year}-12-31T23:59`
+        };
     };
+
     const bounds = getSemesterBounds();
     const fetchData = async (url, mockKey) => {
         try {
@@ -65,7 +94,6 @@ const HackathonConfig = () => {
 
     const fetchContests = async () => setContests(await fetchData('http://localhost:8080/api/v1/admin/contests', 'contests'));
     const fetchAllUniversities = async () => setAllUniversities(await fetchData('http://localhost:8080/api/v1/admin/universities', 'uni'));
-
     useEffect(() => {
         fetchContests();
         fetchAllUniversities();
@@ -126,11 +154,15 @@ const HackathonConfig = () => {
         const targetRound = rounds.find(r => r.id === id);
         if (!targetRound) return;
         const roundIndex = rounds.findIndex(r => r.id === id);
-        if (value && value < nowLocalStr) {
-            return setError(`[${targetRound.phaseName}] Selected time cannot be in the past.`);
-        }
-        if (value && (value < bounds.min || value > bounds.max)) {
-            return setError(`[${targetRound.phaseName}] Time must be strictly within ${formData.term} ${formData.year}.`);
+        if (value) {
+            const selectedTime = new Date(value);
+            const now = new Date();
+            if (selectedTime < now) {
+                return setError(`[${targetRound.phaseName}] Selected time cannot be in the past.`);
+            }
+            if (selectedTime < bounds.start || selectedTime > bounds.end) {
+                return setError(`[${targetRound.phaseName}] Time must be strictly within ${formData.term} ${formData.year}.`);
+            }
         }
         if (field === 'submissionOpen' && value) {
             if (targetRound.submissionDeadline && value >= targetRound.submissionDeadline) {
@@ -144,7 +176,6 @@ const HackathonConfig = () => {
                 }
             }
         }
-
         if (field === 'submissionDeadline' && value) {
             if (targetRound.submissionOpen && value <= targetRound.submissionOpen) {
                 return setError(targetRound.phaseName + " Deadline time must be after Submission Open time!");
@@ -171,7 +202,6 @@ const HackathonConfig = () => {
             setSelectedUniToAdd('');
         }
     };
-
     const handleRemoveUni = (uni) => setUniversities(universities.filter(u => u !== uni));
     const handleSubmit = async () => {
         if (!formData.name || !formData.term || !formData.year || !formData.regionScope || !formData.maximumAllowedTeams || universities.length === 0) {
@@ -186,10 +216,12 @@ const HackathonConfig = () => {
         if (formData.registrationStart && formData.registrationEnd && formData.registrationEnd <= formData.registrationStart) {
             return setError('Registration End date must be after Registration Start date.');
         }
-        const outOfBoundRound = rounds.find(r =>
-            (r.submissionOpen && (r.submissionOpen < bounds.min || r.submissionOpen > bounds.max)) ||
-            (r.submissionDeadline && (r.submissionDeadline < bounds.min || r.submissionDeadline > bounds.max))
-        );
+        const outOfBoundRound = rounds.find(r => {
+            const openTime = r.submissionOpen ? new Date(r.submissionOpen) : null;
+            const deadlineTime = r.submissionDeadline ? new Date(r.submissionDeadline) : null;
+            return (openTime && (openTime < bounds.start || openTime > bounds.end)) ||
+                (deadlineTime && (deadlineTime < bounds.start || deadlineTime > bounds.end));
+        });
         if (outOfBoundRound) return setError(`Cannot save! [${outOfBoundRound.phaseName}] contains dates out of the current season's 3-month block.`);
         const invalidRound = rounds.find(r => r.submissionOpen && r.submissionDeadline && r.submissionDeadline <= r.submissionOpen);
         if (invalidRound) return setError("Cannot save! " + invalidRound.phaseName + " has a Deadline earlier than or equal to its Open time.");
@@ -235,7 +267,7 @@ const HackathonConfig = () => {
     };
 
     const filteredContests = contests.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || `${c.season} ${c.year}`.toLowerCase().includes(searchQuery.toLowerCase()));
-
+    const formatTitleCase = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
     return (
         <div className="admin-container">
             <NavbarAdmin />
@@ -279,7 +311,6 @@ const HackathonConfig = () => {
                         </div>
                     )}
                 </div>
-
                 <div className="config-grid">
                     {/* Left Panel */}
                     <div>
@@ -295,17 +326,13 @@ const HackathonConfig = () => {
                                     </select>
                                 </div>
                             </div>
-
                             <div className="form-group"><label className="form-label">Event Name</label><input type="text" name="name" className="form-input" placeholder="e.g., SEAL Summer Tech Sprint 2026" value={formData.name} onChange={handleChange} /></div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Term</label>
-                                    <select name="term" className="form-select" value={formData.term} onChange={handleChange} disabled style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}>
-                                        <option value="SPRING">Spring</option>
-                                        <option value="SUMMER">Summer</option>
-                                        <option value="FALL">Fall</option>
-                                        <option value="WINTER">Winter</option>
-                                    </select>
+                                    <div className="form-input" style={{ backgroundColor: '#f3f4f6', color: '#1f2937', cursor: 'not-allowed', fontWeight: '500' }}>
+                                        {formatTitleCase(formData.term)}
+                                    </div>
                                 </div>
                                 <div className="form-group"><label className="form-label">Year</label><input type="number" name="year" className="form-input" value={formData.year} onChange={handleChange} /></div>
                             </div>
@@ -407,8 +434,8 @@ const HackathonConfig = () => {
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Submission Deadline</label>
                                                 <input type="datetime-local" className="form-input" value={round.submissionDeadline || ''}
-                                                    onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
-                                                    min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen}
+                                                       onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
+                                                       min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen}
                                                 />
                                             </div>
                                         </div>
