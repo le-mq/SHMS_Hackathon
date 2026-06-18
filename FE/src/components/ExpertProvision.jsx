@@ -35,7 +35,6 @@ const ExpertProvisioning = () => {
 
         setFormData(prev => {
             let newRoles = [...prev.roleSelection];
-
             if (isChecked) {
                 if (value === 'Guest Judge') {
                     newRoles = ['Guest Judge'];
@@ -46,11 +45,7 @@ const ExpertProvisioning = () => {
             } else {
                 newRoles = newRoles.filter(r => r !== value);
             }
-
-            return {
-                ...prev,
-                roleSelection: newRoles
-            };
+            return { ...prev, roleSelection: newRoles };
         });
         setError('');
         setSuccess('');
@@ -110,15 +105,7 @@ const ExpertProvisioning = () => {
             }
 
             if (!response.ok) {
-                let errorMsg = 'Failed to provision expert credentials.';
-                if (data.error && data.message) {
-                    errorMsg = `${data.error}: ${data.message}`;
-                } else if (data.message) {
-                    errorMsg = data.message;
-                } else if (data.error) {
-                    errorMsg = data.error;
-                }
-                setError(errorMsg);
+                setError(data.message || data.error || 'Failed to provision expert credentials.');
             } else {
                 setSuccess('Account generated! An invitation has been sent.');
                 setFormData({
@@ -173,13 +160,23 @@ const ExpertProvisioning = () => {
     const [managedRoles, setManagedRoles] = useState({});
 
     const handleUpdateRolesSubmit = async (userId) => {
-        const rolesToUpdate = managedRoles[userId];
-        if (!rolesToUpdate || rolesToUpdate.length === 0) return;
+        const rolesToUpdate = managedRoles[userId] || experts.find(e => e.userId === userId)?.roles || [];
+        if (rolesToUpdate.length === 0) return;
         setExtendLoading(true);
         setExtendMsg('');
+        const isGuestJudge = rolesToUpdate.some(r => r.toUpperCase() === 'GUEST JUDGE');
+        let calculatedExpiry = null;
+
+        if (!isGuestJudge) {
+            calculatedExpiry = "2099-12-31T23:59:59";
+        } else {
+            const existingExpert = experts.find(e => e.userId === userId);
+            const selectedDate = newExpiries[userId] || (existingExpert?.accessExpiry ? existingExpert.accessExpiry.split('T')[0] : todayStr);
+            calculatedExpiry = `${selectedDate}T23:59:59`;
+        }
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}/roles`, {
+            const resRoles = await fetch(`${API_BASE}/admin/contests/experts/${userId}/roles`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -187,20 +184,30 @@ const ExpertProvisioning = () => {
                 },
                 body: JSON.stringify({ roles: rolesToUpdate })
             });
-            if (res.ok) {
-                setExtendMsg('Roles updated successfully!');
+            if (!resRoles.ok) throw new Error('Failed to update roles');
+            // 2. Đồng thời gọi API đồng bộ lại Expiry của Expert đó
+            const resExpiry = await fetch(`${API_BASE}/admin/contests/experts/${userId}/expiry`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ newExpiry: calculatedExpiry })
+            });
+
+            if (resExpiry.ok) {
+                setExtendMsg('Roles and Expiry updated successfully!');
                 fetchExperts();
             } else {
-                setExtendMsg('Failed to update roles.');
+                setExtendMsg('Failed to update completely.');
             }
         } catch {
-            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, roles: rolesToUpdate } : exp));
-            setExtendMsg("Mock update roles success!");
+            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, roles: rolesToUpdate, accessExpiry: calculatedExpiry } : exp));
+            setExtendMsg("Mock update roles & expiry success!");
         } finally {
             setExtendLoading(false);
         }
     };
-
     const fetchExperts = async () => {
         try {
             const token = localStorage.getItem("shms_token");
@@ -227,28 +234,26 @@ const ExpertProvisioning = () => {
         if (!userId || !selectedExpiry) return;
         setExtendLoading(true);
         setExtendMsg('');
+        const formattedExpiry = `${selectedExpiry}T23:59:59`;
         try {
             const token = localStorage.getItem('shms_token');
-            const expiryDate = new Date(selectedExpiry);
-            expiryDate.setHours(23, 59, 59, 999);
-            const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}/expiry`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}/expiry?newExpiry=${formattedExpiry}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ newExpiry: `${selectedExpiry}T23:59:59` })
+                body: JSON.stringify({ newExpiry: formattedExpiry })
             });
             if (res.ok) {
                 setExtendMsg('Expiry extended successfully!');
                 fetchExperts();
             } else {
-                setExtendMsg('Failed to extend expiry.');
+                setExtendMsg('Failed to extend expiry. Please check parameter configuration.');
             }
-        } catch {
-            const expiryDate = new Date(selectedExpiry);
-            expiryDate.setHours(23, 59, 59, 999);
-            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, accessExpiry: selectedExpiry + "T23:59:59" } : exp));
+        } catch (err) {
+            console.error("Network error:", err);
+            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, accessExpiry: formattedExpiry } : exp));
             setExtendMsg("Mock extend expiry success!");
         } finally {
             setExtendLoading(false);
@@ -318,10 +323,7 @@ const ExpertProvisioning = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Username</label>
-                                    <div className="input-with-prefix">
-                                        <span>@</span>
-                                        <input type="text" name="username" className="form-input" placeholder="asterling_expert" value={formData.username} onChange={handleChange} />
-                                    </div>
+                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Password</label>
@@ -388,7 +390,7 @@ const ExpertProvisioning = () => {
                                         return (
                                             <div key={exp.userId} style={{ border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
                                                 <div style={{ fontSize: '15px', color: '#1e293b', marginBottom: '8px' }}>
-                                                    <strong>Username:</strong> @{exp.username} &nbsp;|&nbsp; <strong>Full Name:</strong> {exp.fullName}
+                                                    <strong>Username:</strong> {exp.username} &nbsp;|&nbsp; <strong>Full Name:</strong> {exp.fullName}
                                                 </div>
                                                 {hasLifespan && (
                                                     <div style={{ fontSize: '14px', color: '#64748b', marginTop: '2px' }}>
