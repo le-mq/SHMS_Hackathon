@@ -3,7 +3,7 @@ import './HackathonConfig.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const BLANK_FORM = {
-    name: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
+    name: '', theme: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
     maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
     complianceRules: '', tieredPrizeStructures: '', heroBrandingBanner: '', status: 'UPCOMING'
 };
@@ -328,6 +328,7 @@ const HackathonConfig = () => {
                                 </div>
                             </div>
                             <div className="form-group"><label className="form-label">Event Name</label><input type="text" name="name" className="form-input" placeholder="e.g., SEAL Summer Tech Sprint 2026" value={formData.name} onChange={handleChange} /></div>
+                            <div className="form-group"><label className="form-label">Theme / Tagline</label><input type="text" name="theme" className="form-input" placeholder="e.g., Innovating the Future of AI" value={formData.theme} onChange={handleChange} /></div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Term</label>
