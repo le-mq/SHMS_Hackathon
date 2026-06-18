@@ -324,7 +324,7 @@ const PartnerVerification = () => {
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Partner Institution</label>
                         <select
                             className="form-select"
-                            style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+                            style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: '6px' }}
                             value={selectedStudentPartner}
                             onChange={(e) => setSelectedStudentPartner(e.target.value)}
                         >
