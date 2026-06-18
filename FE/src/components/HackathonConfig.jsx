@@ -311,6 +311,7 @@ const HackathonConfig = () => {
                                                 <label className="form-label">Category Status</label>
                                                 <select className="form-select" value={t.status || 'ACTIVE'} onChange={(e) => handleCategoryChange(t.id, 'status', e.target.value)}>
                                                     <option value="ACTIVE">ACTIVE</option>
+                                                    <option value="INACTIVE">INACTIVE</option>
                                                     <option value="CLOSED">CLOSED</option>
                                                 </select>
                                             </div>
@@ -330,7 +331,7 @@ const HackathonConfig = () => {
                                     <div key={round.id} className="phase-item" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                         <div className="phase-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                             <input type="text" className="phase-title-input" value={round.phaseName} onChange={(e) => handleRoundChange(round.id, 'phaseName', e.target.value)} style={{ fontSize: '15px', fontWeight: '600', border: '1px solid transparent', background: 'transparent', padding: '4px 8px', borderRadius: '4px', width: '200px' }} />
-                                            {index !== 0 && (<button className="delete-phase-btn" onClick={() => handleDeletePhase(round.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
+                                            {index !== 0 && formData.status === 'UPCOMING' && (<button className="delete-phase-btn" onClick={() => handleDeletePhase(round.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
                                         </div>
                                         <div className="phase-dates" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                                             <div className="form-group" style={{ marginBottom: 0 }}>
