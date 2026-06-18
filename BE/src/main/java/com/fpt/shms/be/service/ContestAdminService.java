@@ -80,6 +80,7 @@ public class ContestAdminService {
         Map<String, Object> response = new HashMap<>();
         response.put("id", contest.getId());
         response.put("name", contest.getName());
+        response.put("theme",contest.getDescription() !=null ? contest.getDescription():"");
         response.put("term", contest.getSeason() != null ? contest.getSeason().name() : "");
         response.put("year", contest.getYear() != null ? contest.getYear() : "");
         response.put("registrationStart", contest.getRegistrationStart() != null ? contest.getRegistrationStart().toString() : "");
@@ -89,7 +90,7 @@ public class ContestAdminService {
         response.put("maximumAllowedTeams", contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
         response.put("complianceRules", contest.getComplianceRules() != null ? contest.getComplianceRules() : "");
         response.put("tieredPrizeStructures", contest.getTieredPrizeStructures() != null ? contest.getTieredPrizeStructures() : "");
-        response.put("heroBrandingBanner", contest.getHeroBrandingBanner() != null ? contest.getHeroBrandingBanner() : "");
+
         response.put("universities", domains);
         response.put("tracks", tracks);
 
@@ -117,15 +118,14 @@ public class ContestAdminService {
                         .build());
 
         contest.setName(request.getName());
+        contest.setDescription(request.getTheme());
         contest.setSeason(parseSeason(request.getTerm()));
         contest.setYear(request.getYear());
         contest.setRegionScope(request.getRegionScope());
         contest.setMaximumAllowedTeams(request.getMaximumAllowedTeams());
         contest.setAllowedCorporateDomains(request.getAllowedCorporateDomains());
-        contest.setTrackThemes(request.getTrackThemes());
         contest.setComplianceRules(request.getComplianceRules());
         contest.setTieredPrizeStructures(request.getTieredPrizeStructures());
-        contest.setHeroBrandingBanner(request.getHeroBrandingBanner());
         contest.setRegistrationStart(request.getRegistrationStart());
         contest.setRegistrationEnd(request.getRegistrationEnd());
         contest.setSemester(semester);

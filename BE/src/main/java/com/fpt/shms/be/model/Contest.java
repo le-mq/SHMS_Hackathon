@@ -39,11 +39,6 @@ public class Contest {
     @Column(name = "registration_end")
     private LocalDate registrationEnd;
 
-    @Column(name = "development_start")
-    private LocalDate developmentStart;
-
-    @Column(name = "development_end")
-    private LocalDate developmentEnd;
 
     /**
      * Overall contest status: ACTIVE | UPCOMING | CLOSED
@@ -67,17 +62,12 @@ public class Contest {
     @Column(name = "allowed_corporate_domains", length = 500)
     private String allowedCorporateDomains;
 
-    @Column(name = "track_themes", length = 500)
-    private String trackThemes;
-
     @Column(name = "compliance_rules")
     private String complianceRules;
 
     @Column(name = "tiered_prize_structures")
     private String tieredPrizeStructures;
 
-    @Column(name = "hero_branding_banner", length = 255)
-    private String heroBrandingBanner;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semester_id", referencedColumnName = "semester_id")

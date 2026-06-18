@@ -70,7 +70,6 @@ public class TeamService{
                 throw new IllegalArgumentException("You are already part of a team or have a pending request.");
             }
         }
-
         Team team = teamRepository.findByInvitationCode(invitationCode)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid invitation code"));
 
@@ -178,7 +177,7 @@ public class TeamService{
 
         TeamMembership membership = memberships.get(0);
         Team team = membership.getTeam();
-        
+
         if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
             throw new IllegalArgumentException("Cannot leave team while registration is pending or approved.");
         }
@@ -207,10 +206,13 @@ public class TeamService{
             Category cat = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new IllegalArgumentException("Category not found"));
             team.setCategory(cat);
         }
-
         Contest contest = null;
         if (request.getContestId() != null) {
             contest = contestRepository.findById(request.getContestId()).orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+
+            if (Contest.ContestStatus.CLOSED.equals(contest.getStatus())) {
+                throw new IllegalArgumentException("Contest is closed and no longer accepts registrations.");
+            }
             team.setContest(contest);
         }
 
@@ -257,7 +259,6 @@ public class TeamService{
                         if (mUser.getId().equals(leaderStudent.getUser().getId())) {
 
                             tm.setRole("LEADER");
-
                             Role leaderRole = roleRepository.findByName("LEADER")
                                     .orElseThrow(() -> new IllegalArgumentException("LEADER role missing in DB"));
                             Role studentRole = roleRepository.findByName("STUDENT")
@@ -319,7 +320,6 @@ public class TeamService{
         int maxMembers = 5;
         if (team.getContest() != null && team.getContest().getMaximumAllowedTeams() != null) {
         }
-
         return WorkspaceResponse.builder()
                 .teamStatus(team.getStatus() != null ? team.getStatus() : "FORMING")
                 .submissionDeadline(deadline)
@@ -383,7 +383,6 @@ public class TeamService{
         List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.ContestData> contestDataList = new java.util.ArrayList<>();
 
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy");
-
         for (Contest contest : contests) {
             List<Category> categories = categoryRepository.findByContestId(contest.getId());
 
