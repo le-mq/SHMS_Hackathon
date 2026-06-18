@@ -3,7 +3,7 @@ import './HackathonConfig.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const BLANK_FORM = {
-    name: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
+    name: '', theme: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
     maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
     complianceRules: '', tieredPrizeStructures: '', heroBrandingBanner: '', status: 'UPCOMING'
 };
@@ -242,6 +242,7 @@ const HackathonConfig = () => {
             }
             const validCategories = categories.filter(t => t.trackName.trim() !== '');
             const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
+            const finalContestStatus = formData.status;
             for (const category of validCategories) {
                 await fetch('http://localhost:8080/api/v1/admin/contests/rounds-tracks', {
                     method: 'POST',
@@ -250,12 +251,12 @@ const HackathonConfig = () => {
                         contestId: currentContestId, categoryName: category.trackName,
                         trackDescription: category.trackDescription || 'No description',
                         guidelineUrl: category.guidelineUrl || '',
-                        status: category.status || 'ACTIVE',
+                        status: finalContestStatus === 'CLOSED' ? 'CLOSED' : (category.status || 'ACTIVE'),
                         rounds: validRounds.map(r => ({
                             id: r.id, phaseName: r.phaseName,
                             submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
                             submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
-                            submissionFormat: 'PDF', state: r.state || 'UPCOMING'
+                            submissionFormat: 'PDF', state: finalContestStatus === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
                         }))
                     })
                 });
@@ -327,6 +328,7 @@ const HackathonConfig = () => {
                                 </div>
                             </div>
                             <div className="form-group"><label className="form-label">Event Name</label><input type="text" name="name" className="form-input" placeholder="e.g., SEAL Summer Tech Sprint 2026" value={formData.name} onChange={handleChange} /></div>
+                            <div className="form-group"><label className="form-label">Theme / Tagline</label><input type="text" name="theme" className="form-input" placeholder="e.g., Innovating the Future of AI" value={formData.theme} onChange={handleChange} /></div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Term</label>

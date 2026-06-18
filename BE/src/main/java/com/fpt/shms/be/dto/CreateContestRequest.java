@@ -13,6 +13,8 @@ public class CreateContestRequest {
     @NotBlank(message = "Event name is required")
     private String name;
 
+    private String theme;
+
     @NotBlank(message = "Term is required")
     private String term; // SPRING, SUMMER, FALL, WINTER
 
@@ -34,8 +36,6 @@ public class CreateContestRequest {
     @NotBlank(message = "Allowed corporate domains is required")
     private String allowedCorporateDomains;
 
-    private String trackThemes;
     private String complianceRules;
     private String tieredPrizeStructures;
-    private String heroBrandingBanner;
 }
