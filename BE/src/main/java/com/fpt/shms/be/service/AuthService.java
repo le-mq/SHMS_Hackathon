@@ -97,8 +97,8 @@ public class AuthService {
         result.put("allRoles", userRoles);
         result.put("username", user.getUsername());
 
+        result.put("fullName", user.getFullName());
         studentProfile.ifPresent(s -> {
-            result.put("fullName", s.getFullName());
             result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
         });
 
