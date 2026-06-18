@@ -2,30 +2,53 @@ import { useState, useEffect } from 'react';
 import './HackathonConfig.css';
 import NavbarAdmin from './NavbarAdmin';
 
-const BLANK_FORM = { name: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
+const BLANK_FORM = {
+    name: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
     maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
     complianceRules: '', tieredPrizeStructures: '', heroBrandingBanner: '', status: 'UPCOMING'
 };
 const INIT_ROUND = (id, name) => ({ id, phaseName: name, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' });
-const INIT_CAT = { id: 1, trackName: '', trackDescription: '', guidelineUrl: '' };
+const INIT_CAT = { id: 1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' };
 
 const HackathonConfig = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [formData, setFormData] = useState(BLANK_FORM);
-    const [universities, setUniversities] = useState(['FPT University']);
+    const [universities, setUniversities] = useState([]);
     const [allUniversities, setAllUniversities] = useState([]);
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-
     const [categories, setCategories] = useState([INIT_CAT]);
     const [rounds, setRounds] = useState([
         INIT_ROUND(1, 'Round 01: Screening'), INIT_ROUND(2, 'Round 02: Semi-final'), INIT_ROUND(3, 'Round 03: Final')
     ]);
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const nowLocalStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const isDateError = error.toLowerCase().includes('time') || error.toLowerCase().includes('date') ||
+        error.toLowerCase().includes('timeline');
+    const getSemesterFromDate = (dateStr) => {
+        if (!dateStr) return 'SPRING';
+        const month = new Date(dateStr).getMonth() + 1;
+        if (month >= 1 && month <= 3) return 'SPRING';
+        if (month >= 4 && month <= 6) return 'SUMMER';
+        if (month >= 7 && month <= 9) return 'FALL';
+        return 'WINTER';
+    };
+
+    const getSemesterBounds = () => {
+        const year = formData.year || new Date().getFullYear();
+        const currentTerm = formData.term;
+        const currentMin = `${year}-01-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-01-01T00:00`;
+        if (currentTerm === 'SPRING') return { min: currentMin, max: `${year}-03-31T23:59` };
+        if (currentTerm === 'SUMMER') return { min: `${year}-04-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-04-01T00:00`, max: `${year}-06-30T23:59` };
+        if (currentTerm === 'FALL')   return { min: `${year}-07-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-07-01T00:00`, max: `${year}-09-30T23:59` };
+        return { min: `${year}-10-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-10-01T00:00`, max: `${year}-12-31T23:59` };
+    };
+    const bounds = getSemesterBounds();
     const fetchData = async (url, mockKey) => {
         try {
             const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } });
@@ -33,14 +56,16 @@ const HackathonConfig = () => {
                 const data = await res.json();
                 if (Object.keys(data || {}).length > 0) return data;
             }
-        } catch (e) {}
+        } catch (e) { }
         const mock = await (await fetch('/testFE.json')).json();
         return mockKey === 'uni' ? mock.hackathonConfig?.universities || []
             : mockKey === 'contests' ? mock.contests?.data || []
                 : mock.hackathonConfig?.contestDetail || {};
     };
+
     const fetchContests = async () => setContests(await fetchData('http://localhost:8080/api/v1/admin/contests', 'contests'));
     const fetchAllUniversities = async () => setAllUniversities(await fetchData('http://localhost:8080/api/v1/admin/universities', 'uni'));
+
     useEffect(() => {
         fetchContests();
         fetchAllUniversities();
@@ -49,7 +74,7 @@ const HackathonConfig = () => {
     const handleSelectContest = async (id) => {
         setError(''); setSuccess('');
         if (!id) {
-            setSelectedContestId(''); setFormData(BLANK_FORM); setUniversities(['FPT University']);
+            setSelectedContestId(''); setFormData(BLANK_FORM); setUniversities([]);
             setCategories([INIT_CAT]); setRounds([INIT_ROUND(1, 'Round 01: Screening'), INIT_ROUND(2, 'Round 02: Semi-final'), INIT_ROUND(3, 'Round 03: Final')]);
             return;
         }
@@ -60,7 +85,7 @@ const HackathonConfig = () => {
                 setFormData({ ...BLANK_FORM, ...data, status: data.status || 'UPCOMING' });
                 setUniversities(data.universities || []);
                 if (data.tracks?.length) {
-                    setCategories(data.tracks.map((t, idx) => ({ id: t.id || idx + 1, trackName: t.categoryName || '', trackDescription: t.trackDescription || '', guidelineUrl: t.guidelineUrl || '' })));
+                    setCategories(data.tracks.map((t, idx) => ({ id: t.id || idx + 1, trackName: t.categoryName || '', trackDescription: t.trackDescription || '', guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVE' })));
                     if (data.tracks[0].rounds?.length) {
                         setRounds(data.tracks[0].rounds.map((r, idx) => ({ id: idx + 1, phaseName: r.phaseName || '', submissionOpen: r.submissionOpen || '', submissionDeadline: r.submissionDeadline || '', state: r.state || 'UPCOMING' })));
                     }
@@ -71,7 +96,24 @@ const HackathonConfig = () => {
     };
 
     const handleChange = (e) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        let updatedForm = { ...formData, [name]: value };
+        if (name === 'registrationStart' && value) {
+            if (value < todayStr) {
+                return setError('Registration Start date cannot be in the past.');
+            }
+            const autoTerm = getSemesterFromDate(value);
+            const selectedYear = new Date(value).getFullYear();
+            updatedForm.term = autoTerm;
+            updatedForm.year = selectedYear;
+            if (formData.registrationEnd && (getSemesterFromDate(formData.registrationEnd) !== autoTerm || new Date(formData.registrationEnd).getFullYear() !== selectedYear || formData.registrationEnd <= value)) {
+                updatedForm.registrationEnd = '';
+            }
+        }
+        if (name === 'registrationEnd' && value && formData.registrationStart && value <= formData.registrationStart) {
+            return setError('Registration End date must be after Registration Start date.');
+        }
+        setFormData(updatedForm);
         setError(''); setSuccess('');
     };
 
@@ -83,24 +125,45 @@ const HackathonConfig = () => {
     const handleRoundChange = (id, field, value) => {
         const targetRound = rounds.find(r => r.id === id);
         if (!targetRound) return;
-
-        if (field === 'submissionDeadline' && value && targetRound.submissionOpen && value < targetRound.submissionOpen) {
-            return setError(targetRound.phaseName + " Deadline time cannot be earlier than Submission Open time!");
+        const roundIndex = rounds.findIndex(r => r.id === id);
+        if (value && value < nowLocalStr) {
+            return setError(`[${targetRound.phaseName}] Selected time cannot be in the past.`);
         }
-        if (field === 'submissionOpen' && value && targetRound.submissionDeadline && value > targetRound.submissionDeadline) {
-            setRounds(rounds.map(r => r.id === id ? { ...r, submissionOpen: value, submissionDeadline: '' } : r));
-            return setError(targetRound.phaseName + " Open time changed. Please re-select a valid Deadline.");
+        if (value && (value < bounds.min || value > bounds.max)) {
+            return setError(`[${targetRound.phaseName}] Time must be strictly within ${formData.term} ${formData.year}.`);
+        }
+        if (field === 'submissionOpen' && value) {
+            if (targetRound.submissionDeadline && value >= targetRound.submissionDeadline) {
+                setRounds(rounds.map(r => r.id === id ? { ...r, submissionOpen: value, submissionDeadline: '' } : r));
+                return setError(targetRound.phaseName + " Open time changed. Please re-select a valid Deadline.");
+            }
+            if (roundIndex > 0) {
+                const prevRound = rounds[roundIndex - 1];
+                if (prevRound.submissionDeadline && value <= prevRound.submissionDeadline) {
+                    return setError(`${targetRound.phaseName} Open time must be after ${prevRound.phaseName} Deadline.`);
+                }
+            }
+        }
+
+        if (field === 'submissionDeadline' && value) {
+            if (targetRound.submissionOpen && value <= targetRound.submissionOpen) {
+                return setError(targetRound.phaseName + " Deadline time must be after Submission Open time!");
+            }
+            if (roundIndex < rounds.length - 1) {
+                const nextRound = rounds[roundIndex + 1];
+                if (nextRound.submissionOpen && value >= nextRound.submissionOpen) {
+                    return setError(`${targetRound.phaseName} Deadline must be before ${nextRound.phaseName} Open time.`);
+                }
+            }
         }
         setRounds(rounds.map(r => r.id === id ? { ...r, [field]: value } : r));
         setError(''); setSuccess('');
     };
 
-    const handleAddCategory = () => setCategories([...categories, { id: Date.now(), trackName: '', trackDescription: '', guidelineUrl: '' }]);
+    const handleAddCategory = () => setCategories([...categories, { id: Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }]);
     const handleDeleteCategory = (id) => setCategories(categories.filter(t => t.id !== id));
-
     const handleAddPhase = () => setRounds([...rounds, INIT_ROUND(Date.now(), `Phase 0${rounds.length + 1}: New Phase`)]);
     const handleDeletePhase = (id) => setRounds(rounds.filter(r => r.id !== id));
-
     const handleAddUni = (e) => {
         e?.preventDefault();
         if (selectedUniToAdd && !universities.includes(selectedUniToAdd)) {
@@ -110,13 +173,26 @@ const HackathonConfig = () => {
     };
 
     const handleRemoveUni = (uni) => setUniversities(universities.filter(u => u !== uni));
-
     const handleSubmit = async () => {
         if (!formData.name || !formData.term || !formData.year || !formData.regionScope || !formData.maximumAllowedTeams || universities.length === 0) {
             return setError('Please fill all required core settings and add at least one university.');
         }
-        const invalidRound = rounds.find(r => r.submissionOpen && r.submissionDeadline && r.submissionDeadline < r.submissionOpen);
-        if (invalidRound) return setError("Cannot save! " + invalidRound.phaseName + "has a Deadline earlier than its Open time.");
+        if (formData.registrationStart && new Date(formData.registrationStart).getFullYear() !== Number(formData.year)) {
+            return setError(`Registration Start year must match the core settings Year (${formData.year}).`);
+        }
+        if (formData.registrationEnd && new Date(formData.registrationEnd).getFullYear() !== Number(formData.year)) {
+            return setError(`Registration End year must match the core settings Year (${formData.year}).`);
+        }
+        if (formData.registrationStart && formData.registrationEnd && formData.registrationEnd <= formData.registrationStart) {
+            return setError('Registration End date must be after Registration Start date.');
+        }
+        const outOfBoundRound = rounds.find(r =>
+            (r.submissionOpen && (r.submissionOpen < bounds.min || r.submissionOpen > bounds.max)) ||
+            (r.submissionDeadline && (r.submissionDeadline < bounds.min || r.submissionDeadline > bounds.max))
+        );
+        if (outOfBoundRound) return setError(`Cannot save! [${outOfBoundRound.phaseName}] contains dates out of the current season's 3-month block.`);
+        const invalidRound = rounds.find(r => r.submissionOpen && r.submissionDeadline && r.submissionDeadline <= r.submissionOpen);
+        if (invalidRound) return setError("Cannot save! " + invalidRound.phaseName + " has a Deadline earlier than or equal to its Open time.");
         setIsLoading(true); setError(''); setSuccess('');
         try {
             const token = localStorage.getItem('shms_token');
@@ -128,7 +204,6 @@ const HackathonConfig = () => {
             });
             const data = await response.json();
             if (!response.ok) return setError(data.error || 'Failed to create contest configuration');
-
             if (!currentContestId) {
                 currentContestId = data.contestId;
                 setSelectedContestId(data.contestId);
@@ -143,6 +218,7 @@ const HackathonConfig = () => {
                         contestId: currentContestId, categoryName: category.trackName,
                         trackDescription: category.trackDescription || 'No description',
                         guidelineUrl: category.guidelineUrl || '',
+                        status: category.status || 'ACTIVE',
                         rounds: validRounds.map(r => ({
                             id: r.id, phaseName: r.phaseName,
                             submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
@@ -170,7 +246,6 @@ const HackathonConfig = () => {
                         <p className="config-subtitle">Define core parameters and regulatory frameworks for the upcoming season, or adjust timelines for an existing one.</p>
                     </div>
                 </div>
-
                 <div className="config-card" style={{ marginBottom: '24px' }}>
                     <h3 className="card-title">Select Existing Contest to Edit</h3>
                     <p style={{ fontSize: '13px', color: '#6b7280', margin: '10px 0' }}>Select an existing contest to adjust its timeline or status, or leave unselected to initialize a new one.</p>
@@ -178,23 +253,23 @@ const HackathonConfig = () => {
                         <input type="text" className="search-input" placeholder="Search by contest name or season (e.g. SPRING 2026)" style={{ width: '100%' }} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
-
                     {searchQuery && (
                         <div className="partner-table-container mt-4">
                             <table className="partner-table">
                                 <thead><tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr></thead>
                                 <tbody>
-                                {filteredContests.length > 0 ? ( filteredContests.map(c => (
+                                {filteredContests.length > 0 ? (filteredContests.map(c => (
                                         <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
                                             <td><div className="uni-name">{c.name}</div></td>
                                             <td><div className="uni-domain">{c.season} {c.year}</div></td>
-                                            <td><span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '500',
-                                                        background: c.status === 'ACTIVE' ? '#dcfce7' : c.status === 'CLOSED' ? '#f3f4f6' : '#dbeafe',
-                                                        color: c.status === 'ACTIVE' ? '#166534' : c.status === 'CLOSED' ? '#374151' : '#1e40af'
-                                                    }}>{c.status || 'UPCOMING'}</span>
+                                            <td><span style={{
+                                                padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '500',
+                                                background: c.status === 'ACTIVE' ? '#dcfce7' : c.status === 'CLOSED' ? '#f3f4f6' : '#dbeafe',
+                                                color: c.status === 'ACTIVE' ? '#166534' : c.status === 'CLOSED' ? '#374151' : '#1e40af'
+                                            }}>{c.status || 'UPCOMING'}</span>
                                             </td>
                                             <td><button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
-                                                    {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}</button>
+                                                {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}</button>
                                             </td>
                                         </tr>
                                     ))
@@ -206,7 +281,7 @@ const HackathonConfig = () => {
                 </div>
 
                 <div className="config-grid">
-                    {/* Left: Core Settings */}
+                    {/* Left Panel */}
                     <div>
                         <div className="config-card">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -225,15 +300,18 @@ const HackathonConfig = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Term</label>
-                                    <select name="term" className="form-select" value={formData.term} onChange={handleChange}>
-                                        <option value="SPRING">Spring</option><option value="SUMMER">Summer</option><option value="FALL">Fall</option><option value="WINTER">Winter</option>
+                                    <select name="term" className="form-select" value={formData.term} onChange={handleChange} disabled style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}>
+                                        <option value="SPRING">Spring</option>
+                                        <option value="SUMMER">Summer</option>
+                                        <option value="FALL">Fall</option>
+                                        <option value="WINTER">Winter</option>
                                     </select>
                                 </div>
                                 <div className="form-group"><label className="form-label">Year</label><input type="number" name="year" className="form-input" value={formData.year} onChange={handleChange} /></div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group"><label className="form-label">Registration Start</label><input type="date" name="registrationStart" className="form-input" value={formData.registrationStart} onChange={handleChange} /></div>
-                                <div className="form-group"><label className="form-label">Registration End</label><input type="date" name="registrationEnd" className="form-input" value={formData.registrationEnd} onChange={handleChange} min={formData.registrationStart} disabled={!formData.registrationStart} /></div>
+                                <div className="form-group"><label className="form-label">Registration Start</label><input type="date" name="registrationStart" className="form-input" value={formData.registrationStart} onChange={handleChange} min={todayStr} /></div>
+                                <div className="form-group"><label className="form-label">Registration End</label><input type="date" name="registrationEnd" className="form-input" value={formData.registrationEnd} onChange={handleChange} min={formData.registrationStart || todayStr} disabled={!formData.registrationStart} /></div>
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Region Scope</label>
@@ -269,7 +347,7 @@ const HackathonConfig = () => {
                         </div>
                     </div>
 
-                    {/* Right: Categories & Rounds */}
+                    {/* Right Panel */}
                     <div>
                         <div className="config-card" style={{ marginBottom: '24px' }}>
                             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -282,7 +360,17 @@ const HackathonConfig = () => {
                                         {categories.length > 1 && (<button onClick={() => handleDeleteCategory(t.id)} style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
                                         <div className="form-group"><label className="form-label">Category Name</label><input type="text" className="form-input" placeholder="e.g. AI & Machine Learning Innovation" value={t.trackName} onChange={(e) => handleCategoryChange(t.id, 'trackName', e.target.value)} /></div>
                                         <div className="form-group"><label className="form-label">Category Description</label><textarea className="form-textarea" placeholder="Describe the focus areas, technical requirements..." value={t.trackDescription} onChange={(e) => handleCategoryChange(t.id, 'trackDescription', e.target.value)}></textarea></div>
-                                        <div className="form-group" style={{ marginBottom: 0 }}><label className="form-label">Guideline URL</label><input type="text" className="form-input" placeholder="https://docs.hackathon.com/guidelines" value={t.guidelineUrl} onChange={(e) => handleCategoryChange(t.id, 'guidelineUrl', e.target.value)} style={{ paddingLeft: '10px' }} /></div>
+                                        <div className="form-row">
+                                            <div className="form-group" style={{ marginBottom: 0 }}><label className="form-label">Guideline URL</label><input type="text" className="form-input" placeholder="https://docs.hackathon.com/guidelines" value={t.guidelineUrl} onChange={(e) => handleCategoryChange(t.id, 'guidelineUrl', e.target.value)} style={{ paddingLeft: '10px' }} /></div>
+                                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                                <label className="form-label">Category Status</label>
+                                                <select className="form-select" value={t.status || 'ACTIVE'} onChange={(e) => handleCategoryChange(t.id, 'status', e.target.value)}>
+                                                    <option value="ACTIVE">ACTIVE</option>
+                                                    <option value="INACTIVE">INACTIVE</option>
+                                                    <option value="CLOSED">CLOSED</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -298,33 +386,55 @@ const HackathonConfig = () => {
                                     <div key={round.id} className="phase-item" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                         <div className="phase-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                             <input type="text" className="phase-title-input" value={round.phaseName} onChange={(e) => handleRoundChange(round.id, 'phaseName', e.target.value)} style={{ fontSize: '15px', fontWeight: '600', border: '1px solid transparent', background: 'transparent', padding: '4px 8px', borderRadius: '4px', width: '200px' }} />
-                                            {index !== 0 && (<button className="delete-phase-btn" onClick={() => handleDeletePhase(round.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
+                                            {index !== 0 && formData.status === 'UPCOMING' && (<button className="delete-phase-btn" onClick={() => handleDeletePhase(round.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
                                         </div>
                                         <div className="phase-dates" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Status</label>
                                                 <select className="form-select" value={round.state || 'UPCOMING'} onChange={(e) => handleRoundChange(round.id, 'state', e.target.value)}><option value="UPCOMING">UPCOMING</option><option value="ACTIVE">ACTIVE</option><option value="CLOSED">CLOSED</option></select>
                                             </div>
-                                            <div className="form-group" style={{ marginBottom: 0 }}><label className="form-label" style={{ fontSize: '12px' }}>Submission Open</label><input type="datetime-local" className="form-input" value={round.submissionOpen || ''} onChange={(e) => handleRoundChange(round.id, 'submissionOpen', e.target.value)} /></div>
-                                            <div className="form-group" style={{ marginBottom: 0 }}><label className="form-label" style={{ fontSize: '12px' }}>Submission Deadline</label><input type="datetime-local" className="form-input" value={round.submissionDeadline || ''} min={round.submissionOpen} disabled={!round.submissionOpen} onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)} /></div>
+                                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                                <label className="form-label" style={{ fontSize: '12px' }}>Submission Open</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="form-input"
+                                                    value={round.submissionOpen || ''}
+                                                    onChange={(e) => handleRoundChange(round.id, 'submissionOpen', e.target.value)}
+                                                    min={index > 0 && rounds[index - 1].submissionDeadline ? rounds[index - 1].submissionDeadline : bounds.min}
+                                                    max={bounds.max}
+                                                />
+                                            </div>
+                                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                                <label className="form-label" style={{ fontSize: '12px' }}>Submission Deadline</label>
+                                                <input type="datetime-local" className="form-input" value={round.submissionDeadline || ''}
+                                                    onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
+                                                    min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                            {error && isDateError && (
+                                <div className="alert-error" style={{ marginTop: '16px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>
+                                    {error}
+                                </div>
+                            )}
                         </div>
-
                         <div className="config-card">
                             <div className="form-group" style={{ marginBottom: '32px' }}><div className="section-label">Compliance Rules</div><textarea name="complianceRules" className="form-textarea" placeholder="Outline eligibility..." value={formData.complianceRules} onChange={handleChange}></textarea></div>
                             <div className="form-group" style={{ marginBottom: '0' }}><div className="section-label">Tiered Prize Structures</div><textarea name="tieredPrizeStructures" className="form-textarea" placeholder="Define rewards..." value={formData.tieredPrizeStructures} onChange={handleChange}></textarea></div>
                         </div>
                     </div>
                 </div>
-
                 <div className="action-bar-container" style={{ marginTop: '24px' }}>
-                    <div className="action-bar">
-                        {error ? <div className="alert-error">{error}</div>
-                            : success ? <div className="alert-success">{success}</div> : null}
-                        <button className="submit-btn" onClick={handleSubmit} disabled={isLoading}>
+                    <div className="action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
+                        {success ? (<div className="alert-success" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#dcfce7', color: '#166534' }}>
+                                {success}</div>
+                        ) : (error && !isDateError) ? (
+                            <div className="alert-error" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>
+                                {error}</div>) : null}
+                        <button className="submit-btn" onClick={handleSubmit} disabled={isLoading} style={{ margin: 0 }}>
                             {isLoading ? 'Saving...' : selectedContestId ? 'Save Configuration' : 'Initialize Season Hackathon'}
                         </button>
                     </div>

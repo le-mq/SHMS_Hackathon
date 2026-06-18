@@ -81,7 +81,7 @@
 }
 
 .form-input, .form-select, .form-textarea {
-    padding: 10px 12px;
+    padding: 20px 5px 10px ;
     font-size: 13px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -91,6 +91,7 @@
     font-family: inherit;
     width: 100%;
     box-sizing: border-box;
+    height: 36px;
 }
 
 .form-textarea {
@@ -166,7 +167,7 @@
     background-color: #0d1b2a;
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 8px 16px !important;
     border-radius: 6px;
     font-weight: 600;
     font-size: 14px;
@@ -273,12 +274,12 @@
 
 .search-box {
     position: relative;
-    width: 100%;
+    width: 100% !important;
 }
 
 .search-input {
     width: 100%;
-    padding: 5px 5px 5px 25px;
+    padding: 0 0 0 20px !important;
     font-size: 13px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
