@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './PartnerVerification.css';
 import NavbarAdmin from './NavbarAdmin';
 
@@ -12,6 +12,11 @@ const PartnerVerification = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [studentError, setStudentError] = useState('');
+    const [studentSuccess, setStudentSuccess] = useState('');
+    const [isSavingStudents, setIsSavingStudents] = useState(false);
+
+    const studentFooterRef = useRef(null);
     useEffect(() => {
         fetchPartners();
     }, []);
@@ -22,6 +27,10 @@ const PartnerVerification = () => {
         } else {
             setStudents([]);
         }
+        setError('');
+        setSuccess('');
+        setStudentError('');
+        setStudentSuccess('');
     }, [selectedStudentPartner]);
 
     const fetchPartners = async () => {
@@ -135,6 +144,8 @@ const PartnerVerification = () => {
 
     const handleStudentChange = (id, field, value) => {
         setStudents(students.map(s => s.ui_id === id ? { ...s, [field]: value } : s));
+        setStudentError('');
+        setStudentSuccess('');
     };
 
     const handleDeleteStudent = (id) => {
@@ -142,8 +153,11 @@ const PartnerVerification = () => {
     };
 
     const handleSaveStudents = async () => {
+        setStudentError('');
+        setStudentSuccess('');
         if (!selectedStudentPartner) {
-            setError('Please select a partner institution first.');
+            setStudentError('Please select a partner institution first.');
+            setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
             return;
         }
 
@@ -153,7 +167,8 @@ const PartnerVerification = () => {
         // Validation
         for (let s of students) {
             if (!s.mssv || !s.mssv.trim()) {
-                setError('Student ID is required for all records.');
+                setStudentError('Student ID is required for all records.');
+                setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
                 return;
             }
         }
@@ -178,13 +193,17 @@ const PartnerVerification = () => {
             });
 
             if (response.ok) {
-                setSuccess('Student directory saved successfully.');
+                setStudentSuccess('Student directory saved successfully.');
+                setTimeout(() => setStudentSuccess(''), 4000);
             } else {
                 const data = await response.json();
-                setError(data.error || 'Failed to save directory.');
+                setStudentError(data.error || 'Failed to save directory.');
             }
         } catch (err) {
-            setError('Server connection failed.');
+            setStudentError('Server connection failed.');
+        } finally {
+            setIsSavingStudents(false);
+            setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
         }
     };
 
@@ -392,12 +411,30 @@ const PartnerVerification = () => {
                             )}
                         </tbody>
                     </table>
-                    <div className="table-footer">
-                        <div className="footer-info">
-                            Click Save Directory to commit changes to the database.
+                    <div className="table-footer" ref={studentFooterRef}>
+                        <div className="footer-info" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                            {studentError && (
+                                <span style={{ color: '#ef4444', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {studentError}
+                                </span>
+                            )}
+                            {studentSuccess && (
+                                <span style={{ color: '#10b981', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {studentSuccess}
+                                </span>
+                            )}
+                            {!studentError && !studentSuccess && "Click Save Directory to commit changes to the database."}
                         </div>
                         <div className="footer-actions">
-                            <button className="apply-btn" onClick={handleSaveStudents}>Save Directory</button>
+                            <button
+                                className="apply-btn"
+                                onClick={handleSaveStudents}
+                                disabled={isSavingStudents}
+                            >
+                                {isSavingStudents ? 'Saving...' : 'Save Directory'}
+                            </button>
                         </div>
                     </div>
                 </div>
