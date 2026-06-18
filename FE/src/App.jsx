@@ -37,8 +37,8 @@ function App() {
         <Route path="/admin/rubrics" element={<RubricConfig />} />
         <Route path="/admin/partners" element={<PartnerConfig />} />
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
-        <Route path="/admin/experts/allocation" element={<PanelAllocation />} />  
-        <Route path="/admin/team-approval" element={<TeamRegistrationApproval />} />
+        <Route path="/admin/experts/allocation" element={<PanelAllocation />} />
+        <Route path="/admin/team/approval" element={<TeamRegistrationApproval />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
         <Route path="/mentor/workspace" element={<MentorCategory />} />
