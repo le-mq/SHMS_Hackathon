@@ -9,7 +9,7 @@ const TeamStatus = () => {
     const [contests, setContests] = useState([]);
     const [categories, setCategories] = useState([]);
     const [participatedTeams, setParticipatedTeams] = useState([]);
-
+    const [contestCategories, setContestCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -232,6 +232,134 @@ const TeamStatus = () => {
             cancelled = true;
         };
     }, [viewContestId]);
+    
+    useEffect(() => {
+        if (!selectedContestId) {
+            setContestCategories([]);
+            setSelectedCategoryId('');
+            return;
+        }
+
+        let cancelled = false;
+
+        const getCategoryId = (category) => {
+            return category.id || category.categoryId;
+        };
+
+        const getCategoryName = (category) => {
+            return category.name || category.categoryName || '';
+        };
+
+        const getContestCategoryList = () => {
+            const selectedContest = contests.find(
+                contest => String(contest.id) === String(selectedContestId)
+            );
+
+            return (
+                selectedContest?.categories ||
+                selectedContest?.categoryTracks ||
+                selectedContest?.tracks ||
+                []
+            );
+        };
+
+        const filterByContest = (categoryList, allowServerFilteredList = false) => {
+            const contestCategoryList = getContestCategoryList();
+
+            if (contestCategoryList.length > 0) {
+                const contestCategoryIds = contestCategoryList
+                    .map(category => String(category.id || category.categoryId || category))
+                    .filter(Boolean);
+
+                const contestCategoryNames = contestCategoryList
+                    .map(category =>
+                        String(category.name || category.categoryName || category)
+                            .trim()
+                            .toLowerCase()
+                    )
+                    .filter(Boolean);
+
+                return categoryList.filter(category => {
+                    const categoryId = String(getCategoryId(category));
+                    const categoryName = getCategoryName(category).trim().toLowerCase();
+
+                    return (
+                        contestCategoryIds.includes(categoryId) ||
+                        contestCategoryNames.includes(categoryName)
+                    );
+                });
+            }
+
+            const hasContestId = categoryList.some(category =>
+                getCategoryContestId(category)
+            );
+
+            if (hasContestId) {
+                return categoryList.filter(category =>
+                    String(getCategoryContestId(category)) === String(selectedContestId)
+                );
+            }
+
+            if (allowServerFilteredList && categoryList.length !== categories.length) {
+                return categoryList;
+            }
+
+            return [];
+        };
+
+        async function fetchContestCategories() {
+            try {
+                const token = localStorage.getItem('shms_token');
+
+                const res = await fetch(`${API_BASE}/categories?contestId=${selectedContestId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const json = await safeJson(res);
+
+                if (!res.ok) {
+                    throw new Error(json.error || 'Failed to load contest categories');
+                }
+
+                const list = normalizeList(json);
+                const filtered = filterByContest(list, true);
+
+                if (!cancelled) {
+                    setContestCategories(filtered);
+
+                    if (
+                        selectedCategoryId &&
+                        !filtered.some(category => String(getCategoryId(category)) === String(selectedCategoryId))
+                    ) {
+                        setSelectedCategoryId('');
+                    }
+                }
+            } catch (err) {
+                console.warn('Contest categories API unavailable:', err.message);
+
+                const filtered = filterByContest(categories, false);
+
+                if (!cancelled) {
+                    setContestCategories(filtered);
+
+                    if (
+                        selectedCategoryId &&
+                        !filtered.some(category => String(getCategoryId(category)) === String(selectedCategoryId))
+                    ) {
+                        setSelectedCategoryId('');
+                    }
+                }
+            }
+        }
+
+        fetchContestCategories();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedContestId, selectedCategoryId, categories, contests]);
 
     const data = teamData || emptyTeam;
     const status = data.status || 'NO TEAM';
@@ -239,22 +367,36 @@ const TeamStatus = () => {
 
     const hasTeam = status !== 'NO TEAM';
 
-    const selectedParticipatedTeam = participatedTeams.find(
-        item => String(item.contest.id) === String(viewContestId)
-    );
-
-    const contestStatus = selectedParticipatedTeam?.contest?.status || '';
-    const canLeaveTeam =
+    const canLeaveTeam = participatedTeams.some(item =>
         hasTeam &&
-        contestStatus === 'ACTIVE' &&
-        status.toUpperCase() !== 'APPROVED';
+        String(item.contest.id) === String(viewContestId) &&
+        item.contest.status === 'ACTIVE' &&
+        status.toUpperCase() !== 'APPROVED'
+    );
 
     const isSubmitted = status === 'APPROVED' || status === 'PENDING';
 
     const displayCategory = hasTeam
         ? isSubmitted ? data.categoryName : 'Not choose'
         : 'Not available';
+    const approvedParticipatedTeams = participatedTeams.filter(item => {
+        return item?.data?.status?.toUpperCase() === 'APPROVED';
+    });
 
+    const getCategoryContestId = (category) => {
+        return (
+            category.contestId ||
+            category.contestID ||
+            category.contest_id ||
+            category.contest?.id ||
+            category.hackathonId ||
+            category.hackathonID ||
+            category.hackathon_id ||
+            category.hackathon?.id ||
+            category.eventId ||
+            category.event_id
+        );
+    };
     const getInitials = (name = '') => {
         return name
             .split(' ')
@@ -430,7 +572,7 @@ const TeamStatus = () => {
                     <div className="sidebar-title">My Joined Teams</div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {participatedTeams.length > 0 ? participatedTeams.map(pt => (
+                        {approvedParticipatedTeams.length > 0 ? approvedParticipatedTeams.map(pt => (
                             <div
                                 key={pt.contest.id}
                                 className={`sidebar-item ${viewContestId === String(pt.contest.id) ? 'active' : ''}`}
@@ -653,9 +795,13 @@ const TeamStatus = () => {
                                     <select
                                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                                         value={selectedContestId}
-                                        onChange={(e) => setSelectedContestId(e.target.value)}
+                                        onChange={(e) => {
+                                            setSelectedContestId(e.target.value);
+                                            setSelectedCategoryId('');
+                                        }}
                                         disabled={isSubmitted}
                                     >
+
                                         <option value="" disabled>-- Select Contest --</option>
                                         {contests.map(c => (
                                             <option key={c.id} value={c.id}>
@@ -669,19 +815,25 @@ const TeamStatus = () => {
                                     <label style={{ display: 'block', fontSize: '0.875rem', color: '#475569', marginBottom: '4px' }}>
                                         Category Track
                                     </label>
-
                                     <select
                                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                                         value={selectedCategoryId}
                                         onChange={(e) => setSelectedCategoryId(e.target.value)}
-                                        disabled={isSubmitted}
+                                        disabled={isSubmitted || !selectedContestId}
                                     >
                                         <option value="" disabled>-- Select Track --</option>
-                                        {categories.map(c => (
+
+                                        {contestCategories.map(c => (
                                             <option key={c.id} value={c.id}>
                                                 {c.name}
                                             </option>
                                         ))}
+
+                                        {selectedContestId && contestCategories.length === 0 && (
+                                            <option value="" disabled>
+                                                No tracks for this contest
+                                            </option>
+                                        )}
                                     </select>
                                 </div>
 
@@ -807,12 +959,6 @@ const TeamStatus = () => {
                                 </tbody>
                             </table>
                         </div>
-
-                        {error && (
-                            <div style={{ color: 'red', marginTop: '16px', fontWeight: 'bold' }}>
-                                {error}
-                            </div>
-                        )}
 
                         {successMessage && (
                             <div style={{ color: 'green', marginTop: '16px', fontWeight: 'bold' }}>
