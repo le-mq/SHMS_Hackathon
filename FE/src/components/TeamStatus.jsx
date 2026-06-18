@@ -3,6 +3,12 @@ import './TeamStatus.css';
 import NavbarStudent from './NavbarStudent';
 
 const API_BASE = 'http://localhost:8080/api/v1/student';
+const UNAVAILABLE_CONTEST_STATUSES = new Set(['CLOSED', 'ENDED', 'INACTIVE']);
+
+const isContestRegistrable = (contest) => {
+    const status = String(contest?.status || '').trim().toUpperCase();
+    return !UNAVAILABLE_CONTEST_STATUSES.has(status);
+};
 
 const TeamStatus = () => {
     const [teamData, setTeamData] = useState(null);
@@ -232,11 +238,24 @@ const TeamStatus = () => {
             cancelled = true;
         };
     }, [viewContestId]);
-    
+
+    const getCategoryContestId = (category) => {
+        return (
+            category.contestId ||
+            category.contestID ||
+            category.contest_id ||
+            category.contest?.id ||
+            category.hackathonId ||
+            category.hackathonID ||
+            category.hackathon_id ||
+            category.hackathon?.id ||
+            category.eventId ||
+            category.event_id
+        );
+    };
+
     useEffect(() => {
         if (!selectedContestId) {
-            setContestCategories([]);
-            setSelectedCategoryId('');
             return;
         }
 
@@ -382,21 +401,15 @@ const TeamStatus = () => {
     const approvedParticipatedTeams = participatedTeams.filter(item => {
         return item?.data?.status?.toUpperCase() === 'APPROVED';
     });
+    const registrableContests = contests.filter(isContestRegistrable);
+    const selectedContest = contests.find(
+        contest => String(contest.id) === String(selectedContestId)
+    );
+    const registrationContestId =
+        selectedContest && isContestRegistrable(selectedContest)
+            ? selectedContestId
+            : '';
 
-    const getCategoryContestId = (category) => {
-        return (
-            category.contestId ||
-            category.contestID ||
-            category.contest_id ||
-            category.contest?.id ||
-            category.hackathonId ||
-            category.hackathonID ||
-            category.hackathon_id ||
-            category.hackathon?.id ||
-            category.eventId ||
-            category.event_id
-        );
-    };
     const getInitials = (name = '') => {
         return name
             .split(' ')
@@ -432,6 +445,15 @@ const TeamStatus = () => {
             return;
         }
 
+        const contestToRegister = contests.find(
+            contest => String(contest.id) === String(selectedContestId)
+        );
+
+        if (contestToRegister && !isContestRegistrable(contestToRegister)) {
+            setError('This contest is closed and no longer accepts registrations.');
+            return;
+        }
+
         try {
             const token = localStorage.getItem('shms_token');
 
@@ -457,7 +479,11 @@ const TeamStatus = () => {
 
             setSuccessMessage('Registration submitted successfully!');
             setError('');
-            window.location.reload();
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+            
         } catch (err) {
             console.warn('Register team API unavailable, use mock:', err.message);
 
@@ -668,7 +694,7 @@ const TeamStatus = () => {
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                 </svg>
-                                SELECTED TRACK
+                                SELECTED ROUND
                             </div>
                             <div className="card-value">{displayCategory}</div>
                         </div>
@@ -794,7 +820,7 @@ const TeamStatus = () => {
 
                                     <select
                                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-                                        value={selectedContestId}
+                                        value={registrationContestId}
                                         onChange={(e) => {
                                             setSelectedContestId(e.target.value);
                                             setSelectedCategoryId('');
@@ -803,7 +829,7 @@ const TeamStatus = () => {
                                     >
 
                                         <option value="" disabled>-- Select Contest --</option>
-                                        {contests.map(c => (
+                                        {registrableContests.map(c => (
                                             <option key={c.id} value={c.id}>
                                                 {c.name}
                                             </option>
@@ -819,7 +845,7 @@ const TeamStatus = () => {
                                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                                         value={selectedCategoryId}
                                         onChange={(e) => setSelectedCategoryId(e.target.value)}
-                                        disabled={isSubmitted || !selectedContestId}
+                                        disabled={isSubmitted || !registrationContestId}
                                     >
                                         <option value="" disabled>-- Select Track --</option>
 
@@ -829,7 +855,7 @@ const TeamStatus = () => {
                                             </option>
                                         ))}
 
-                                        {selectedContestId && contestCategories.length === 0 && (
+                                        {registrationContestId && contestCategories.length === 0 && (
                                             <option value="" disabled>
                                                 No tracks for this contest
                                             </option>
