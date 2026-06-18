@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -37,12 +38,18 @@ public class AuthService {
     private final UniversityRepository universityRepository;
     private final EmailService emailService;
     private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public java.util.Map<String, Object> login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
+        // if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        //     throw new IllegalArgumentException("Invalid username or password");
+        // }
+
+        // Plain-text check for development (no encryption)
         if (!user.getPassword().equals(request.getPassword())) {
             throw new IllegalArgumentException("Invalid username or password");
         }
@@ -59,7 +66,7 @@ public class AuthService {
             throw new IllegalArgumentException("Account is not active. Current status: " + user.getStatus());
         }
 
-
+        // Dynamic Role Context Matching without request parameter
         java.util.List<String> userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(java.util.stream.Collectors.toList());
@@ -96,6 +103,43 @@ public class AuthService {
         return result;
     }
 
+    @Transactional
+    public java.util.Map<String, Object> switchRole(String currentToken, String targetRole) {
+        String username = jwtUtils.extractUsername(currentToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        java.util.List<String> userRoles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(java.util.stream.Collectors.toList());
+
+        boolean hasRole = false;
+        String mappedRole = targetRole.toUpperCase();
+
+        if (userRoles.contains(mappedRole)) {
+            hasRole = true;
+        } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
+            hasRole = true;
+        }
+
+        if (!hasRole) {
+            throw new IllegalArgumentException("User does not have the requested role: " + targetRole);
+        }
+
+        String token = jwtUtils.generateToken(user.getUsername(), mappedRole);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("token", token);
+        result.put("role", mappedRole);
+        result.put("allRoles", userRoles);
+        result.put("username", user.getUsername());
+
+        studentRepository.findByUser(user).ifPresent(s -> {
+            result.put("fullName", s.getFullName());
+            result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
+        });
+
+        return result;
+    }
 
     @Transactional
     public String register(RegisterRequest request) {
@@ -138,7 +182,7 @@ public class AuthService {
             }
         }
 
-        // Xác thực mã sinh viên (MSSV)
+        // Dynamic student code (MSSV) validation
         String studentCodeRegex = university.getStudentCodeRegex();
         log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
         if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
@@ -150,7 +194,7 @@ public class AuthService {
             }
         }
 
-        // BR-ACC-04: Tài khoản mới phải xác minh email trước khi được kích hoạt.
+        // BR-ACC-04: Cross-check with StudentVerificationData using university_id, student_code, and email
         log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
                 university.getId(), request.getMssv(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
@@ -181,7 +225,8 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())
                 .fullName(request.getFullName())
-                .password(request.getPassword())
+                // .password(passwordEncoder.encode(request.getPassword()))
+                .password(request.getPassword()) // Plain text for development
                 .roles(new java.util.HashSet<>(java.util.Collections.singletonList(teamMemberRole)))
                 .status(User.UserStatus.PENDING)
                 .isEmailVerified(false)
@@ -197,13 +242,13 @@ public class AuthService {
                 .user(user)
                 .build();
 
-        studentRepository.save(student);
+        studentRepository.save(student); // Saves both because of CascadeType.ALL on User
 
         // Generate OTP and send email
         String otp = String.format("%06d", new Random().nextInt(999999));
         VerificationToken token = VerificationToken.builder()
                 .token(otp)
-                .expiryDate(LocalDateTime.now().plusMinutes(3))
+                .expiryDate(LocalDateTime.now().plusMinutes(3)) // 3 minutes expiration
                 .user(user)
                 .build();
         tokenRepository.save(token);
@@ -233,11 +278,12 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP token");
         }
 
-
+        // Mark Email as Verified and activate the account
         user.setIsEmailVerified(true);
         user.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(user);
 
+        // Remove token
         tokenRepository.deleteByUser(user);
 
         return "Email verified successfully. Account activated.";
@@ -272,43 +318,5 @@ public class AuthService {
             return null;
         }
         return email.substring(email.indexOf('@') + 1);
-    }
-
-    @Transactional
-    public java.util.Map<String, Object> switchRole(String currentToken, String targetRole) {
-        String username = jwtUtils.extractUsername(currentToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        java.util.List<String> userRoles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(java.util.stream.Collectors.toList());
-
-        boolean hasRole = false;
-        String mappedRole = targetRole.toUpperCase();
-
-        if (userRoles.contains(mappedRole)) {
-            hasRole = true;
-        } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
-            hasRole = true;
-        }
-
-        if (!hasRole) {
-            throw new IllegalArgumentException("User does not have the requested role: " + targetRole);
-        }
-
-        String token = jwtUtils.generateToken(user.getUsername(), mappedRole);
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        result.put("token", token);
-        result.put("role", mappedRole);
-        result.put("allRoles", userRoles);
-        result.put("username", user.getUsername());
-
-        studentRepository.findByUser(user).ifPresent(s -> {
-            result.put("fullName", s.getFullName());
-            result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
-        });
-
-        return result;
     }
 }

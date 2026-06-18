@@ -26,9 +26,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import com.fpt.shms.be.repository.UserRepository;
-import com.fpt.shms.be.model.User;
+import com.fpt.shms.be.service.UserService;
+import com.fpt.shms.be.dto.UpdateProfileRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +45,7 @@ public class AdminController {
     private final AllocationAdminService allocationAdminService;
     private final TeamService teamService;
     private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     private void requireAdminRole(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -470,11 +468,7 @@ public class AdminController {
             requireAdminRole(request);
             String token = request.getHeader("Authorization").substring(7);
             String username = jwtUtils.extractUsername(token);
-            User user = userRepository.findByUsername(username).orElseThrow();
-            return ResponseEntity.ok(Map.of(
-                    "telephoneNumber", user.getPhone() != null ? user.getPhone() : "",
-                    "avatarBase64", user.getAvatarUrl() != null && user.getAvatarUrl().startsWith("data:image") ? user.getAvatarUrl() : ""
-            ));
+            return ResponseEntity.ok(userService.getUserProfile(username));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -484,42 +478,18 @@ public class AdminController {
 
     @PutMapping("/profile")
     @Operation(summary = "Update Admin Profile", description = "Requires ADMIN role.")
-    public ResponseEntity<?> updateProfile(HttpServletRequest request, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> updateProfile(HttpServletRequest request, @RequestBody UpdateProfileRequest payload) {
         try {
             requireAdminRole(request);
             String token = request.getHeader("Authorization").substring(7);
             String username = jwtUtils.extractUsername(token);
-            User user = userRepository.findByUsername(username).orElseThrow();
 
-            if (payload.containsKey("telephoneNumber")) {
-                user.setPhone(payload.get("telephoneNumber"));
-            }
-            if (payload.containsKey("avatarBase64")) {
-                String base64 = payload.get("avatarBase64");
-                user.setAvatarUrl(base64);
-            }
-            if (payload.containsKey("newPassword") && payload.containsKey("currentPassword")) {
-                String current = payload.get("currentPassword");
-                String newPass = payload.get("newPassword");
-
-                // if (passwordEncoder.matches(current, user.getPassword())) {
-                //     user.setPassword(passwordEncoder.encode(newPass));
-                // } else {
-                //     return ResponseEntity.status(400).body(Map.of("error", "Current password does not match"));
-                // }
-
-                // Plain-text check for development (no encryption)
-                if (current.equals(user.getPassword())) {
-                    user.setPassword(newPass);
-                } else {
-                    return ResponseEntity.status(400).body(Map.of("error", "Current password does not match"));
-                }
-            }
-
-            userRepository.save(user);
+            userService.updateUserProfile(username, payload);
             return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

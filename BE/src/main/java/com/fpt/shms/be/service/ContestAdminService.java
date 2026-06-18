@@ -26,6 +26,7 @@ public class ContestAdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final AnnouncementRepository announcementRepository;
     private final UniversityRepository universityRepository;
 
@@ -65,7 +66,6 @@ public class ContestAdminService {
                         tm.put("name", t.getName());
                         return tm;
                     }).toList();
-
 
             Map<String, Object> trackMap = new HashMap<>();
             trackMap.put("id", c.getId());
@@ -134,24 +134,36 @@ public class ContestAdminService {
             try {
                 Contest.ContestStatus newStatus = Contest.ContestStatus.valueOf(request.getStatus().toUpperCase());
                 if (newStatus == Contest.ContestStatus.CLOSED && contest.getStatus() != Contest.ContestStatus.CLOSED) {
+                    // Cập nhật tất cả các hạng mục của cuộc thi này thành INACTIVE
+                    List<Category> categories = categoryRepository.findByContestId(contest.getId());
+                    for (Category cat : categories) {
+                        cat.setStatus("INACTIVE");
+                        categoryRepository.save(cat);
+                    }
 
+                    // Chỉ áp dụng quy tắc chuyển đổi người dùng TEAM_LEADER thành TEAM_MEMBER cho cuộc thi này mà thôi.
                     Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
                     Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
 
                     if (teamLeaderRole != null && teamMemberRole != null) {
-                        List<User> leaders = userRepository.findAll().stream()
-                                .filter(u -> u.getRoles().contains(teamLeaderRole))
-                                .toList();
-                        for (User u : leaders) {
-                            u.getRoles().remove(teamLeaderRole);
-                            u.getRoles().add(teamMemberRole);
-                            userRepository.save(u);
+                        List<Team> teams = teamRepository.findByContestId(contest.getId());
+                        for (Team team : teams) {
+                            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
+                            for (TeamMembership tm : memberships) {
+                                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
+                                    User u = tm.getUser();
+                                    if (u != null && u.getRoles().contains(teamLeaderRole)) {
+                                        u.getRoles().remove(teamLeaderRole);
+                                        u.getRoles().add(teamMemberRole);
+                                        userRepository.save(u);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 contest.setStatus(newStatus);
             } catch (IllegalArgumentException e) {
-
             }
         }
 
@@ -192,6 +204,7 @@ public class ContestAdminService {
 
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
+        category.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -201,6 +214,7 @@ public class ContestAdminService {
                 throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
             }
 
+            // Determine state manually from UI
             Round.RoundState state = Round.RoundState.UPCOMING;
             if (roundDto.getState() != null) {
                 try {
@@ -222,6 +236,7 @@ public class ContestAdminService {
                         .orElse(null);
             }
 
+            // Fallback to phaseName if ID not found or not provided
             if (round == null) {
                 round = existingRounds.stream()
                         .filter(r -> r.getPhaseName().equals(roundDto.getPhaseName()))
@@ -244,6 +259,27 @@ public class ContestAdminService {
             round.setState(state);
             round.setContest(contest);
             roundRepository.save(round);
+        }
+
+        // Remove rounds that are no longer in the request
+        List<String> requestedPhaseNames = request.getRounds().stream()
+                .map(CreateTrackRoundRequest.RoundDto::getPhaseName)
+                .toList();
+        List<Long> requestedIds = request.getRounds().stream()
+                .map(CreateTrackRoundRequest.RoundDto::getId)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        if (contest.getStatus() == Contest.ContestStatus.UPCOMING) {
+            existingRounds.removeIf(r -> {
+                boolean inRequest = (r.getId() != null && requestedIds.contains(r.getId())) ||
+                        (r.getId() == null && requestedPhaseNames.contains(r.getPhaseName()));
+                if (!inRequest) {
+                    roundRepository.delete(r);
+                    return true;
+                }
+                return false;
+            });
         }
 
         return categoryRepository.save(category);
