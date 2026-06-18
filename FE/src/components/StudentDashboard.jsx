@@ -56,6 +56,7 @@ function getMilestoneStatus(dateStr) {
 const StudentDashboard = () => {
     const navigate = useNavigate();
     const [activeContest, setActiveContest] = useState(null);
+    const [activeContests, setActiveContests] = useState([]);
     const [loadingContest, setLoadingContest] = useState(true);
     const [joinCode, setJoinCode] = useState('');
 
@@ -73,11 +74,14 @@ const StudentDashboard = () => {
                 const res = await axios.get(API_PUBLIC + '/home');
 
                 const contests = getContestList(res.data);
+                const activeList = contests.filter(c => c.status === 'ACTIVE');
                 const active = pickActiveContest(contests);
 
                 if (!cancelled) {
                     setActiveContest(active);
+                    setActiveContests(activeList);
                 }
+
             } catch (error) {
                 console.warn('Home API unavailable, use mock:', error.message);
 
@@ -90,10 +94,12 @@ const StudentDashboard = () => {
 
                     const localJson = await localRes.json();
                     const contests = getContestList(localJson);
+                    const activeList = contests.filter(c => c.status === 'ACTIVE');
                     const active = pickActiveContest(contests);
 
                     if (!cancelled) {
                         setActiveContest(active);
+                        setActiveContests(activeList);
                     }
                 } catch (localError) {
                     console.warn('Mock data unavailable:', localError.message);
@@ -115,7 +121,7 @@ const StudentDashboard = () => {
             cancelled = true;
         };
     }, []);
-    
+
     const handleJoinTeam = async () => {
         const code = joinCode.trim();
 
@@ -160,64 +166,90 @@ const StudentDashboard = () => {
 
     const handleCreateTeam = async () => {
         const teamName = newTeamName.trim();
-    
+
         if (!teamName) {
             setCreateError('Please enter a team name');
             return;
         }
-    
+
         setIsCreating(true);
         setCreateError('');
-    
+
         try {
             const token = localStorage.getItem('shms_token');
-        
+
             const res = await axios.post(
                 API_STUDENT + '/teams/create',
                 { teamName: teamName, categoryId: 1 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-        
+
             setInvitationCode(res.data.invitationCode);
         } catch (error) {
             console.warn('Create team API unavailable, use mock:', error.message);
-        
+
             const mockCode = 'MOCK-' + Math.random().toString(36).slice(2, 8).toUpperCase();
             setInvitationCode(mockCode);
         } finally {
             setIsCreating(false);
         }
-    }; 
-    
+    };
+
     return (
         <div className="student-dash-container">
             <NavbarStudent />
 
-        <div style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
-            <LatestAnnouncements />
-        </div>    
-    
+            <div style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
+                <LatestAnnouncements />
+            </div>
+
             <div className="dash-grid">
                 <div className="dash-left">
-                    <div className="dash-cards-row">
-                        <div className="info-card">
-                            <div className="ic-header">
-                                ACTIVE CONTEST
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            </div>
-                            <div className="ic-title">
-                                {loadingContest ? 'Loading...' : activeContest?.name || 'No active contest'}
-                            </div>
 
-                            <div className="ic-subtitle">
-                                <span style={{ width: 6, height: 6, background: '#dc2626', borderRadius: '50%' }}></span>
-                                {loadingContest ? 'Loading...' : activeContest?.status || 'N/A'}
-                            </div>                            
-                        
-                            <div className="progress-bar-bg">
-                                <div className="progress-bar-fill"></div>
+                    <div className="dash-cards-row">
+                        {loadingContest ? (
+                            <div className="info-card">
+                                <div className="ic-header">ACTIVE CONTEST</div>
+                                <div className="ic-title">Loading...</div>
                             </div>
-                        </div>
+                        ) : activeContests.length > 0 ? (
+                            activeContests.map(contest => (
+                                <div className="info-card" key={contest.id}>
+                                    <div className="ic-header">
+                                        ACTIVE CONTEST
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                    </div>
+
+                                    <div className="ic-title">
+                                        {contest.name}
+                                    </div>
+
+                                    <div className="ic-subtitle">
+                                        <span style={{ width: 6, height: 6, background: '#dc2626', borderRadius: '50%' }}></span>
+                                        {contest.status}
+                                    </div>
+
+                                    <div className="progress-bar-bg">
+                                        <div className="progress-bar-fill"></div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="info-card">
+                                <div className="ic-header">ACTIVE CONTEST</div>
+                                <div className="ic-title">No active contest</div>
+                                <div className="ic-subtitle">
+                                    No active contests found.
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="milestones-card">
@@ -236,7 +268,7 @@ const StudentDashboard = () => {
                                     <td>{formatDate(activeContest?.registrationStart)}</td>
                                     <td>
                                         {getMilestoneStatus(activeContest?.registrationStart)}
-                                                                              
+
                                     </td>
                                 </tr>
                                 <tr>
@@ -244,7 +276,7 @@ const StudentDashboard = () => {
                                     <td>{formatDate(activeContest?.registrationEnd)}</td>
                                     <td>
                                         {getMilestoneStatus(activeContest?.registrationEnd)}
-                                        
+
                                     </td>
                                 </tr>
                                 {activeContest?.rounds?.map((round, idx) => (
@@ -253,18 +285,18 @@ const StudentDashboard = () => {
                                             <td><strong>{round.phaseName} - Open</strong></td>
                                             <td>{formatDate(round.submissionOpen)}</td>
                                             <td>
-                                                
+
                                                 {getMilestoneStatus(round.submissionOpen)}
-                                                
+
                                             </td>
                                         </tr>
                                         <tr>
                                             <td><strong>{round.phaseName} - Deadline</strong></td>
                                             <td>{formatDate(round.submissionDeadline)}</td>
                                             <td>
-                                               
-                                               {getMilestoneStatus(round.submissionDeadline)}
-                                               
+
+                                                {getMilestoneStatus(round.submissionDeadline)}
+
                                             </td>
                                         </tr>
                                     </React.Fragment>
@@ -281,7 +313,7 @@ const StudentDashboard = () => {
                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                         </div>
                         <h3>Create a New Team</h3>
-                
+
                         <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setInvitationCode(''); setNewTeamName(''); setCreateError(''); }}>
                             Start Building
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -293,7 +325,7 @@ const StudentDashboard = () => {
                             <svg width="24" height="24" fill="none" stroke="#0f172a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                         </div>
                         <h3>Join via Code</h3>
-                        
+
                         <div className="join-input-wrap">
                             <input
                                 type="text"

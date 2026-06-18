@@ -99,8 +99,8 @@ public class AuthService {
         result.put("allRoles", userRoles);
         result.put("username", user.getUsername());
 
+        result.put("fullName", user.getFullName());
         studentProfile.ifPresent(s -> {
-            result.put("fullName", s.getFullName());
             result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
         });
 
@@ -223,7 +223,7 @@ public class AuthService {
 
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalArgumentException("STUDENT role missing in DB"));
-
+        
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())

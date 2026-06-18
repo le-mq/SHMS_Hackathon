@@ -12,4 +12,10 @@ import lombok.NoArgsConstructor;
 public class TeamRegistrationResponse {
     private String status;
     private String message;
+    private String newToken;
+
+    public TeamRegistrationResponse(String status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 }

@@ -1,5 +1,6 @@
 package com.fpt.shms.be.controller;
 import com.fpt.shms.be.dto.*;
+import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.model.Team;
 import com.fpt.shms.be.repository.CategoryRepository;
 import com.fpt.shms.be.repository.ContestRepository;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -97,12 +100,24 @@ public class StudentController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<?> getCategories(HttpServletRequest request) {
-        try {
-            return ResponseEntity.ok(categoryRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+    public ResponseEntity<?> getCategories(@RequestParam(required = false) Long contestId) {
+        List<Category> categories;
+
+        if (contestId != null) {
+            categories = categoryRepository.findByContestId(contestId);
+        } else {
+            categories = categoryRepository.findAll();
         }
+
+        return ResponseEntity.ok(
+                categories.stream().map(c -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", c.getId());
+                    item.put("name", c.getName());
+                    item.put("contestId", c.getContest().getId());
+                    return item;
+                }).toList()
+        );
     }
 
     @GetMapping("/submissions")

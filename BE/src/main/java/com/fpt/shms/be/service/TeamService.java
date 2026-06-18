@@ -3,6 +3,7 @@ package com.fpt.shms.be.service;
 import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.*;
 import com.fpt.shms.be.repository.*;
+import com.fpt.shms.be.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class TeamService{
     private final CategoryRepository categoryRepository;
     private final RoundRepository roundRepository;
     private final SubmissionRepository submissionRepository;
+    private final JwtUtils jwtUtils;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -253,35 +255,31 @@ public class TeamService{
                     for (TeamMembership tm : teamMembers) {
                         User mUser = tm.getUser();
                         if (mUser.getId().equals(leaderStudent.getUser().getId())) {
+
                             tm.setRole("LEADER");
 
-                            Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER")
-                                    .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_LEADER").build()));
-                            Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
+                            Role leaderRole = roleRepository.findByName("LEADER")
+                                    .orElseThrow(() -> new IllegalArgumentException("LEADER role missing in DB"));
+                            Role studentRole = roleRepository.findByName("STUDENT")
+                                    .orElseThrow(() -> new IllegalArgumentException("STUDENT role missing in DB"));
 
-                            if (teamMemberRole != null) {
-                                mUser.getRoles().remove(teamMemberRole);
-                            }
-                            mUser.getRoles().add(teamLeaderRole);
+                            mUser.getRoles().remove(studentRole);
+                            mUser.getRoles().add(leaderRole);
                             userRepository.save(mUser);
                         } else {
                             tm.setRole("MEMBER");
-                            Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER")
-                                    .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_MEMBER").build()));
-                            Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
-
-                            if (teamLeaderRole != null) {
-                                mUser.getRoles().remove(teamLeaderRole);
-                            }
-                            mUser.getRoles().add(teamMemberRole);
-                            userRepository.save(mUser);
                         }
                         teamMembershipRepository.save(tm);
                     }
                 }
             }
         }
-        return new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
+
+        User updatedLeader = userRepository.findByUsername(username).get();
+        String newToken = jwtUtils.generateToken(updatedLeader.getUsername(), "LEADER");
+        TeamRegistrationResponse response = new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
+        response.setNewToken(newToken); // <-- Frontend sẽ lấy cái này xài tiếp
+        return response;
     }
 
     public WorkspaceResponse getWorkspaceData(String username) {
