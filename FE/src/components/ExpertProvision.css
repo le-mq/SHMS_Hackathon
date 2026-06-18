@@ -43,11 +43,11 @@
     max-width: 700px;
 }
 
-.provisioning-grid {
+/* .provisioning-grid {
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 32px;
-}
+} */
 
 .policy-card {
     background: white;
@@ -169,15 +169,28 @@
 }
 
 .form-row {
+    width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 24px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+}
+
+.form-input {
+    width: 100%;
+    /* Đổi từ 50% thành 100% để chiếm trọn form-group cha */
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .form-label {
@@ -187,7 +200,7 @@
     margin-bottom: 8px;
 }
 
-.form-input,
+
 .form-select {
     padding: 12px 16px;
     font-size: 14px;
@@ -200,15 +213,21 @@
     box-sizing: border-box;
 }
 
-.form-input:focus,
-.form-select:focus {
-    border-color: #0d1b2a;
+.form-select {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .input-with-prefix {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
+}
+
+.input-with-prefix .form-input {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .input-with-prefix span {
@@ -243,8 +262,6 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-top: 32px;
-    margin-bottom: 16px;
 }
 
 .generate-btn:hover {
@@ -263,8 +280,8 @@
 }
 
 .bottom-stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* display: grid; */
+    /* grid-template-columns: 1fr 1fr; */
     gap: 24px;
 }
 
