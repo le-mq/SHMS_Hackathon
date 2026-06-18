@@ -242,6 +242,7 @@ const HackathonConfig = () => {
             }
             const validCategories = categories.filter(t => t.trackName.trim() !== '');
             const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
+            const finalContestStatus = formData.status;
             for (const category of validCategories) {
                 await fetch('http://localhost:8080/api/v1/admin/contests/rounds-tracks', {
                     method: 'POST',
@@ -250,12 +251,12 @@ const HackathonConfig = () => {
                         contestId: currentContestId, categoryName: category.trackName,
                         trackDescription: category.trackDescription || 'No description',
                         guidelineUrl: category.guidelineUrl || '',
-                        status: category.status || 'ACTIVE',
+                        status: finalContestStatus === 'CLOSED' ? 'CLOSED' : (category.status || 'ACTIVE'),
                         rounds: validRounds.map(r => ({
                             id: r.id, phaseName: r.phaseName,
                             submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
                             submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
-                            submissionFormat: 'PDF', state: r.state || 'UPCOMING'
+                            submissionFormat: 'PDF', state: finalContestStatus === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
                         }))
                     })
                 });
