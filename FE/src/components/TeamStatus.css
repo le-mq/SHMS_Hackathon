@@ -323,3 +323,158 @@
 .warning-icon {
     color: #d97706;
 }
+/* ===== Add thêm cho layout mới có sidebar ===== */
+
+.status-layout-wrapper {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* Vì .status-content cũ đang có margin auto, khi nằm trong layout mới cần reset lại */
+.status-layout-wrapper .status-content {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== Sidebar My Joined Teams ===== */
+
+.status-sidebar {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    position: sticky;
+    top: 90px;
+}
+
+.sidebar-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.sidebar-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    background: white;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.sidebar-item:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.sidebar-item.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+}
+
+.sidebar-item-team {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.sidebar-item-contest {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.sidebar-item-footer {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+/* ===== Badge Active / Ended trong sidebar ===== */
+
+.contest-status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.contest-status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.contest-status-badge.ended {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+/* ===== Thêm trạng thái team còn thiếu ===== */
+
+.team-badge.pending {
+    background-color: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+}
+
+.team-badge.forming {
+    background-color: #dbeafe;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+.team-badge.no-team {
+    background-color: #e2e8f0;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+
+.team-badge.rejected {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* ===== Responsive cho layout mới ===== */
+
+@media (max-width: 1024px) {
+    .status-layout-wrapper {
+        grid-template-columns: 240px 1fr;
+        gap: 18px;
+    }
+
+    .cards-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .status-layout-wrapper {
+        grid-template-columns: 1fr;
+        margin: 24px auto;
+    }
+
+    .status-sidebar {
+        position: static;
+    }
+
+    .roster-section {
+        overflow-x: auto;
+    }
+
+    .roster-table {
+        min-width: 760px;
+    }
+}
