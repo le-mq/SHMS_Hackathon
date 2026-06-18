@@ -90,7 +90,7 @@ public class StudentController {
     @GetMapping("/contests")
     public ResponseEntity<?> getContests(HttpServletRequest request) {
         try {
-            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName(), "status", c.getStatus() )).toList());
+            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName(), "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED")).toList());
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }

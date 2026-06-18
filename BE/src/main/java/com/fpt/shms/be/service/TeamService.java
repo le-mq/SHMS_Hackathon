@@ -103,19 +103,47 @@ public class TeamService{
 
         if (contestId != null) {
             for (TeamMembership m : memberships) {
-                if (m.getTeam().getContest() != null && m.getTeam().getContest().getId().equals(contestId)) {
-                    team = m.getTeam();
+                Team t = m.getTeam();
+                Contest c = t.getContest() != null ? t.getContest() : (t.getCategory() != null ? t.getCategory().getContest() : null);
+                if (c != null && c.getId().equals(contestId)) {
+                    team = t;
                     break;
                 }
             }
-            if (team == null) {
-                throw new IllegalArgumentException("You don't have a team in this contest");
-            }
         } else {
-            team = memberships.get(0).getTeam();
+            java.time.LocalDate now = java.time.LocalDate.now();
+            for (TeamMembership m : memberships) {
+                Team t = m.getTeam();
+                Contest c = t.getContest() != null ? t.getContest() : (t.getCategory() != null ? t.getCategory().getContest() : null);
+                if (c != null) {
+                    boolean isOngoing = false;
+                    if (Contest.ContestStatus.ACTIVE.equals(c.getStatus())) {
+                        isOngoing = true;
+                    }
+                    if (c.getRegistrationStart() != null && c.getRegistrationEnd() != null) {
+                        if (!now.isBefore(c.getRegistrationStart()) && !now.isAfter(c.getRegistrationEnd())) {
+                            isOngoing = true;
+                        }
+                    }
+                    if (isOngoing) {
+                        team = t;
+                        break;
+                    }
+                }
+            }
+            if (team == null) {
+                team = memberships.get(0).getTeam();
+            }
+        }
+
+        if (team == null) {
+            throw new IllegalArgumentException("No team found for the selected contest");
         }
 
         List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId());
+
+        if (roster.size() < 3 && "APPROVED".equals(team.getStatus())) {
+        }
 
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
@@ -129,13 +157,12 @@ public class TeamService{
 
         return TeamStatusResponse.builder()
                 .teamName(team.getName())
-                .categoryName(team.getCategory().getName())
+                .categoryName(team.getCategory() != null ? team.getCategory().getName() : "No Category")
                 .invitationCode(team.getInvitationCode())
                 .status(team.getStatus())
                 .roster(memberDtos)
                 .build();
     }
-    
 
     @Transactional
     public void leaveTeam(String username) {
@@ -293,7 +320,6 @@ public class TeamService{
 
         int maxMembers = 5;
         if (team.getContest() != null && team.getContest().getMaximumAllowedTeams() != null) {
-            // maxMembers per team is not in contest, usually hardcoded to 5 in rules, so keep 5.
         }
 
         return WorkspaceResponse.builder()
