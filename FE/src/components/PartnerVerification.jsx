@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './PartnerVerification.css';
 import NavbarAdmin from './NavbarAdmin';
 
+const API_BASE = "http://localhost:8080/api/v1";
 const PartnerVerification = () => {
     const [partners, setPartners] = useState([]);
     const [students, setStudents] = useState([]);
@@ -25,39 +26,37 @@ const PartnerVerification = () => {
 
     const fetchPartners = async () => {
         try {
-            const token = localStorage.getItem('shms_token');
-            if (!token) return;
-
-            const response = await fetch('http://localhost:8080/api/v1/admin/universities', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const mappedData = data.map((p, i) => ({ ...p, ui_id: p.id || `temp-${i}` }));
-                setPartners(mappedData);
-            }
-        } catch (err) {
-            console.error('Failed to fetch partners');
+            const token = localStorage.getItem("shms_token");
+            const response = await fetch(`${API_BASE}/admin/universities`,
+                { headers: { Authorization: `Bearer ${token}` } });
+            if (!response.ok)
+                throw new Error();
+            const data = await response.json();
+            setPartners(data.map((p, i) => ({ ...p, ui_id: p.id || `temp-${i}` })));
+        }
+        catch {
+            const localRes = await fetch("/testFE.json");
+            const localJson = await localRes.json();
+            setPartners(localJson.universities.map((p, i) => ({ ...p, ui_id: p.id || `temp-${i}` })));
         }
     };
 
     const fetchStudents = async (partnerId) => {
         try {
-            const token = localStorage.getItem('shms_token');
+            const token = localStorage.getItem("shms_token");
             const partnerName = partners.find(p => String(p.ui_id) === String(partnerId))?.name;
-            if (!partnerName) return;
-
-            const response = await fetch(`http://localhost:8080/api/v1/admin/universities/students?university=${encodeURIComponent(partnerName)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const mapped = data.map((s, i) => ({ ...s, ui_id: `fetch-${i}` }));
-                setStudents(mapped);
-            }
-        } catch (err) {
-            console.error('Failed to fetch students');
+            const response = await fetch(`${API_BASE}/admin/universities/students?university=${encodeURIComponent(partnerName)}`,
+                { headers: { Authorization: `Bearer ${token}` } });
+            if (!response.ok)
+                throw new Error();
+            const data = await response.json();
+            setStudents(data.map((s, i) => ({ ...s, ui_id: s.id || `fetch-${i}` })));
+        }
+        catch {
+            const localRes = await fetch("/testFE.json");
+            const localJson = await localRes.json();
+            const mockStudents = localJson.students.filter(s => s.university === partners.find(p => String(p.ui_id) === String(partnerId))?.name);
+            setStudents(mockStudents.map((s, i) => ({ ...s, ui_id: `mock-${i}` })));
         }
     };
 
@@ -105,7 +104,7 @@ const PartnerVerification = () => {
                 return typeof ui_id === 'string' && ui_id.startsWith('temp') ? rest : { ...rest, id: ui_id };
             });
 
-            const response = await fetch('http://localhost:8080/api/v1/admin/universities', {
+            const response = await fetch(`${API_BASE}/admin/universities`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -122,8 +121,9 @@ const PartnerVerification = () => {
                 setSuccess('Verification settings saved successfully.');
                 fetchPartners();
             }
-        } catch (err) {
-            setError('Server connection failed.');
+        } catch {
+            localStorage.setItem("universities", JSON.stringify(partners));
+            setSuccess("Saved locally (Mock API)");
         } finally {
             setIsLoading(false);
         }
@@ -168,7 +168,7 @@ const PartnerVerification = () => {
         }));
 
         try {
-            const response = await fetch(`http://localhost:8080/api/v1/admin/universities/students?university=${encodeURIComponent(partnerName)}`, {
+            const response = await fetch(`${API_BASE}/admin/universities/students?university=${encodeURIComponent(partnerName)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
