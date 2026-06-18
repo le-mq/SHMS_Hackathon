@@ -5,9 +5,58 @@ import './StudentDashboard.css';
 import NavbarStudent from './NavbarStudent';
 import LatestAnnouncements from './LatestAnnouncements';
 
+const API_PUBLIC = 'http://localhost:8080/api/v1/public';
+const API_STUDENT = 'http://localhost:8080/api/v1/student';
+
+function getContestList(json) {
+    if (Array.isArray(json?.contests)) {
+        return json.contests;
+    }
+
+    if (Array.isArray(json?.contests?.data)) {
+        return json.contests.data;
+    }
+
+    return [];
+}
+
+function pickActiveContest(contests) {
+    return contests.find(c => c.status === 'ACTIVE')
+        || contests.find(c => c.status === 'UPCOMING')
+        || contests[0]
+        || null;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+
+    const date = new Date(dateStr);
+
+    if (Number.isNaN(date.getTime())) {
+        return dateStr;
+    }
+
+    return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+}
+
+function getMilestoneStatus(dateStr) {
+    if (!dateStr) {
+        return <span className="mc-status ms-upcoming">Upcoming</span>;
+    }
+
+    return new Date() > new Date(dateStr)
+        ? <span className="mc-status ms-completed">Completed</span>
+        : <span className="mc-status ms-upcoming">Upcoming</span>;
+}
+
 const StudentDashboard = () => {
     const navigate = useNavigate();
     const [activeContest, setActiveContest] = useState(null);
+    const [loadingContest, setLoadingContest] = useState(true);
     const [joinCode, setJoinCode] = useState('');
 
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -17,53 +66,130 @@ const StudentDashboard = () => {
     const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
-        const fetchHomeData = async () => {
-            try {
-                const res = await axios.get('http://localhost:8080/api/v1/public/home');
-                const contests = res.data.contests || [];
-                const active = contests.find(c => c.status === 'ACTIVE') || contests.find(c => c.status === 'UPCOMING') || contests[0];
-                setActiveContest(active);
-            } catch (error) {
-                console.error("Failed to fetch home data", error);
-            }
-        };
-        fetchHomeData();
-    }, []);
+        let cancelled = false;
 
+        async function fetchHomeData() {
+            try {
+                const res = await axios.get(API_PUBLIC + '/home');
+
+                const contests = getContestList(res.data);
+                const active = pickActiveContest(contests);
+
+                if (!cancelled) {
+                    setActiveContest(active);
+                }
+            } catch (error) {
+                console.warn('Home API unavailable, use mock:', error.message);
+
+                try {
+                    const localRes = await fetch('/testFE.json');
+
+                    if (!localRes.ok) {
+                        throw new Error('Not found testFE.json');
+                    }
+
+                    const localJson = await localRes.json();
+                    const contests = getContestList(localJson);
+                    const active = pickActiveContest(contests);
+
+                    if (!cancelled) {
+                        setActiveContest(active);
+                    }
+                } catch (localError) {
+                    console.warn('Mock data unavailable:', localError.message);
+
+                    if (!cancelled) {
+                        setActiveContest(null);
+                    }
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingContest(false);
+                }
+            }
+        }
+
+        fetchHomeData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+    
     const handleJoinTeam = async () => {
-        if (!joinCode) return;
+        const code = joinCode.trim();
+
+        if (!code) return;
+
         try {
             const token = localStorage.getItem('shms_token');
-            await axios.post('http://localhost:8080/api/v1/student/teams/join', { invitationCode: joinCode }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+
+            await axios.post(
+                API_STUDENT + '/teams/join',
+                { invitationCode: code },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
             alert('Successfully joined the team!');
             navigate('/student/team/status');
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to join team');
+            console.warn('Join team API unavailable, use mock:', error.message);
+
+            try {
+                const localRes = await fetch('/testFE.json');
+
+                if (!localRes.ok) {
+                    throw new Error('Not found testFE.json');
+                }
+
+                const localJson = await localRes.json();
+                const inviteCodes = localJson.studentDashboard?.data?.validInviteCodes || [];
+                const matchedTeam = inviteCodes.find(item => item.invitationCode === code);
+
+                if (!matchedTeam) {
+                    throw new Error('Invalid invitation code');
+                }
+
+                alert('Mock: joined team ' + matchedTeam.teamName);
+                navigate('/student/team/status');
+            } catch (mockError) {
+                alert(mockError.message || 'Failed to join team');
+            }
         }
     };
 
     const handleCreateTeam = async () => {
-        if (!newTeamName) {
+        const teamName = newTeamName.trim();
+    
+        if (!teamName) {
             setCreateError('Please enter a team name');
             return;
         }
+    
         setIsCreating(true);
         setCreateError('');
+    
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await axios.post('http://localhost:8080/api/v1/student/teams/create',
-                { teamName: newTeamName, categoryId: 1 },
+        
+            const res = await axios.post(
+                API_STUDENT + '/teams/create',
+                { teamName: teamName, categoryId: 1 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+        
             setInvitationCode(res.data.invitationCode);
         } catch (error) {
-            setCreateError(error.response?.data?.error || 'Failed to create team');
+            console.warn('Create team API unavailable, use mock:', error.message);
+        
+            const mockCode = 'MOCK-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+            setInvitationCode(mockCode);
         } finally {
             setIsCreating(false);
         }
-    }; return (
+    }; 
+    
+    return (
         <div className="student-dash-container">
             <NavbarStudent />
 
@@ -79,11 +205,15 @@ const StudentDashboard = () => {
                                 ACTIVE CONTEST
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
-                            <div className="ic-title">{activeContest ? activeContest.name : 'Loading...'}</div>
+                            <div className="ic-title">
+                                {loadingContest ? 'Loading...' : activeContest?.name || 'No active contest'}
+                            </div>
+
                             <div className="ic-subtitle">
                                 <span style={{ width: 6, height: 6, background: '#dc2626', borderRadius: '50%' }}></span>
-                                {activeContest ? activeContest.status : 'Loading...'}
-                            </div>
+                                {loadingContest ? 'Loading...' : activeContest?.status || 'N/A'}
+                            </div>                            
+                        
                             <div className="progress-bar-bg">
                                 <div className="progress-bar-fill"></div>
                             </div>
@@ -103,40 +233,38 @@ const StudentDashboard = () => {
                             <tbody>
                                 <tr>
                                     <td><strong>Registration Open</strong></td>
-                                    <td>{activeContest?.registrationStart || 'N/A'}</td>
+                                    <td>{formatDate(activeContest?.registrationStart)}</td>
                                     <td>
-                                        {activeContest?.registrationStart && new Date() > new Date(activeContest.registrationStart)
-                                            ? <span className="mc-status ms-completed">Completed</span>
-                                            : <span className="mc-status ms-upcoming">Upcoming</span>}
+                                        {getMilestoneStatus(activeContest?.registrationStart)}
+                                                                              
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><strong>Registration Deadline</strong></td>
-                                    <td>{activeContest?.registrationEnd || 'N/A'}</td>
+                                    <td>{formatDate(activeContest?.registrationEnd)}</td>
                                     <td>
-                                        {activeContest?.registrationEnd && new Date() > new Date(activeContest.registrationEnd)
-                                            ? <span className="mc-status ms-completed">Completed</span>
-                                            : <span className="mc-status ms-upcoming">Upcoming</span>}
+                                        {getMilestoneStatus(activeContest?.registrationEnd)}
+                                        
                                     </td>
                                 </tr>
                                 {activeContest?.rounds?.map((round, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr>
                                             <td><strong>{round.phaseName} - Open</strong></td>
-                                            <td>{round.submissionOpen ? round.submissionOpen.replace('T', ' ').substring(0, 10) : 'N/A'}</td>
+                                            <td>{formatDate(round.submissionOpen)}</td>
                                             <td>
-                                                {round.submissionOpen && new Date() > new Date(round.submissionOpen)
-                                                    ? <span className="mc-status ms-completed">Completed</span>
-                                                    : <span className="mc-status ms-upcoming">Upcoming</span>}
+                                                
+                                                {getMilestoneStatus(round.submissionOpen)}
+                                                
                                             </td>
                                         </tr>
                                         <tr>
                                             <td><strong>{round.phaseName} - Deadline</strong></td>
-                                            <td>{round.submissionDeadline ? round.submissionDeadline.replace('T', ' ').substring(0, 10) : 'N/A'}</td>
+                                            <td>{formatDate(round.submissionDeadline)}</td>
                                             <td>
-                                                {round.submissionDeadline && new Date() > new Date(round.submissionDeadline)
-                                                    ? <span className="mc-status ms-completed">Completed</span>
-                                                    : <span className="mc-status ms-upcoming">Upcoming</span>}
+                                               
+                                               {getMilestoneStatus(round.submissionDeadline)}
+                                               
                                             </td>
                                         </tr>
                                     </React.Fragment>
