@@ -417,6 +417,7 @@ INSERT INTO [Role] (role_name, description) VALUES ('ADMIN', N'Quản trị viê
 INSERT INTO [Role] (role_name, description) VALUES ('STUDENT', N'Sinh viên tham gia Hackathon');
 INSERT INTO [Role] (role_name, description) VALUES ('JUDGE', N'Ban giám khảo chấm thi');
 INSERT INTO [Role] (role_name, description) VALUES ('MENTOR', N'Người hướng dẫn dự án');
+INSERT INTO [Role] (role_name, description) VALUES ('LEADER', N'Lãnh đạo của team');
 GO
 
 INSERT INTO [User] (username, email, password, full_name, email_verified, status) VALUES
