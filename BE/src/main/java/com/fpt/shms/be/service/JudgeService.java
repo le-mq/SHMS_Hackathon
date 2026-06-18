@@ -1,4 +1,3 @@
-//JudgeService
 package com.fpt.shms.be.service;
 
 import com.fpt.shms.be.dto.EvaluationDataResponse;

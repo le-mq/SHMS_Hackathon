@@ -194,6 +194,57 @@
       ]
     }
   },
+
+  "studentSubmission": {
+  "data": {
+    "contestName": "FPT Hackathon Summer",
+    "contestStatus": "ACTIVE",
+    "internalRole": "LEADER",
+    "teamName": "CodeCrafters",
+    "teamStatus": "APPROVED",
+    "rounds": [
+      {
+        "id": "R001",
+        "name": "Idea Submission",
+        "status": "OPEN",
+        "submissionOpen": "2026-06-18T00:00:00+07:00",
+        "submissionDeadline": "2026-06-20T23:59:00+07:00"
+      },
+      {
+        "id": "R002",
+        "name": "Final Sprint",
+        "status": "UPCOMING",
+        "submissionOpen": "2026-06-21T00:00:00+07:00",
+        "submissionDeadline": "2026-06-30T23:59:00+07:00"
+      }
+    ],
+    "history": [
+      {
+        "id": "S001",
+        "roundId": "R001",
+        "version": 1,
+        "timestamp": "2026-06-18T10:30:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-demo",
+        "liveDemoUrl": "https://shms-demo.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-slide",
+        "status": "ARCHIVED"
+      },
+      {
+        "id": "S002",
+        "roundId": "R001",
+        "version": 2,
+        "timestamp": "2026-06-19T21:15:00+07:00",
+        "githubRepoUrl": "https://github.com/codecrafters/shms-final",
+        "liveDemoUrl": "https://shms-final.vercel.app",
+        "docsUrl": "https://docs.google.com/document/d/shms-final-docs",
+        "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide",
+        "status": "SUBMITTED"
+      }
+    ]
+  }
+},
+
   "teams": {
     "data": [
       {
@@ -1131,22 +1182,6 @@
       }
     ]
   },
-  "universities": [
-    {
-      "id": 1,
-      "name": "FPT University",
-      "universityCode": "FPT-HCMC",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$",
-      "studentCodeRegex": "^SE\\d+$"
-    },
-    {
-      "id": 2,
-      "name": "HCMUT",
-      "universityCode": "HCMUT",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@hcmut\\.edu\\.vn$",
-      "studentCodeRegex": "^\\d+$"
-    }
-  ],
   "students": [
     {
       "mssv": "SE180001",
@@ -1212,30 +1247,49 @@
       "is_current_student": true
     }
   ],
-  "universities": [
-    {
-      "university_id": 1,
-      "name": "FPT University",
-      "studentCodeRegex": "^SE\\d{6}$",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$"
-    },
-    {
-      "university_id": 2,
-      "name": "Ho Chi Minh City University of Technology",
-      "studentCodeRegex": "^\\d{8}$",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@hcmut\\.edu\\.vn$"
-    },
-    {
-      "university_id": 3,
-      "name": "University of Science - VNUHCM",
-      "studentCodeRegex": "^\\d{8}$",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@student\\.hcmus\\.edu\\.vn$"
-    },
-    {
-      "university_id": 4,
-      "name": "RMIT Vietnam",
-      "studentCodeRegex": "^s\\d{7}$",
-      "emailRegex": "^[a-zA-Z0-9._%+-]+@rmit\\.edu\\.vn$"
-    }
-  ]
+  "rubricTemplates": {
+    "data": [
+      {
+        "id": 1,
+        "name": "General Technical Rubric",
+        "description": "Standard template for technical projects",
+        "publicVisibility": true,
+        "weightedScoring": true,
+        "criteria": [
+          { "id": 101, "criteriaName": "Innovation", "description": "How innovative is the solution?", "maxScore": 10, "percentageWeight": 30 },
+          { "id": 102, "criteriaName": "Technical Complexity", "description": "Complexity of the implementation", "maxScore": 10, "percentageWeight": 40 },
+          { "id": 103, "criteriaName": "UI/UX", "description": "User interface and experience", "maxScore": 10, "percentageWeight": 30 }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Design Focused Rubric",
+        "description": "For UI/UX and design heavy projects",
+        "publicVisibility": true,
+        "weightedScoring": true,
+        "criteria": [
+          { "id": 201, "criteriaName": "Visual Appeal", "description": "Aesthetics and beauty", "maxScore": 10, "percentageWeight": 50 },
+          { "id": 202, "criteriaName": "Usability", "description": "Ease of use", "maxScore": 10, "percentageWeight": 50 }
+        ]
+      }
+    ]
+  },
+  "contestRubrics": {
+    "data": [
+      {
+        "id": 1,
+        "contestId": "1",
+        "categoryId": "1",
+        "roundId": "1",
+        "templateId": 1
+      },
+      {
+        "id": 2,
+        "contestId": "1",
+        "categoryId": "1",
+        "roundId": "2",
+        "templateId": 2
+      }
+    ]
+  }
 }
