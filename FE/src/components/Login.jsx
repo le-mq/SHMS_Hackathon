@@ -49,7 +49,6 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!formData.username || !formData.password) {
             setError('Please enter both username and password');
             return;
@@ -57,30 +56,58 @@ const Login = () => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await fetch(API_BASE + "/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: formData.username, password: formData.password })
+            const response = await fetch(API_BASE + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: formData.username,
+                    password: formData.password
+                })
+            });
+            let data = {};
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                data = await response.json();
             }
-            );
-            if (!response.ok)
-                throw new Error();
-            const data = await response.json();
+            if (!response.ok) {
+                const errorMsg = data.error || data.message || '';
+                if (errorMsg === 'ACCOUNT_PENDING') {
+                    setError('Account verification pending. Redirecting to email verification...');
+                    setTimeout(() => {
+                        navigate('/verify-email', {
+                            state: { username: formData.username, canResendImmediately: true }
+                        });
+                    }, 2500);
+                } else {
+                    setError(data.message || data.error || 'Login failed. Please check your credentials.');
+                }
+                return;
+            }
             loginSuccess(data);
-        } catch {
-
+        } catch (err) {
+            console.warn("Backend disconnected, falling back to mock data...", err);
             try {
                 const localRes = await fetch("/testFE.json");
                 const localJson = await localRes.json();
-                const user = localJson.loginMock?.find(u => u.username === formData.username && u.password === formData.password);
+                const user = localJson.loginMock?.find(
+                    u => u.username === formData.username && u.password === formData.password
+                );
                 if (!user) {
                     setError("Invalid username or password");
                     return;
                 }
+                if (user.error === 'ACCOUNT_PENDING' || user.message === 'ACCOUNT_PENDING' || user.status === 'PENDING') {
+                    setError('Account verification pending (Mock). Redirecting to email verification...');
+                    setTimeout(() => {
+                        navigate('/verify-email', {
+                            state: { username: formData.username, canResendImmediately: true }
+                        });
+                    }, 2500);
+                    return;
+                }
                 loginSuccess(user);
-            }
-            catch {
-                setError("Failed to connect to server.");
+            } catch (mockErr) {
+                setError("Failed to connect to the server.");
             }
         } finally {
             setIsLoading(false);
