@@ -244,7 +244,10 @@ const TeamStatus = () => {
     );
 
     const contestStatus = selectedParticipatedTeam?.contest?.status || '';
-    const canLeaveTeam = hasTeam && contestStatus === 'ACTIVE';
+    const canLeaveTeam =
+        hasTeam &&
+        contestStatus === 'ACTIVE' &&
+        status.toUpperCase() !== 'APPROVED';
 
     const isSubmitted = status === 'APPROVED' || status === 'PENDING';
 
