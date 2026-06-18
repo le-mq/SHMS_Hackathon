@@ -3,6 +3,7 @@ package com.fpt.shms.be.controller;
 import com.fpt.shms.be.dto.*;
 import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
+import com.fpt.shms.be.model.ContestRubric;
 import com.fpt.shms.be.service.*;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class AdminController {
 
     private final ContestAdminService contestAdminService;
+    private final RubricAdminService rubricAdminService;
     private final PartnerAdminService partnerAdminService;
     private final ExpertAdminService expertAdminService;
     private final AllocationAdminService allocationAdminService;
@@ -262,6 +264,119 @@ public class AdminController {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/rubrics")
+    @Operation(summary = "Create and Bind a Rubric Template", description = "Requires ADMIN role.")
+    public ResponseEntity<?> createRubric(HttpServletRequest request, @Valid @RequestBody CreateRubricRequest rubricRequest) {
+        try {
+            requireAdminRole(request);
+            ContestRubric rubric = rubricAdminService.createRubric(rubricRequest);
+            return ResponseEntity.ok(Map.of("message", "Rubric created and bound successfully", "rubricId", rubric.getId()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/rubric-templates")
+    @Operation(summary = "Get all Rubric Templates", description = "Requires ADMIN role.")
+    public ResponseEntity<?> getAllRubricTemplates(HttpServletRequest request) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(rubricAdminService.getAllTemplates());
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/rubrics")
+    @Operation(summary = "Get all Contest Rubric bindings", description = "Requires ADMIN role.")
+    public ResponseEntity<?> getAllContestRubrics(HttpServletRequest request) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(rubricAdminService.getAllContestRubrics());
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/rubric-templates")
+    @Operation(summary = "Create a Rubric Template (template-only, no round binding)", description = "Requires ADMIN role.")
+    public ResponseEntity<?> createRubricTemplate(HttpServletRequest request, @Valid @RequestBody CreateRubricRequest rubricRequest) {
+        try {
+            requireAdminRole(request);
+            com.fpt.shms.be.model.RubricTemplate saved = rubricAdminService.createTemplateOnly(rubricRequest);
+            return ResponseEntity.ok(Map.of("message", "Template saved successfully", "templateId", saved.getId()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/rubric-templates/{id}")
+    @Operation(summary = "Get Rubric Template by ID", description = "Requires ADMIN role.")
+    public ResponseEntity<?> getRubricTemplateById(HttpServletRequest request, @PathVariable Long id) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(rubricAdminService.getTemplateById(id));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/rubric-templates/{id}/clone")
+    @Operation(summary = "Clone a Rubric Template", description = "Requires ADMIN role.")
+    public ResponseEntity<?> cloneRubricTemplate(HttpServletRequest request, @PathVariable Long id) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(rubricAdminService.cloneTemplate(id));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/rubric-templates/{id}")
+    @Operation(summary = "Update a Rubric Template", description = "Requires ADMIN role.")
+    public ResponseEntity<?> updateRubricTemplate(HttpServletRequest request, @PathVariable Long id, @Valid @RequestBody CreateRubricRequest rubricRequest) {
+        try {
+            requireAdminRole(request);
+            return ResponseEntity.ok(rubricAdminService.updateTemplate(id, rubricRequest));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/rubric-templates/{id}")
+    @Operation(summary = "Delete a Rubric Template", description = "Requires ADMIN role.")
+    public ResponseEntity<?> deleteRubricTemplate(HttpServletRequest request, @PathVariable Long id) {
+        try {
+            requireAdminRole(request);
+            rubricAdminService.deleteTemplate(id);
+            return ResponseEntity.ok(Map.of("message", "Template deleted successfully"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Cannot delete template because it might be in use, or another error occurred: " + e.getMessage()));
         }
     }
 

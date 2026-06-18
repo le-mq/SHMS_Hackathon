@@ -6,9 +6,9 @@ import com.fpt.shms.be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TeamService{
@@ -419,8 +419,7 @@ public class TeamService{
         }
 
         return com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.builder()
-                .contests(contestDataList)
-                .build();
+                .contests(contestDataList).build();
     }
 
     private Student requireStudent(User user) {
