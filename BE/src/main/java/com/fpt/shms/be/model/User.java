@@ -61,6 +61,6 @@ public class User {
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
 
     public enum UserStatus {
-        PENDING, ACTIVE, INACTIVE, REJECTED
+        PENDING, ACTIVE, INACTIVE
     }
 }

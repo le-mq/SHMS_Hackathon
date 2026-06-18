@@ -110,11 +110,25 @@ public class ContestAdminService {
                         .status(Semester.SemesterStatus.UPCOMING)
                         .build()));
 
-        Contest contest = contestRepository.findBySemesterId(semester.getId())
-                .orElseGet(() -> Contest.builder()
-                        .semester(semester)
-                        .status(Contest.ContestStatus.UPCOMING)
-                        .build());
+        Contest contest;
+        if (request.getId() != null) {
+            contest = contestRepository.findById(request.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+            if (!contest.getSemester().getId().equals(semester.getId())) {
+                if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
+                    throw new IllegalArgumentException("A contest already exists for the selected season (" + request.getTerm() + " " + request.getYear() + ").");
+                }
+            }
+            contest.setSemester(semester);
+        } else {
+            if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
+                throw new IllegalArgumentException("A contest already exists for this season (" + request.getTerm() + " " + request.getYear() + "). Cannot create a new one.");
+            }
+            contest = Contest.builder()
+                    .semester(semester)
+                    .status(Contest.ContestStatus.UPCOMING)
+                    .build();
+        }
 
         contest.setName(request.getName());
         contest.setSeason(parseSeason(request.getTerm()));
@@ -134,14 +148,20 @@ public class ContestAdminService {
             try {
                 Contest.ContestStatus newStatus = Contest.ContestStatus.valueOf(request.getStatus().toUpperCase());
                 if (newStatus == Contest.ContestStatus.CLOSED && contest.getStatus() != Contest.ContestStatus.CLOSED) {
-                    // Cập nhật tất cả các hạng mục của cuộc thi này thành INACTIVE
+                    // Cập nhật tất cả các hạng mục của cuộc thi này thành CLOSED
                     List<Category> categories = categoryRepository.findByContestId(contest.getId());
                     for (Category cat : categories) {
-                        cat.setStatus("INACTIVE");
+                        cat.setStatus("CLOSED");
                         categoryRepository.save(cat);
                     }
 
-                    // Chỉ áp dụng quy tắc chuyển đổi người dùng TEAM_LEADER thành TEAM_MEMBER cho cuộc thi này mà thôi.
+                    // Cập nhật tất cả các vòng thi thành CLOSED
+                    List<Round> rounds = roundRepository.findByContestId(contest.getId());
+                    for (Round round : rounds) {
+                        round.setState(Round.RoundState.CLOSED);
+                        roundRepository.save(round);
+                    }
+// Chỉ áp dụng quy tắc chuyển đổi người dùng TEAM_LEADER thành TEAM_MEMBER cho cuộc thi này mà thôi.
                     Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
                     Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
 
@@ -201,7 +221,6 @@ public class ContestAdminService {
                         .contest(contest)
                         .rounds(new ArrayList<>())
                         .build());
-
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
         category.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
