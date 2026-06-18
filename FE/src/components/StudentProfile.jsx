@@ -26,26 +26,26 @@ const StudentProfile = () => {
     const fetchProfile = async () => {
 
         // Test 
-            // try {
+        // try {
         // const data = await studentProfileApi.getProfile();
 
         // setProfile(data);
         // setFormData(prev => ({
-            // ...prev,
-            // telephoneNumber: data.telephoneNumber || ''
+        // ...prev,
+        // telephoneNumber: data.telephoneNumber || ''
         // }));
 
         // if (data.avatarBase64) {
-            // setAvatarPreview(data.avatarBase64);
+        // setAvatarPreview(data.avatarBase64);
         // }
 
         // setIsLoading(false);
         // return;
-    // } catch (err) {
+        // } catch (err) {
         // setError('Failed to load fake profile data');
         // setIsLoading(false);
         // return;
-    // }
+        // }
         // Test end
 
         const token = localStorage.getItem('shms_token');
@@ -129,9 +129,9 @@ const StudentProfile = () => {
             const token = localStorage.getItem('shms_token');
             const response = await fetch('http://localhost:8080/api/v1/student/profile', {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json' 
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updateData)
             });
@@ -207,19 +207,19 @@ const StudentProfile = () => {
                         {avatarPreview ? (
                             <img src={avatarPreview} alt="Avatar" className="avatar-image" />
                         ) : (
-                            <svg className="avatar-image" fill="none" stroke="#9ca3af" viewBox="0 0 24 24" style={{padding: '20px'}}>
+                            <svg className="avatar-image" fill="none" stroke="#9ca3af" viewBox="0 0 24 24" style={{ padding: '20px' }}>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         )}
                     </div>
                     <div className="avatar-name">{profile?.fullName}</div>
                     <div className="avatar-role">{profile?.role || 'Student Account'}</div>
-                    
-                    <input 
-                        type="file" 
-                        accept="image/jpeg, image/png" 
-                        ref={fileInputRef} 
-                        style={{ display: 'none' }} 
+
+                    <input
+                        type="file"
+                        accept="image/jpeg, image/png"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
                         onChange={handleFileChange}
                     />
                     <button className="upload-btn" onClick={() => fileInputRef.current.click()}>
@@ -234,7 +234,7 @@ const StudentProfile = () => {
                 {/* Right Column - Info & Settings */}
                 <div className="profile-card">
                     <h2 className="section-title">Institutional Information</h2>
-                    
+
                     <div className="form-grid">
                         <div className="form-group">
                             <label className="form-label">Full Name</label>
@@ -253,11 +253,11 @@ const StudentProfile = () => {
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <input type="text" className="form-input" value={profile?.corporateEmail || ''} disabled style={{ flex: 1 }} />
                                 {profile && profile.isEmailVerified === true && (
-                                    <div style={{
-                                        display: 'flex', alignItems: 'center', gap: '5px',
-                                        color: '#10b981', fontWeight: '600', padding: '0 10px',
-                                        background: '#ecfdf5', borderRadius: '4px', border: '1px solid #10b981'
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', height: '32px',
+                                        padding: '0 12px', fontSize: '14px', color: '#10b981', fontWeight: '600', background: '#ecfdf5',
+                                        borderRadius: '4px', border: '1px solid #10b981',whiteSpace: 'nowrap'
                                     }}>
+
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
@@ -277,7 +277,7 @@ const StudentProfile = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="info-text">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -292,10 +292,10 @@ const StudentProfile = () => {
                     <div className="form-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '50%' }}>
                         <div className="form-group">
                             <label className="form-label">Telephone Number</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="telephoneNumber"
-                                className="form-input" 
+                                className="form-input"
                                 placeholder="+84 90 123 4567"
                                 value={formData.telephoneNumber}
                                 onChange={handleChange}
@@ -306,10 +306,10 @@ const StudentProfile = () => {
                     <div className="form-grid">
                         <div className="form-group">
                             <label className="form-label">Current Password</label>
-                            <input 
-                                type="password" 
+                            <input
+                                type="password"
                                 name="currentPassword"
-                                className="form-input" 
+                                className="form-input"
                                 placeholder="••••••••"
                                 value={formData.currentPassword}
                                 onChange={handleChange}
@@ -317,10 +317,10 @@ const StudentProfile = () => {
                         </div>
                         <div className="form-group">
                             <label className="form-label">New Password</label>
-                            <input 
-                                type="password" 
+                            <input
+                                type="password"
                                 name="newPassword"
-                                className="form-input" 
+                                className="form-input"
                                 placeholder="Leave blank to keep current"
                                 value={formData.newPassword}
                                 onChange={handleChange}
@@ -328,10 +328,10 @@ const StudentProfile = () => {
                         </div>
                         <div className="form-group">
                             <label className="form-label">Confirm New Password</label>
-                            <input 
-                                type="password" 
+                            <input
+                                type="password"
                                 name="confirmNewPassword"
-                                className="form-input" 
+                                className="form-input"
                                 placeholder="Re-enter new password"
                                 value={formData.confirmNewPassword}
                                 onChange={handleChange}

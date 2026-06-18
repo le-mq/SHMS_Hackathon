@@ -62,10 +62,10 @@
 
 .dash-cards-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 24px;
+    margin: 0 20px;
 }
-
 .info-card {
     background: white;
     border: 1px solid #e2e8f0;
@@ -135,6 +135,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     overflow: hidden;
+    margin: 24px 20px 40px;
 }
 
 .mc-header {
