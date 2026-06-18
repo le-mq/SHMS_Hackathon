@@ -23,6 +23,8 @@ public class CreateTrackRoundRequest {
 
     private String guidelineUrl;
 
+    private String status = "ACTIVE";
+
     @Valid
     private List<RoundDto> rounds;
 

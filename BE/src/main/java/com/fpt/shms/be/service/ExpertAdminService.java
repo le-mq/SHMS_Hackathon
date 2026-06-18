@@ -80,18 +80,12 @@ public class ExpertAdminService {
             if (roleName.equals("JUDGE")) {
                 Judge judge = Judge.builder()
                         .user(user)
-                        .fullName(request.getFullName())
-                        .professionalEmail(request.getProfessionalEmail())
-                        .accessExpiry(request.getAccessExpiry())
                         .status("ACTIVE")
                         .build();
                 judgeRepository.save(judge);
             } else if (roleName.equals("MENTOR")) {
                 Mentor mentor = Mentor.builder()
                         .user(user)
-                        .fullName(request.getFullName())
-                        .professionalEmail(request.getProfessionalEmail())
-                        .accessExpiry(request.getAccessExpiry())
                         .status("ACTIVE")
                         .build();
                 mentorRepository.save(mentor);
@@ -155,7 +149,7 @@ public class ExpertAdminService {
                 jOpt.get().setAccessExpiry(newExpiry);
                 judgeRepository.save(jOpt.get());
             } else {
-                Judge j = Judge.builder().user(user).fullName(user.getFullName()).professionalEmail(user.getEmail()).accessExpiry(newExpiry).status("ACTIVE").build();
+                Judge j = Judge.builder().user(user).status("ACTIVE").build();
                 judgeRepository.save(j);
             }
         }
@@ -166,7 +160,7 @@ public class ExpertAdminService {
                 mOpt.get().setAccessExpiry(newExpiry);
                 mentorRepository.save(mOpt.get());
             } else {
-                Mentor m = Mentor.builder().user(user).fullName(user.getFullName()).professionalEmail(user.getEmail()).accessExpiry(newExpiry).status("ACTIVE").build();
+                Mentor m = Mentor.builder().user(user).status("ACTIVE").build();
                 mentorRepository.save(m);
             }
         }
@@ -192,14 +186,14 @@ public class ExpertAdminService {
 
         Optional<Judge> jOpt = judgeRepository.findByUser(user);
         if (hasJudge && jOpt.isEmpty()) {
-            judgeRepository.save(Judge.builder().user(user).fullName(user.getFullName()).professionalEmail(user.getEmail()).accessExpiry(LocalDateTime.now().plusMonths(1)).status("ACTIVE").build());
+            judgeRepository.save(Judge.builder().user(user).status("ACTIVE").build());
         } else if (!hasJudge && jOpt.isPresent()) {
             judgeRepository.delete(jOpt.get());
         }
 
         Optional<Mentor> mOpt = mentorRepository.findByUser(user);
         if (hasMentor && mOpt.isEmpty()) {
-            mentorRepository.save(Mentor.builder().user(user).fullName(user.getFullName()).professionalEmail(user.getEmail()).accessExpiry(LocalDateTime.now().plusMonths(1)).status("ACTIVE").build());
+            mentorRepository.save(Mentor.builder().user(user).status("ACTIVE").build());
         } else if (!hasMentor && mOpt.isPresent()) {
             mentorRepository.delete(mOpt.get());
         }
