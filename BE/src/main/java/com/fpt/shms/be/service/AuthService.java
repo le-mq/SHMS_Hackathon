@@ -75,7 +75,9 @@ public class AuthService {
             activeRole = "JUDGE";
         } else if (userRoles.contains("MENTOR")) {
             activeRole = "MENTOR";
-        } else if (userRoles.contains("TEAM_LEADER") || userRoles.contains("TEAM_MEMBER")) {
+        } else if (userRoles.contains("LEADER")) {
+            activeRole = "LEADER";
+        } else if (userRoles.contains("STUDENT")) {
             activeRole = "STUDENT";
         } else {
             activeRole = userRoles.get(0);
@@ -173,16 +175,15 @@ public class AuthService {
             throw new IllegalArgumentException("Major does not match Verification Data");
         }
 
-        Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER")
-                .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_MEMBER").build()));
-
-        // Create User as PENDING until the email OTP is verified.
+        Role studentRole = roleRepository.findByName("STUDENT")
+                .orElseThrow(() -> new IllegalArgumentException("STUDENT role missing in DB"));
+        
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())
                 .fullName(request.getFullName())
                 .password(request.getPassword())
-                .roles(new java.util.HashSet<>(java.util.Collections.singletonList(teamMemberRole)))
+                .roles(new java.util.HashSet<>(java.util.Collections.singletonList(studentRole)))
                 .status(User.UserStatus.PENDING)
                 .isEmailVerified(false)
                 .build();
