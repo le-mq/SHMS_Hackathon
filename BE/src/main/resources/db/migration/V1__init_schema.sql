@@ -130,13 +130,9 @@ CREATE TABLE Contest (
                          status VARCHAR(50) NOT NULL,
                          registration_start DATE NULL,
                          registration_end DATE NULL,
-                         development_start DATE NULL,
-                         development_end DATE NULL,
                          allowed_corporate_domains NVARCHAR(500) NULL,
-                         track_themes NVARCHAR(500) NULL,
                          compliance_rules NVARCHAR(MAX) NULL,
                          tiered_prize_structures NVARCHAR(MAX) NULL,
-                         hero_branding_banner VARCHAR(255) NULL,
                          created_at DATETIME NULL CONSTRAINT df_contest_created_at DEFAULT GETDATE(),
                          CONSTRAINT pk_contest PRIMARY KEY (contest_id),
                          CONSTRAINT fk_contest_semester FOREIGN KEY (semester_id) REFERENCES Semester(semester_id)
@@ -612,10 +608,9 @@ INSERT INTO Semester (term, [year], semester_code)
 VALUES ('Summer', 2026, 'SU26');
 GO
 
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, development_start, development_end, compliance_rules)
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, compliance_rules)
 VALUES (1, 'FPT Hackathon 2026', 'AI', 25, 'ACTIVE',
-        DATEADD(day, -7, GETDATE()), DATEADD(day, 7, GETDATE()),
-        DATEADD(day, 8, GETDATE()), DATEADD(day, 14, GETDATE()), 'Nop bai dung han');
+        DATEADD(day, -7, GETDATE()), DATEADD(day, 7, GETDATE()), 'Nop bai dung han');
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
