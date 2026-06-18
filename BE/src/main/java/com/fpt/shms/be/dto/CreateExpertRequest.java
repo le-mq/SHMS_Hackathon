@@ -27,7 +27,6 @@ public class CreateExpertRequest {
     private List<String> roleSelection;
 
 
-    @NotNull(message = "Expiry date is required")
     @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime accessExpiry;
 }
