@@ -1,27 +1,13 @@
 package com.fpt.shms.be.service;
 
+import com.fpt.shms.be.dto.CreateAnnouncementRequest;
 import com.fpt.shms.be.dto.CreateContestRequest;
-import com.fpt.shms.be.model.Contest;
-import com.fpt.shms.be.model.ContestUniversity;
-import com.fpt.shms.be.model.Semester;
-import com.fpt.shms.be.model.Category;
-import com.fpt.shms.be.model.Round;
+import com.fpt.shms.be.model.*;
 import com.fpt.shms.be.dto.CreateTrackRoundRequest;
-import com.fpt.shms.be.repository.ContestRepository;
-import com.fpt.shms.be.repository.ContestUniversityRepository;
-import com.fpt.shms.be.repository.SemesterRepository;
-import com.fpt.shms.be.repository.CategoryRepository;
-import com.fpt.shms.be.repository.RoundRepository;
-import com.fpt.shms.be.repository.UserRepository;
-import com.fpt.shms.be.repository.RoleRepository;
-import com.fpt.shms.be.repository.UniversityRepository;
-import com.fpt.shms.be.model.User;
-import com.fpt.shms.be.model.Role;
-import com.fpt.shms.be.model.University;
+import com.fpt.shms.be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +25,8 @@ public class ContestAdminService {
     private final RoundRepository roundRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final TeamRepository teamRepository;
+    private final AnnouncementRepository announcementRepository;
     private final UniversityRepository universityRepository;
 
     public List<Contest> getAllContests() {
@@ -68,13 +56,24 @@ public class ContestAdminService {
                 return roundMap;
             }).toList();
 
+            List<Team> catTeams = teamRepository.findByCategoryId(c.getId());
+            List<Map<String, Object>> teamMaps = catTeams.stream()
+                    .filter(t -> "APPROVED".equals(t.getStatus()))
+                    .map(t -> {
+                        Map<String, Object> tm = new HashMap<>();
+                        tm.put("id", t.getId());
+                        tm.put("name", t.getName());
+                        return tm;
+                    }).toList();
+
+
             Map<String, Object> trackMap = new HashMap<>();
             trackMap.put("id", c.getId());
             trackMap.put("categoryName", c.getName());
             trackMap.put("trackDescription", c.getDescription() != null ? c.getDescription() : "");
             trackMap.put("guidelineUrl", c.getGuidelineUrl() != null ? c.getGuidelineUrl() : "");
             trackMap.put("rounds", roundsList);
-//
+            trackMap.put("teams", teamMaps);
             return trackMap;
         }).toList();
 
@@ -158,7 +157,6 @@ public class ContestAdminService {
 
         contest = contestRepository.save(contest);
 
-
         contestUniversityRepository.deleteByContest(contest);
 
         if (request.getAllowedCorporateDomains() != null && !request.getAllowedCorporateDomains().isEmpty()) {
@@ -203,7 +201,6 @@ public class ContestAdminService {
                 throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
             }
 
-
             Round.RoundState state = Round.RoundState.UPCOMING;
             if (roundDto.getState() != null) {
                 try {
@@ -224,7 +221,6 @@ public class ContestAdminService {
                         .findFirst()
                         .orElse(null);
             }
-
 
             if (round == null) {
                 round = existingRounds.stream()
@@ -253,6 +249,23 @@ public class ContestAdminService {
         return categoryRepository.save(category);
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public Announcement createAnnouncement(CreateAnnouncementRequest request) {
+        Contest contest = contestRepository.findById(request.getContestId())
+                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+
+        Announcement announcement = Announcement.builder()
+                .contest(contest)
+                .title(request.getTitle())
+                .content(request.getContent())
+                .type(request.getType())
+                .publishedAt(java.time.LocalDateTime.now())
+                .isActive(true)
+                .status("ACTIVE")
+                .build();
+
+        return announcementRepository.save(announcement);
+    }
 
     private Contest.Season parseSeason(String term) {
         try {

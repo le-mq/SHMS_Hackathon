@@ -380,6 +380,23 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/announcements")
+    @Operation(summary = "Create an Announcement", description = "Requires ADMIN or COORDINATOR role.")
+    public ResponseEntity<?> createAnnouncement(HttpServletRequest request, @Valid @RequestBody CreateAnnouncementRequest announcementRequest) {
+        try {
+            requireAdminRole(request);
+            var announcement = contestAdminService.createAnnouncement(announcementRequest);
+            return ResponseEntity.ok(Map.of("message", "Announcement broadcasted successfully", "announcementId", announcement.getId()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", "An error occurred while creating announcement"));
+        }
+    }
+
     // --- TEAM REGISTRATION APPROVAL ---
 
     @PutMapping("/teams/registration-status")

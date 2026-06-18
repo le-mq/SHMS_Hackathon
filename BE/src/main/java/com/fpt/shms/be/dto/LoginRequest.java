@@ -12,6 +12,4 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    // Optional dynamic role context selection
-    private String roleContext;
 }
