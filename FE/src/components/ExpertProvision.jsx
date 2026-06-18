@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ExpertProvision.css';
 import NavbarAdmin from './NavbarAdmin';
 
+const API_BASE = "http://localhost:8080/api/v1";
 const ExpertProvisioning = () => {
     const [formData, setFormData] = useState({
         fullName: '',
@@ -35,7 +36,6 @@ const ExpertProvisioning = () => {
 
         try {
             const token = localStorage.getItem('shms_token');
-            // Adding time to the date so it matches LocalDateTime
             const accessExpiryDate = new Date(formData.accessExpiry);
             accessExpiryDate.setHours(23, 59, 59);
 
@@ -48,7 +48,7 @@ const ExpertProvisioning = () => {
                 accessExpiry: `${formData.accessExpiry}T23:59:59`
             };
 
-            const response = await fetch('http://localhost:8080/api/v1/admin/contests/experts/create', {
+            const response = await fetch(`${API_BASE}/admin/contests/experts/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,8 +87,25 @@ const ExpertProvisioning = () => {
                 });
                 fetchExperts();
             }
-        } catch (err) {
-            setError('Failed to connect to the server: ' + err.message);
+        } catch {
+            const newExpert = {
+                userId: Date.now(),
+                fullName: formData.fullName,
+                username: formData.username,
+                professionalEmail: formData.professionalEmail,
+                roles: formData.roleSelection,
+                accessExpiry: formData.accessExpiry + "T23:59:59"
+            };
+            setExperts(prev => [...prev, newExpert]);
+            setSuccess("Mock account generated successfully!");
+            setFormData({
+                fullName: '',
+                professionalEmail: '',
+                username: '',
+                password: '',
+                roleSelection: [],
+                accessExpiry: ''
+            });
         } finally {
             setIsLoading(false);
         }
@@ -103,16 +120,19 @@ const ExpertProvisioning = () => {
 
     const fetchExperts = async () => {
         try {
-            const token = localStorage.getItem('shms_token');
-            const res = await fetch('http://localhost:8080/api/v1/admin/contests/experts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setExperts(data);
-            }
-        } catch (e) {
-            console.error(e);
+            const token = localStorage.getItem("shms_token");
+            const res = await fetch(API_BASE + "/admin/contests/experts",
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (!res.ok)
+                throw new Error();
+            const data = await res.json();
+            setExperts(data);
+        }
+        catch {
+            const localRes = await fetch("/testFE.json");
+            const localJson = await localRes.json();
+            setExperts(localJson.expertProvisioning?.experts || []);
         }
     };
     const [manageRoleSelection, setManageRoleSelection] = useState([]);
@@ -143,7 +163,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`http://localhost:8080/api/v1/admin/contests/experts/${extendUserId}/roles`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}/roles`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,12 +173,14 @@ const ExpertProvisioning = () => {
             });
             if (res.ok) {
                 setExtendMsg('Roles updated successfully!');
-                fetchExperts(); // refresh
+                fetchExperts();
             } else {
                 setExtendMsg('Failed to update roles.');
             }
-        } catch (e) {
-            setExtendMsg('Error connecting to server.');
+        } catch {
+            setExperts(prev => prev.map(exp => exp.userId == extendUserId ? { ...exp, roles: manageRoleSelection } : exp)
+            );
+            setExtendMsg("Mock update roles success!");
         } finally {
             setUpdateRolesLoading(false);
         }
@@ -170,7 +192,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`http://localhost:8080/api/v1/admin/contests/experts/${extendUserId}/expiry`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}/expiry`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -180,12 +202,13 @@ const ExpertProvisioning = () => {
             });
             if (res.ok) {
                 setExtendMsg('Expiry extended successfully!');
-                fetchExperts(); // refresh
+                fetchExperts();
             } else {
                 setExtendMsg('Failed to extend expiry.');
             }
-        } catch (e) {
-            setExtendMsg('Error connecting to server.');
+        } catch {
+            setExperts(prev => prev.map(exp => exp.userId == extendUserId ? { ...exp, accessExpiry: newExpiry + "T23:59:59" } : exp));
+            setExtendMsg("Mock extend expiry success!");
         } finally {
             setExtendLoading(false);
         }
@@ -198,7 +221,7 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`http://localhost:8080/api/v1/admin/contests/experts/${extendUserId}`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -207,12 +230,14 @@ const ExpertProvisioning = () => {
             if (res.ok) {
                 setExtendMsg('Expert deleted successfully!');
                 setExtendUserId('');
-                fetchExperts(); // refresh
+                fetchExperts();
             } else {
                 setExtendMsg('Failed to delete expert.');
             }
-        } catch (e) {
-            setExtendMsg('Error connecting to server.');
+        } catch {
+            setExperts(prev => prev.filter(exp => exp.userId != extendUserId));
+            setExtendUserId("");
+            setExtendMsg("Mock delete success!");
         } finally {
             setExtendLoading(false);
         }

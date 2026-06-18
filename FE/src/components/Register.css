@@ -61,7 +61,17 @@
 
 .form-input.is-invalid,
 .form-select.is-invalid {
-    border-color: #ef4444;
+    border-color: #ef4444 !important;
+}
+
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus {
+
+    border-color: #ef4444 !important;
+
+    box-shadow:
+        0 0 0 2px rgba(239, 68, 68, .15);
+
 }
 
 .invalid-feedback {

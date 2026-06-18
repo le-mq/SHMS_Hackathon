@@ -4,6 +4,7 @@ import com.fpt.shms.be.model.Team;
 import com.fpt.shms.be.repository.CategoryRepository;
 import com.fpt.shms.be.repository.ContestRepository;
 import com.fpt.shms.be.service.StudentService;
+import com.fpt.shms.be.service.SubmissionService;
 import com.fpt.shms.be.service.TeamService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +28,7 @@ public class StudentController {
     private final TeamService teamService;
     private final ContestRepository contestRepository;
     private final CategoryRepository categoryRepository;
-
+    private final SubmissionService submissionService;
 
     private String extractUsernameFromToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -89,7 +90,7 @@ public class StudentController {
     @GetMapping("/contests")
     public ResponseEntity<?> getContests(HttpServletRequest request) {
         try {
-            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
+            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName(), "status", c.getStatus() )).toList());
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
@@ -99,6 +100,44 @@ public class StudentController {
     public ResponseEntity<?> getCategories(HttpServletRequest request) {
         try {
             return ResponseEntity.ok(categoryRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName())).toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/submissions")
+    @Operation(summary = "Get Submission Page Data", description = "Returns contest, round, role, and history.")
+    public ResponseEntity<?> getSubmissionPageData(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            return ResponseEntity.ok(submissionService.getSubmissionPageData(username));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/submissions/project")
+    @Operation(summary = "Submit Project Assets", description = "Team Leader submits URLs for grading.")
+    public ResponseEntity<?> submitProject(HttpServletRequest request, @Valid @RequestBody com.fpt.shms.be.dto.SubmitProjectRequest submitRequest) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            submissionService.submitProject(submitRequest, username);
+
+            return ResponseEntity.ok(Map.of("message", "Project submitted successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
@@ -170,7 +209,8 @@ public class StudentController {
 
     @GetMapping("/teams/status")
     @Operation(summary = "Get Team Status", description = "Returns team metadata, roster, and status.")
-    public ResponseEntity<?> getTeamStatus(HttpServletRequest request) {
+    public ResponseEntity<?> getTeamStatus(HttpServletRequest request,
+                                           @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
         try {
             String token = jwtUtils.extractToken(request);
             if (token == null || !jwtUtils.validateToken(token)) {
@@ -178,7 +218,8 @@ public class StudentController {
             }
 
             String username = jwtUtils.getUsernameFromToken(token);
-            return ResponseEntity.ok(teamService.getTeamStatus(username));
+
+            return ResponseEntity.ok(teamService.getTeamStatus(username, contestId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

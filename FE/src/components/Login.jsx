@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import NavbarHome from './NavbarHome.jsx';
 
+const API_BASE = "http://localhost:8080/api/v1";
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -24,6 +25,28 @@ const Login = () => {
         setShowPassword(!showPassword);
     };
 
+    const loginSuccess = (data) => {
+        localStorage.setItem('shms_token', data.token);
+        if (data.role)
+            localStorage.setItem('shms_role', data.role);
+        if (data.allRoles)
+            localStorage.setItem('shms_allRoles', JSON.stringify(data.allRoles));
+        if (data.username)
+            localStorage.setItem('shms_user', data.username);
+        if (data.fullName) {
+            localStorage.setItem('shms_fullname', data.fullName);
+            localStorage.setItem('shms_fullname_' + data.username, data.fullName);
+        }
+        const role = data.role || '';
+        const roleRoutes = {
+            ADMIN: '/admin/config',
+            JUDGE: '/judge/workspace',
+            MENTOR: '/mentor/workspace',
+            STUDENT: '/student/dashboard',
+        };
+        navigate(roleRoutes[role] || '/');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -34,49 +57,31 @@ const Login = () => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (data.error === 'ACCOUNT_PENDING' || data.message === 'ACCOUNT_PENDING') {
-                    setError('Account verification pending. Redirecting to email verification...');
-                    setTimeout(() => {
-                        navigate('/verify-email', { state: { username: formData.username, canResendImmediately: true } });
-                    }, 3000);
-                } else {
-                    setError(data.error || 'Login failed. Please check your credentials.');
-                }
-            } else {
-                localStorage.setItem('shms_token', data.token);// Lưu JWT Token
-                if (data.role) localStorage.setItem('shms_role', data.role);
-                if (data.allRoles) localStorage.setItem('shms_allRoles', JSON.stringify(data.allRoles));// Lưu mảng tất cả các vai trò sở hữu
-                if (data.username) localStorage.setItem('shms_user', data.username);
-                if (data.fullName) {
-                    localStorage.setItem('shms_fullname', data.fullName);
-                    localStorage.setItem('shms_fullname_' + data.username, data.fullName);
-                } else {
-                    localStorage.removeItem('shms_fullname');
-                }
-
-                const role = data.role || '';
-                const roleRoutes = {
-                    ADMIN: '/admin/config',
-                    JUDGE: '/judge/workspace',
-                    MENTOR: '/mentor/workspace',
-                    STUDENT: '/student/dashboard',
-                };
-                navigate(roleRoutes[role] || '/');// không khớp đẩy về home
+            const response = await fetch(API_BASE + "/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: formData.username, password: formData.password })
             }
-        } catch (err) {
-            setError('Failed to connect to the server.');
+            );
+            if (!response.ok)
+                throw new Error();
+            const data = await response.json();
+            loginSuccess(data);
+        } catch {
+
+            try {
+                const localRes = await fetch("/testFE.json");
+                const localJson = await localRes.json();
+                const user = localJson.loginMock?.find(u => u.username === formData.username && u.password === formData.password);
+                if (!user) {
+                    setError("Invalid username or password");
+                    return;
+                }
+                loginSuccess(user);
+            }
+            catch {
+                setError("Failed to connect to server.");
+            }
         } finally {
             setIsLoading(false);
         }

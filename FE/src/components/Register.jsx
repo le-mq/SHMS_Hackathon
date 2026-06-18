@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import './Register.css';
 import { Link, useNavigate } from 'react-router-dom';
 import NavbarHome from './NavbarHome';
+
+const API_BASE = "http://localhost:8080/api/v1";
 const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -23,7 +25,7 @@ const Register = () => {
     useEffect(() => {
         const fetchUniversities = async () => {
             try {
-                const res = await fetch('http://localhost:8080/api/v1/public/universities');
+                const res = await fetch(API_BASE + '/public/universities');
                 if (res.ok) {
                     const data = await res.json();
                     setUniversities(data);
@@ -44,7 +46,11 @@ const Register = () => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
+            setErrors(prev => {
+                const newErr = { ...prev };
+                delete newErr[name];
+                return newErr;
+            });
         }
     };
 
@@ -68,8 +74,14 @@ const Register = () => {
             if (selectedUni.studentCodeRegex) {
                 try {
                     const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
-                    if (!studentCodePattern.test(formData.mssv)) {
-                        newErrors.mssv = 'Invalid student code format';
+                    if (!formData.mssv.trim()) {
+                        newErrors.mssv = 'Student Identification Number is required';
+                    }
+                    else {
+                        const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
+                        if (!studentCodePattern.test(formData.mssv)) {
+                            newErrors.mssv = 'Invalid student code format';
+                        }
                     }
                 } catch (e) {
                     console.error('Invalid student code regex pattern', e);
@@ -81,8 +93,14 @@ const Register = () => {
             if (selectedUni.emailRegex) {
                 try {
                     const emailPattern = new RegExp(selectedUni.emailRegex);
-                    if (!emailPattern.test(formData.corporateEmail)) {
-                        newErrors.corporateEmail = 'Invalid university email format';
+                    if (!formData.corporateEmail.trim()) {
+                        newErrors.corporateEmail = 'Email is required';
+                    }
+                    else {
+                        const emailPattern = new RegExp(selectedUni.emailRegex);
+                        if (!emailPattern.test(formData.corporateEmail)) {
+                            newErrors.corporateEmail = 'Invalid university email format';
+                        }
                     }
                 } catch (e) {
                     console.error('Invalid email regex pattern', e);
@@ -118,7 +136,7 @@ const Register = () => {
 
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/register', {
+            const response = await fetch(API_BASE + '/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -127,7 +145,19 @@ const Register = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                setServerError(data.error || 'Registration failed');
+                if (data.error?.toLowerCase().includes("username")) {
+                    setErrors(prev => ({ ...prev, username: data.error }));
+                }
+                else if (data.error?.toLowerCase().includes("email")) {
+                    setErrors(prev => ({ ...prev, corporateEmail: data.error }));
+                }
+                else if (data.error?.toLowerCase().includes("student")) {
+                    setErrors(prev => ({ ...prev, mssv: data.error }));
+                }
+                else {
+                    setServerError(data.error || "Registration failed");
+                }
+                return;
             } else {
                 setSuccessMsg(data.message || 'Registration successful! Redirecting to email verification...');
                 setTimeout(() => {
