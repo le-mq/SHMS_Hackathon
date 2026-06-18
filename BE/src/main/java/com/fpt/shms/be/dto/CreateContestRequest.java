@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class CreateContestRequest {
 
+    private Long id;
+
     @NotBlank(message = "Event name is required")
     private String name;
 
