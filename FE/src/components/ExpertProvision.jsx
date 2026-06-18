@@ -3,6 +3,9 @@ import './ExpertProvision.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
+
+const todayStr = new Date().toISOString().split('T')[0];
+
 const ExpertProvisioning = () => {
     const [formData, setFormData] = useState({
         fullName: '',
@@ -45,7 +48,7 @@ const ExpertProvisioning = () => {
                 username: formData.username,
                 password: formData.password,
                 roleSelection: formData.roleSelection,
-                accessExpiry: `${formData.accessExpiry}T23:59:59`
+                accessExpiry: accessExpiryDate.toISOString()
             };
 
             const response = await fetch(`${API_BASE}/admin/contests/experts/create`, {
@@ -88,13 +91,15 @@ const ExpertProvisioning = () => {
                 fetchExperts();
             }
         } catch {
+            const expiryDate = new Date(formData.accessExpiry);
+            expiryDate.setHours(23, 59, 59, 999);
             const newExpert = {
                 userId: Date.now(),
                 fullName: formData.fullName,
                 username: formData.username,
                 professionalEmail: formData.professionalEmail,
                 roles: formData.roleSelection,
-                accessExpiry: formData.accessExpiry + "T23:59:59"
+                accessExpiry: expiryDate.toISOString()
             };
             setExperts(prev => [...prev, newExpert]);
             setSuccess("Mock account generated successfully!");
@@ -192,6 +197,8 @@ const ExpertProvisioning = () => {
         setExtendMsg('');
         try {
             const token = localStorage.getItem('shms_token');
+            const expiryDate = new Date(newExpiry);
+            expiryDate.setHours(23, 59, 59, 999);
             const res = await fetch(`${API_BASE}/admin/contests/experts/${extendUserId}/expiry`, {
                 method: 'PUT',
                 headers: {
@@ -207,6 +214,8 @@ const ExpertProvisioning = () => {
                 setExtendMsg('Failed to extend expiry.');
             }
         } catch {
+            const expiryDate = new Date(newExpiry);
+            expiryDate.setHours(23, 59, 59, 999);
             setExperts(prev => prev.map(exp => exp.userId == extendUserId ? { ...exp, accessExpiry: newExpiry + "T23:59:59" } : exp));
             setExtendMsg("Mock extend expiry success!");
         } finally {
@@ -350,10 +359,9 @@ const ExpertProvisioning = () => {
 
                             <div className="form-group">
                                 <label className="form-label">Access Token Expiry Lifespan ⓘ</label>
-                                <input type="date" name="accessExpiry" className="form-input" value={formData.accessExpiry}
+                                <input type="date" name="accessExpiry" className="form-input" min={todayStr} value={formData.accessExpiry}
                                     onChange={handleChange}
-                                    style={{ maxWidth: '300px' }}
-                                />
+                                    style={{ maxWidth: '300px' }} />
                             </div>
 
                             <button className="generate-btn" onClick={handleGenerate} disabled={isLoading}>
@@ -393,7 +401,7 @@ const ExpertProvisioning = () => {
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label className="form-label">New Expiry</label>
-                                    <input type="date" className="form-input" value={newExpiry}
+                                    <input type="date" className="form-input" min={todayStr} value={newExpiry}
                                         onChange={e => setNewExpiry(e.target.value)}
                                     />
                                 </div>
