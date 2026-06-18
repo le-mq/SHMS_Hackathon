@@ -237,19 +237,35 @@ const ProjectSubmission = () => {
         }, 1000);
         return () => clearInterval(timer);
     }, [currentDeadline]);
-    
+
+    const getBackendMessage = (data, fallback) => {
+        return (
+            data?.message ||
+            data?.error ||
+            data?.detail ||
+            data?.data?.message ||
+            fallback
+        );
+    };
     const handleSubmit = async () => {
         if (!isTeamApproved) {
-            alert('Your team has not been approved yet. You cannot submit.');
+            const message = 'Your team has not been approved yet. You cannot submit.';
+            setError(message);
+            alert(message);
             return;
         }
 
         if (!isRoundActive) {
-            alert('This round is not active yet. You cannot submit.');
+            const message = 'This round is not active yet. You cannot submit.';
+            setError(message);
+            alert(message);
             return;
         }
+
         if (pageData?.internalRole !== 'LEADER') {
-            alert('Only Team Leaders are permitted to submit the project.');
+            const message = 'Only Team Leaders are permitted to submit the project.';
+            setError(message);
+            alert(message);
             return;
         }
 
@@ -268,45 +284,33 @@ const ProjectSubmission = () => {
                 body: JSON.stringify(formData),
             });
 
-            const data = await response.json().catch(() => ({}));
+            const result = await response.json().catch(() => ({}));
 
             if (!response.ok) {
-                throw new Error(data.error || 'Submission failed');
+                const message = getBackendMessage(result, 'Submission failed.');
+                setError(message);
+                alert(message);
+                return;
             }
 
-            alert('Project submitted successfully!');
-            window.location.reload();
+            const message = getBackendMessage(result, 'Project submitted successfully!');
+            alert(message);
+
+            if (result.history) {
+                setHistory(result.history);
+            } else {
+                window.location.reload();
+            }
         } catch (err) {
-            console.warn('Submit API unavailable response:', err.message);
+            console.warn('Submit API error:', err.message);
 
-            const newVersion = history.length + 1;
-
-            const mockSubmission = {
-                id: 'MOCK-' + Date.now(),
-                roundId: formData.roundId,
-                version: newVersion,
-                timestamp: new Date().toISOString(),
-                githubRepoUrl: formData.githubRepoUrl,
-                liveDemoUrl: formData.liveDemoUrl,
-                docsUrl: formData.docsUrl,
-                slideUrl: formData.slideUrl,
-                status: 'SUBMITTED',
-            };
-
-            setHistory(prev => [
-                ...prev.map(item => ({
-                    ...item,
-                    status: item.roundId === formData.roundId ? 'ARCHIVED' : item.status,
-                })),
-                mockSubmission,
-            ]);
-
-            alert('Project submitted successfully!');
+            const message = 'Cannot connect to server. Please try again later.';
+            setError(message);
+            alert(message);
         } finally {
             setIsSubmitting(false);
         }
     };
-
 
     return (
         <div className="submission-container">
