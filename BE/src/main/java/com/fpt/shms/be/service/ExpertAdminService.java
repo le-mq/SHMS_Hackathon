@@ -92,7 +92,13 @@ public class ExpertAdminService {
             }
         }
 
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
+
+        if (request.getAccessExpiry() != null) {
+            for (String roleName : distinctRoles) {
+                userRepository.updateUserRoleExpiry(user.getId(), roleName, request.getAccessExpiry());
+            }
+        }
     }
 
     public List<ExpertDto> getAllExperts() {
@@ -113,7 +119,6 @@ public class ExpertAdminService {
                 if (judgeOpt.isPresent()) {
                     fullName = judgeOpt.get().getFullName();
                     email = judgeOpt.get().getProfessionalEmail();
-                    expiry = judgeOpt.get().getAccessExpiry();
                 }
             }
             if (roles.contains("MENTOR") && fullName.isEmpty()) {
@@ -121,7 +126,14 @@ public class ExpertAdminService {
                 if (mentorOpt.isPresent()) {
                     fullName = mentorOpt.get().getFullName();
                     email = mentorOpt.get().getProfessionalEmail();
-                    expiry = mentorOpt.get().getAccessExpiry();
+                }
+            }
+
+            if (roles.contains("JUDGE") || roles.contains("MENTOR")) {
+                String checkRole = roles.contains("JUDGE") ? "JUDGE" : "MENTOR";
+                java.time.LocalDateTime roleExpiry = userRepository.getRoleExpiry(u.getId(), checkRole);
+                if (roleExpiry != null) {
+                    expiry = roleExpiry;
                 }
             }
 
@@ -140,28 +152,10 @@ public class ExpertAdminService {
     @Transactional
     public void extendExpiry(Long userId, LocalDateTime newExpiry) {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        boolean isJudge = user.getRoles().stream().anyMatch(r -> r.getName().equals("JUDGE"));
-        boolean isMentor = user.getRoles().stream().anyMatch(r -> r.getName().equals("MENTOR"));
 
-        if (isJudge) {
-            Optional<Judge> jOpt = judgeRepository.findByUser(user);
-            if (jOpt.isPresent()) {
-                jOpt.get().setAccessExpiry(newExpiry);
-                judgeRepository.save(jOpt.get());
-            } else {
-                Judge j = Judge.builder().user(user).status("ACTIVE").build();
-                judgeRepository.save(j);
-            }
-        }
-
-        if (isMentor) {
-            Optional<Mentor> mOpt = mentorRepository.findByUser(user);
-            if (mOpt.isPresent()) {
-                mOpt.get().setAccessExpiry(newExpiry);
-                mentorRepository.save(mOpt.get());
-            } else {
-                Mentor m = Mentor.builder().user(user).status("ACTIVE").build();
-                mentorRepository.save(m);
+        for (Role role : user.getRoles()) {
+            if (role.getName().equals("JUDGE") || role.getName().equals("MENTOR")) {
+                userRepository.updateUserRoleExpiry(userId, role.getName(), newExpiry);
             }
         }
     }
