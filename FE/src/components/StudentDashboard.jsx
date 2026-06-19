@@ -225,8 +225,8 @@ const StudentDashboard = () => {
             if (await hasExistingTeam(token)) {
                 setCreateError('You have already created a team!');
                 return;
-            }
-
+            } 
+ 
             const res = await axios.post(
                 API_STUDENT + '/teams/create',
                 { teamName: teamName, categoryId: 1 },
