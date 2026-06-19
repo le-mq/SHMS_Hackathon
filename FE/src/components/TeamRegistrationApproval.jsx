@@ -15,6 +15,7 @@ const TeamRegistrationApproval = () => {
 
     const [cancelModal, setCancelModal] = useState({
         isOpen: false,
+        type: 'cancel',
         teamId: null,
         teamName: '',
         reason: ''
@@ -79,6 +80,7 @@ const TeamRegistrationApproval = () => {
     const handleOpenCancelModal = (teamId, teamName) => {
         setCancelModal({
             isOpen: true,
+            type: type,
             teamId,
             teamName,
             reason: ''
@@ -87,22 +89,26 @@ const TeamRegistrationApproval = () => {
 
     const handleConfirmCancelStatus = async () => {
         if (!cancelModal.reason.trim()) {
-            alert("Vui lòng nhập lý do hủy tư cách thi!");
+            alert(`Vui lòng nhập lý do ${actionModal.type === 'cancel' ? 'hủy tư cách' : 'hoàn lại tư cách'} thi!`);
             return;
         }
 
-        const confirmCheck = window.confirm(`Bạn có chắc chắn muốn hủy tư cách tham gia cuộc thi của đội "${cancelModal.teamName}" không?`);
+        const confirmText = actionModal.type === 'cancel'
+            ? `Bạn có chắc chắn muốn hủy tư cách tham gia của đội "${actionModal.teamName}" không?`
+            : `Bạn có chắc chắn muốn HOÀN LẠI tư cách tham gia cuộc thi cho đội "${actionModal.teamName}" không?`;
+
+        const confirmCheck = window.confirm(confirmText);
         if (!confirmCheck) return;
 
         try {
             const token = localStorage.getItem("shms_token");
 
-            // Ví dụ gọi API (bạn có thể đổi endpoint cho đúng thiết kế Backend của bạn)
-            // await axios.post(`${API_BASE}/admin/contests/teams/cancel-status`, {
-            //     teamId: cancelModal.teamId,
-            //     contestId: selectedContestId,
-            //     reason: cancelModal.reason
-            // }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post(`${API_BASE}/admin/contests/teams/registration-status`, {
+                teamId: cancelModal.teamId,
+                contestId: selectedContestId,
+                actionType: cancelModal.type,
+                reason: cancelModal.reason
+            }, { headers: { Authorization: `Bearer ${token}` } });
 
             const targetTeam = selectedContest?.teams?.find(t => t.id === cancelModal.teamId);
             const prevStatus = (targetTeam?.status || 'Active').toLowerCase();
@@ -114,10 +120,16 @@ const TeamRegistrationApproval = () => {
                         let newPending = contest.pendingReview || 0;
                         let newApproved = contest.approved || 0;
 
-                        if (prevStatus === 'approved') {
-                            newApproved = Math.max(0, newApproved - 1);
-                        } else if (prevStatus === 'pending' || prevStatus === 'pending review') {
-                            newPending = Math.max(0, newPending - 1);
+                        if (actionModal.type === 'cancel') {
+                            // Xử lý giảm số lượng bộ đếm khi hủy
+                            if (prevStatus === 'approved') {
+                                newApproved = Math.max(0, newApproved - 1);
+                            } else if (prevStatus === 'pending' || prevStatus === 'pending review') {
+                                newPending = Math.max(0, newPending - 1);
+                            }
+                        } else {
+                            // Xử lý tăng lại bộ đếm khi hoàn phục (Ví dụ đưa về Approved)
+                            newApproved = newApproved + 1;
                         }
                         return {
                             ...contest,
