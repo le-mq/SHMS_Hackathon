@@ -101,11 +101,37 @@ const TeamStatus = () => {
             );
 
             const allStatusRequestsFailed = statusResults.length > 0 && statusResults.every(result => result === null);
-            if (allStatusRequestsFailed) {
+            let joinedTeams = statusResults.filter(isJoinedTeam);
+
+            const hasPendingTeam = joinedTeams.some(
+                item => String(item.data?.status || '').toUpperCase() === 'PENDING'
+            );
+
+            if (!hasPendingTeam) {
+                const res = await fetch(`${API_BASE}/teams/status`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = await safeJson(res);
+
+                if (
+                    res.ok &&
+                    String(data.status || '').toUpperCase() === 'PENDING' &&
+                    contestList.length > 0
+                ) {
+                    joinedTeams = [
+                        {
+                            contest: contestList[0],
+                            data,
+                        },
+                        ...joinedTeams,
+                    ];
+                }
+            }
+
+            if (allStatusRequestsFailed && joinedTeams.length === 0) {
                 throw new Error('Failed to load team statuses');
             }
 
-            const joinedTeams = statusResults.filter(isJoinedTeam);
             const currentContestId = String(
                 viewContestId || joinedTeams[0]?.contest?.id || ''
             );

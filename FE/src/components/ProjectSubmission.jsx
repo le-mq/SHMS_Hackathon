@@ -51,9 +51,21 @@ const ProjectSubmission = () => {
                     },
                 });
 
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
+                    if (response.status === 400) {
+                        await applySubmissionData({
+                            internalRole: null,
+                            teamStatus: 'NO TEAM',
+                            contestName: null,
+                            contestStatus: null,
+                            rounds: [],
+                            history: [],
+                        });
+                        return;
+                    }
+
                     throw new Error(data.error || 'Failed to load page data');
                 }
 
@@ -159,10 +171,22 @@ const ProjectSubmission = () => {
     );
 
     const teamStatus = (
-        workspaceData?.teamStatus ||
         pageData?.teamStatus ||
+        workspaceData?.teamStatus ||
         'FORMING'
     ).toUpperCase();
+    const hasRegisteredContest = ['PENDING', 'APPROVED'].includes(teamStatus);
+    const isNotRegistered = ['FORMING', 'NO TEAM', 'REJECTED'].includes(teamStatus);
+    const contestName = hasRegisteredContest
+        ? pageData?.contestName
+        : isNotRegistered
+            ? 'Not Registered'
+            : null;
+    const contestStatus = hasRegisteredContest
+        ? pageData?.contestStatus
+        : isNotRegistered
+            ? 'N/A'
+            : null;
 
     const isTeamApproved = teamStatus === 'APPROVED';
     const isRoundActive = selectedRound?.status === 'ACTIVE';
@@ -333,19 +357,23 @@ const ProjectSubmission = () => {
                 <div className="submission-header">
                     <div className="submission-header-left">
                         <h1 className="submission-title">Project Submission Portal</h1>
-                        <div className="submission-contest">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                            </svg>
+                        {contestName && (
+                            <div className="submission-contest">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                </svg>
 
-                            <span>FPT Hackathon 2026</span>
-                            <span className="active-badge">ACTIVE</span>
-                        </div>
+                                <span>{contestName}</span>
+                                {contestStatus && (
+                                    <span className="active-badge">{contestStatus}</span>
+                                )}
+                            </div>
+                        )}
                         <div className="submission-status-card">
                             <div className="submission-status-icon">
                                 <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
