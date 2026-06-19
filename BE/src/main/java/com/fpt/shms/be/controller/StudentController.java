@@ -32,6 +32,8 @@ public class StudentController {
     private final ContestRepository contestRepository;
     private final CategoryRepository categoryRepository;
     private final SubmissionService submissionService;
+    private final com.fpt.shms.be.repository.UserRepository userRepository;
+    private final com.fpt.shms.be.repository.StudentRepository studentRepository;
 
     private String extractUsernameFromToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -91,11 +93,36 @@ public class StudentController {
     }
 
     @GetMapping("/contests")
-    public ResponseEntity<?> getContests(HttpServletRequest request) {
+    public org.springframework.http.ResponseEntity<?> getContests(jakarta.servlet.http.HttpServletRequest request) {
         try {
-            return ResponseEntity.ok(contestRepository.findAll().stream().map(c -> Map.of("id", c.getId(), "name", c.getName(), "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED")).toList());
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return org.springframework.http.ResponseEntity.status(401).body(java.util.Map.of("error", "Unauthorized"));
+            }
+            String username = jwtUtils.getUsernameFromToken(token);
+
+            com.fpt.shms.be.model.User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            com.fpt.shms.be.model.Student student = studentRepository.findByUser(user)
+                    .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+            Long universityId = student.getUniversity().getId();
+
+            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findContestsByUniversityId(universityId);
+
+            return org.springframework.http.ResponseEntity.ok(allowedContests.stream()
+                    .map(c -> java.util.Map.of(
+                            "id", c.getId(),
+                            "name", c.getName(),
+                            "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED"
+                    ))
+                    .toList());
+
+        } catch (IllegalArgumentException e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            return org.springframework.http.ResponseEntity.status(401).body(java.util.Map.of("error", "Unauthorized"));
         }
     }
 
