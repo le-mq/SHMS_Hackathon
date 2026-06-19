@@ -36,6 +36,11 @@ const PanelAllocation = () => {
                 const aData = await allocRes.json();
                 if (!cancelled) {
                     setContests(cData);
+                    setExperts(activeExps);
+                    setAllocations(aData || {});
+                    if (activeExps.length > 0) {
+                        setSelectedExpertId(activeExps[0].userId);
+                    }
                 }
             }
             catch {
@@ -85,10 +90,12 @@ const PanelAllocation = () => {
 
     const activeExpert = useMemo(() => experts.find(e => e.userId === selectedExpertId), [experts, selectedExpertId]);
 
-    const filteredExperts = experts.filter(e =>
-        e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.username?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredExperts = useMemo(() => {
+        return experts.filter(e =>
+            e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            e.username?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [experts, searchQuery]);
 
     const handleJudgeToggle = (expertId, trackId) => {
         setAllocations(prev => {
