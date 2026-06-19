@@ -78,8 +78,8 @@ public class AuthService {
         }
 
         String activeRole;
-        if (userRoles.contains("COORDINATOR")) {
-            activeRole = "COORDINATOR";
+        if (userRoles.contains("ADMIN")) {
+            activeRole = "ADMIN";
         } else if (userRoles.contains("JUDGE")) {
             activeRole = "JUDGE";
         } else if (userRoles.contains("MENTOR")) {

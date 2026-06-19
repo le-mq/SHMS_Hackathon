@@ -40,8 +40,8 @@ public class ResultsController {
             }
 
             String role = jwtUtils.extractRole(token);
-            if (!"ADMIN".equals(role) && !"COORDINATOR".equals(role)) {
-                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN or COORDINATOR role required."));
+            if (!"ADMIN".equals(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN role required."));
             }
 
             return ResponseEntity.ok(Map.of("message", "Results published successfully."));
@@ -61,7 +61,7 @@ public class ResultsController {
             }
 
             String role = jwtUtils.extractRole(token);
-            if (!"ADMIN".equals(role) && !"COORDINATOR".equals(role)) {
+            if (!"ADMIN".equals(role)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
                 return;
             }
