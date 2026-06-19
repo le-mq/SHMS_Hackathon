@@ -373,8 +373,22 @@ public class TeamService{
 
                 }
             }
+        }else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
+            for (TeamMembership tm : memberships) {
+                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
+                    User leader = tm.getUser();
+                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
+                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER")
+                            .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_MEMBER").build()));
+                    if (teamLeaderRole != null) {
+                        leader.getRoles().remove(teamLeaderRole);
+                    }
+                    leader.getRoles().add(teamMemberRole);
+                    userRepository.save(leader);
+                }
+            }
         }
-
     }
 
     @Transactional(readOnly = true)
@@ -388,6 +402,7 @@ public class TeamService{
 
             int pendingReview = 0;
             int approved = 0;
+            int rejectedAndCancelled = 0;
             int totalParticipants = 0;
 
             List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity> capacities = new java.util.ArrayList<>();
@@ -408,6 +423,7 @@ public class TeamService{
                 for (Team team : teams) {
                     if ("PENDING".equals(team.getStatus())) pendingReview++;
                     if ("APPROVED".equals(team.getStatus())) approved++;
+                    if ("CANCELLED".equals(team.getStatus()) || "REJECTED".equals(team.getStatus())) rejectedAndCancelled++;
 
                     List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
                     if ("APPROVED".equals(team.getStatus())) {
@@ -435,6 +451,7 @@ public class TeamService{
                     .name(contest.getName())
                     .pendingReview(pendingReview)
                     .approved(approved)
+                    .rejectedAndCancelled(rejectedAndCancelled)
                     .totalParticipants(totalParticipants)
                     .capacities(capacities)
                     .teams(teamsData)
@@ -444,7 +461,7 @@ public class TeamService{
         return com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.builder()
                 .contests(contestDataList).build();
     }
-
+    
     private Student requireStudent(User user) {
         return studentRepository.findByUser(user)
                 .orElseThrow(() -> new IllegalArgumentException("Student profile not found"));

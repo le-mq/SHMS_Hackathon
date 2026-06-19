@@ -40,6 +40,10 @@ public class SubmissionService {
 
         Team team = membership.getTeam();
 
+        if ("CANCELLED".equals(team.getStatus())) {
+            throw new IllegalArgumentException("Your team has been disqualified and cannot submit the project");
+        }
+
         if (!"APPROVED".equals(team.getStatus())) {
             throw new IllegalArgumentException("Your team registration is not APPROVED yet");
         }
@@ -53,8 +57,8 @@ public class SubmissionService {
         List<Submission> oldSubmissions = submissionRepository.findByTeamId(team.getId());
         Submission existingSub = null;
         for (Submission sub : oldSubmissions) {
-            boolean sameRound = (round == null && sub.getRound() == null) || 
-                                (round != null && sub.getRound() != null && round.getId().equals(sub.getRound().getId()));
+            boolean sameRound = (round == null && sub.getRound() == null) ||
+                    (round != null && sub.getRound() != null && round.getId().equals(sub.getRound().getId()));
             if (sameRound) {
                 existingSub = sub;
                 break;
@@ -65,7 +69,7 @@ public class SubmissionService {
             int oldVersion = existingSub.getVersion() != null ? existingSub.getVersion() : 1;
             String oldTime = existingSub.getSubmittedAt() != null ? existingSub.getSubmittedAt().toString() : LocalDateTime.now().toString();
             String currentLog = existingSub.getHistoryLog() != null ? existingSub.getHistoryLog() : "";
-            
+
             existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + ";");
             existingSub.setVersion(oldVersion + 1);
             existingSub.setProjectRepositoryUrl(request.getGithubRepoUrl());

@@ -34,7 +34,8 @@ public class RankingAdminService {
         // Find all submissions for teams in these categories
         List<Submission> allSubmissions = submissionRepository.findAll().stream()
                 .filter(s -> s.getTeam() != null && s.getTeam().getCategory() != null &&
-                        categoryIds.contains(s.getTeam().getCategory().getId()))
+                        categoryIds.contains(s.getTeam().getCategory().getId()) &&
+                        "APPROVED".equals(s.getTeam().getStatus()))
                 .toList();
 
         // Group by Team and get latest submission per team
@@ -146,7 +147,8 @@ public class RankingAdminService {
         // Find all submissions for teams in these categories
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
                 .filter(s -> s.getTeam() != null && s.getTeam().getCategory() != null &&
-                        categoryIds.contains(s.getTeam().getCategory().getId()))
+                        categoryIds.contains(s.getTeam().getCategory().getId()) &&
+                        "APPROVED".equals(s.getTeam().getStatus()))
                 .toList();
 
         // Group by Team and get latest submission per team
