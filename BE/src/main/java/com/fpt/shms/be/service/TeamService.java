@@ -353,6 +353,11 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         team.setStatus(status.toUpperCase());
+        if (team.getRegistrations() != null) {
+            for (TeamRegistration tr : team.getRegistrations()) {
+                tr.setStatus(status.toUpperCase());
+            }
+        }
         teamRepository.save(team);
 
         if("APPROVED".equalsIgnoreCase(status)) {
@@ -361,34 +366,39 @@ public class TeamService{
                 if("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
 
-                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER")
-                            .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_LEADER").build()));
-                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
+                    Role leaderRole = roleRepository.findByName("LEADER").orElse(null);
+                    Role studentRole = roleRepository.findByName("STUDENT").orElse(null);
 
-                    if(teamMemberRole != null) {
-                        leader.getRoles().remove(teamMemberRole);
+                    if(studentRole != null) {
+                        leader.getRoles().remove(studentRole);
                     }
-                    leader.getRoles().add(teamLeaderRole);
+                    if(leaderRole != null) {
+                        leader.getRoles().add(leaderRole);
+                    }
                     userRepository.save(leader);
 
                 }
             }
-        }else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+        } else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
             for (TeamMembership tm : memberships) {
-                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
+                if("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
-                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
-                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER")
-                            .orElseGet(() -> roleRepository.save(Role.builder().name("TEAM_MEMBER").build()));
-                    if (teamLeaderRole != null) {
-                        leader.getRoles().remove(teamLeaderRole);
+
+                    Role leaderRole = roleRepository.findByName("LEADER").orElse(null);
+                    Role studentRole = roleRepository.findByName("STUDENT").orElse(null);
+
+                    if(leaderRole != null) {
+                        leader.getRoles().remove(leaderRole);
                     }
-                    leader.getRoles().add(teamMemberRole);
+                    if(studentRole != null) {
+                        leader.getRoles().add(studentRole);
+                    }
                     userRepository.save(leader);
                 }
             }
         }
+
     }
 
     @Transactional(readOnly = true)

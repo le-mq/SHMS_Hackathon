@@ -56,12 +56,12 @@ public class AdminController {
         String role = jwtUtils.extractRole(token);
 
         if (role == null || (!role.equals("ADMIN") && !role.equals("COORDINATOR"))) {
-            throw new SecurityException("Access Denied: Requires ADMIN or COORDINATOR role");
+            throw new SecurityException("Access Denied: Requires ADMIN role");
         }
     }
 
     @GetMapping("/contests")
-    @Operation(summary = "Get all Hackathon Contests", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get all Hackathon Contests", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllContests(HttpServletRequest request) {
         try {
             requireAdminRole(request);
@@ -75,7 +75,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/{contestId}")
-    @Operation(summary = "Get Contest details for Admin", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get Contest details for Admin", description = "Requires ADMIN role.")
     public ResponseEntity<?> getContestDetails(HttpServletRequest request, @PathVariable Long contestId) {
         try {
             requireAdminRole(request);
@@ -91,7 +91,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests")
-    @Operation(summary = "Create a new Hackathon Contest", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Create a new Hackathon Contest", description = "Requires ADMIN role.")
     public ResponseEntity<?> createContest(HttpServletRequest request,
                                            @Valid @RequestBody CreateContestRequest contestRequest) {
         try {
@@ -109,7 +109,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/rounds-tracks")
-    @Operation(summary = "Create a Track and configure its Tournament Rounds", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Create a Track and configure its Tournament Rounds", description = "Requires ADMIN role.")
     public ResponseEntity<?> createTrackAndRounds(HttpServletRequest request,
                                                   @Valid @RequestBody CreateTrackRoundRequest trackRequest) {
         try {
@@ -128,7 +128,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/rubrics")
-    @Operation(summary = "Create and Bind a Rubric Template", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Create and Bind a Rubric Template", description = "Requires ADMIN role.")
     public ResponseEntity<?> createRubric(HttpServletRequest request,
                                           @Valid @RequestBody CreateRubricRequest rubricRequest) {
         try {
@@ -146,7 +146,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/rubric-templates")
-    @Operation(summary = "Get all Rubric Templates", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get all Rubric Templates", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllRubricTemplates(HttpServletRequest request) {
         try {
             requireAdminRole(request);
@@ -159,7 +159,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/rubrics")
-    @Operation(summary = "Get all Contest Rubric bindings", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get all Contest Rubric bindings", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllContestRubrics(HttpServletRequest request) {
         try {
             requireAdminRole(request);
@@ -172,7 +172,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/rubric-templates")
-    @Operation(summary = "Create a Rubric Template (template-only, no round binding)", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Create a Rubric Template (template-only, no round binding)", description = "Requires ADMIN role.")
     public ResponseEntity<?> createRubricTemplate(HttpServletRequest request,
                                                   @Valid @RequestBody CreateRubricRequest rubricRequest) {
         try {
@@ -189,7 +189,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/rubric-templates/{id}")
-    @Operation(summary = "Get Rubric Template by ID", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get Rubric Template by ID", description = "Requires ADMIN role.")
     public ResponseEntity<?> getRubricTemplateById(HttpServletRequest request, @PathVariable Long id) {
         try {
             requireAdminRole(request);
@@ -202,7 +202,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/rubric-templates/{id}/clone")
-    @Operation(summary = "Clone a Rubric Template", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Clone a Rubric Template", description = "Requires ADMIN role.")
     public ResponseEntity<?> cloneRubricTemplate(HttpServletRequest request, @PathVariable Long id) {
         try {
             requireAdminRole(request);
@@ -215,7 +215,7 @@ public class AdminController {
     }
 
     @PutMapping("/contests/rubric-templates/{id}")
-    @Operation(summary = "Update a Rubric Template", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Update a Rubric Template", description = "Requires ADMIN role.")
     public ResponseEntity<?> updateRubricTemplate(HttpServletRequest request, @PathVariable Long id,
                                                   @Valid @RequestBody CreateRubricRequest rubricRequest) {
         try {
@@ -231,7 +231,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/contests/rubric-templates/{id}")
-    @Operation(summary = "Delete a Rubric Template", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Delete a Rubric Template", description = "Requires ADMIN role.")
     public ResponseEntity<?> deleteRubricTemplate(HttpServletRequest request, @PathVariable Long id) {
         try {
             requireAdminRole(request);
@@ -246,7 +246,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/{contestId}/partners")
-    @Operation(summary = "Get Partner Universities for a Contest", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get Partner Universities for a Contest", description = "Requires ADMIN role.")
     public ResponseEntity<?> getPartnersByContest(HttpServletRequest request, @PathVariable Long contestId) {
         try {
             requireAdminRole(request);
@@ -260,7 +260,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/announcements")
-    @Operation(summary = "Create an Announcement", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Create an Announcement", description = "Requires ADMIN role.")
     public ResponseEntity<?> createAnnouncement(HttpServletRequest request,
                                                 @Valid @RequestBody CreateAnnouncementRequest announcementRequest) {
         try {
@@ -280,7 +280,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/{contestId}/partners")
-    @Operation(summary = "Configure Partner Universities for a Contest", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Configure Partner Universities for a Contest", description = "Requires ADMIN role.")
     public ResponseEntity<?> configurePartnersForContest(HttpServletRequest request, @PathVariable Long contestId,
                                                          @Valid @RequestBody List<UniversityDto> partners) {
         try {
@@ -297,7 +297,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/{contestId}/partners/students")
-    @Operation(summary = "Get Student Validation Data for a Contest's Partner", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get Student Validation Data for a Contest's Partner", description = "Requires ADMIN role.")
     public ResponseEntity<?> getStudentValidationData(HttpServletRequest request, @PathVariable Long contestId,
                                                       @RequestParam String university) {
         try {
@@ -312,7 +312,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/{contestId}/partners/students")
-    @Operation(summary = "Save Student Validation Data for a Contest's Partner", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Save Student Validation Data for a Contest's Partner", description = "Requires ADMIN role.")
     public ResponseEntity<?> saveStudentValidationData(HttpServletRequest request, @PathVariable Long contestId,
                                                        @RequestBody List<StudentVerificationDataDto> students) {
         try {
@@ -329,7 +329,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/experts/create")
-    @Operation(summary = "Provision Expert Credentials", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Provision Expert Credentials", description = "Requires ADMIN role.")
     public ResponseEntity<?> createExpert(HttpServletRequest request,
                                           @Valid @RequestBody CreateExpertRequest expertRequest) {
         try {
@@ -346,7 +346,7 @@ public class AdminController {
     }
 
     @GetMapping("/contests/experts")
-    @Operation(summary = "Get all Experts", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get all Experts", description = "Requires ADMIN role.")
     public ResponseEntity<?> getAllExperts(HttpServletRequest request) {
         try {
             requireAdminRole(request);
@@ -357,7 +357,7 @@ public class AdminController {
     }
 
     @PutMapping("/contests/experts/{userId}/expiry")
-    @Operation(summary = "Extend Expert Expiry", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Extend Expert Expiry", description = "Requires ADMIN role.")
     public ResponseEntity<?> extendExpertExpiry(HttpServletRequest request, @PathVariable Long userId,
                                                 @Valid @RequestBody com.fpt.shms.be.dto.ExtendExpiryRequest extendRequest) {
         try {
@@ -371,7 +371,7 @@ public class AdminController {
     }
 
     @PutMapping("/contests/experts/{userId}/roles")
-    @Operation(summary = "Update Expert Roles", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Update Expert Roles", description = "Requires ADMIN role.")
     public ResponseEntity<?> updateExpertRoles(HttpServletRequest request, @PathVariable Long userId,
                                                @RequestBody java.util.Map<String, java.util.List<String>> rolesMap) {
         try {
@@ -389,7 +389,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/contests/experts/{userId}")
-    @Operation(summary = "Delete an Expert", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Delete an Expert", description = "Requires ADMIN role.")
     public ResponseEntity<?> deleteExpert(HttpServletRequest request, @PathVariable Long userId) {
         try {
             requireAdminRole(request);
@@ -402,7 +402,7 @@ public class AdminController {
     }
 
     @PostMapping("/contests/allocations")
-    @Operation(summary = "Allocate Expert to Panels", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Allocate Expert to Panels", description = "Requires ADMIN role.")
     public ResponseEntity<?> allocateExpert(HttpServletRequest request,
                                             @Valid @RequestBody ExpertAllocationRequest allocationRequest) {
         try {
@@ -462,7 +462,7 @@ public class AdminController {
     }
 
     @GetMapping("/profile")
-    @Operation(summary = "Get Admin Profile", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Get Admin Profile", description = "Requires ADMIN role.")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         try {
             requireAdminRole(request);
@@ -477,7 +477,7 @@ public class AdminController {
     }
 
     @PutMapping("/profile")
-    @Operation(summary = "Update Admin Profile", description = "Requires COORDINATOR role.")
+    @Operation(summary = "Update Admin Profile", description = "Requires ADMIN role.")
     public ResponseEntity<?> updateProfile(HttpServletRequest request, @RequestBody UpdateProfileRequest payload) {
         try {
             requireAdminRole(request);
