@@ -137,7 +137,6 @@ public class ContestAdminService {
         contest.setYear(request.getYear());
         contest.setRegionScope(request.getRegionScope());
         contest.setMaximumAllowedTeams(request.getMaximumAllowedTeams());
-        contest.setAllowedCorporateDomains(request.getAllowedCorporateDomains());
         contest.setComplianceRules(request.getComplianceRules());
         contest.setTieredPrizeStructures(request.getTieredPrizeStructures());
         contest.setRegistrationStart(request.getRegistrationStart());

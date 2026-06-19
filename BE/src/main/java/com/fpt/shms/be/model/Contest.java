@@ -59,9 +59,6 @@ public class Contest {
     @Column(name = "max_teams")
     private Integer maximumAllowedTeams;
 
-    @Column(name = "allowed_corporate_domains", length = 500)
-    private String allowedCorporateDomains;
-
     @Column(name = "compliance_rules")
     private String complianceRules;
 
