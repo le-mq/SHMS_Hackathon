@@ -151,6 +151,20 @@ const PanelAllocation = () => {
         return false;
     }, [allocations, selectedExpertId]);
 
+    const getTeamOwnerName = (trackId, teamId) => {
+        for (const expertId in allocations) {
+            // Không tính chính Mentor hiện tại đang chỉnh sửa
+            if (expertId === selectedExpertId) continue;
+
+            const trackAlloc = allocations[expertId]?.[trackId];
+            if (trackAlloc?.mentoredTeamIds?.includes(teamId)) {
+                const exp = experts.find(e => e.userId === expertId);
+                return exp?.fullName || exp?.username || "Another Mentor";
+            }
+        }
+        return null;
+    };
+
     const handleSave = async () => {
         if (hasConflicts || !selectedExpertId) return;
 
@@ -349,15 +363,27 @@ const PanelAllocation = () => {
                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                             {track.teams.map(t => {
                                                                 const isMentoringThisTeam = alloc.mentoredTeamIds?.includes(t.id);
+
+                                                                const ownerName = getTeamOwnerName(track.id, t.id);
+                                                                const isAssignedToOther = !!ownerName;
                                                                 return (
                                                                     <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px', background: '#f8fafc', borderRadius: '4px' }}>
-                                                                        <span style={{ fontSize: '12px', fontWeight: '500', color: '#334155' }}>{t.name}</span>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                            <span style={{ fontSize: '12px', fontWeight: '500', color: isAssignedToOther ? '#94a3b8' : '#334155' }}>
+                                                                                {t.name}
+                                                                            </span>
+                                                                            {isAssignedToOther && (
+                                                                                <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'normal' }}>
+                                                                                    (By {ownerName})
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
                                                                         <label className="toggle-switch" style={{ margin: 0, transform: 'scale(0.8)' }} title={!hasMentorRole ? "Expert does not have Mentor role" : ""}>
                                                                             <input
                                                                                 type="checkbox"
                                                                                 checked={isMentoringThisTeam}
                                                                                 onChange={() => handleTeamToggle(selectedExpertId, track.id, t.id)}
-                                                                                disabled={!hasMentorRole}
+                                                                                disabled={!hasMentorRole || isAssignedToOther}
                                                                             />
                                                                             <span className={`toggle-slider ${isConflict && isMentoringThisTeam ? 'conflict' : ''} ${!hasMentorRole ? 'disabled' : ''}`}></span>
                                                                         </label>
