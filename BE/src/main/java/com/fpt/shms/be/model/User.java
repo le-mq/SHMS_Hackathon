@@ -37,7 +37,7 @@ public class User {
     private String avatarUrl;
 
     /**
-     * Account Status: PENDING, ACTIVE, INACTIVE, REJECTED
+     * Account Status: PENDING, ACTIVE, INACTIVE
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50)
