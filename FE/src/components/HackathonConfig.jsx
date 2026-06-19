@@ -3,7 +3,7 @@ import './HackathonConfig.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const BLANK_FORM = {
-    name: '', theme: '', term: 'SPRING', year: new Date().getFullYear(), regionScope: 'Ho Chi Minh',
+    name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(), regionScope: 'Choose a Region',
     maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
     complianceRules: '', tieredPrizeStructures: '', heroBrandingBanner: '', status: 'UPCOMING'
 };
@@ -158,10 +158,10 @@ const HackathonConfig = () => {
             const selectedTime = new Date(value);
             const now = new Date();
             if (selectedTime < now) {
-                return setError(`[${targetRound.phaseName}] Selected time cannot be in the past.`);
+                return setError(`${targetRound.phaseName} Selected time cannot be in the past.`);
             }
             if (selectedTime < bounds.start || selectedTime > bounds.end) {
-                return setError(`[${targetRound.phaseName}] Time must be strictly within ${formData.term} ${formData.year}.`);
+                return setError(`${targetRound.phaseName} Time must be strictly within ${formData.term} ${formData.year}.`);
             }
         }
         if (field === 'submissionOpen' && value) {
@@ -274,17 +274,15 @@ const HackathonConfig = () => {
             <NavbarAdmin />
             <div className="config-wrapper">
                 <div className="config-header">
-                    <div>
-                        <h1 className="config-title">Hackathon Event Configuration</h1>
-                        <p className="config-subtitle">Define core parameters and regulatory frameworks for the upcoming season, or adjust timelines for an existing one.</p>
-                    </div>
+                    <h1 className="config-title">Hackathon Event Configuration</h1>
+                    <p style={{fontSize: '14px', color: '#6b7280'}}>Define core parameters and regulatory frameworks for the upcoming season, or adjust timelines for an existing one.</p>
                 </div>
                 <div className="config-card" style={{ marginBottom: '24px' }}>
                     <h3 className="card-title">Select Existing Contest to Edit</h3>
                     <p style={{ fontSize: '13px', color: '#6b7280', margin: '10px 0' }}>Select an existing contest to adjust its timeline or status, or leave unselected to initialize a new one.</p>
                     <div className="search-box">
-                        <input type="text" className="search-input" placeholder="Search by contest name or season (e.g. SPRING 2026)" style={{ width: '100%' }} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#9ca3af'}}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <input type="text" placeholder="Search by contest name or season (e.g. SPRING 2026)"  value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                     {searchQuery && (
                         <div className="partner-table-container mt-4">
@@ -328,7 +326,7 @@ const HackathonConfig = () => {
                                 </div>
                             </div>
                             <div className="form-group"><label className="form-label">Event Name</label><input type="text" name="name" className="form-input" placeholder="e.g., SEAL Summer Tech Sprint 2026" value={formData.name} onChange={handleChange} /></div>
-                            <div className="form-group"><label className="form-label">Theme / Tagline</label><input type="text" name="theme" className="form-input" placeholder="e.g., Innovating the Future of AI" value={formData.theme} onChange={handleChange} /></div>
+                            <div className="form-group"><label className="form-label">Theme</label><input type="text" name="theme" className="form-input" placeholder="e.g., Innovating the Future of AI" value={formData.theme} onChange={handleChange} /></div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Term</label>
@@ -386,7 +384,14 @@ const HackathonConfig = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                 {categories.map((t) => (
                                     <div key={t.id} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
-                                        {categories.length > 1 && (<button onClick={() => handleDeleteCategory(t.id)} style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>)}
+                                        {categories.length > 1 && formData.status === 'UPCOMING' && (
+                                            <button onClick={() => handleDeleteCategory(t.id)}
+                                                style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            ><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
                                         <div className="form-group"><label className="form-label">Category Name</label><input type="text" className="form-input" placeholder="e.g. AI & Machine Learning Innovation" value={t.trackName} onChange={(e) => handleCategoryChange(t.id, 'trackName', e.target.value)} /></div>
                                         <div className="form-group"><label className="form-label">Category Description</label><textarea className="form-textarea" placeholder="Describe the focus areas, technical requirements..." value={t.trackDescription} onChange={(e) => handleCategoryChange(t.id, 'trackDescription', e.target.value)}></textarea></div>
                                         <div className="form-row">

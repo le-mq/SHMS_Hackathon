@@ -117,7 +117,16 @@ const RubricConfig = () => {
         if (!isBalanced) return setError('Total weight must equal exactly 100%.');
         if (!editingTemplate.bindCategoryId) return setError('Template must be assigned to a Category.');
         if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return setError('All criteria must have a name.');
-
+        if (editingTemplate.bindCategoryId && editingTemplate.bindRoundId) {
+            const isDuplicateOfficial = contestRubrics.some(cr =>
+                cr.categoryId == editingTemplate.bindCategoryId &&
+                cr.roundId == editingTemplate.bindRoundId &&
+                cr.templateId !== editingTemplate.id
+            );
+            if (isDuplicateOfficial) {
+                return setError('Cannot save! This Category for the selected Round already has an official rubric.');
+            }
+        }
         setIsLoading(true); setError(''); setSuccess('');
 
         const payload = {
