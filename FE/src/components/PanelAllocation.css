@@ -112,7 +112,6 @@
     margin-right: 20px !important;
     margin-left: 2px !important;
     padding: 10px 15px !important;
-    /* Thêm lại padding lề trên/dưới cho thoáng */
     border-radius: 1px solid #f3f4f6;
     display: flex !important;
     justify-content: center !important;
@@ -122,20 +121,19 @@
 
 .search-inner-wrapper {
     position: relative;
-    width: 80%;
-    /* Thu nhỏ lề 2 bên */
-    max-width: 320px;
-    /* Giới hạn độ dài tối đa */
+    margin: auto;
+    display: flex;
 }
 
 .search-input {
-    width: 100% !important;
-    margin: 0 !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
-    font-size: 13px !important;
-    outline: none !important;
-    box-sizing: border-box !important;
+    width: 100%;
+    border: 1px solid #d1d5db ;
+    border-radius: 6px ;
+    margin: 10px 10px;
+    font-size: 13px;
+    outline: none ;
+    box-sizing: border-box;
+    padding: 5px 0 5px 20px;
 }
 
 .search-input:focus {
@@ -144,7 +142,7 @@
 
 .search-icon {
     position: absolute;
-    left: 2px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: #9ca3af;

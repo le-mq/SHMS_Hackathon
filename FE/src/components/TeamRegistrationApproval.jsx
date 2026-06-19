@@ -193,9 +193,9 @@ const TeamRegistrationApproval = () => {
                         <div className="stat-label">APPROVED</div>
                         <div className="stat-value">{selectedContest ? selectedContest.approved : 0} Teams</div>
                     </div>
-                    <div className="stat-card" style={{ borderLeft: '4px solid #493cc6' }}>
-                        <div className="stat-label" style={{ color: '#1b4f99' }}>REJECTED & CANCELED</div>
-                        <div className="stat-value" style={{ color: '#2079c2' }}>
+                    <div className="stat-card" >
+                        <div className="stat-label" >REJECTED & CANCELED</div>
+                        <div className="stat-value">
                             {filteredTeams.filter(t =>
                                 t.status === 'Canceled' || t.status === 'Rejected' || (t.status || '').toLowerCase() === 'rejected'
                             ).length} Teams
@@ -272,9 +272,7 @@ const TeamRegistrationApproval = () => {
                                                     }}
                                                     onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
                                                     onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                >
-                                                    Hủy tư cách
-                                                </button>
+                                                >Cancel</button>
                                             )}
                                         </div>
                                     </td>
