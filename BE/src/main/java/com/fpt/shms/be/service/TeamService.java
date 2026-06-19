@@ -22,6 +22,7 @@ public class TeamService{
     private final CategoryRepository categoryRepository;
     private final RoundRepository roundRepository;
     private final SubmissionRepository submissionRepository;
+    private final ContestUniversityRepository contestUniversityRepository;
     private final JwtUtils jwtUtils;
 
     @Transactional
@@ -45,7 +46,6 @@ public class TeamService{
                 .name(request.getTeamName())
                 .contest(category.getContest())
                 .build();
-        team.setCategory(category);
         team.generateInvitationCode();
         team = teamRepository.save(team);
 
@@ -81,7 +81,6 @@ public class TeamService{
         if (currentMembers.size() >= 5) {
             throw new IllegalArgumentException("Team has already reached the maximum limit of 5 members.");
         }
-
         TeamMembership newMember = TeamMembership.builder()
                 .team(team)
                 .student(requireStudent(user))
@@ -253,11 +252,17 @@ public class TeamService{
             if (leaderMssv != null && !leaderMssv.isEmpty()) {
                 Student leaderStudent = studentRepository.findByMssv(leaderMssv).orElse(null);
                 if (leaderStudent != null) {
+
                     List<TeamMembership> teamMembers = teamMembershipRepository.findByTeamId(team.getId());
+
+                    for (TeamMembership tm : teamMembers) {
+                        Student memberStudent = requireStudent(tm.getUser());
+                        validateUniversityAllowed(memberStudent, team.getContest());
+                    }
+                    
                     for (TeamMembership tm : teamMembers) {
                         User mUser = tm.getUser();
                         if (mUser.getId().equals(leaderStudent.getUser().getId())) {
-
                             tm.setRole("LEADER");
                             Role leaderRole = roleRepository.findByName("LEADER")
                                     .orElseThrow(() -> new IllegalArgumentException("LEADER role missing in DB"));
@@ -279,7 +284,7 @@ public class TeamService{
         User updatedLeader = userRepository.findByUsername(username).get();
         String newToken = jwtUtils.generateToken(updatedLeader.getUsername(), "LEADER");
         TeamRegistrationResponse response = new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
-        response.setNewToken(newToken); // <-- Frontend sẽ lấy cái này xài tiếp
+        response.setNewToken(newToken);
         return response;
     }
 
@@ -449,4 +454,19 @@ public class TeamService{
         return studentRepository.findByUser(user)
                 .orElseThrow(() -> new IllegalArgumentException("Student profile not found"));
     }
+
+    private void validateUniversityAllowed(Student student, Contest contest) {
+        if (contest == null || student == null || student.getUniversity() == null) {
+            return;
+        }
+        List<ContestUniversity> allowedList = contestUniversityRepository.findByContestId(contest.getId());
+        if (allowedList != null && !allowedList.isEmpty()) {
+            boolean isAllowed = allowedList.stream()
+                    .anyMatch(cu -> cu.getUniversity().getId().equals(student.getUniversity().getId()));
+            if (!isAllowed) {
+                throw new IllegalArgumentException("Your university is not authorized to participate in this contest.");
+            }
+        }
+    }
+
 }
