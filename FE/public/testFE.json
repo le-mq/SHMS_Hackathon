@@ -750,7 +750,6 @@
     ]
   },
   "rubrics": {
-    "_description": "Dùng để test trang Quản lý Rubric (Rubric Management) của Admin/Coordinator và màn hình Chấm điểm (Grading) của Judge.",
     "data": [
       {
         "id": "1",
