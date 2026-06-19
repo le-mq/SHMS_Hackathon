@@ -8,5 +8,5 @@ public class CreateTeamRequest {
 
     @NotBlank(message = "Team name is required")
     private String teamName;
-    private Long categoryId;
+    private Long contestId;
 }

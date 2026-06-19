@@ -30,21 +30,17 @@ public class TeamService{
         User leader = userRepository.findByUsername(leaderUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
 
-        Category category = null;
-        if (request.getCategoryId() != null) {
-            category = categoryRepository.findById(request.getCategoryId()).orElse(null);
-        }
-        if (category == null) {
-            List<Category> allCategories = categoryRepository.findAll();
-            if (allCategories.isEmpty()) {
-                throw new IllegalArgumentException("No categories available in the system.");
-            }
-            category = allCategories.get(0);
+        Contest contest = null;
+        if (request.getContestId() != null) {
+            contest = contestRepository.findById(request.getContestId())
+                    .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+        } else {
+            throw new IllegalArgumentException("Contest ID is required to create a team.");
         }
 
         Team team = Team.builder()
                 .name(request.getTeamName())
-                .contest(category.getContest())
+                .contest(contest)
                 .build();
         team.generateInvitationCode();
         team = teamRepository.save(team);
@@ -202,10 +198,6 @@ public class TeamService{
         }
 
         team.setName(request.getTeamName());
-        if (request.getCategoryId() != null) {
-            Category cat = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new IllegalArgumentException("Category not found"));
-            team.setCategory(cat);
-        }
         Contest contest = null;
         if (request.getContestId() != null) {
             contest = contestRepository.findById(request.getContestId()).orElseThrow(() -> new IllegalArgumentException("Contest not found"));
@@ -416,6 +408,8 @@ public class TeamService{
         for (Contest contest : contests) {
             List<Category> categories = categoryRepository.findByContestId(contest.getId());
 
+            List<Team> teams = teamRepository.findByContestId(contest.getId());
+
             int pendingReview = 0;
             int approved = 0;
             int rejectedAndCancelled = 0;
@@ -424,42 +418,36 @@ public class TeamService{
             List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity> capacities = new java.util.ArrayList<>();
             List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.TeamData> teamsData = new java.util.ArrayList<>();
 
-            for (Category category : categories) {
-                List<Team> teams = teamRepository.findByCategoryId(category.getId());
+            int trackTeams = teams.size();
 
-                int trackTeams = teams.size();
-                int maxTeams = category.getContest().getMaximumAllowedTeams() != null ? category.getContest().getMaximumAllowedTeams() : 100; // rough estimate if no limit
+            for (Category category : categories) {
+                int maxTeams = category.getContest().getMaximumAllowedTeams() != null ? category.getContest().getMaximumAllowedTeams() : 100;
                 int capacityPercentage = (trackTeams * 100) / Math.max(1, maxTeams);
 
                 capacities.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity.builder()
                         .categoryName(category.getName())
                         .percentage(Math.min(capacityPercentage, 100))
                         .build());
+            }
 
-                for (Team team : teams) {
-                    if ("PENDING".equals(team.getStatus())) pendingReview++;
-                    if ("APPROVED".equals(team.getStatus())) approved++;
-                    if ("CANCELLED".equals(team.getStatus()) || "REJECTED".equals(team.getStatus())) rejectedAndCancelled++;
+            for (Team team : teams) {
+                if ("PENDING".equals(team.getStatus())) pendingReview++;
+                if ("APPROVED".equals(team.getStatus())) approved++;
+                if ("CANCELLED".equals(team.getStatus()) || "REJECTED".equals(team.getStatus())) rejectedAndCancelled++;
 
-                    List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
-                    if ("APPROVED".equals(team.getStatus())) {
-                        totalParticipants += members.size();
-                    }
-
-                    String trackClass = "track-default";
-                    if (category.getName().toLowerCase().contains("fintech") || category.getName().toLowerCase().contains("ai")) trackClass = "track-fintech";
-                    else if (category.getName().toLowerCase().contains("cyber")) trackClass = "track-cyber";
-                    else if (category.getName().toLowerCase().contains("sustain")) trackClass = "track-sust";
-
-                    teamsData.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.TeamData.builder()
-                            .id(team.getId())
-                            .name(team.getName())
-                            .track(category.getName())
-                            .trackClass(trackClass)
-                            .date(LocalDateTime.now().format(formatter)) // Real creation date usually, but we don't have it in Team model right now, mock to now
-                            .status(team.getStatus() != null ? team.getStatus() : "PENDING")
-                            .build());
+                List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
+                if ("APPROVED".equals(team.getStatus())) {
+                    totalParticipants += members.size();
                 }
+
+                teamsData.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.TeamData.builder()
+                        .id(team.getId())
+                        .name(team.getName())
+                        .track("All Categories")
+                        .trackClass("track-default")
+                        .date(team.getCreatedAt() != null ? team.getCreatedAt().format(formatter) : LocalDateTime.now().format(formatter))
+                        .status(team.getStatus() != null ? team.getStatus() : "PENDING")
+                        .build());
             }
 
             contestDataList.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.ContestData.builder()
@@ -477,11 +465,6 @@ public class TeamService{
         return com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.builder()
                 .contests(contestDataList).build();
     }
-    
-    private Student requireStudent(User user) {
-        return studentRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("Student profile not found"));
-    }
 
     private void validateUniversityAllowed(Student student, Contest contest) {
         if (contest == null || student == null || student.getUniversity() == null) {
@@ -495,6 +478,11 @@ public class TeamService{
                 throw new IllegalArgumentException("Your university is not authorized to participate in this contest.");
             }
         }
+    }
+
+    private Student requireStudent(User user) {
+        return studentRepository.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("User is not a registered student."));
     }
 
 }
