@@ -201,7 +201,7 @@ export const LeaderboardContent = ({ leaderboards }) => {
 const LeaderboardDashboard = () => {
     const role = localStorage.getItem('shms_role');
     const renderNavbar = () => {
-        const navbars = { COORDINATOR: <NavbarAdmin />,
+        const navbars = { ADMIN: <NavbarAdmin />,
             JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent /> };
         return navbars[role] || <NavbarHome />;
     };

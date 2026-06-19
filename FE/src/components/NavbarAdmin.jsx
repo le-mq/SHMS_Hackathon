@@ -20,7 +20,7 @@ const NavbarAdmin = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const userEmail = localStorage.getItem('shms_user') || 'admin@s-hms.vn';
-    const username = localStorage.getItem('shms_fullname_' + userEmail) || localStorage.getItem('shms_fullname') || 'Coordinator';
+    const username = localStorage.getItem('shms_fullname_' + userEmail) || localStorage.getItem('shms_fullname') || 'Admin';
     const role = localStorage.getItem('shms_role') || 'ADMIN';
 
     const [showDropdown, setShowDropdown] = useState(false);

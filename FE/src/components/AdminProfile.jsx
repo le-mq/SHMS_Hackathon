@@ -20,7 +20,7 @@ const AdminProfile = () => {
     });
 
     const [form, setForm] = useState({
-        fullName: localStorage.getItem('shms_fullname_' + username) || localStorage.getItem('shms_fullname') || 'Coordinator',
+        fullName: localStorage.getItem('shms_fullname_' + username) || localStorage.getItem('shms_fullname') || 'Admin',
         telephoneNumber: '+84 123 456 789',
         currentPassword: '',
         newPassword: '',
