@@ -54,6 +54,16 @@
     padding: 0 20px;
 }
 
+.dashboard-announcements-row {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.dashboard-announcements-row .latest-announcements-container {
+    margin: 0 0 24px 20px;
+}
+
 .dash-left {
     display: flex;
     flex-direction: column;
