@@ -196,25 +196,24 @@
   },
   "teamStatus": {
     "data": {
-      "teamName": "Seal Warriors",
-      "categoryName": "Web",
-      "invitationCode": "TEAM2026",
-      "status": "FORMING",
+      "teamName": "SEAL Mock Team",
+      "invitationCode": "MOCK2026",
+      "status": "APPROVED",
       "roster": [
         {
-          "fullName": "Lê Tiến Đạt",
+          "fullName": "Le Tien Dat",
           "studentId": "SE190001",
           "email": "letiendat@fpt.edu.vn",
           "internalRole": "LEADER"
         },
         {
-          "fullName": "Nguyễn Trung Anh",
+          "fullName": "Nguyen Trung Anh",
           "studentId": "SE190002",
           "email": "trunganh@fpt.edu.vn",
           "internalRole": "MEMBER"
         },
         {
-          "fullName": "Trần Minh Quân",
+          "fullName": "Tran Minh Quan",
           "studentId": "SE190003",
           "email": "minhquan@fpt.edu.vn",
           "internalRole": "MEMBER"
@@ -226,13 +225,13 @@
     "data": [
       {
         "id": "1",
-        "name": "FPT Hackathon Summer",
-         "status": "ACTIVE"
+        "name": "SEAL Summer Hackathon 2026",
+        "status": "ACTIVE"
       },
       {
         "id": "2",
-        "name": "FPT Hackathon Fall",
-         "status": "ENDED"
+        "name": "FPT Fall Innovation Challenge",
+        "status": "ACTIVE"
       }
     ]
   },
@@ -240,65 +239,41 @@
     "data": [
       {
         "id": "1",
-        "name": "Web"
+        "name": "Web",
+        "contestId": "1"
       },
       {
         "id": "2",
-        "name": "Mobile"
+        "name": "Mobile",
+        "contestId": "2"
       },
       {
         "id": "3",
-        "name": "AI"
+        "name": "AI",
+        "contestId": "1"
       }
     ]
   },
   "teamStatusByContest": {
-    "default": {
-      "teamName": "Seal Warriors",
-      "categoryName": "Web",
-      "invitationCode": "TEAM2026",
-      "status": "FORMING",
-      "roster": [
-        {
-          "fullName": "Lê Tiến Đạt",
-          "studentId": "SE190001",
-          "email": "letiendat@fpt.edu.vn",
-          "internalRole": "MEMBER"
-        },
-        {
-          "fullName": "Nguyễn Trung Anh",
-          "studentId": "SE190002",
-          "email": "trunganh@fpt.edu.vn",
-          "internalRole": "MEMBER"
-        },
-        {
-          "fullName": "Trần Minh Quân",
-          "studentId": "SE190003",
-          "email": "minhquan@fpt.edu.vn",
-          "internalRole": "MEMBER"
-        }
-      ]
-    },
     "1": {
-      "teamName": "Seal Warriors",
-      "categoryName": "Web",
+      "teamName": "SEAL Warriors",
       "invitationCode": "1A2B3C4D",
-      "status": "FORMING",
+      "status": "APPROVED",
       "roster": [
         {
-          "fullName": "Lê Tiến Đạt",
+          "fullName": "Le Tien Dat",
           "studentId": "SE190001",
           "email": "letiendat@fpt.edu.vn",
-          "internalRole": "MEMBER"
+          "internalRole": "LEADER"
         },
         {
-          "fullName": "Nguyễn Trung Anh",
+          "fullName": "Nguyen Trung Anh",
           "studentId": "SE190002",
           "email": "trunganh@fpt.edu.vn",
           "internalRole": "MEMBER"
         },
         {
-          "fullName": "Trần Minh Quân",
+          "fullName": "Tran Minh Quan",
           "studentId": "SE190003",
           "email": "minhquan@fpt.edu.vn",
           "internalRole": "MEMBER"
@@ -307,26 +282,50 @@
     },
     "2": {
       "teamName": "Fall Innovators",
-      "categoryName": "Mobile",
       "invitationCode": "5X6M8C9Q",
-      "status": "APPROVED",
+      "status": "FORMING",
       "roster": [
         {
-          "fullName": "Lê Tiến Đạt",
+          "fullName": "Le Tien Dat",
           "studentId": "SE190001",
           "email": "letiendat@fpt.edu.vn",
           "internalRole": "LEADER"
         },
         {
-          "fullName": "Đỗ Minh Khang",
+          "fullName": "Do Minh Khang",
           "studentId": "SE190011",
           "email": "minhkhang@fpt.edu.vn",
           "internalRole": "MEMBER"
         },
         {
-          "fullName": "Võ Hoàng Nam",
+          "fullName": "Vo Hoang Nam",
           "studentId": "SE190012",
           "email": "hoangnam@fpt.edu.vn",
+          "internalRole": "MEMBER"
+        }
+      ]
+    },
+    "default": {
+      "teamName": "SEAL Mock Team",
+      "invitationCode": "MOCK2026",
+      "status": "APPROVED",
+      "roster": [
+        {
+          "fullName": "Le Tien Dat",
+          "studentId": "SE190001",
+          "email": "letiendat@fpt.edu.vn",
+          "internalRole": "LEADER"
+        },
+        {
+          "fullName": "Nguyen Trung Anh",
+          "studentId": "SE190002",
+          "email": "trunganh@fpt.edu.vn",
+          "internalRole": "MEMBER"
+        },
+        {
+          "fullName": "Tran Minh Quan",
+          "studentId": "SE190003",
+          "email": "minhquan@fpt.edu.vn",
           "internalRole": "MEMBER"
         }
       ]
@@ -438,7 +437,7 @@
         "rank": 2,
         "categoryName": "Web",
         "status": "QUALIFIED",
-        "finalScore": 89.0
+        "finalScore": 89
       },
       {
         "contestId": 1,
@@ -482,7 +481,7 @@
         "rank": 1,
         "categoryName": "Mobile",
         "status": "QUALIFIED",
-        "finalScore": 92.0
+        "finalScore": 92
       },
       {
         "contestId": 1,
@@ -504,7 +503,7 @@
         "rank": 3,
         "categoryName": "Mobile",
         "status": "QUALIFIED",
-        "finalScore": 84.0
+        "finalScore": 84
       },
       {
         "contestId": 1,
@@ -515,7 +514,7 @@
         "rank": 4,
         "categoryName": "Mobile",
         "status": "QUALIFIED",
-        "finalScore": 80.0
+        "finalScore": 80
       },
       {
         "contestId": 1,
@@ -548,7 +547,7 @@
         "rank": 2,
         "categoryName": "Design",
         "status": "QUALIFIED",
-        "finalScore": 83.0
+        "finalScore": 83
       },
       {
         "contestId": 2,
@@ -592,7 +591,7 @@
         "rank": 1,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 90.0
+        "finalScore": 90
       },
       {
         "contestId": 2,
@@ -614,7 +613,7 @@
         "rank": 2,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 84.0
+        "finalScore": 84
       },
       {
         "contestId": 2,
@@ -625,7 +624,7 @@
         "rank": 4,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 80.0
+        "finalScore": 80
       },
       {
         "contestId": 2,
@@ -702,7 +701,7 @@
         "rank": 6,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 79.0
+        "finalScore": 79
       },
       {
         "contestId": 2,
@@ -724,7 +723,7 @@
         "rank": 8,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 78.0
+        "finalScore": 78
       },
       {
         "contestId": 2,
@@ -735,7 +734,7 @@
         "rank": 9,
         "categoryName": "Test",
         "status": "QUALIFIED",
-        "finalScore": 77.0
+        "finalScore": 77
       },
       {
         "contestId": 2,
