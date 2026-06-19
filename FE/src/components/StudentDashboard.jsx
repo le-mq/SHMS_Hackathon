@@ -9,6 +9,10 @@ const API_PUBLIC = 'http://localhost:8080/api/v1/public';
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
 
 function getContestList(json) {
+    if (Array.isArray(json)) {
+        return json;
+    }
+
     if (Array.isArray(json?.contests)) {
         return json.contests;
     }
@@ -18,6 +22,17 @@ function getContestList(json) {
     }
 
     return [];
+}
+
+function mergeAllowedContestDetails(allowedContests, detailedContests) {
+    const detailById = new Map(
+        detailedContests.map(contest => [String(contest.id), contest])
+    );
+
+    return allowedContests.map(contest => ({
+        ...(detailById.get(String(contest.id)) || {}),
+        ...contest,
+    }));
 }
 
 function pickActiveContest(contests) {
@@ -115,9 +130,25 @@ const StudentDashboard = () => {
 
         async function fetchHomeData() {
             try {
-                const res = await axios.get(API_PUBLIC + '/home');
+                const token = localStorage.getItem('shms_token');
+                const allowedRes = await axios.get(
+                    API_STUDENT + '/contests',
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const allowedContests = getContestList(allowedRes.data);
 
-                const contests = getContestList(res.data);
+                let detailedContests = [];
+                try {
+                    const res = await axios.get(API_PUBLIC + '/home');
+                    detailedContests = getContestList(res.data);
+                } catch (homeError) {
+                    console.warn('Home API unavailable, use student contests only:', homeError.message);
+                }
+
+                const contests = mergeAllowedContestDetails(
+                    allowedContests,
+                    detailedContests
+                );
                 const activeList = contests.filter(c => c.status === 'ACTIVE');
                 const active = pickActiveContest(contests);
 
