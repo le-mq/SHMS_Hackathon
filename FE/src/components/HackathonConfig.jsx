@@ -289,7 +289,7 @@ const HackathonConfig = () => {
                             <table className="partner-table">
                                 <thead><tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr></thead>
                                 <tbody>
-                                {filteredContests.length > 0 ? (filteredContests.map(c => (
+                                    {filteredContests.length > 0 ? (filteredContests.map(c => (
                                         <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
                                             <td><div className="uni-name">{c.name}</div></td>
                                             <td><div className="uni-domain">{c.season} {c.year}</div></td>
@@ -304,7 +304,7 @@ const HackathonConfig = () => {
                                             </td>
                                         </tr>
                                     ))
-                                ) : (<tr><td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>No contests found</td></tr>)}
+                                    ) : (<tr><td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>No contests found</td></tr>)}
                                 </tbody>
                             </table>
                         </div>
@@ -441,8 +441,8 @@ const HackathonConfig = () => {
                                             <div className="form-group" style={{ marginBottom: 0 }}>
                                                 <label className="form-label" style={{ fontSize: '12px' }}>Submission Deadline</label>
                                                 <input type="datetime-local" className="form-input" value={round.submissionDeadline || ''}
-                                                       onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
-                                                       min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen}
+                                                    onChange={(e) => handleRoundChange(round.id, 'submissionDeadline', e.target.value)}
+                                                    min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen}
                                                 />
                                             </div>
                                         </div>
@@ -464,7 +464,7 @@ const HackathonConfig = () => {
                 <div className="action-bar-container" style={{ marginTop: '24px' }}>
                     <div className="action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
                         {success ? (<div className="alert-success" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#dcfce7', color: '#166534' }}>
-                                {success}</div>
+                            {success}</div>
                         ) : (error && !isDateError) ? (
                             <div className="alert-error" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>
                                 {error}</div>) : null}

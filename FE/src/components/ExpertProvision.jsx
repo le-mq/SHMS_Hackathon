@@ -288,7 +288,15 @@ const ExpertProvisioning = () => {
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Expert Credentials Provisioning</h1>
-                    <p className="config-subtitle">Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.</p>
+                    <p style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        color: '#6b7280',
+                        margin: '0',
+                        maxWidth: '800px'
+                    }}>
+                        Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.
+                    </p>
                 </div>
 
                 {error && <div className="alert-msg alert-error">{error}</div>}
