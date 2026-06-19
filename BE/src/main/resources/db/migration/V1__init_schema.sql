@@ -130,7 +130,6 @@ CREATE TABLE Contest (
                          status VARCHAR(50) NOT NULL,
                          registration_start DATE NULL,
                          registration_end DATE NULL,
-                         allowed_corporate_domains NVARCHAR(500) NULL,
                          compliance_rules NVARCHAR(MAX) NULL,
                          tiered_prize_structures NVARCHAR(MAX) NULL,
                          created_at DATETIME NULL CONSTRAINT df_contest_created_at DEFAULT GETDATE(),
@@ -615,4 +614,89 @@ GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES (1, 'AI', 'Bang dau danh cho AI', 'ACTIVE');
+GO
+
+INSERT INTO Semester (term, [year], semester_code)
+VALUES ('Fall', 2026, 'FA26');
+GO
+
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end)
+VALUES
+(1, 'HCM Tech Arena 2026', 'Software Engineering', 50, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 10, GETDATE())),
+(2, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 20, GETDATE())),
+(2, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 15, GETDATE()));
+GO
+
+INSERT INTO Category (contest_id, category_name, description, status)
+VALUES
+(1, 'IoT & Smart Devices', 'Bảng đấu IoT', 'ACTIVE'),
+(1, 'Cyber Security', 'Bảng đấu An toàn thông tin', 'ACTIVE');
+
+INSERT INTO Category (contest_id, category_name, description, status)
+VALUES
+    (2, 'Web Development', 'Xây dựng ứng dụng Web', 'ACTIVE'),
+    (2, 'Mobile App', 'Phát triển ứng dụng Di động', 'ACTIVE'),
+    (2, 'Game Design', 'Thiết kế Game', 'ACTIVE');
+
+INSERT INTO Category (contest_id, category_name, description, status)
+VALUES
+    (3, 'Computer Vision', 'Nhận diện hình ảnh', 'ACTIVE'),
+    (3, 'NLP', 'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
+    (3, 'Data Science', 'Khoa học Dữ liệu', 'ACTIVE');
+
+INSERT INTO Category (contest_id, category_name, description, status)
+VALUES
+    (4, 'Smart Contracts', 'Lập trình Hợp đồng thông minh', 'ACTIVE'),
+    (4, 'DeFi', 'Tài chính phi tập trung', 'ACTIVE'),
+    (4, 'Web3 DApps', 'Phát triển Ứng dụng Web3', 'ACTIVE');
+GO
+
+-- Contest 1 (FPT Hackathon) -> Chỉ FPT
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 1, university_id FROM University WHERE university_code = 'FPT';
+
+-- Contest 2 (HCM Tech) -> Cho HCMUT, HCMUS
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 2, university_id FROM University WHERE university_code IN ('HCMUT', 'HCMUS');
+
+-- Contest 3 (National AI) -> Cho HUFLIT, HCMUAF, FPT
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 3, university_id FROM University WHERE university_code IN ('HUFLIT', 'HCMUAF', 'FPT');
+
+-- Contest 4 (Global Blockchain) -> Cho TẤT CẢ các trường
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 4, university_id FROM University;
+GO
+
+DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT;
+
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CYBER01', 'Cyber Core', 'PENDING');
+SET @Team1_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
+WHERE u.email IN ('nhatmysocutedl@gmail.com', 'vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
+
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CODE02', 'Code Rangers', 'PENDING');
+SET @Team2_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
+WHERE u.email IN ('huongtuongyen1982@gmail.com', 'vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
+
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_BYTE03', 'Byte Wizards', 'PENDING');
+SET @Team3_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
+WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
+
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_TECH04', 'Tech Titans', 'PENDING');
+SET @Team4_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
+WHERE u.email IN ('thuhien456@gmail.com', 'phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
+
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_DATA05', 'Data Ninjas', 'PENDING');
+SET @Team5_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
+WHERE u.email IN ('dntotrinh@gmail.com', 'phannha@gmail.com');
 GO
