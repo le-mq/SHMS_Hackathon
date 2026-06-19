@@ -23,6 +23,7 @@ public class TeamRegistrationDashboardResponse {
         private String name;
         private int pendingReview;
         private int approved;
+        private int rejectedAndCancelled;
         private int totalParticipants;
         private List<CategoryCapacity> capacities;
         private List<TeamData> teams;
