@@ -43,6 +43,7 @@ const Login = () => {
             JUDGE: '/judge/workspace',
             MENTOR: '/mentor/workspace',
             STUDENT: '/student/dashboard',
+            LEADER: '/student/dashboard',
         };
         navigate(roleRoutes[role] || '/');
     };
