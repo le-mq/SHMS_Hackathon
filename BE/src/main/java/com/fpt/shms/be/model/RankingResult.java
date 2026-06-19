@@ -33,7 +33,7 @@ public class RankingResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private User adminUser;
+    private Admin adminUser;
 
     @Column(name = "rank_no")
     private Integer rankNo;

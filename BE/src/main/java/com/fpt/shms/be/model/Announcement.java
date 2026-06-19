@@ -47,7 +47,7 @@ public class Announcement {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private User adminUser;
+    private Admin adminUser;
 
     public enum AnnouncementType {
         GENERAL_UPDATE, DEADLINE_REMINDER, RULE_CHANGE, RESULT_ANNOUNCEMENT, SYSTEM_MAINTENANCE
