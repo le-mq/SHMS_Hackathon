@@ -18,4 +18,7 @@ public interface ContestRepository extends JpaRepository<Contest, Long> {
 
     Optional<Contest> findBySemesterId(Long semesterId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT cu.contest FROM ContestUniversity cu WHERE cu.university.id = :universityId")
+    java.util.List<Contest> findContestsByUniversityId(@org.springframework.data.repository.query.Param("universityId") Long universityId);
 }
+

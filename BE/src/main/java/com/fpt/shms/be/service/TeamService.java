@@ -90,6 +90,7 @@ public class TeamService{
         teamMembershipRepository.save(newMember);
     }
 
+    @Transactional(readOnly = true)
     public TeamStatusResponse getTeamStatus(String username, Long contestId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -287,7 +288,7 @@ public class TeamService{
         response.setNewToken(newToken);
         return response;
     }
-
+    @Transactional(readOnly = true)
     public WorkspaceResponse getWorkspaceData(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
