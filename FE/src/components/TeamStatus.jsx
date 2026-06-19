@@ -242,9 +242,6 @@ const canLeaveTeam = participatedTeams.some(item =>
 
 const isSubmitted = status === 'APPROVED' || status === 'PENDING';
 
-const approvedParticipatedTeams = participatedTeams.filter(item => {
-    return item?.data?.status?.toUpperCase() === 'APPROVED';
-});
 const registrableContests = contests.filter(isContestRegistrable);
 const selectedContest = contests.find(
     contest => String(contest.id) === String(selectedContestId)
@@ -253,6 +250,29 @@ const registrationContestId =
     selectedContest && isContestRegistrable(selectedContest)
         ? selectedContestId
         : '';
+
+const normalizeStatus = (value) => String(value || 'NO TEAM').trim().toUpperCase();
+const getStatusLabel = (value) => {
+    const normalizedStatus = normalizeStatus(value);
+
+    if (normalizedStatus === 'PENDING') return 'Pending Approval';
+    if (normalizedStatus === 'NO TEAM') return 'No Team';
+
+    return normalizedStatus;
+};
+
+const getSidebarBadge = (participatedTeam) => {
+    const isActiveContest = String(participatedTeam?.contest?.status).toUpperCase() === 'ACTIVE';
+
+    return {
+        className: isActiveContest ? 'active' : 'ended',
+        label: isActiveContest ? 'Active' : 'Ended',
+    };
+};
+
+const approvedParticipatedTeams = participatedTeams.filter(item => {
+    return normalizeStatus(item?.data?.status) === 'APPROVED';
+});
 
 const getInitials = (name = '') => {
     return name
@@ -268,6 +288,33 @@ const copyToClipboard = () => {
 
     navigator.clipboard.writeText(data.invitationCode);
     alert('Invitation code copied!');
+};
+
+const upsertParticipatedTeam = (contestId, updatedTeam) => {
+    const id = String(contestId);
+    const selectedContest = contests.find(c => String(c.id) === id);
+
+    if (!selectedContest) return;
+
+    setParticipatedTeams(prev => {
+        const existed = prev.some(item => String(item.contest.id) === id);
+
+        if (existed) {
+            return prev.map(item =>
+                String(item.contest.id) === id
+                    ? { ...item, data: updatedTeam }
+                    : item
+            );
+        }
+
+        return [
+            ...prev,
+            {
+                contest: selectedContest,
+                data: updatedTeam,
+            },
+        ];
+    });
 };
 
 const handleSelectTeam = (contestId) => {
@@ -321,11 +368,30 @@ const handleSubmitRegistration = async () => {
         }
 
         if (String(result.status).toUpperCase() === 'REJECTED') {
-            setError('Team must have 3 to 5 members.!');
+            const rejectedTeam = {
+                ...data,
+                teamName: formTeamName,
+                status: 'REJECTED',
+                roster,
+            };
+
+            setTeamData(rejectedTeam);
+            upsertParticipatedTeam(selectedContestId, rejectedTeam);
+            setError(result.message || 'Team must have 3 to 5 members.!');
             setSuccessMessage('');
             return;
         }
 
+        const updatedTeam = {
+            ...data,
+            teamName: formTeamName,
+            status: normalizeStatus(result.status),
+            roster,
+        };
+
+        setTeamData(updatedTeam);
+        upsertParticipatedTeam(selectedContestId, updatedTeam);
+        setViewContestId(String(selectedContestId));
         setSuccessMessage('Registration submitted successfully!');
         setError('');
 
@@ -344,34 +410,7 @@ const handleSubmitRegistration = async () => {
             };
 
         setTeamData(updatedTeam);
-
-        setParticipatedTeams(prev => {
-            const selectedContest = contests.find(
-                c => String(c.id) === String(selectedContestId)
-            );
-
-            if (!selectedContest) return prev;
-
-            const existed = prev.some(
-                item => String(item.contest.id) === String(selectedContestId)
-            );
-
-            if (existed) {
-                return prev.map(item =>
-                    String(item.contest.id) === String(selectedContestId)
-                        ? { ...item, data: updatedTeam }
-                        : item
-                );
-            }
-
-            return [
-                ...prev,
-                {
-                    contest: selectedContest,
-                    data: updatedTeam,
-                },
-            ];
-        });
+        upsertParticipatedTeam(selectedContestId, updatedTeam);
 
         setViewContestId(String(selectedContestId));
         setSuccessMessage('Registration submitted successfully!');
@@ -441,22 +480,26 @@ return (
                 <div className="sidebar-title">My Joined Teams</div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {approvedParticipatedTeams.length > 0 ? approvedParticipatedTeams.map(pt => (
-                        <div
-                            key={pt.contest.id}
-                            className={`sidebar-item ${viewContestId === String(pt.contest.id) ? 'active' : ''}`}
-                            onClick={() => handleSelectTeam(pt.contest.id)}
-                        >
-                            <div className="sidebar-item-team">{pt.data.teamName}</div>
-                            <div className="sidebar-item-contest">{pt.contest.name}</div>
+                    {approvedParticipatedTeams.length > 0 ? approvedParticipatedTeams.map(pt => {
+                        const sidebarBadge = getSidebarBadge(pt);
 
-                            <div className="sidebar-item-footer">
-                                <span className={`contest-status-badge ${pt.contest.status === 'ACTIVE' ? 'active' : 'ended'}`}>
-                                    {pt.contest.status === 'ACTIVE' ? 'Active' : 'Ended'}
-                                </span>
+                        return (
+                            <div
+                                key={pt.contest.id}
+                                className={`sidebar-item ${viewContestId === String(pt.contest.id) ? 'active' : ''}`}
+                                onClick={() => handleSelectTeam(pt.contest.id)}
+                            >
+                                <div className="sidebar-item-team">{pt.data.teamName}</div>
+                                <div className="sidebar-item-contest">{pt.contest.name}</div>
+
+                                <div className="sidebar-item-footer">
+                                    <span className={`contest-status-badge ${sidebarBadge.className}`}>
+                                        {sidebarBadge.label}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )) : (
+                        );
+                    }) : (
                         <div
                             style={{
                                 color: '#64748b',
@@ -500,11 +543,7 @@ return (
 
                         <div className={`team-badge ${statusClass}`}>
                             <div className="team-badge-dot"></div>
-                            {status === 'PENDING'
-                                ? 'Pending Approval'
-                                : status === 'NO TEAM'
-                                    ? 'No Team'
-                                    : status}
+                            {getStatusLabel(status)}
                         </div>
                     </div>
                 </div>

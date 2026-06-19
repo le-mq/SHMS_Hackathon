@@ -53,6 +53,50 @@ function getMilestoneStatus(dateStr) {
         : <span className="mc-status ms-upcoming">Upcoming</span>;
 }
 
+async function copyToClipboard(text) {
+    if (!text) return false;
+
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch {
+        // Fall through to the textarea fallback for browsers that block Clipboard API.
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    try {
+        return document.execCommand('copy');
+    } finally {
+        document.body.removeChild(textArea);
+    }
+}
+
+async function hasExistingTeam(token) {
+    try {
+        const response = await axios.get(
+            API_STUDENT + '/teams/status',
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        return response.data && !response.data.error && response.data.status !== 'NO TEAM';
+    } catch (error) {
+        if (error.response?.status === 400) {
+            return false;
+        }
+
+        throw error;
+    }
+}
+
 const StudentDashboard = () => {
     const navigate = useNavigate();
     const [activeContest, setActiveContest] = useState(null);
@@ -89,7 +133,7 @@ const StudentDashboard = () => {
                     const localRes = await fetch('/testFE.json');
 
                     if (!localRes.ok) {
-                        throw new Error('Not found testFE.json');
+                        throw new Error('Not found testFE.json', { cause: error });
                     }
 
                     const localJson = await localRes.json();
@@ -145,7 +189,7 @@ const StudentDashboard = () => {
                 const localRes = await fetch('/testFE.json');
 
                 if (!localRes.ok) {
-                    throw new Error('Not found testFE.json');
+                    throw new Error('Not found testFE.json', { cause: error });
                 }
 
                 const localJson = await localRes.json();
@@ -153,7 +197,7 @@ const StudentDashboard = () => {
                 const matchedTeam = inviteCodes.find(item => item.invitationCode === code);
 
                 if (!matchedTeam) {
-                    throw new Error('Invalid invitation code');
+                    throw new Error('Invalid invitation code', { cause: error });
                 }
 
                 alert('Mock: joined team ' + matchedTeam.teamName);
@@ -178,6 +222,11 @@ const StudentDashboard = () => {
         try {
             const token = localStorage.getItem('shms_token');
 
+            if (await hasExistingTeam(token)) {
+                setCreateError('You have already created a team!');
+                return;
+            }
+
             const res = await axios.post(
                 API_STUDENT + '/teams/create',
                 { teamName: teamName, categoryId: 1 },
@@ -186,6 +235,16 @@ const StudentDashboard = () => {
 
             setInvitationCode(res.data.invitationCode);
         } catch (error) {
+            const serverMessage = error.response?.data?.error || error.response?.data?.message || '';
+
+            if (error.response) {
+                const normalizedMessage = serverMessage.toLowerCase();
+                const alreadyHasTeam = normalizedMessage.includes('already') && normalizedMessage.includes('team');
+
+                setCreateError(alreadyHasTeam ? 'You have already created a team!' : serverMessage || 'Unable to create a team!');
+                return;
+            }
+
             console.warn('Create team API unavailable, use mock:', error.message);
 
             const mockCode = 'MOCK-' + Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -195,11 +254,24 @@ const StudentDashboard = () => {
         }
     };
 
+    const handleCopyCodeAndGoToMyTeam = async () => {
+        setCreateError('');
+
+        const copied = await copyToClipboard(invitationCode);
+
+        if (!copied) {
+            setCreateError('The invitation code cannot be copied. Please copy it manually!');
+            return;
+        }
+
+        navigate('/student/team/status');
+    };
+
     return (
         <div className="student-dash-container">
             <NavbarStudent />
 
-            <div style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
+            <div className="dashboard-announcements-row">
                 <LatestAnnouncements />
             </div>
 
@@ -390,8 +462,10 @@ const StudentDashboard = () => {
                                     {invitationCode}
                                 </div>
 
+                                {createError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '0.875rem', fontWeight: 'bold' }}>{createError}</div>}
+
                                 <button
-                                    onClick={() => navigate('/student/team/status')}
+                                    onClick={handleCopyCodeAndGoToMyTeam}
                                     style={{ width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                                 >
                                     Copy Code & Go to My Team
