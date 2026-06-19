@@ -241,14 +241,12 @@ const PanelAllocation = () => {
                             </h2>
                             <div className="panel-badge">{experts.length} Active</div>
                         </div>
-                        <div className="search-box">
+                        <div>
                             <div className="search-inner-wrapper">
                                 <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input
-                                    type="text"
-                                    className="search-input"
+                                <input type="text" className="search-input"
                                     placeholder="Search experts by name or username..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}

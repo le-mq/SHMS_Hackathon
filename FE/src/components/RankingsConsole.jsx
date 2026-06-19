@@ -5,7 +5,6 @@ import './RankingsConsole.css';
 import NavbarAdmin from './NavbarAdmin';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const BAR_PATTERNS = ['bar-mid', 'bar-mid', 'bar-dark', 'bar-mid', 'bar-dark', 'bar-mid', 'bar-light', 'bar-dark', 'bar-light', 'bar-mid'];
 const API_BASE = "http://localhost:8080/api/v1";
 const RankingsConsole = () => {
     const [topN, setTopN] = useState(10);

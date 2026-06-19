@@ -110,16 +110,15 @@
 
 /* Approved */
 .stat-card:nth-child(3)::before {
-    background: #3b82f6;
+    background: #c81010;
 }
 
 /* Participants */
 .stat-card:nth-child(4)::before {
-    background: #0f172a;
+    background: #1b4bbc;
 }
 
 /* System Load */
-
 .stat-label {
     font-size: 11px;
     font-weight: 700;
