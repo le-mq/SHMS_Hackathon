@@ -35,8 +35,8 @@ public class RankingsController {
                 return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
             }
             String role = jwtUtils.extractRole(token);
-            if (!"ADMIN".equals(role) && !"COORDINATOR".equals(role)) {
-                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN or COORDINATOR role required."));
+            if (!"ADMIN".equals(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN role required."));
             }
 
             RankingReadinessResponse readiness = rankingAdminService.getReadiness(contestId, roundName);
@@ -58,8 +58,8 @@ public class RankingsController {
             }
 
             String role = jwtUtils.extractRole(token);
-            if (!"ADMIN".equals(role) && !"COORDINATOR".equals(role)) {
-                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN or COORDINATOR role required."));
+            if (!"ADMIN".equals(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN role required."));
             }
 
             if (rankingsRequest.getTopN() < 1) {
@@ -92,8 +92,8 @@ public class RankingsController {
             }
 
             String role = jwtUtils.extractRole(token);
-            if (!"ADMIN".equals(role) && !"COORDINATOR".equals(role)) {
-                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN or COORDINATOR role required."));
+            if (!"ADMIN".equals(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access denied: ADMIN role required."));
             }
 
             rankingAdminService.publishLeaderboard(publishRequest);

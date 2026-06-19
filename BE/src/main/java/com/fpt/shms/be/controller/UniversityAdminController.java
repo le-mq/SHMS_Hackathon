@@ -31,7 +31,7 @@ public class UniversityAdminController {
         String token = header.substring(7);
         String role = jwtUtils.extractRole(token);
 
-        if (role == null || (!role.equals("ADMIN") && !role.equals("COORDINATOR"))) {
+        if (role == null || (!role.equals("ADMIN"))) {
             throw new SecurityException("Access Denied: Requires ADMIN role");
         }
     }
