@@ -52,7 +52,7 @@ public class ContestAdminService {
                 roundMap.put("phaseName", r.getPhaseName());
                 roundMap.put("submissionOpen", r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
                 roundMap.put("submissionDeadline", r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
-                roundMap.put("submissionFormat", r.getSubmissionFormat() != null ? r.getSubmissionFormat() : "PDF");
+
                 roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
                 return roundMap;
             }).toList();
@@ -273,13 +273,12 @@ public class ContestAdminService {
 
             round.setSubmissionOpen(roundDto.getSubmissionOpen());
             round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
-            round.setSubmissionFormat(roundDto.getSubmissionFormat() != null ? roundDto.getSubmissionFormat() : "PDF");
+
             round.setState(state);
             round.setContest(contest);
             roundRepository.save(round);
         }
 
-        // Remove rounds that are no longer in the request
         List<String> requestedPhaseNames = request.getRounds().stream()
                 .map(CreateTrackRoundRequest.RoundDto::getPhaseName)
                 .toList();

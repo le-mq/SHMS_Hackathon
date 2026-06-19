@@ -41,8 +41,6 @@ public class CreateTrackRoundRequest {
         @NotNull(message = "Submission deadline is required")
         private LocalDateTime submissionDeadline;
 
-        private String submissionFormat = "PDF"; // Default or allow from UI
-
         private String state = "UPCOMING";
     }
 }

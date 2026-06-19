@@ -29,10 +29,6 @@ public class Round {
     @Column(name = "submission_deadline_at", nullable = false)
     private LocalDateTime submissionDeadline;
 
-    @org.hibernate.annotations.Nationalized
-    @Column(name = "round_format", nullable = false, length = 50)
-    private String submissionFormat; // e.g., "PDF, ZIP"
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private RoundState state;

@@ -148,11 +148,11 @@ CREATE TABLE ContestUniversity (
 );
 GO
 
-CREATE TABLE Coordinator (
+CREATE TABLE Admin (
                              user_id BIGINT NOT NULL,
                              status VARCHAR(50) NULL,
-                             CONSTRAINT pk_coordinator PRIMARY KEY (user_id),
-                             CONSTRAINT fk_coordinator_user FOREIGN KEY (user_id) REFERENCES [User](user_id)
+                             CONSTRAINT pk_admin PRIMARY KEY (user_id),
+                             CONSTRAINT fk_admin_user FOREIGN KEY (user_id) REFERENCES [User](user_id)
 );
 GO
 
@@ -167,7 +167,7 @@ CREATE TABLE Announcement (
                               published_at DATETIME NULL,
                               CONSTRAINT pk_announcement PRIMARY KEY (announcement_id),
                               CONSTRAINT fk_announcement_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
-                              CONSTRAINT fk_announcement_coordinator FOREIGN KEY (user_id) REFERENCES Coordinator(user_id)
+                              CONSTRAINT fk_announcement_admin FOREIGN KEY (user_id) REFERENCES Admin(user_id)
 );
 GO
 
@@ -256,7 +256,6 @@ CREATE TABLE [Round] (
     contest_id BIGINT NULL,
     round_name NVARCHAR(100) NOT NULL,
     round_order INT NULL,
-    round_format NVARCHAR(50) NOT NULL,
     submission_open_at DATETIME NOT NULL,
     submission_deadline_at DATETIME NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -395,7 +394,7 @@ CREATE TABLE RankingResult (
                                CONSTRAINT fk_rr_round FOREIGN KEY (round_id) REFERENCES [Round](round_id),
                                CONSTRAINT fk_rr_category FOREIGN KEY (category_id) REFERENCES Category(category_id),
                                CONSTRAINT fk_rr_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
-                               CONSTRAINT fk_rr_coordinator FOREIGN KEY (user_id) REFERENCES Coordinator(user_id)
+                               CONSTRAINT fk_rr_admin FOREIGN KEY (user_id) REFERENCES Admin(user_id)
 );
 GO
 
@@ -591,11 +590,11 @@ INSERT INTO Mentor (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'mentor2';
 GO
 
-INSERT INTO Coordinator (user_id, status)
+INSERT INTO Admin (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin1';
 GO
 
-INSERT INTO Coordinator (user_id, status)
+INSERT INTO Admin (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin2';
 GO
 
@@ -615,55 +614,53 @@ GO
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES (1, 'AI', 'Bang dau danh cho AI', 'ACTIVE');
 GO
-
 INSERT INTO Semester (term, [year], semester_code)
-VALUES ('Fall', 2026, 'FA26');
+VALUES
+('Fall', 2026, 'FA26'),
+('Spring', 2027, 'SP27'),
+('Summer', 2027, 'SU27');
 GO
 
 INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end)
 VALUES
-(1, 'HCM Tech Arena 2026', 'Software Engineering', 50, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 10, GETDATE())),
-(2, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 20, GETDATE())),
-(2, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 15, GETDATE()));
+(2, 'HCM Tech Arena 2026', 'Software Engineering', 50, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 10, GETDATE())),
+(3, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 20, GETDATE())),
+(4, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 15, GETDATE()));
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-(1, 'IoT & Smart Devices', 'Bảng đấu IoT', 'ACTIVE'),
-(1, 'Cyber Security', 'Bảng đấu An toàn thông tin', 'ACTIVE');
+(1, 'IoT & Smart Devices', N'Bảng đấu IoT', 'ACTIVE'),
+(1, 'Cyber Security', N'Bảng đấu An toàn thông tin', 'ACTIVE');
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (2, 'Web Development', 'Xây dựng ứng dụng Web', 'ACTIVE'),
-    (2, 'Mobile App', 'Phát triển ứng dụng Di động', 'ACTIVE'),
-    (2, 'Game Design', 'Thiết kế Game', 'ACTIVE');
+    (2, 'Web Development', N'Xây dựng ứng dụng Web', 'ACTIVE'),
+    (2, 'Mobile App', N'Phát triển ứng dụng Di động', 'ACTIVE'),
+    (2, 'Game Design', N'Thiết kế Game', 'ACTIVE');
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (3, 'Computer Vision', 'Nhận diện hình ảnh', 'ACTIVE'),
-    (3, 'NLP', 'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
-    (3, 'Data Science', 'Khoa học Dữ liệu', 'ACTIVE');
+    (3, 'Computer Vision', N'Nhận diện hình ảnh', 'ACTIVE'),
+    (3, 'NLP', N'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
+    (3, 'Data Science', N'Khoa học Dữ liệu', 'ACTIVE');
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (4, 'Smart Contracts', 'Lập trình Hợp đồng thông minh', 'ACTIVE'),
-    (4, 'DeFi', 'Tài chính phi tập trung', 'ACTIVE'),
-    (4, 'Web3 DApps', 'Phát triển Ứng dụng Web3', 'ACTIVE');
+    (4, 'Smart Contracts', N'Lập trình Hợp đồng thông minh', 'ACTIVE'),
+    (4, 'DeFi', N'Tài chính phi tập trung', 'ACTIVE'),
+    (4, 'Web3 DApps', N'Phát triển Ứng dụng Web3', 'ACTIVE');
 GO
 
--- Contest 1 (FPT Hackathon) -> Chỉ FPT
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 1, university_id FROM University WHERE university_code = 'FPT';
 
--- Contest 2 (HCM Tech) -> Cho HCMUT, HCMUS
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 2, university_id FROM University WHERE university_code IN ('HCMUT', 'HCMUS');
 
--- Contest 3 (National AI) -> Cho HUFLIT, HCMUAF, FPT
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 3, university_id FROM University WHERE university_code IN ('HUFLIT', 'HCMUAF', 'FPT');
 
--- Contest 4 (Global Blockchain) -> Cho TẤT CẢ các trường
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 4, university_id FROM University;
 GO
