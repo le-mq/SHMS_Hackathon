@@ -14,12 +14,7 @@
     font-weight: 700;
     color: #111827;
     margin: 0 0 8px 0;
-}
-
-.config-subtitle {
-    font-size: 14px;
-    color: #6b7280;
-    margin: 0;
+    max-width: 1200px !important;
 }
 
 .draft-btn {
@@ -273,19 +268,6 @@
 }
 
 .search-box {
-    position: relative;
+    position: absolute;
     width: 100% !important;
-}
-
-.search-input {
-    width: 100%;
-    padding: 0 0 0 20px !important;
-    font-size: 13px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    outline: none;
-    transition: all 0.2s;
-    background-color: #ffffff;
-    font-family: inherit;
-    box-sizing: border-box;
 }
