@@ -112,8 +112,7 @@ public class SubmissionService {
         String contestStatus = team.getContest() != null ? team.getContest().getStatus().name() : "N/A";
 
         List<SubmissionPageResponse.RoundDto> roundDtos = new ArrayList<>();
-        com.fpt.shms.be.model.Contest contest = team.getContest() != null ? team.getContest()
-                : (team.getCategory() != null ? team.getCategory().getContest() : null);
+        com.fpt.shms.be.model.Contest contest = team.getContest();
         if (contest != null) {
             List<Round> rounds = roundRepository.findByContestId(contest.getId());
             for (Round r : rounds) {

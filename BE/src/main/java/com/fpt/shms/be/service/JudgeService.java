@@ -49,9 +49,12 @@ public class JudgeService {
                     .toList();
         }
 
-        List<Long> categoryIds = categories.stream().map(Category::getId).toList();
+        List<Long> assignedContestIds = categories.stream().map(c -> c.getContest().getId()).distinct().toList();
 
-        List<Team> assignedTeams = categoryIds.isEmpty() ? new ArrayList<>() : teamRepository.findByCategoryIdIn(categoryIds);
+        List<Team> assignedTeams = new ArrayList<>();
+        for (Long cId : assignedContestIds) {
+            assignedTeams.addAll(teamRepository.findByContestId(cId));
+        }
 
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
         List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
@@ -78,20 +81,25 @@ public class JudgeService {
             }
 
             String submissionState = isEvaluated ? "Evaluated" : (latestSub != null ? latestSub.getStatus() : "Pending");
-            String roundName = "Latest Round"; // Could query rounds
+            String roundName = latestSub != null && latestSub.getRound() != null ? latestSub.getRound().getPhaseName() : "Latest Round";
 
             String abbreviation = team.getName() != null && team.getName().length() >= 2
                     ? team.getName().substring(0, 2).toUpperCase()
                     : "TM";
 
+            String trackName = categories.stream()
+                    .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                    .map(Category::getName)
+                    .collect(Collectors.joining(", "));
+
             queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                     .teamId(team.getId())
                     .teamName(team.getName())
                     .abbreviation(abbreviation)
-                    .trackName(team.getCategory() != null ? team.getCategory().getName() : "Unknown Track")
+                    .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
                     .roundName(roundName)
                     .submissionState(submissionState)
-                    .themeClass("ai") // Hardcoded theme class for now
+                    .themeClass("ai")
                     .build());
         }
 
@@ -113,7 +121,9 @@ public class JudgeService {
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
-        boolean hasAccess = assignments.stream().anyMatch(a -> a.getCategory().getId().equals(team.getCategory().getId()));
+
+        boolean hasAccess = assignments.stream().anyMatch(a -> a.getCategory().getContest() != null &&
+                a.getCategory().getContest().getId().equals(team.getContest().getId()));
         if (!hasAccess) {
             throw new IllegalArgumentException("You are not assigned to evaluate this team");
         }
@@ -129,13 +139,23 @@ public class JudgeService {
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
         ContestRubric rubric = null;
+
         if (latestSubmission.getRound() != null) {
-            rubric = contestRubricRepository.findByCategoryIdAndRoundId(
-                    team.getCategory().getId(), latestSubmission.getRound().getId()).orElse(null);
+            List<ContestRubric> rubrics = contestRubricRepository.findByRoundId(latestSubmission.getRound().getId());
+            rubric = rubrics.isEmpty() ? null : rubrics.get(0);
         }
 
         if (rubric == null) {
-            rubric = contestRubricRepository.findFirstByCategoryId(team.getCategory().getId()).orElse(null);
+
+            Category fallbackCategory = assignments.stream()
+                    .map(JudgeAssignment::getCategory)
+                    .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fallbackCategory != null) {
+                rubric = contestRubricRepository.findFirstByCategoryId(fallbackCategory.getId()).orElse(null);
+            }
         }
 
         if (rubric != null) {
@@ -144,7 +164,7 @@ public class JudgeService {
                     .id(d.getId())
                     .name(d.getCriteriaName())
                     .description(d.getDescription())
-                    .weight((int) Math.round(d.getPercentageWeight()))
+                    .weight((int) Math.round(d.getPercentageWeight())) // percentage_weight in db or max_score, assumed getPercentageWeight exists based on context or we should use getMaxScore? Wait, original code had d.getPercentageWeight() so it's correct.
                     .build()).toList();
         }
 
@@ -168,5 +188,4 @@ public class JudgeService {
                 .criteria(criteriaDtos)
                 .build();
     }
-
 }

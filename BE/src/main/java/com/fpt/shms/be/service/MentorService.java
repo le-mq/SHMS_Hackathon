@@ -17,37 +17,39 @@ public class MentorService {
 
     private final MentorAssignmentRepository mentorAssignmentRepository;
     private final UserRepository userRepository;
-    private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
     private final SubmissionRepository submissionRepository;
     private final StudentRepository studentRepository;
+    private final TeamMentorRepository teamMentorRepository;
 
     public MentorTrackResponse getAssignedTeams(String username) {
         User mentor = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Mentor not found"));
 
-        List<Team> teams = teamRepository.findByMentorId(mentor.getId());
+        // Truy vấn Team qua bảng trung gian
+        List<TeamMentor> teamMentors = teamMentorRepository.findByMentorId(mentor.getId());
+
         List<MentorTrackResponse.TrackOverviewDto> trackOverviews = new ArrayList<>();
         List<MentorTrackResponse.AssignedTeamDto> allocatedTeams = new ArrayList<>();
 
         java.util.Map<Long, Category> assignedCategories = new java.util.HashMap<>();
         java.util.Map<Long, Integer> categoryTeamCount = new java.util.HashMap<>();
         java.util.Map<Long, Integer> categorySubmittedCount = new java.util.HashMap<>();
-        
+
         String contestName = "N/A";
 
-        for (Team team : teams) {
+        for (TeamMentor tmAlloc : teamMentors) {
+            Team team = tmAlloc.getTeam();
             if (!"APPROVED".equals(team.getStatus())) continue;
-            
+
             if ("N/A".equals(contestName) && team.getContest() != null) {
                 contestName = team.getContest().getName();
             }
-            
-            Category category = team.getCategory();
+
+            Category category = tmAlloc.getCategory();
             assignedCategories.putIfAbsent(category.getId(), category);
             categoryTeamCount.put(category.getId(), categoryTeamCount.getOrDefault(category.getId(), 0) + 1);
 
-            
             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
             String leaderName = "N/A";
             int membersCount = memberships.size();

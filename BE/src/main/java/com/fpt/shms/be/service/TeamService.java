@@ -46,6 +46,7 @@ public class TeamService{
 
         return team;
     }
+
     @Transactional
     public void joinTeam(String invitationCode, String username) {
         User user = userRepository.findByUsername(username)
@@ -92,7 +93,7 @@ public class TeamService{
         if (contestId != null) {
             for (TeamMembership m : memberships) {
                 Team t = m.getTeam();
-                Contest c = t.getContest() != null ? t.getContest() : (t.getCategory() != null ? t.getCategory().getContest() : null);
+                Contest c = t.getContest();
                 if (c != null && c.getId().equals(contestId)) {
                     team = t;
                     break;
@@ -102,7 +103,7 @@ public class TeamService{
             java.time.LocalDate now = java.time.LocalDate.now();
             for (TeamMembership m : memberships) {
                 Team t = m.getTeam();
-                Contest c = t.getContest() != null ? t.getContest() : (t.getCategory() != null ? t.getCategory().getContest() : null);
+                Contest c = t.getContest();
                 if (c != null) {
                     boolean isOngoing = false;
                     if (Contest.ContestStatus.ACTIVE.equals(c.getStatus())) {
@@ -130,9 +131,6 @@ public class TeamService{
 
         List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId());
 
-        if (roster.size() < 3 && "APPROVED".equals(team.getStatus())) {
-        }
-
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
             return TeamStatusResponse.MemberDto.builder()
@@ -145,7 +143,7 @@ public class TeamService{
 
         return TeamStatusResponse.builder()
                 .teamName(team.getName())
-                .categoryName(team.getCategory() != null ? team.getCategory().getName() : "No Category")
+                .categoryName("All Categories")
                 .invitationCode(team.getInvitationCode())
                 .status(team.getStatus())
                 .roster(memberDtos)
@@ -243,7 +241,7 @@ public class TeamService{
                         Student memberStudent = requireStudent(tm.getUser());
                         validateUniversityAllowed(memberStudent, team.getContest());
                     }
-                    
+
                     for (TeamMembership tm : teamMembers) {
                         User mUser = tm.getUser();
                         if (mUser.getId().equals(leaderStudent.getUser().getId())) {
@@ -271,6 +269,7 @@ public class TeamService{
         response.setNewToken(newToken);
         return response;
     }
+
     @Transactional(readOnly = true)
     public WorkspaceResponse getWorkspaceData(String username) {
         User user = userRepository.findByUsername(username)
@@ -290,8 +289,7 @@ public class TeamService{
         boolean isSubmitted = submissions.stream().anyMatch(s -> "SUBMITTED".equals(s.getStatus()));
 
         LocalDateTime deadline = null;
-        Contest roundContest = team.getContest() != null ? team.getContest()
-                : (team.getCategory() != null ? team.getCategory().getContest() : null);
+        Contest roundContest = team.getContest();
         if (roundContest != null) {
             List<Round> rounds = roundRepository.findByContestId(roundContest.getId());
             LocalDateTime now = LocalDateTime.now();
@@ -307,8 +305,7 @@ public class TeamService{
         }
 
         int maxMembers = 5;
-        if (team.getContest() != null && team.getContest().getMaximumAllowedTeams() != null) {
-        }
+
         return WorkspaceResponse.builder()
                 .teamStatus(team.getStatus() != null ? team.getStatus() : "FORMING")
                 .submissionDeadline(deadline)
@@ -342,11 +339,6 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         team.setStatus(status.toUpperCase());
-        if (team.getRegistrations() != null) {
-            for (TeamRegistration tr : team.getRegistrations()) {
-                tr.setStatus(status.toUpperCase());
-            }
-        }
         teamRepository.save(team);
 
         if("APPROVED".equalsIgnoreCase(status)) {

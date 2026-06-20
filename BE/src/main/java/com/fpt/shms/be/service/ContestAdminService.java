@@ -29,6 +29,7 @@ public class ContestAdminService {
     private final TeamMembershipRepository teamMembershipRepository;
     private final AnnouncementRepository announcementRepository;
     private final UniversityRepository universityRepository;
+    private final TeamMentorRepository teamMentorRepository;
 
     public List<Contest> getAllContests() {
         return contestRepository.findAll();
@@ -57,7 +58,11 @@ public class ContestAdminService {
                 return roundMap;
             }).toList();
 
-            List<Team> catTeams = teamRepository.findByCategoryId(c.getId());
+            List<Team> catTeams = teamMentorRepository.findByCategoryId(c.getId())
+                    .stream()
+                    .map(com.fpt.shms.be.model.TeamMentor::getTeam)
+                    .distinct()
+                    .toList();
             List<Map<String, Object>> teamMaps = catTeams.stream()
                     .filter(t -> "APPROVED".equals(t.getStatus()))
                     .map(t -> {

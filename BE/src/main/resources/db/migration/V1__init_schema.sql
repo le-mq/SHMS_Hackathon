@@ -213,17 +213,30 @@ GO
 CREATE TABLE Team (
                       team_id BIGINT IDENTITY(1,1) NOT NULL,
                       contest_id BIGINT NULL,
-                      user_id BIGINT NULL,
                       team_code VARCHAR(50) NOT NULL,
                       team_name NVARCHAR(100) NOT NULL,
                       status VARCHAR(50) NOT NULL,
                       created_at DATETIME NULL CONSTRAINT df_team_created_at DEFAULT GETDATE(),
                       CONSTRAINT pk_team PRIMARY KEY (team_id),
                       CONSTRAINT uq_team_code UNIQUE (team_code),
-                      CONSTRAINT fk_team_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
-                      CONSTRAINT fk_team_mentor FOREIGN KEY (user_id) REFERENCES Mentor(user_id)
+                      CONSTRAINT fk_team_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
 );
 GO
+
+CREATE TABLE TeamMentor (
+                                team_mentor_id BIGINT IDENTITY(1,1) NOT NULL,
+                                team_id BIGINT NOT NULL,
+                                user_id BIGINT NOT NULL,
+                                category_id BIGINT NOT NULL,
+                                status VARCHAR(50) NULL,
+                                CONSTRAINT pk_team_mentor PRIMARY KEY (team_mentor_id),
+                                CONSTRAINT fk_tmt_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
+                                CONSTRAINT fk_tmt_mentor FOREIGN KEY (user_id) REFERENCES Mentor(user_id),
+                                CONSTRAINT fk_tmt_category FOREIGN KEY (category_id) REFERENCES Category(category_id),
+                                CONSTRAINT uq_team_mentor_category UNIQUE (team_id, user_id, category_id)
+);
+GO
+
 
 CREATE TABLE TeamMembership (
                                 team_membership_id BIGINT IDENTITY(1,1) NOT NULL,
@@ -239,29 +252,17 @@ CREATE TABLE TeamMembership (
 );
 GO
 
-CREATE TABLE TeamRegistration (
-                                  team_registration_id BIGINT IDENTITY(1,1) NOT NULL,
-                                  team_id BIGINT NOT NULL,
-                                  category_id BIGINT NOT NULL,
-                                  status VARCHAR(50) NULL,
-                                  submitted_at DATETIME NULL,
-                                  CONSTRAINT pk_team_registration PRIMARY KEY (team_registration_id),
-                                  CONSTRAINT fk_tr_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
-                                  CONSTRAINT fk_tr_category FOREIGN KEY (category_id) REFERENCES Category(category_id)
-);
-GO
-
 CREATE TABLE [Round] (
-                         round_id BIGINT IDENTITY(1,1) NOT NULL,
-    contest_id BIGINT NULL,
-    round_name NVARCHAR(100) NOT NULL,
-    round_order INT NULL,
-    submission_open_at DATETIME NOT NULL,
-    submission_deadline_at DATETIME NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    CONSTRAINT pk_round PRIMARY KEY (round_id),
-    CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
-    );
+                            round_id BIGINT IDENTITY(1,1) NOT NULL,
+                            contest_id BIGINT NULL,
+                            round_name NVARCHAR(100) NOT NULL,
+                            round_order INT NULL,
+                            submission_open_at DATETIME NOT NULL,
+                            submission_deadline_at DATETIME NOT NULL,
+                            status VARCHAR(50) NOT NULL,
+                            CONSTRAINT pk_round PRIMARY KEY (round_id),
+                            CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
+                            );
 GO
 
 CREATE TABLE Submission (
@@ -347,11 +348,11 @@ CREATE TABLE ContestRubricDetails (
                                       contest_rubric_id BIGINT NOT NULL,
                                       criteria_name NVARCHAR(100) NOT NULL,
                                       description NVARCHAR(255) NULL,
-    [weight] DECIMAL(18,2) NOT NULL,
-    max_score DECIMAL(18,2) NOT NULL,
-    CONSTRAINT pk_contest_rubric_details PRIMARY KEY (contest_rubric_detail_id),
-    CONSTRAINT fk_crd_contest_rubric FOREIGN KEY (contest_rubric_id) REFERENCES ContestRubric(contest_rubric_id)
-    );
+                                        [weight] DECIMAL(18,2) NOT NULL,
+                                        max_score DECIMAL(18,2) NOT NULL,
+                                        CONSTRAINT pk_contest_rubric_details PRIMARY KEY (contest_rubric_detail_id),
+                                        CONSTRAINT fk_crd_contest_rubric FOREIGN KEY (contest_rubric_id) REFERENCES ContestRubric(contest_rubric_id)
+                                        );
 GO
 
 CREATE TABLE Score (
