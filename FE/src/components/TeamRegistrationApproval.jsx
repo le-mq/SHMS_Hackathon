@@ -32,7 +32,7 @@ const TeamRegistrationApproval = () => {
                 if (!response.ok)
                     throw new Error("HTTP " + response.status);
                 const json = await response.json();
-                const contestsData = json.contests || [];
+                const contestsData = Array.isArray(json) ? json : (json.contests || json.data || []);
                 if (!cancelled) {
                     setDashboardData(contestsData);
                     if (contestsData.length > 0) {
@@ -41,7 +41,7 @@ const TeamRegistrationApproval = () => {
                 }
             }
             catch (error) {
-                console.warn("API unavailable", error.message);
+                console.warn("API unavailable, loading fallback mock...", error.message);
                 try {
                     const localRes = await fetch("/testFE.json");
                     if (!localRes.ok)
@@ -69,7 +69,7 @@ const TeamRegistrationApproval = () => {
         return () => { cancelled = true; };
     }, []);
 
-    const selectedContest = dashboardData.find(c => c.id == selectedContestId);
+    const selectedContest = dashboardData.find(c => String(c.id) === String(selectedContestId));
     let filteredTeams = [];
     if (selectedContest && selectedContest.teams) {
         filteredTeams = selectedContest.teams.filter(t =>
@@ -80,20 +80,24 @@ const TeamRegistrationApproval = () => {
     const handleOpenCancelModal = (teamId, teamName) => {
         setCancelModal({
             isOpen: true,
-            type: type,
+            type: 'CANCEL',
             teamId,
             teamName,
             reason: ''
         });
     };
 
+    const handleCloseCancelModal = () => {
+        setCancelModal({ isOpen: false, type: 'CANCEL', teamId: null, teamName: '', reason: '' });
+    };
+
     const handleConfirmCancelStatus = async () => {
         if (!cancelModal.reason.trim()) {
-            alert(`Vui lòng nhập lý do ${actionModal.type === 'cancel' ? 'hủy tư cách' : 'hoàn lại tư cách'} thi!`);
+            alert(`Vui lòng nhập lý do ${actionModal.type === 'CANCEL' ? 'hủy tư cách' : 'hoàn lại tư cách'} thi!`);
             return;
         }
 
-        const confirmText = actionModal.type === 'cancel'
+        const confirmText = actionModal.type === 'CANCEL'
             ? `Bạn có chắc chắn muốn hủy tư cách tham gia của đội "${actionModal.teamName}" không?`
             : `Bạn có chắc chắn muốn HOÀN LẠI tư cách tham gia cuộc thi cho đội "${actionModal.teamName}" không?`;
 
@@ -103,7 +107,7 @@ const TeamRegistrationApproval = () => {
         try {
             const token = localStorage.getItem("shms_token");
 
-            await axios.post(`${API_BASE}/admin/contests/teams/registration-status`, {
+            await axios.put(`${API_BASE}/admin/contests/teams/registration-status`, {
                 teamId: cancelModal.teamId,
                 contestId: selectedContestId,
                 actionType: cancelModal.type,
@@ -120,11 +124,11 @@ const TeamRegistrationApproval = () => {
                         let newPending = contest.pendingReview || 0;
                         let newApproved = contest.approved || 0;
 
-                        if (actionModal.type === 'cancel') {
+                        if (actionModal.type === 'CANCEL') {
                             // Xử lý giảm số lượng bộ đếm khi hủy
-                            if (prevStatus === 'approved') {
+                            if (prevStatus === 'APPROVED') {
                                 newApproved = Math.max(0, newApproved - 1);
-                            } else if (prevStatus === 'pending' || prevStatus === 'pending review') {
+                            } else if (prevStatus === 'PENDING' || prevStatus === 'PENDING_REVIEW') {
                                 newPending = Math.max(0, newPending - 1);
                             }
                         } else {
@@ -135,7 +139,7 @@ const TeamRegistrationApproval = () => {
                             ...contest,
                             teams: contest.teams.map(team =>
                                 team.id === cancelModal.teamId
-                                    ? { ...team, status: 'Canceled', track: 'Disqualified' } // Hoặc cập nhật status tương ứng
+                                    ? { ...team, status: 'CANCEL', track: 'Disqualified' } // Hoặc cập nhật status tương ứng
                                     : team
                             )
                         };
@@ -151,11 +155,6 @@ const TeamRegistrationApproval = () => {
             console.error("Lỗi khi hủy trạng thái thi:", err);
             alert("Có lỗi xảy ra khi thực hiện thao tác này.");
         }
-    };
-
-
-    const handleCloseCancelModal = () => {
-        setCancelModal({ isOpen: false, teamId: null, teamName: '', reason: '' });
     };
 
     if (isLoading) return <div className="approval-container"><NavbarAdmin /><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
