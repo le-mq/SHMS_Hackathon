@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './VerifyEmail.css';
+import NavbarHome from './NavbarHome.jsx';
 
 const VerifyEmail = () => {
     const location = useLocation();
@@ -28,14 +29,13 @@ const VerifyEmail = () => {
 
         return () => clearInterval(timer);
     }, [username, navigate]);
-
+    const hasSent = useRef(false);
     useEffect(() => {
-        if (username && canResendImmediately) {
+        if (username && canResendImmediately && !hasSent.current) {
+            hasSent.current = true;
             autoSendOtp();
         }
     }, [username, canResendImmediately]);
-
-    // Hàm gọi ngầm chuyên biệt cho việc tự động kích hoạt gửi
     const autoSendOtp = async () => {
         setError('');
         setSuccess('Initiating automatic email verification...');
@@ -53,7 +53,7 @@ const VerifyEmail = () => {
             if (!response.ok) {
                 setError(data.error || 'Failed to send automatic verification code.');
             } else {
-                setTimeLeft(180); // Khởi động bộ đếm ngược 3 phút sau khi gửi thành công
+                setTimeLeft(180);
                 setSuccess(data.message || 'An activation code has been automatically sent to your email.');
                 inputRefs.current[0]?.focus();
             }
@@ -77,8 +77,6 @@ const VerifyEmail = () => {
         const newOtp = [...otp];
         newOtp[index] = value.substring(value.length - 1);
         setOtp(newOtp);
-
-        // Move to next input
         if (value && index < 5) {
             inputRefs.current[index + 1].focus();
         }
@@ -100,8 +98,6 @@ const VerifyEmail = () => {
             if (index < 6) newOtp[index] = char;
         });
         setOtp(newOtp);
-
-        // Focus last filled input
         const focusIndex = Math.min(pastedData.length, 5);
         inputRefs.current[focusIndex].focus();
     };
@@ -173,62 +169,65 @@ const VerifyEmail = () => {
     };
 
     return (
-        <div className="verify-container">
-            <h1 className="verify-title">Verify Your Email</h1>
+        <>
+            <NavbarHome/>
+            <div className="verify-container">
+                <h1 className="verify-title">Verify Your Email</h1>
 
-            <div className="verify-card">
-                <div className="icon-wrapper">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-
-                <p className="verify-text">
-                    An activation OTP code has been sent via email. Enter the<br />
-                    token {timeLeft > 0 ? <>within <strong>{formatTime(timeLeft)}</strong> minutes</> : 'or request a new code'} to activate your profile
-                </p>
-
-                {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
-                {success && <div className="alert alert-success" style={{ marginBottom: '20px' }}>{success}</div>}
-
-                <form onSubmit={handleSubmit}>
-                    <div className="otp-inputs" onPaste={handlePaste}>
-                        {otp.map((digit, index) => (
-                            <input
-                                key={index}
-                                type="text"
-                                maxLength="1"
-                                className="otp-input"
-                                value={digit}
-                                onChange={(e) => handleChange(index, e)}
-                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                ref={(el) => (inputRefs.current[index] = el)}
-                            />
-                        ))}
+                <div className="verify-card">
+                    <div className="icon-wrapper">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
                     </div>
 
-                    <button
-                        type="submit"
-                        className="verify-btn"
-                        disabled={isLoading || otp.join('').length < 6}
-                    >
-                        {isLoading ? 'VERIFYING...' : 'CONFIRM OTP TOKEN'}
-                    </button>
-                </form>
+                    <p className="verify-text">
+                        An activation OTP code has been sent via email. Enter the<br />
+                        token {timeLeft > 0 ? <>within <strong>{formatTime(timeLeft)}</strong> minutes</> : 'or request a new code'} to activate your profile
+                    </p>
 
-                <div className="resend-container">
-                    Didn't receive the code?
-                    <button
-                        type="button"
-                        className="resend-link"
-                        disabled={timeLeft > 0 || isResending}
-                        onClick={handleResend}
-                    >
-                        {isResending ? 'Resending...' : 'Resend Code Now'}
-                    </button>
+                    {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
+                    {success && <div className="alert alert-success" style={{ marginBottom: '20px' }}>{success}</div>}
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="otp-inputs" onPaste={handlePaste}>
+                            {otp.map((digit, index) => (
+                                <input
+                                    key={index}
+                                    type="text"
+                                    maxLength="1"
+                                    className="otp-input"
+                                    value={digit}
+                                    onChange={(e) => handleChange(index, e)}
+                                    onKeyDown={(e) => handleKeyDown(index, e)}
+                                    ref={(el) => (inputRefs.current[index] = el)}
+                                />
+                            ))}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="verify-btn"
+                            disabled={isLoading || otp.join('').length < 6}
+                        >
+                            {isLoading ? 'VERIFYING...' : 'CONFIRM OTP TOKEN'}
+                        </button>
+                    </form>
+
+                    <div className="resend-container">
+                        Didn't receive the code?
+                        <button
+                            type="button"
+                            className="resend-link"
+                            disabled={timeLeft > 0 || isResending}
+                            onClick={handleResend}
+                        >
+                            {isResending ? 'Resending...' : 'Resend Code Now'}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -173,13 +173,11 @@ const Register = () => {
 
     return (
         <>
-            <NavbarHome></NavbarHome>
+            <NavbarHome />
             <div style={{ background: '#f4f7fa', minHeight: '100vh', paddingBottom: '40px' }}>
                 <div className="register-container">
                     <div className="register-card">
                         <h1 className="register-title">Create System Account</h1>
-                        {serverError && <div className="alert alert-error">{serverError}</div>}
-                        {successMsg && <div className="alert alert-success">{successMsg}</div>}
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label className="form-label">Full Name</label>
@@ -270,6 +268,9 @@ const Register = () => {
                             <button type="submit" className="register-btn" disabled={isLoading}>
                                 {isLoading ? 'Registering...' : 'Register Account'}
                             </button>
+                            {serverError ? ( <div className="alert-error">{serverError}</div>
+                            ) : successMsg ? (<div className="alert-success">{successMsg}</div>
+                            ) : null}
                         </form>
 
                         <div className="login-link-container">
