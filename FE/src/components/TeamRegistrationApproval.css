@@ -54,7 +54,7 @@
     cursor: pointer;
 }
 
-.search-box {
+.search-box-approval {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -65,7 +65,7 @@
     width: 250px;
 }
 
-.search-box input {
+.search-box-approval input {
     border: none;
     outline: none;
     font-size: 13px;
