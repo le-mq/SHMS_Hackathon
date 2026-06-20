@@ -450,6 +450,7 @@ public class TeamService{
                     .totalParticipants(totalParticipants)
                     .capacities(capacities)
                     .teams(teamsData)
+                    .categories(categoriesDataList)
                     .build());
         }
 
