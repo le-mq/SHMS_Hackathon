@@ -14,53 +14,58 @@ const PanelAllocation = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
 
+    // Load contests, experts, and allocations on mount
     useEffect(() => {
-        let cancelled = false;
-        async function fetchInitialData() {
+        const fetchInitialData = async () => {
             try {
                 const token = localStorage.getItem("shms_token");
                 const headers = { Authorization: `Bearer ${token}` };
-                const contestRes = await fetch(API_BASE + "/admin/contests", { headers });
-                if (!contestRes.ok)
-                    throw new Error();
-                const cData = await contestRes.json();
-                const expertRes = await fetch(API_BASE + "/admin/contests/experts", { headers });
-                if (!expertRes.ok)
-                    throw new Error();
-                const eData = await expertRes.json();
-                const now = new Date();
-                const activeExps = eData.filter(e => !e.accessExpiry || new Date(e.accessExpiry) > now);
-                const allocRes = await fetch(API_BASE + "/admin/contests/allocations", { headers });
-                if (!allocRes.ok)
-                    throw new Error();
-                const aData = await allocRes.json();
-                if (!cancelled) {
-                    setContests(cData);
-                    setExperts(activeExps);
-                    setAllocations(aData || {});
-                    if (activeExps.length > 0) {
-                        setSelectedExpertId(activeExps[0].userId);
+
+                const [contestsRes, expertsRes, allocationsRes] = await Promise.all([
+                    fetch(API_BASE + "/admin/contests", { headers }),
+                    fetch(API_BASE + "/admin/contests/experts", { headers }),
+                    fetch(API_BASE + "/admin/contests/allocations", { headers })
+                ]);
+
+                if (contestsRes.ok) {
+                    const contestsData = await contestsRes.json();
+                    const list = Array.isArray(contestsData) ? contestsData : (contestsData.contests || contestsData.data || []);
+                    setContests(list);
+                    if (list.length > 0) {
+                        setSelectedContestId(String(list[0].id));
                     }
                 }
-            }
-            catch {
-                const localRes = await fetch("/testFE.json");
-                const localJson = await localRes.json();
-                if (!cancelled) {
-                    setContests(localJson.panelAllocation?.contests || []);
-                    const expertsData = localJson.panelAllocation?.experts || [];
-                    setExperts(expertsData);
-                    if (expertsData.length > 0) {
-                        setSelectedExpertId(expertsData[0].userId);
+
+                if (expertsRes.ok) {
+                    const expertsData = await expertsRes.json();
+                    setExperts(Array.isArray(expertsData) ? expertsData : []);
+                }
+
+                if (allocationsRes.ok) {
+                    const allocData = await allocationsRes.json();
+                    if (allocData && typeof allocData === 'object' && !Array.isArray(allocData)) {
+                        setAllocations(allocData);
                     }
-                    setAllocations(localJson.panelAllocation?.allocations || {});
+                }
+            } catch (err) {
+                console.error("Failed to load initial data:", err);
+                try {
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    const mockContests = localJson.panelAllocation?.contests || [];
+                    setContests(mockContests);
+                    if (mockContests.length > 0) {
+                        setSelectedContestId(String(mockContests[0].id));
+                    }
+                } catch (mockErr) {
+                    console.error("Cannot load mock data", mockErr);
                 }
             }
-        }
+        };
         fetchInitialData();
-        return () => { cancelled = true; };
     }, []);
 
+    // Load contest details (tracks/categories with teams) when selectedContestId changes
     useEffect(() => {
         if (!selectedContestId) {
             setTracks([]);
@@ -73,22 +78,38 @@ const PanelAllocation = () => {
                 const res = await fetch(API_BASE + `/admin/contests/${selectedContestId}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                if (!res.ok)
-                    throw new Error();
+                if (!res.ok) throw new Error("Lỗi HTTP " + res.status);
                 const data = await res.json();
-                setTracks(data.tracks || []);
+                console.log("Dữ liệu chi tiết Contest thực tế:", data);
+
+                let extractedTracks = data.tracks || data.categories || [];
+
+                extractedTracks = extractedTracks.map(track => ({
+                    ...track,
+                    id: track.id,
+                    categoryName: track.categoryName || track.name || track.title,
+                    trackDescription: track.trackDescription || track.description || "",
+                    teams: track.teams || track.registeredTeams || track.teamRegistrations || []
+                }));
+
+                setTracks(extractedTracks);
             }
-            catch {
-                const localRes = await fetch("/testFE.json");
-                const localJson = await localRes.json();
-                const contest = localJson.panelAllocation.contests.find(c => c.id == selectedContestId);
-                setTracks(contest?.tracks || []);
+            catch (err) {
+                console.error("Thất bại khi lấy chi tiết contest từ API, chuyển sang mock:", err);
+                try {
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    const contest = localJson.panelAllocation?.contests?.find(c => String(c.id) === String(selectedContestId));
+                    setTracks(contest?.tracks || contest?.categories || []);
+                } catch (mockErr) {
+                    console.error("Không thể load mock cho tracks", mockErr);
+                }
             }
         };
         fetchContestDetails();
     }, [selectedContestId]);
 
-    const activeExpert = useMemo(() => experts.find(e => e.userId === selectedExpertId), [experts, selectedExpertId]);
+    const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
 
     const filteredExperts = useMemo(() => {
         return experts.filter(e =>
@@ -154,11 +175,11 @@ const PanelAllocation = () => {
     const getTeamOwnerName = (trackId, teamId) => {
         for (const expertId in allocations) {
             // Không tính chính Mentor hiện tại đang chỉnh sửa
-            if (expertId === selectedExpertId) continue;
+            if (String(expertId) === String(selectedExpertId)) continue;
 
             const trackAlloc = allocations[expertId]?.[trackId];
             if (trackAlloc?.mentoredTeamIds?.includes(teamId)) {
-                const exp = experts.find(e => e.userId === expertId);
+                const exp = experts.find(e => String(e.userId) === String(expertId));
                 return exp?.fullName || exp?.username || "Another Mentor";
             }
         }
