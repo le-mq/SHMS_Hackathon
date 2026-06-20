@@ -27,6 +27,16 @@ public class TeamRegistrationDashboardResponse {
         private int totalParticipants;
         private List<CategoryCapacity> capacities;
         private List<TeamData> teams;
+        private List<CategoryData> categories;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CategoryData {
+        private Long id;
+        private String name;
     }
 
     @Data
