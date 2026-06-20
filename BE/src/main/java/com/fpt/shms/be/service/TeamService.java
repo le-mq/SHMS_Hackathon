@@ -30,17 +30,8 @@ public class TeamService{
         User leader = userRepository.findByUsername(leaderUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
 
-        Contest contest = null;
-        if (request.getContestId() != null) {
-            contest = contestRepository.findById(request.getContestId())
-                    .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
-        } else {
-            throw new IllegalArgumentException("Contest ID is required to create a team.");
-        }
-
         Team team = Team.builder()
                 .name(request.getTeamName())
-                .contest(contest)
                 .build();
         team.generateInvitationCode();
         team = teamRepository.save(team);
