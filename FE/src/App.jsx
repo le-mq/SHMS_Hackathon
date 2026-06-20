@@ -20,6 +20,7 @@ import MentorCategory from './components/MentorCategory'
 import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
 import PanelAllocation from './components/PanelAllocation.jsx'
 import ProjectSubmission from './components/ProjectSubmission'
+import StandingsFeedback from './components/StandingsFeedback'
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
         <Route path="/mentor/workspace" element={<MentorCategory />} />
         <Route path="/student/team/status" element={<TeamStatus />} />
+        <Route path="/student/results" element={<StandingsFeedback />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/student/submission" element={<ProjectSubmission />} />
