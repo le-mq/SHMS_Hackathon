@@ -1,202 +1,158 @@
+/* ==========================================================================
+   1. LAYOUT & CHUNG
+   ========================================================================== */
 .admin-container {
     background-color: #f4f7fa;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.config-wrapper {
+.allocation-wrapper {
     padding: 40px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 28px;
+    align-items: start;
 }
 
+/* Common Header Styles */
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    grid-column: 1 / -1;
+    /* Chiếm trọn chiều rộng nếu nằm trong grid */
+}
+
+.config-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+}
+
+.config-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Alert Banner */
 .error-banner {
     background-color: #fee2e2;
     border-left: 4px solid #ef4444;
-    padding: 16px;
+    padding: 14px 18px;
     margin-bottom: 24px;
-    border-radius: 4px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     gap: 12px;
     color: #b91c1c;
     font-weight: 600;
     font-size: 14px;
+    grid-column: 1 / -1;
 }
 
-.header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-}
-
-.config-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 8px 0;
-}
-
-.config-subtitle {
-    font-size: 14px;
-    color: #6b7280;
-    margin: 0;
-}
-
-.save-btn {
-    padding: 12px 24px;
-    background-color: #0d1b2a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.save-btn:hover {
-    background-color: #1a2c40;
-}
-
-.save-btn:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-}
-
-.allocation-grid {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 24px;
-}
-
-.left-panel,
-.right-panel {
-    background: white;
+/* ==========================================================================
+   2. PANEL BÊN TRÁI: DANH SÁCH EXPERTS
+   ========================================================================== */
+.left-expert-panel {
+    background: #ffffff;
     border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.panel-header {
-    padding: 24px;
-    border-bottom: 1px solid #f3f4f6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-title {
+.left-expert-panel h3 {
     font-size: 16px;
     font-weight: 700;
-    color: #111827;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #0f172a;
+    padding: 20px 24px;
     margin: 0;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.panel-badge {
-    background: #dbeafe;
-    color: #1e40af;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.search-box {
-    margin-right: 20px !important;
-    margin-left: 2px !important;
-    padding: 10px 15px !important;
-    border: 1px solid #f3f4f6;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    position: initial !important;
-}
-
+/* Search Box Component */
 .search-inner-wrapper {
     position: relative;
-    margin: auto;
-    display: flex;
+    padding: 16px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .search-input {
     width: 100%;
-    border: 1px solid #d1d5db ;
-    border-radius: 6px ;
-    margin: 10px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
     font-size: 13px;
-    outline: none ;
+    outline: none;
     box-sizing: border-box;
-    padding: 5px 0 5px 20px;
+    padding: 8px 12px 8px 36px;
+    transition: all 0.2s;
 }
 
 .search-input:focus {
-    border-color: #0d1b2a;
+    border-color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
 .search-icon {
     position: absolute;
-    left: 14px;
+    left: 32px;
     top: 50%;
     transform: translateY(-50%);
-    color: #9ca3af;
+    color: #94a3b8;
     pointer-events: none;
-    z-index: 10;
 }
 
+/* Expert Items List */
 .expert-list {
-    max-height: 500px;
+    max-height: 600px;
     overflow-y: auto;
 }
 
 .expert-item {
-    padding: 16px 24px;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .expert-item:hover {
-    background-color: #f9fafb;
+    background-color: #f8fafc;
 }
 
 .expert-item.active {
-    background-color: #f4f7fa;
-    border-left: 4px solid #0d1b2a;
+    background-color: #f0f7ff;
+    border-left: 4px solid #3b82f6;
+    padding-left: 16px;
+    /* Bù trừ lại phần border trái */
 }
 
 .expert-info {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .expert-avatar {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background-color: #e5e7eb;
+    background-color: #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #4b5563;
-    overflow: hidden;
-}
-
-.expert-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    color: #475569;
+    font-size: 14px;
 }
 
 .expert-details {
@@ -207,124 +163,191 @@
 .expert-name {
     font-size: 14px;
     font-weight: 600;
-    color: #111827;
+    color: #0f172a;
     margin-bottom: 2px;
 }
 
 .expert-title {
     font-size: 12px;
-    color: #6b7280;
+    color: #64748b;
 }
 
-.panel-subtitle {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 4px 0 0 0;
-    font-weight: normal;
+/* ==========================================================================
+   3. PANEL BÊN PHẢI: PHÂN BỔ NGHIỆP VỤ CHÍNH
+   ========================================================================== */
+.right-assignment-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.track-table {
+.panel-header-custom {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-header-custom h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+}
+
+.panel-header-custom p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Component Block chung */
+.management-block {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.management-block h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.block-hint {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 16px 0;
+}
+
+/* --- KHỐI 1: GLOBAL MENTOR CARDS --- */
+.global-teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.team-card-global {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: #ffffff;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.team-card-global:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.team-card-global input[type="checkbox"] {
+    accent-color: #10b981;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.team-name-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Khi Active vai trò Mentor */
+.team-card-global.active {
+    background: #f0fdf4;
+    border-color: #10b981;
+}
+
+.team-card-global.active .team-name-text {
+    color: #15803d;
+}
+
+/* Khi bị khóa (Do đang làm Judge ở mục khác) */
+.team-card-global:has(input:disabled) {
+    opacity: 0.5;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+/* --- KHỐI 2: BẢNG CHỌN JUDGE THEO HẠNG MỤC --- */
+.judge-pure-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.track-table th {
-    background-color: #f9fafb;
-    padding: 16px 24px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 700;
-    color: #6b7280;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.track-table th.center {
-    text-align: center;
-}
-
-.track-table td {
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    vertical-align: middle;
-}
-
-.track-info {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.track-color {
-    width: 6px;
-    height: 24px;
-    border-radius: 3px;
-    background-color: #d1d5db;
-    margin-top: 4px;
-}
-
-.track-color.active {
-    background-color: #111827;
-}
-
-.track-color.conflict {
-    background-color: #ef4444;
-}
-
-.track-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.track-name {
+.judge-pure-table th,
+.judge-pure-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 14px;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 2px;
 }
 
-.track-desc {
+.judge-pure-table th {
+    background-color: #f8fafc;
+    text-align: left;
+    color: #475569;
+    font-weight: 700;
     font-size: 12px;
-    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.conflict-text {
-    color: #ef4444;
-    font-size: 11px;
+.judge-pure-table td strong {
+    color: #1e293b;
     font-weight: 600;
-    margin-top: 4px;
 }
 
-.toggle-cell {
+.judge-pure-table tr:hover td {
+    background-color: #fafafa;
+}
+
+.center {
     text-align: center;
 }
 
-/* Custom Toggle Switch */
-.toggle-switch {
+/* ==========================================================================
+   4. CUSTOM UI SWITCH (BUILT-IN BLUE/CONFLICT RED)
+   ========================================================================== */
+.ui-switch-blue {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 24px;
 }
 
-.toggle-switch input {
+.ui-switch-blue input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.toggle-slider {
+.ui-switch-blue .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #d1d5db;
-    transition: .4s;
+    background-color: #cbd5e1;
+    transition: .3s;
     border-radius: 24px;
 }
 
-.toggle-slider:before {
+.ui-switch-blue .slider:before {
     position: absolute;
     content: "";
     height: 18px;
@@ -332,28 +355,70 @@
     left: 3px;
     bottom: 3px;
     background-color: white;
-    transition: .4s;
+    transition: .3s;
     border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-input:checked+.toggle-slider {
+/* Checked States */
+.ui-switch-blue input:checked+.slider {
     background-color: #2563eb;
 }
 
-input:checked+.toggle-slider.conflict {
-    background-color: #ef4444;
-}
-
-input:checked+.toggle-slider:before {
+.ui-switch-blue input:checked+.slider:before {
     transform: translateX(20px);
 }
 
-.toggle-slider.disabled {
+/* Disabled States */
+.ui-switch-blue input:disabled+.slider {
+    background-color: #e2e8f0;
     cursor: not-allowed;
-    opacity: 0.5;
-    background-color: #e5e7eb;
+    opacity: 0.6;
 }
 
-input:checked+.toggle-slider.disabled {
+.ui-switch-blue input:disabled:checked+.slider {
     background-color: #93c5fd;
+}
+
+/* ==========================================================================
+   5. ACTIONS & UTILITIES
+   ========================================================================== */
+.panel-footer-actions {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-save-master {
+    padding: 10px 24px;
+    background-color: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-save-master:hover {
+    background-color: #1e293b;
+}
+
+.btn-save-master:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.hint-text {
+    font-size: 13px;
+    color: #94a3b8;
+    font-style: italic;
+    grid-column: 1 / -1;
+    margin: 8px 0;
 }

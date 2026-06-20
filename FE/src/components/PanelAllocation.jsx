@@ -1,26 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './PanelAllocation.css';
 import NavbarAdmin from './NavbarAdmin';
+
 const API_BASE = "http://localhost:8080/api/v1";
+
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
-    const [tracks, setTracks] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [allTeams, setAllTeams] = useState([]);
     const [experts, setExperts] = useState([]);
     const [selectedExpertId, setSelectedExpertId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [allocations, setAllocations] = useState({});
-
     const [isLoading, setIsLoading] = useState(false);
-    const [successMsg, setSuccessMsg] = useState('');
 
-    // Load contests, experts, and allocations on mount
+    const token = localStorage.getItem("shms_token");
+    const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+
+    // 1. Fetch dữ liệu ban đầu
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const token = localStorage.getItem("shms_token");
-                const headers = { Authorization: `Bearer ${token}` };
-
                 const [contestsRes, expertsRes, allocationsRes] = await Promise.all([
                     fetch(API_BASE + "/admin/contests", { headers }),
                     fetch(API_BASE + "/admin/contests/experts", { headers }),
@@ -28,89 +29,187 @@ const PanelAllocation = () => {
                 ]);
 
                 if (contestsRes.ok) {
-                    const contestsData = await contestsRes.json();
-                    const list = Array.isArray(contestsData) ? contestsData : (contestsData.contests || contestsData.data || []);
-                    setContests(list);
-                    if (list.length > 0) {
-                        setSelectedContestId(String(list[0].id));
-                    }
+                    const cData = await contestsRes.json();
+                    setContests(cData);
+                    if (cData.length > 0) setSelectedContestId(String(cData[0].id));
                 }
-
                 if (expertsRes.ok) {
-                    const expertsData = await expertsRes.json();
-                    setExperts(Array.isArray(expertsData) ? expertsData : []);
+                    const eData = await expertsRes.json();
+                    setExperts(eData);
+                    if (eData.length > 0) setSelectedExpertId(String(eData[0].userId));
                 }
-
                 if (allocationsRes.ok) {
-                    const allocData = await allocationsRes.json();
-                    if (allocData && typeof allocData === 'object' && !Array.isArray(allocData)) {
-                        setAllocations(allocData);
-                    }
+                    const aData = await allocationsRes.json();
+                    setAllocations(aData || {});
                 }
             } catch (err) {
-                console.error("Failed to load initial data:", err);
-                try {
-                    const localRes = await fetch("/testFE.json");
-                    const localJson = await localRes.json();
-                    const mockContests = localJson.panelAllocation?.contests || [];
-                    setContests(mockContests);
-                    if (mockContests.length > 0) {
-                        setSelectedContestId(String(mockContests[0].id));
-                    }
-                } catch (mockErr) {
-                    console.error("Cannot load mock data", mockErr);
-                }
+                console.error("Lỗi fetch data ban đầu:", err);
             }
         };
         fetchInitialData();
-    }, []);
+    }, [headers]);
 
-    // Load contest details (tracks/categories with teams) when selectedContestId changes
+    // 2. Fetch danh mục và đội thi khi chọn cuộc thi
     useEffect(() => {
-        if (!selectedContestId) {
-            setTracks([]);
-            return;
-        }
+        if (!selectedContestId || selectedContestId === '') return;
 
-        const fetchContestDetails = async () => {
-            try {
-                const token = localStorage.getItem("shms_token");
-                const res = await fetch(API_BASE + `/admin/contests/${selectedContestId}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                if (!res.ok) throw new Error("Lỗi HTTP " + res.status);
-                const data = await res.json();
-                console.log("Dữ liệu chi tiết Contest thực tế:", data);
-
-                let extractedTracks = data.tracks || data.categories || [];
-
-                extractedTracks = extractedTracks.map(track => ({
-                    ...track,
-                    id: track.id,
-                    categoryName: track.categoryName || track.name || track.title,
-                    trackDescription: track.trackDescription || track.description || "",
-                    teams: track.teams || track.registeredTeams || track.teamRegistrations || []
-                }));
-
-                setTracks(extractedTracks);
-            }
-            catch (err) {
-                console.error("Thất bại khi lấy chi tiết contest từ API, chuyển sang mock:", err);
-                try {
-                    const localRes = await fetch("/testFE.json");
-                    const localJson = await localRes.json();
-                    const contest = localJson.panelAllocation?.contests?.find(c => String(c.id) === String(selectedContestId));
-                    setTracks(contest?.tracks || contest?.categories || []);
-                } catch (mockErr) {
-                    console.error("Không thể load mock cho tracks", mockErr);
+        // Gọi endpoint dashboard tổng - nơi chứa toàn bộ cấu trúc lồng nhau của teams và contest
+        fetch(API_BASE + "/admin/contests/teams/dashboard-data", { headers })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
                 }
-            }
-        };
-        fetchContestDetails();
-    }, [selectedContestId]);
+                return res.json();
+            })
+            .then(json => {
+                // Khớp cấu trúc mảng giống hệt bên TeamRegistrationApproval
+                const contestsData = Array.isArray(json) ? json : (json.contests || json.data || []);
+
+                // Tìm đúng contest đang được chọn trên giao diện
+                const currentContest = contestsData.find(c => String(c.id) === String(selectedContestId));
+
+                if (currentContest) {
+                    // Set categories lấy từ tracks hoặc categories
+                    setCategories(currentContest.categories || currentContest.tracks || []);
+
+                    // Lọc danh sách đội thi: Chỉ lấy những đội đã được APPROVED (hoặc giữ nguyên nếu muốn hiển thị hết)
+                    const rawTeams = currentContest.teams || [];
+                    const approvedTeams = rawTeams.filter(team =>
+                        (team.status || '').toLowerCase() === 'approved'
+                    );
+
+                    setAllTeams(approvedTeams);
+                    console.log(`Đã load thành công ${approvedTeams.length} đội APPROVED cho contest ID: ${selectedContestId}`);
+                } else {
+                    // Nếu không tìm thấy cuộc thi trong danh sách dashboard
+                    setCategories([]);
+                    setAllTeams([]);
+                }
+            })
+            .catch(err => console.error("Lỗi fetch dữ liệu cấu hình panel:", err));
+    }, [selectedContestId, headers]);
 
     const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
 
+    // Lấy danh sách đội thi đang được Mentor bởi Expert này
+    const currentMentoredTeamIds = useMemo(() => {
+        if (!allocations || !selectedExpertId) return [];
+
+        // Hỗ trợ tìm kiếm key linh hoạt theo cả String lẫn Number
+        const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
+        const teamIds = new Set();
+
+        Object.values(expertAlloc).forEach(trackAlloc => {
+            // Kiểm tra trackAlloc tồn tại và có mảng mentoredTeamIds không
+            if (trackAlloc && Array.isArray(trackAlloc.mentoredTeamIds)) {
+                trackAlloc.mentoredTeamIds.forEach(id => {
+                    if (id !== undefined && id !== null) {
+                        teamIds.add(String(id));
+                    }
+                });
+            }
+        });
+
+        return Array.from(teamIds);
+    }, [allocations, selectedExpertId]);
+
+    const isActingAsJudgeAnywhere = useMemo(() => {
+        if (!allocations || !selectedExpertId) return false;
+
+        const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
+        return Object.values(expertAlloc).some(trackAlloc => trackAlloc && trackAlloc.isJudge === true);
+    }, [allocations, selectedExpertId]);
+
+    // Xử lý Mentor Team
+    const handleGlobalTeamToggle = (teamId) => {
+        if (!selectedExpertId) return;
+
+        // KHÓA CỨNG: Nếu đang làm Giám khảo ở BẤT KỲ hạng mục nào -> Chặn click Mentor
+        if (isActingAsJudgeAnywhere) {
+            alert("Không thể gán Mentor! Chuyên gia này đã được phân công làm Giám khảo chấm thi trong cuộc thi này.");
+            return;
+        }
+
+        setAllocations(prev => {
+            // Xác định chính xác key đang tồn tại trong state (String hoặc Number)
+            const expertKey = Object.keys(prev).find(key => String(key) === String(selectedExpertId)) || selectedExpertId;
+            const expertAlloc = prev[expertKey] || {};
+            const updatedAlloc = { ...expertAlloc };
+
+            // Kiểm tra xem teamId đã có trong danh sách được gán chưa
+            const isAssigned = currentMentoredTeamIds.includes(String(teamId));
+
+            // Đồng bộ danh sách team lên tất cả hạng mục để khớp cấu hình Database
+            categories.forEach(cat => {
+                if (!cat || !cat.id) return;
+
+                const trackAlloc = updatedAlloc[cat.id] || { isJudge: false, mentoredTeamIds: [] };
+                // Copy mảng an toàn, đảm bảo newTeams luôn là một mảng
+                let newTeams = Array.isArray(trackAlloc.mentoredTeamIds) ? [...trackAlloc.mentoredTeamIds].map(Number) : [];
+
+                if (isAssigned) {
+                    // Nếu đã gán -> Xóa đội thi này đi
+                    newTeams = newTeams.filter(id => String(id) !== String(teamId));
+                } else {
+                    // Nếu chưa gán -> Thêm vào dưới dạng số Nguyên (Number) để gửi lên DB
+                    if (!newTeams.map(String).includes(String(teamId))) {
+                        newTeams.push(Number(teamId));
+                    }
+                }
+
+                updatedAlloc[cat.id] = { ...trackAlloc, mentoredTeamIds: newTeams };
+            });
+
+            return { ...prev, [expertKey]: updatedAlloc };
+        });
+    };
+
+    // Xử lý Toggle Judge
+    const handleJudgeToggle = (catId) => {
+        setAllocations(prev => {
+            const expertAlloc = prev[selectedExpertId] || {};
+            const trackAlloc = expertAlloc[catId] || { isJudge: false, mentoredTeamIds: [] };
+
+            // KHÓA CỨNG: Nếu mảng Team đang có phần tử -> Chặn bật Giám khảo
+            if (!trackAlloc.isJudge && currentMentoredTeamIds.length > 0) {
+                alert("Không thể gán làm Giám khảo! Chuyên gia đang là Mentor hướng dẫn cho đội thi trong giải đấu này.");
+                return prev;
+            }
+
+            return {
+                ...prev,
+                [selectedExpertId]: {
+                    ...expertAlloc,
+                    [catId]: { ...trackAlloc, isJudge: !trackAlloc.isJudge }
+                }
+            };
+        });
+    };
+
+    const handleSave = async () => {
+        setIsLoading(true);
+        try {
+            const expertAlloc = allocations[selectedExpertId] || {};
+            const assignmentList = Object.keys(expertAlloc).map(catId => ({
+                trackId: Number(catId),
+                mentoredTeamIds: expertAlloc[catId].mentoredTeamIds || [],
+                isJudge: expertAlloc[catId].isJudge || false
+            }));
+
+            const response = await fetch(API_BASE + "/admin/contests/allocations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", ...headers },
+                body: JSON.stringify({ userId: Number(selectedExpertId), assignments: assignmentList })
+            });
+            if (response.ok) alert("Đã lưu thông tin cấu hình phân bổ thành công!");
+        } catch {
+            alert("Lưu thất bại!");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Lọc danh sách chuyên gia theo ô tìm kiếm
     const filteredExperts = useMemo(() => {
         return experts.filter(e =>
             e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,146 +217,25 @@ const PanelAllocation = () => {
         );
     }, [experts, searchQuery]);
 
-    const handleJudgeToggle = (expertId, trackId) => {
-        setAllocations(prev => {
-            const expertAlloc = prev[expertId] || {};
-            const trackAlloc = expertAlloc[trackId] || { isJudge: false, mentoredTeamIds: [] };
-
-            return {
-                ...prev,
-                [expertId]: {
-                    ...expertAlloc,
-                    [trackId]: {
-                        ...trackAlloc,
-                        isJudge: !trackAlloc.isJudge
-                    }
-                }
-            };
-        });
-        setSuccessMsg('');
-    };
-
-    const handleTeamToggle = (expertId, trackId, teamId) => {
-        setAllocations(prev => {
-            const expertAlloc = prev[expertId] || {};
-            const trackAlloc = expertAlloc[trackId] || { isJudge: false, mentoredTeamIds: [] };
-            const currentTeams = trackAlloc.mentoredTeamIds || [];
-            const newTeams = currentTeams.includes(teamId)
-                ? currentTeams.filter(id => id !== teamId)
-                : [...currentTeams, teamId];
-
-            return {
-                ...prev,
-                [expertId]: {
-                    ...expertAlloc,
-                    [trackId]: {
-                        ...trackAlloc,
-                        mentoredTeamIds: newTeams
-                    }
-                }
-            };
-        });
-        setSuccessMsg('');
-    };
-
-    const hasConflicts = useMemo(() => {
-        if (!selectedExpertId) return false;
-        const expertAlloc = allocations[selectedExpertId];
-        if (!expertAlloc) return false;
-
-        for (const trackId in expertAlloc) {
-            const alloc = expertAlloc[trackId];
-            if (alloc.isJudge && alloc.mentoredTeamIds && alloc.mentoredTeamIds.length > 0) return true;
-        }
-        return false;
-    }, [allocations, selectedExpertId]);
-
-    const getTeamOwnerName = (trackId, teamId) => {
-        for (const expertId in allocations) {
-            // Không tính chính Mentor hiện tại đang chỉnh sửa
-            if (String(expertId) === String(selectedExpertId)) continue;
-
-            const trackAlloc = allocations[expertId]?.[trackId];
-            if (trackAlloc?.mentoredTeamIds?.includes(teamId)) {
-                const exp = experts.find(e => String(e.userId) === String(expertId));
-                return exp?.fullName || exp?.username || "Another Mentor";
-            }
-        }
-        return null;
-    };
-
-    const handleSave = async () => {
-        if (hasConflicts || !selectedExpertId) return;
-
-        setIsLoading(true);
-        setSuccessMsg('');
-
-        try {
-            const token = localStorage.getItem('shms_token');
-            const expertAlloc = allocations[selectedExpertId] || {};
-            const assignmentList = Object.keys(expertAlloc).map(trackId => ({
-                trackId: Number(trackId),
-                mentoredTeamIds: expertAlloc[trackId].mentoredTeamIds || [],
-                isJudge: expertAlloc[trackId].isJudge || false
-            }));
-
-            const payload = {
-                userId: selectedExpertId,
-                assignments: assignmentList
-            };
-
-            const response = await fetch(API_BASE + "/admin/contests/allocations", {
-                method: "POST", headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                }, body: JSON.stringify(payload)
-            }
-            );
-
-            if (response.ok) {
-                setSuccessMsg('Allocation mapping saved successfully');
-                alert('Allocation mapping saved successfully!');
-            } else {
-                const errorData = await response.json();
-                console.error(errorData);
-                alert('Save failed: ' + (errorData.error || 'Unknown error'));
-            }
-        } catch {
-            setSuccessMsg("Mock save success!");
-            alert("Mock save success!");
-        } finally {
-            setIsLoading(false);
-        }
-    };
     return (
         <div className="admin-container">
             <NavbarAdmin />
 
             <div className="config-wrapper">
-                {hasConflicts && (
-                    <div className="error-banner">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        Users cannot be assigned as both a Mentor and a Judge within the exact same category
-                    </div>
-                )}
-                {successMsg && !hasConflicts && (
-                    <div className="error-banner" style={{ backgroundColor: '#d1fae5', borderColor: '#10b981', color: '#047857' }}>
-                        {successMsg}
-                    </div>
-                )}
-
+                {/* 1. THANH HÀNG NGANG TIÊU ĐỀ & CHỌN CUỘC THI */}
                 <div className="header-flex">
                     <div>
-                        <h1 className="config-title">Category Panel Allocation</h1>
-                        <p className="config-subtitle">Map subject matter experts to specific hackathon categories and define their evaluation roles.</p>
+                        <h1 className="config-title">Panel Allocation</h1>
+                        <p className="config-subtitle">Assign judges to categories and allocate mentors to registered teams.</p>
                     </div>
                     <div style={{ minWidth: '250px' }}>
                         <select
                             className="form-select"
                             value={selectedContestId}
                             onChange={(e) => setSelectedContestId(e.target.value)}
+                            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '100%', outline: 'none' }}
                         >
-                            <option value="">-- Select Contest --</option>
+                            <option value="">-- Chọn Cuộc Thi --</option>
                             {contests.map(c => (
                                 <option key={c.id} value={c.id}>
                                     {c.name} ({c.year} {c.season})
@@ -267,32 +245,34 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
+                {/* BỐ CỤC CHÍNH BẢNG TRÁI & BẢNG PHẢI */}
                 <div className="allocation-grid">
+
+                    {/* 2. PANEL BÊN TRÁI: DANH SÁCH CHUYÊN GIA */}
                     <div className="left-panel">
                         <div className="panel-header">
-                            <h2 className="panel-title">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                Expert Registry
-                            </h2>
-                            <div className="panel-badge">{experts.length} Active</div>
+                            <h2 className="panel-title">Expert Registry</h2>
+                            <span className="panel-badge">{filteredExperts.length} Active</span>
                         </div>
-                        <div>
-                            <div className="search-inner-wrapper">
-                                <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input type="text" className="search-input"
-                                    placeholder="Search experts by name or username..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
+
+                        <div className="search-inner-wrapper">
+                            <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Tìm kiếm chuyên gia..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
+
                         <div className="expert-list">
                             {filteredExperts.map(expert => (
                                 <div
                                     key={expert.userId}
-                                    className={`expert-item ${selectedExpertId === expert.userId ? 'active' : ''}`}
+                                    className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
                                     onClick={() => setSelectedExpertId(expert.userId)}
                                 >
                                     <div className="expert-info">
@@ -301,128 +281,79 @@ const PanelAllocation = () => {
                                         </div>
                                         <div className="expert-details">
                                             <span className="expert-name">{expert.fullName || expert.username}</span>
-                                            <span className="expert-title">{expert.roles.join(', ')}</span>
+                                            <span className="expert-title">{(expert.roles || []).join(', ')}</span>
                                         </div>
                                     </div>
-                                    {selectedExpertId === expert.userId && (
-                                        <svg width="20" height="20" fill="none" stroke="#111827" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                                    )}
                                 </div>
                             ))}
                             {filteredExperts.length === 0 && (
-                                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
-                                    No active experts found.
+                                <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                    Không có chuyên gia nào phù hợp.
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="right-panel">
-                        <div className="panel-header" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <h2 className="panel-title" style={{ marginBottom: 0 }}>
-                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                                Category Assignments
-                            </h2>
-                            <p className="panel-subtitle">
-                                Assign roles for <strong>{activeExpert?.fullName || activeExpert?.username || 'Select an Expert'}</strong>
-                            </p>
+                    {/* 3. PANEL BÊN PHẢI: CONFIG MENTOR & JUDGE */}
+                    <div className="right-panel" style={{ padding: '24px' }}>
+                        <div className="panel-header-custom" style={{ marginBottom: '24px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0', color: '#111827' }}>Advanced Panel Allocation</h2>
+                            <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Cấu hình chuyên gia: <strong style={{ color: '#2563eb' }}>{activeExpert?.fullName || 'Chưa chọn'}</strong></p>
                         </div>
 
-                        {!selectedContestId ? (
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', background: '#f9fafb', borderRadius: '8px' }}>
-                                Please select a contest from the top to view tracks.
+                        {/* VÙNG 1: CHỌN MENTOR CHO ĐỘI THI */}
+                        <div className="management-block">
+                            <h3>🤝 Vai Trò Cố Vấn (Mentor) — Quản lý suốt cuộc thi</h3>
+                            <p className="block-hint">Chọn các đội thi mà chuyên gia này sẽ dẫn dắt xuyên suốt các vòng đấu.</p>
+
+                            <div className="global-teams-grid">
+                                {allTeams.map(team => {
+                                    const isChecked = currentMentoredTeamIds.map(String).includes(String(team.id));
+                                    return (
+                                        <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={() => handleGlobalTeamToggle(team.id)}
+                                                disabled={isActingAsJudgeAnywhere}
+                                            />
+                                            <div className="team-name-text" title={team.name}>{team.name}</div>
+                                        </label>
+                                    );
+                                })}
                             </div>
-                        ) : tracks.length === 0 ? (
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', background: '#f9fafb', borderRadius: '8px' }}>
-                                This contest has no categories defined yet.
-                            </div>
-                        ) : (
-                            <table className="track-table">
+                            {allTeams.length === 0 && (
+                                <p className="hint-text">Chưa có dữ liệu đội thi hoặc chưa chọn cuộc thi.</p>
+                            )}
+                        </div>
+
+                        {/* VÙNG 2: BẬT VAI TRÒ GIÁM KHẢO THEO HẠNG MỤC */}
+                        <div className="management-block" style={{ marginTop: '24px' }}>
+                            <h3>⚖️ Vai Trò Giám Khảo (Judge) — Theo từng Hạng mục vòng đấu</h3>
+                            <p className="block-hint">Bật quyền chấm thi tại các hạng mục tương ứng (Chỉ khả dụng khi không làm Mentor).</p>
+
+                            <table className="judge-pure-table">
                                 <thead>
                                     <tr>
-                                        <th>Hackathon Category</th>
-                                        <th className="center">Mentor</th>
-                                        <th className="center">Judge</th>
+                                        <th>Hạng mục thi đấu</th>
+                                        <th className="center">Trạng thái chấm điểm</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {tracks.map(track => {
-                                        const rawAlloc = allocations[selectedExpertId]?.[track.id];
-                                        const alloc = {
-                                            isJudge: rawAlloc?.isJudge || false,
-                                            mentoredTeamIds: rawAlloc?.mentoredTeamIds || []
-                                        };
-                                        const hasMentorAssignments = alloc.mentoredTeamIds && alloc.mentoredTeamIds.length > 0;
-                                        const isConflict = hasMentorAssignments && alloc.isJudge;
-                                        const isActive = hasMentorAssignments || alloc.isJudge;
-
-                                        const expertRoles = activeExpert?.roles || [];
-                                        const hasMentorRole = expertRoles.some(r => r.toUpperCase() === 'MENTOR');
-                                        const hasJudgeRole = expertRoles.some(r => r.toUpperCase() === 'JUDGE' || r.toUpperCase() === 'GUEST JUDGE');
-
+                                    {categories.map(cat => {
+                                        const isJudge = allocations[selectedExpertId]?.[cat.id]?.isJudge || false;
                                         return (
-                                            <tr key={track.id}>
-                                                <td>
-                                                    <div className="track-info">
-                                                        <div className={`track-color ${isConflict ? 'conflict' : (isActive ? 'active' : '')}`}></div>
-                                                        <div className="track-details">
-                                                            <span className="track-name">{track.categoryName}</span>
-                                                            <span className="track-desc">{track.trackDescription}</span>
-                                                            {isConflict && <span className="conflict-text">Role conflict detected</span>}
-                                                            {(!track.teams || track.teams.length === 0) && (
-                                                                <div className="registered-teams" style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
-                                                                    No teams registered yet
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="toggle-cell" style={{ verticalAlign: 'top', paddingTop: '16px' }}>
-                                                    {track.teams && track.teams.length > 0 ? (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                            {track.teams.map(t => {
-                                                                const isMentoringThisTeam = alloc.mentoredTeamIds?.includes(t.id);
-
-                                                                const ownerName = getTeamOwnerName(track.id, t.id);
-                                                                const isAssignedToOther = !!ownerName;
-                                                                return (
-                                                                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px', background: '#f8fafc', borderRadius: '4px' }}>
-                                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                                            <span style={{ fontSize: '12px', fontWeight: '500', color: isAssignedToOther ? '#94a3b8' : '#334155' }}>
-                                                                                {t.name}
-                                                                            </span>
-                                                                            {isAssignedToOther && (
-                                                                                <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'normal' }}>
-                                                                                    (By {ownerName})
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                        <label className="toggle-switch" style={{ margin: 0, transform: 'scale(0.8)' }} title={!hasMentorRole ? "Expert does not have Mentor role" : ""}>
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={isMentoringThisTeam}
-                                                                                onChange={() => handleTeamToggle(selectedExpertId, track.id, t.id)}
-                                                                                disabled={!hasMentorRole || isAssignedToOther}
-                                                                            />
-                                                                            <span className={`toggle-slider ${isConflict && isMentoringThisTeam ? 'conflict' : ''} ${!hasMentorRole ? 'disabled' : ''}`}></span>
-                                                                        </label>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    ) : (
-                                                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>N/A</span>
-                                                    )}
-                                                </td>
-                                                <td className="toggle-cell" style={{ verticalAlign: 'top', paddingTop: '16px' }}>
-                                                    <label className="toggle-switch" title={!hasJudgeRole ? "Expert does not have Judge role" : ""}>
+                                            <tr key={cat.id}>
+                                                <td><strong>{cat.categoryName || cat.name}</strong></td>
+                                                <td className="center">
+                                                    <label className="ui-switch-blue">
                                                         <input
                                                             type="checkbox"
-                                                            checked={alloc.isJudge}
-                                                            onChange={() => handleJudgeToggle(selectedExpertId, track.id)}
-                                                            disabled={!hasJudgeRole}
+                                                            checked={isJudge}
+                                                            onChange={() => handleJudgeToggle(cat.id)}
+                                                            disabled={currentMentoredTeamIds.length > 0}
                                                         />
-                                                        <span className={`toggle-slider ${isConflict ? 'conflict' : ''} ${!hasJudgeRole ? 'disabled' : ''}`}></span>
+                                                        <span className="slider"></span>
                                                     </label>
                                                 </td>
                                             </tr>
@@ -430,17 +361,21 @@ const PanelAllocation = () => {
                                     })}
                                 </tbody>
                             </table>
-                        )}
+                            {categories.length === 0 && (
+                                <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic' }}>
+                                    Không có hạng mục nào được tìm thấy.
+                                </div>
+                            )}
+                        </div>
 
-                        {selectedContestId && tracks.length > 0 && selectedExpertId && (
-                            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-                                <button className="save-btn" style={{ width: 'auto' }} onClick={handleSave} disabled={isLoading || hasConflicts}>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                                    {isLoading ? 'Saving...' : 'Save Allocation Mapping'}
-                                </button>
-                            </div>
-                        )}
+                        {/* NÚT LƯU TỔNG */}
+                        <div className="panel-footer-actions">
+                            <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
+                                {isLoading ? 'Đang lưu...' : 'Lưu toàn bộ phân bổ'}
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

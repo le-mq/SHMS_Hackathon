@@ -15,7 +15,7 @@ const TeamRegistrationApproval = () => {
 
     const [cancelModal, setCancelModal] = useState({
         isOpen: false,
-        type: 'cancel',
+        type: 'CANCEL',
         teamId: null,
         teamName: '',
         reason: ''
@@ -77,10 +77,10 @@ const TeamRegistrationApproval = () => {
         );
     }
 
-    const handleOpenCancelModal = (teamId, teamName) => {
+    const handleOpenActionModal = (teamId, teamName, actionType) => {
         setCancelModal({
             isOpen: true,
-            type: 'CANCEL',
+            type: actionType,
             teamId,
             teamName,
             reason: ''
@@ -93,38 +93,38 @@ const TeamRegistrationApproval = () => {
 
     const handleConfirmCancelStatus = async () => {
         if (!cancelModal.reason.trim()) {
-            alert(`Vui lòng nhập lý do ${actionModal.type === 'CANCEL' ? 'hủy tư cách' : 'hoàn lại tư cách'} thi!`);
+            alert(`Vui lòng nhập lý do ${cancelModal.type === 'CANCEL' ? 'hủy tư cách' : 'hoàn lại tư cách'} thi!`);
             return;
         }
-
-        const confirmText = actionModal.type === 'CANCEL'
-            ? `Bạn có chắc chắn muốn hủy tư cách tham gia của đội "${actionModal.teamName}" không?`
-            : `Bạn có chắc chắn muốn HOÀN LẠI tư cách tham gia cuộc thi cho đội "${actionModal.teamName}" không?`;
+        const isCancelAct = cancelModal.type === 'CANCEL';
+        const confirmText = isCancelAct
+            ? `Bạn có chắc chắn muốn HỦY tư cách tham gia của đội "${cancelModal.teamName}" không?`
+            : `Bạn có chắc chắn muốn PHÊ DUYỆT LẠI tư cách tham gia cuộc thi cho đội "${cancelModal.teamName}" không?`;
 
         const confirmCheck = window.confirm(confirmText);
         if (!confirmCheck) return;
 
         try {
             const token = localStorage.getItem("shms_token");
-
+            const targetStatus = isCancelAct ? "CANCELED" : "APPROVED";
             await axios.put(`${API_BASE}/admin/contests/teams/registration-status`, {
-                teamId: cancelModal.teamId,
-                contestId: selectedContestId,
-                actionType: cancelModal.type,
-                reason: cancelModal.reason
+                teamId: Number(cancelModal.teamId),
+                contestId: Number(selectedContestId),
+                status: targetStatus, // Đổi tên key từ actionType thành status và thử 'CANCELED' thay vì 'CANCEL'
+                reason: cancelModal.reason.trim()
             }, { headers: { Authorization: `Bearer ${token}` } });
 
             const targetTeam = selectedContest?.teams?.find(t => t.id === cancelModal.teamId);
-            const prevStatus = (targetTeam?.status || 'Active').toLowerCase();
+            const prevStatus = (targetTeam?.status || 'Active').toUpperCase();
 
             // Cập nhật tạm thời trực tiếp trên State để thấy ngay thay đổi ở Front-end
             setDashboardData(prevData =>
                 prevData.map(contest => {
-                    if (contest.id === selectedContestId) {
+                    if (Number(contest.id) === Number(selectedContestId)) {
                         let newPending = contest.pendingReview || 0;
                         let newApproved = contest.approved || 0;
 
-                        if (actionModal.type === 'CANCEL') {
+                        if (isCancelAct) {
                             // Xử lý giảm số lượng bộ đếm khi hủy
                             if (prevStatus === 'APPROVED') {
                                 newApproved = Math.max(0, newApproved - 1);
@@ -137,9 +137,16 @@ const TeamRegistrationApproval = () => {
                         }
                         return {
                             ...contest,
+                            pendingReview: newPending,
+                            approved: newApproved,
                             teams: contest.teams.map(team =>
-                                team.id === cancelModal.teamId
-                                    ? { ...team, status: 'CANCEL', track: 'Disqualified' } // Hoặc cập nhật status tương ứng
+                                Number(team.id) === Number(cancelModal.teamId)
+                                    ? {
+                                        ...team,
+                                        // Gán text khớp bộ lọc CSS (Canceled hoặc Approved)
+                                        status: isCancelAct ? 'Canceled' : 'Approved',
+                                        track: isCancelAct ? 'Disqualified' : (team.track || 'Active')
+                                    }
                                     : team
                             )
                         };
@@ -148,12 +155,13 @@ const TeamRegistrationApproval = () => {
                 })
             );
 
-            alert(`Đã hủy tư cách thi của đội ${cancelModal.teamName} thành công.`);
+            alert(`Thao tác cập nhật trạng thái đội ${cancelModal.teamName} thành công.`);
             handleCloseCancelModal();
 
         } catch (err) {
-            console.error("Lỗi khi hủy trạng thái thi:", err);
-            alert("Có lỗi xảy ra khi thực hiện thao tác này.");
+            console.error("Lỗi cập nhật trạng thái đăng ký:", err);
+            const serverMsg = err.response?.data?.message || err.message;
+            alert(`Thao tác thất bại! Chi tiết lỗi: ${serverMsg}`);
         }
     };
 
@@ -174,7 +182,6 @@ const TeamRegistrationApproval = () => {
                         {dashboardData.length > 0 && (
                             <select
                                 className="filter-btn"
-                                style={{ background: 'white', border: '1px solid #e2e8f0', color: '#0f172a', appearance: 'auto', padding: '8px 12px' }}
                                 value={selectedContestId || ''}
                                 onChange={(e) => setSelectedContestId(e.target.value)}
                             >
@@ -183,7 +190,7 @@ const TeamRegistrationApproval = () => {
                                 ))}
                             </select>
                         )}
-                        <div className="search-box">
+                        <div className="search-box-approval">
                             <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input
                                 type="text"
@@ -228,67 +235,93 @@ const TeamRegistrationApproval = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredTeams.map(team => (
-                                <tr key={team.id}>
-                                    <td>
-                                        <div className="team-name-col">
-                                            <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
-                                            <span className="team-name">{team.name}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'right' }}>
-                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
-                                            {(() => {
-                                                const statusText = (team.status || 'Active').toLowerCase();
+                            {filteredTeams.map(team => {
+                                const statusText = (team.status || 'Active').toLowerCase();
+                                const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
 
-                                                let badgeStyle = {
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '680',
-                                                    textTransform: 'uppercase',
-                                                    display: 'inline-block'
-                                                };
+                                // 1. Định hình Style cho Badge trạng thái
+                                let badgeStyle = {
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: '680',
+                                    textTransform: 'uppercase',
+                                    display: 'inline-block'
+                                };
 
-                                                if (statusText === 'approved') {
-                                                    badgeStyle.backgroundColor = '#dcfce7';
-                                                    badgeStyle.color = '#15803d';
-                                                } else if (statusText === 'rejected' || statusText === 'canceled') {
-                                                    badgeStyle.backgroundColor = '#fee2e2';
-                                                    badgeStyle.color = '#b91c1c';
-                                                } else {
-                                                    badgeStyle.backgroundColor = '#f1f5f9';
-                                                    badgeStyle.color = '#475569';
-                                                }
+                                if (statusText === 'approved') {
+                                    badgeStyle.backgroundColor = '#dcfce7';
+                                    badgeStyle.color = '#15803d';
+                                } else if (isCanceledOrRejected) {
+                                    badgeStyle.backgroundColor = '#fee2e2';
+                                    badgeStyle.color = '#b91c1c';
+                                } else {
+                                    badgeStyle.backgroundColor = '#f1f5f9';
+                                    badgeStyle.color = '#475569';
+                                }
 
-                                                return (
-                                                    <span style={badgeStyle}>
-                                                        {team.status || 'Active'}
-                                                    </span>
-                                                );
-                                            })()}
+                                return (
+                                    <tr key={team.id}>
+                                        <td>
+                                            <div className="team-name-col">
+                                                <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
+                                                <span className="team-name">{team.name}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
 
-                                            {team.status !== 'Canceled' && team.status !== 'Rejected' && (
-                                                <button
-                                                    onClick={() => handleOpenCancelModal(team.id, team.name)}
-                                                    style={{
-                                                        padding: '4px 10px',
-                                                        fontSize: '12px',
-                                                        backgroundColor: '#fee2e2',
-                                                        color: '#dc2626',
-                                                        border: '1px solid #fca5a5',
-                                                        borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s'
-                                                    }}
-                                                    onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
-                                                    onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                >Cancel</button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                {/* Hiển thị Badge Trạng thái */}
+                                                <span style={badgeStyle}>
+                                                    {team.status || 'Active'}
+                                                </span>
+
+                                                {/* Quyết định hiển thị nút dựa vào trạng thái hiện tại của Team */}
+                                                {isCanceledOrRejected ? (
+                                                    // Nếu đã CANCELED/REJECTED -> Hiện nút khôi phục APPROVE (Màu xanh)
+                                                    <button
+                                                        onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            fontSize: '12px',
+                                                            backgroundColor: '#dcfce7',
+                                                            color: '#16a34a',
+                                                            border: '1px solid #bbf7d0',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                ) : (
+                                                    // Nếu đang Active/Approved -> Hiện nút hủy CANCEL (Màu đỏ)
+                                                    <button
+                                                        onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            fontSize: '12px',
+                                                            backgroundColor: '#fee2e2',
+                                                            color: '#dc2626',
+                                                            border: '1px solid #fca5a5',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+
                             {filteredTeams.length === 0 && (
                                 <tr>
                                     <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
@@ -312,17 +345,20 @@ const TeamRegistrationApproval = () => {
                             width: '100%', maxWidth: '400px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                         }}>
                             <h3 style={{ marginTop: 0, marginBottom: '12px', fontSize: '18px', color: '#0f172a' }}>
-                                Hủy tư cách cuộc thi
+                                {cancelModal.type === 'CANCEL' ? 'Hủy tư cách cuộc thi' : 'Phê duyệt lại tư cách'}
                             </h3>
                             <p style={{ fontSize: '14px', color: '#475569', marginBottom: '16px' }}>
-                                Vui lòng nhập lý do loại đội <strong>{cancelModal.teamName}</strong> ra khỏi cuộc thi này.
+                                {cancelModal.type === 'CANCEL'
+                                    ? <>Vui lòng nhập lý do loại đội <strong>{cancelModal.teamName}</strong> ra khỏi cuộc thi này.</>
+                                    : <>Vui lòng nhập lý do phê duyệt lại đội <strong>{cancelModal.teamName}</strong> tham gia cuộc thi.</>
+                                }
                             </p>
 
                             <textarea
                                 rows="4"
                                 value={cancelModal.reason}
                                 onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
-                                placeholder="Nhập lý do tại đây..."
+                                placeholder={cancelModal.type === 'CANCEL' ? "Nhập lý do hủy tại đây..." : "Nhập lý do phê duyệt tại đây..."}
                                 style={{
                                     width: '100%', padding: '10px', borderRadius: '6px',
                                     border: '1px solid #cbd5e1', fontSize: '14px',
