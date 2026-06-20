@@ -18,7 +18,6 @@ const PanelAllocation = () => {
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-    // 1. Fetch dữ liệu ban đầu
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -62,10 +61,7 @@ const PanelAllocation = () => {
                 return res.json();
             })
             .then(json => {
-                // Khớp cấu trúc mảng giống hệt bên TeamRegistrationApproval
                 const contestsData = Array.isArray(json) ? json : (json.contests || json.data || []);
-
-                // Tìm đúng contest đang được chọn trên giao diện
                 const currentContest = contestsData.find(c => String(c.id) === String(selectedContestId));
 
                 if (currentContest) {
@@ -73,20 +69,36 @@ const PanelAllocation = () => {
                     setCategories(currentContest.categories || currentContest.tracks || []);
 
                     // Lọc danh sách đội thi: Chỉ lấy những đội đã được APPROVED (hoặc giữ nguyên nếu muốn hiển thị hết)
-                    const rawTeams = currentContest.teams || [];
-                    const approvedTeams = rawTeams.filter(team =>
-                        (team.status || '').toLowerCase() === 'approved'
-                    );
+                    const rawCategories = currentContest.categories || currentContest.tracks || [];
+                    const normalizedCategories = rawCategories.map(cat => ({
+                        ...cat,
+                        id: cat.id,
+                        name: cat.name || cat.categoryName || cat.title || `Hạng mục ${cat.id}`
+                    }));
+                    setCategories(normalizedCategories);
+                    const rawTeams = currentContest.teams || currentContest.registeredTeams || [];
+                    const validTeams = rawTeams.filter(team => {
+                        const status = (team.status || '').toLowerCase();
+                        return status === 'approved' || status === '' || status === 'active';
+                    });
 
-                    setAllTeams(approvedTeams);
-                    console.log(`Đã load thành công ${approvedTeams.length} đội APPROVED cho contest ID: ${selectedContestId}`);
+                    setAllTeams(validTeams);
+                    console.log(`Đã load thành công ${validTeams.length} đội thi và ${normalizedCategories.length} hạng mục.`);
                 } else {
-                    // Nếu không tìm thấy cuộc thi trong danh sách dashboard
                     setCategories([]);
                     setAllTeams([]);
                 }
             })
-            .catch(err => console.error("Lỗi fetch dữ liệu cấu hình panel:", err));
+            .catch(err => {
+                console.error("Lỗi fetch dữ liệu chi tiết cấu hình:", err);
+                // Fallback cứu cánh nếu API Dashboard gặp sự cố (gọi API Contest chi tiết)
+                fetch(API_BASE + `/admin/contests/${selectedContestId}`, { headers })
+                    .then(res => res.json())
+                    .then(data => {
+                        setCategories(data.categories || data.tracks || []);
+                        setAllTeams(data.teams || []);
+                    }).catch(e => console.error(e));
+            });
     }, [selectedContestId, headers]);
 
     const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
@@ -131,20 +143,15 @@ const PanelAllocation = () => {
         }
 
         setAllocations(prev => {
-            // Xác định chính xác key đang tồn tại trong state (String hoặc Number)
             const expertKey = Object.keys(prev).find(key => String(key) === String(selectedExpertId)) || selectedExpertId;
             const expertAlloc = prev[expertKey] || {};
             const updatedAlloc = { ...expertAlloc };
-
-            // Kiểm tra xem teamId đã có trong danh sách được gán chưa
             const isAssigned = currentMentoredTeamIds.includes(String(teamId));
 
-            // Đồng bộ danh sách team lên tất cả hạng mục để khớp cấu hình Database
             categories.forEach(cat => {
                 if (!cat || !cat.id) return;
 
                 const trackAlloc = updatedAlloc[cat.id] || { isJudge: false, mentoredTeamIds: [] };
-                // Copy mảng an toàn, đảm bảo newTeams luôn là một mảng
                 let newTeams = Array.isArray(trackAlloc.mentoredTeamIds) ? [...trackAlloc.mentoredTeamIds].map(Number) : [];
 
                 if (isAssigned) {
