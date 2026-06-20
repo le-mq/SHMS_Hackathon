@@ -131,6 +131,7 @@
     right: -20px;
     top: -20px;
     color: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
 }
 
 .card-label {
@@ -147,6 +148,8 @@
 
 .dark .card-label {
     color: #94a3b8;
+    position: relative;
+    z-index: 1;
 }
 
 .card-value {
@@ -162,6 +165,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
+    z-index: 1;
 }
 
 .copy-btn {
