@@ -414,6 +414,14 @@ public class TeamService{
                         .build());
             }
 
+            List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryData> categoriesDataList = new java.util.ArrayList<>();
+            for (Category category : categories) {
+                categoriesDataList.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryData.builder()
+                        .id(category.getId())
+                        .name(category.getName())
+                        .build());
+            }
+
             for (Team team : teams) {
                 if ("PENDING".equals(team.getStatus())) pendingReview++;
                 if ("APPROVED".equals(team.getStatus())) approved++;
