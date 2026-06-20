@@ -165,17 +165,18 @@ public class ContestAdminService {
                         round.setState(Round.RoundState.CLOSED);
                         roundRepository.save(round);
                     }
-// Chỉ áp dụng quy tắc chuyển đổi người dùng TEAM_LEADER thành TEAM_MEMBER cho cuộc thi này mà thôi.
                     Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
                     Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
 
                     if (teamLeaderRole != null && teamMemberRole != null) {
                         List<Team> teams = teamRepository.findByContestId(contest.getId());
                         for (Team team : teams) {
+                            team.setStatus("CLOSED");
+
                             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
                             for (TeamMembership tm : memberships) {
                                 if ("LEADER".equalsIgnoreCase(tm.getRole())) {
-                                    User u = tm.getUser();
+                                    User u = tm.getStudent().getUser();
                                     if (u != null && u.getRoles().contains(teamLeaderRole)) {
                                         u.getRoles().remove(teamLeaderRole);
                                         u.getRoles().add(teamMemberRole);
@@ -184,6 +185,7 @@ public class ContestAdminService {
                                 }
                             }
                         }
+                        teamRepository.saveAll(teams);
                     }
                 }
                 contest.setStatus(newStatus);

@@ -54,8 +54,9 @@ public class TeamService{
 
         List<TeamMembership> existingMemberships = teamMembershipRepository.findByUserId(user.getId());
         for (TeamMembership tm : existingMemberships) {
-            if ("PENDING".equals(tm.getStatus()) || "APPROVED".equals(tm.getStatus())) {
-                throw new IllegalArgumentException("You are already part of a team or have a pending request.");
+            if (("PENDING".equals(tm.getStatus()) || "APPROVED".equals(tm.getStatus()))
+                    && !"CLOSED".equals(tm.getTeam().getStatus())) {
+                throw new IllegalArgumentException("You are already part of an active team or have a pending request.");
             }
         }
         Team team = teamRepository.findByInvitationCode(invitationCode)

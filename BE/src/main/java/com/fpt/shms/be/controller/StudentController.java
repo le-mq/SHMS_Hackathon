@@ -307,4 +307,28 @@ public class StudentController {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
+
+    @GetMapping("/team-score-details")
+    @Operation(summary = "Get Own Team Score Details", description = "Returns detailed score breakdown for the user's team.")
+    public ResponseEntity<?> getTeamScoreDetails(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized token or signature"));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+
+            TeamScoreDetailsResponse response = submissionService.getTeamScoreDetails(username);
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Server Error: " + e.getMessage()));
+        }
+    }
 }
