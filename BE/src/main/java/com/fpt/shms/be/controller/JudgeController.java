@@ -6,6 +6,7 @@ import com.fpt.shms.be.service.JudgeService;
 import com.fpt.shms.be.service.UserService;
 import com.fpt.shms.be.util.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/judge")
+@Tag(name = "Jugde", description = "Judge Management APIs")
 @RequiredArgsConstructor
 public class JudgeController {
 

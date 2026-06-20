@@ -35,7 +35,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-@Tag(name = "Admin", description = "Admin Contest Management APIs")
+@Tag(name = "Admin", description = "Admin Management APIs")
 public class AdminController {
 
     private final ContestAdminService contestAdminService;
