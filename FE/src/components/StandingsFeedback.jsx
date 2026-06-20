@@ -123,7 +123,7 @@ const StandingsFeedback = () => {
             <div className="standings-content">
                 <div className="standings-header">
                     <h1 className="standings-title">Competition Standings & Feedback</h1>
-                    <p className="standings-subtitle">Official tournament results have been published for the Software Development category.</p>
+                    
                 </div>
 
                 <div className="my-result-card" style={{ marginTop: '20px' }}>
