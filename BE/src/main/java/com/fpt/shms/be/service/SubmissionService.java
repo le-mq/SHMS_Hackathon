@@ -171,4 +171,62 @@ public class SubmissionService {
                 .history(historyDtos)
                 .build();
     }
+
+    public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetails(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId());
+        if (memberships.isEmpty()) {
+            throw new IllegalArgumentException("User is not in any team");
+        }
+        Team team = memberships.get(0).getTeam();
+
+        String trackName = "N/A";
+        Double overallTotalScore = 0.0;
+        Integer overallRank = null;
+
+        List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
+        List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto> roundScores = new ArrayList<>();
+
+        for (Submission sub : submissions) {
+            if (sub.getRound() == null) continue;
+
+            List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
+            if (scores.isEmpty()) continue;
+
+            double totalRoundScore = 0;
+            List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto> detailedScores = new ArrayList<>();
+
+            for (Score score : scores) {
+                totalRoundScore += score.getTotalScore().doubleValue();
+
+                detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                        .criteriaName("Tổng hợp từ Giám khảo " + (score.getJudge() != null ? score.getJudge().getUser().getFullName() : "N/A"))
+                        .weight(1.0)
+                        .pointsAwarded(score.getTotalScore().doubleValue())
+                        .feedback(score.getFeedback())
+                        .build());
+            }
+
+            double avgScore = totalRoundScore / scores.size();
+            overallTotalScore += avgScore;
+
+            roundScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto.builder()
+                    .roundId(sub.getRound().getId())
+                    .roundName(sub.getRound().getPhaseName())
+                    .totalScore(Math.round(avgScore * 100.0) / 100.0)
+                    .detailedScores(detailedScores)
+                    .build());
+        }
+
+        return com.fpt.shms.be.dto.TeamScoreDetailsResponse.builder()
+                .teamName(team.getName())
+                .projectName(team.getName())
+                .totalScore(Math.round(overallTotalScore * 100.0) / 100.0)
+                .trackName(trackName)
+                .rank(overallRank)
+                .rounds(roundScores)
+                .build();
+    }
 }
