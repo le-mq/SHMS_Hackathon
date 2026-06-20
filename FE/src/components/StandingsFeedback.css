@@ -1,0 +1,204 @@
+.standings-container {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+.standings-content {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.standings-header {
+    margin-bottom: 32px;
+}
+
+.standings-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.standings-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Public Leaderboard Card */
+.leaderboard-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    margin-bottom: 32px;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.category-badge {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th {
+    text-align: left;
+    padding: 16px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.leaderboard-table th:last-child {
+    text-align: right;
+}
+
+.leaderboard-table td {
+    padding: 20px 24px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.leaderboard-table td:last-child {
+    text-align: right;
+    font-weight: 700;
+}
+
+.rank-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.trophy-1 { color: #eab308; }
+.trophy-2 { color: #94a3b8; }
+.trophy-3 { color: #b45309; }
+
+.team-name-highlight {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* My Team Result Card */
+.my-result-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.result-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.result-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.result-info p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.score-display {
+    text-align: right;
+}
+
+.private-badge {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.score-box {
+    background: #f1f5f9;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.score-box span {
+    font-size: 18px;
+    color: #64748b;
+}
+
+.view-rubric-btn {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Images placeholder */
+.images-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.img-placeholder {
+    height: 200px;
+    background: #e2e8f0;
+    border-radius: 12px;
+}

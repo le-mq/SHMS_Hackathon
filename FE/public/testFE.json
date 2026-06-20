@@ -749,6 +749,75 @@
       }
     ]
   },
+  "standingsFeedback": {
+    "data": {
+      "teamName": "Team Alpha",
+      "projectName": "Sentinel Guard AI",
+      "totalScore": 91.25,
+      "rounds": [
+        {
+          "roundName": "Preliminary Round",
+          "totalScore": 91.25,
+          "detailedScores": [
+            {
+              "criteriaName": "Technical Complexity",
+              "weight": 30,
+              "pointsAwarded": 90,
+              "feedback": "Excellent architecture and clear separation of responsibilities."
+            },
+            {
+              "criteriaName": "Innovation",
+              "weight": 20,
+              "pointsAwarded": 95,
+              "feedback": "Creative use of AI-assisted detection for hackathon operations."
+            },
+            {
+              "criteriaName": "UI/UX Design",
+              "weight": 25,
+              "pointsAwarded": 92,
+              "feedback": "Dashboard flows are easy to scan and suitable for repeated use."
+            },
+            {
+              "criteriaName": "Pitch Quality",
+              "weight": 25,
+              "pointsAwarded": 88,
+              "feedback": "Strong demo, with a few metrics needing clearer explanation."
+            }
+          ]
+        },
+        {
+          "roundName": "Final Sprint",
+          "totalScore": 94.5,
+          "detailedScores": [
+            {
+              "criteriaName": "Technical Complexity",
+              "weight": 30,
+              "pointsAwarded": 94,
+              "feedback": "The final implementation is stable and handles edge cases well."
+            },
+            {
+              "criteriaName": "Innovation",
+              "weight": 20,
+              "pointsAwarded": 96,
+              "feedback": "The product direction is distinctive and practical for organizers."
+            },
+            {
+              "criteriaName": "UI/UX Design",
+              "weight": 25,
+              "pointsAwarded": 93,
+              "feedback": "Navigation and visual hierarchy improved meaningfully in the final sprint."
+            },
+            {
+              "criteriaName": "Pitch Quality",
+              "weight": 25,
+              "pointsAwarded": 95,
+              "feedback": "Confident presentation with clear impact and next-step planning."
+            }
+          ]
+        }
+      ]
+    }
+  },
   "rubrics": {
     "data": [
       {
