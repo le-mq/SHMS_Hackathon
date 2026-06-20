@@ -667,31 +667,31 @@ GO
 
 DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT;
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CYBER01', 'Cyber Core', 'PENDING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CYBER01', 'Cyber Core', 'FORMING');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('nhatmysocutedl@gmail.com', 'vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CODE02', 'Code Rangers', 'PENDING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CODE02', 'Code Rangers', 'FORMING');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('huongtuongyen1982@gmail.com', 'vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_BYTE03', 'Byte Wizards', 'PENDING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_BYTE03', 'Byte Wizards', 'FORMING');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_TECH04', 'Tech Titans', 'PENDING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_TECH04', 'Tech Titans', 'FORMING');
 SET @Team4_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('thuhien456@gmail.com', 'phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_DATA05', 'Data Ninjas', 'PENDING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_DATA05', 'Data Ninjas', 'FORMING');
 SET @Team5_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
