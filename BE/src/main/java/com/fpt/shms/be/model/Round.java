@@ -40,7 +40,8 @@ public class Round {
     @JoinColumn(name = "contest_id", referencedColumnName = "contest_id")
     private Contest contest;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private Category category;
 
     public enum RoundState {
