@@ -165,28 +165,31 @@ public class ContestAdminService {
                         round.setState(Round.RoundState.CLOSED);
                         roundRepository.save(round);
                     }
-                    Role teamLeaderRole = roleRepository.findByName("TEAM_LEADER").orElse(null);
-                    Role teamMemberRole = roleRepository.findByName("TEAM_MEMBER").orElse(null);
+                    Role teamLeaderRole = roleRepository.findByName("LEADER").orElse(null);
+                    Role studentRole = roleRepository.findByName("STUDENT").orElse(null);
 
-                    if (teamLeaderRole != null && teamMemberRole != null) {
-                        List<Team> teams = teamRepository.findByContestId(contest.getId());
-                        for (Team team : teams) {
-                            team.setStatus("CLOSED");
+                    List<Team> teams = teamRepository.findByContestId(contest.getId());
+                    for (Team team : teams) {
+                        team.setStatus("CLOSED");
 
+                        // Lột lon Leader
+                        if (teamLeaderRole != null && studentRole != null) {
                             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
                             for (TeamMembership tm : memberships) {
                                 if ("LEADER".equalsIgnoreCase(tm.getRole())) {
                                     User u = tm.getStudent().getUser();
                                     if (u != null && u.getRoles().contains(teamLeaderRole)) {
                                         u.getRoles().remove(teamLeaderRole);
-                                        u.getRoles().add(teamMemberRole);
+                                        if (!u.getRoles().contains(studentRole)) {
+                                            u.getRoles().add(studentRole);   
+                                        }
                                         userRepository.save(u);
                                     }
                                 }
                             }
                         }
-                        teamRepository.saveAll(teams);
                     }
+                    teamRepository.saveAll(teams);
                 }
                 contest.setStatus(newStatus);
             } catch (IllegalArgumentException e) {
@@ -283,6 +286,7 @@ public class ContestAdminService {
 
             round.setState(state);
             round.setContest(contest);
+            round.setCategory(category);
             roundRepository.save(round);
         }
 

@@ -255,13 +255,15 @@ GO
 CREATE TABLE [Round] (
                             round_id BIGINT IDENTITY(1,1) NOT NULL,
                             contest_id BIGINT NULL,
+                            category_id BIGINT NULL,
                             round_name NVARCHAR(100) NOT NULL,
                             round_order INT NULL,
                             submission_open_at DATETIME NOT NULL,
                             submission_deadline_at DATETIME NOT NULL,
                             status VARCHAR(50) NOT NULL,
                             CONSTRAINT pk_round PRIMARY KEY (round_id),
-                            CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
+                            CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
+                            CONSTRAINT fk_round_category FOREIGN KEY (category_id) REFERENCES Category(category_id) -- THÊM KHÓA NGOẠI NÀY
                             );
 GO
 
