@@ -12,10 +12,8 @@ const HackathonConfig = () => {
     const [allUniversities, setAllUniversities] = useState([]);
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
     const todayStr = new Date().toISOString().slice(0, 10);
     const nowLocalStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
     const getSemesterFromDate = (dateStr) => {
         if (!dateStr) return 'SPRING';
         const month = new Date(dateStr).getMonth() + 1;
@@ -23,23 +21,19 @@ const HackathonConfig = () => {
         if (month >= 5 && month <= 8) return 'SUMMER';
         return 'FALL';
     };
-
     const getSemesterBounds = (term, year) => {
         year = year || new Date().getFullYear();
         if (term === 'SPRING') {
-            return {
-                start: new Date(year, 0, 1, 0, 0, 0), end: new Date(year, 3, 30, 23, 59, 59),
+            return {start: new Date(year, 0, 1, 0, 0, 0), end: new Date(year, 3, 30, 23, 59, 59),
                 min: `${year}-01-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-01-01T00:00`, max: `${year}-04-30T23:59`
             };
         }
         if (term === 'SUMMER') {
-            return {
-                start: new Date(year, 4, 1, 0, 0, 0), end: new Date(year, 7, 31, 23, 59, 59),
+            return {start: new Date(year, 4, 1, 0, 0, 0), end: new Date(year, 7, 31, 23, 59, 59),
                 min: `${year}-05-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-05-01T00:00`, max: `${year}-08-31T23:59`
             };
         }
-        return {
-            start: new Date(year, 8, 1, 0, 0, 0), end: new Date(year, 11, 31, 23, 59, 59),
+        return {start: new Date(year, 8, 1, 0, 0, 0), end: new Date(year, 11, 31, 23, 59, 59),
             min: `${year}-09-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-09-01T00:00`, max: `${year}-12-31T23:59`
         };
     };
@@ -71,9 +65,9 @@ const HackathonConfig = () => {
         maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
         complianceRules: '', tieredPrizeStructures: '', status: 'UPCOMING',
         universities: [],
-        categories: [{ id: 'cat_1', trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }],
+        categories: [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }],
         rounds: [
-            { id: 'rd_1', phaseName: 'Round 1', categoryId: 'cat_1', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }
+            { id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }
         ]
     };
 
@@ -123,7 +117,7 @@ const HackathonConfig = () => {
                 return (d1 && (d1 < bounds.start || d1 > bounds.end)) || (d2 && (d2 < bounds.start || d2 > bounds.end));
             });
             if (outOfBound) {
-                setStatus({ error: `Cannot save! [${outOfBound.phaseName}] contains dates out of the ${values.term} ${values.year} season.` });
+                setStatus({ error: `Cannot save! ${outOfBound.phaseName} contains dates out of the ${values.term} ${values.year} season.` });
                 setSubmitting(false);
                 return;
             }
@@ -131,7 +125,7 @@ const HackathonConfig = () => {
                 const prev = values.rounds[i - 1];
                 const curr = values.rounds[i];
                 if (curr.submissionOpen && prev.submissionDeadline && new Date(curr.submissionOpen) <= new Date(prev.submissionDeadline)) {
-                    setStatus({ error: `[${curr.phaseName}] Open time must be after [${prev.phaseName}] Deadline.` });
+                    setStatus({ error: `${curr.phaseName} Open time must be after ${prev.phaseName} Deadline.` });
                     setSubmitting(false);
                     return;
                 }
@@ -144,7 +138,7 @@ const HackathonConfig = () => {
                 const response = await fetch('http://localhost:8080/api/v1/admin/contests', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ ...values, allowedCorporateDomains: values.universities.join(',') })
+                    body: JSON.stringify({ ...values, id: currentContestId || null, allowedCorporateDomains: values.universities.join(',') })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Failed to create contest configuration');
@@ -163,11 +157,11 @@ const HackathonConfig = () => {
                             trackDescription: category.trackDescription || 'No description',
                             guidelineUrl: category.guidelineUrl || '',
                             status: values.status === 'CLOSED' ? 'CLOSED' : (category.status || 'ACTIVE'),
-                            rounds: categoryRounds.map((r, idx) => ({
-                                id: r.id.startsWith('rd_') ? (idx + 1) : r.id, phaseName: r.phaseName,
+                            rounds: categoryRounds.map((r) => ({
+                                id: r.id < 0 ? null : r.id, phaseName: r.phaseName,
                                 submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
                                 submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
-                                submissionFormat: 'PDF', state: values.status === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
+                                state: values.status === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
                             }))
                         })
                     });
@@ -191,18 +185,18 @@ const HackathonConfig = () => {
             const data = await fetchData(`http://localhost:8080/api/v1/admin/contests/${id}`);
             if (data) {
                 const fetchedCategories = data.tracks?.length ? data.tracks.map((t, idx) => ({
-                    id: t.id || `cat_${idx}`, trackName: t.categoryName || '', trackDescription: t.trackDescription || '',
+                    id: t.id || -(idx + 1), trackName: t.categoryName || '', trackDescription: t.trackDescription || '',
                     guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVE'
-                })) : [{ id: 'cat_1', trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }];
-
+                })) : [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }];
                 let fetchedRounds = [];
                 if (data.tracks?.length) {
-                    data.tracks.forEach((t) => {
-                        const catId = t.id || `cat_${fetchedCategories.findIndex(c => c.trackName === t.categoryName)}`;
+                    data.tracks.forEach((t, tIdx) => {
+                        const cat = fetchedCategories.find(c => c.trackName === t.categoryName);
+                        const catId = t.id || (cat ? cat.id : -(tIdx + 1));
                         if (t.rounds?.length) {
                             t.rounds.forEach((r, rIdx) => {
                                 fetchedRounds.push({
-                                    id: r.id || `rd_${catId}_${rIdx}`, phaseName: r.phaseName || '', categoryId: catId,
+                                    id: r.id || -(tIdx * 100 + rIdx + 1), phaseName: r.phaseName || '', categoryId: catId,
                                     submissionOpen: r.submissionOpen ? r.submissionOpen.slice(0, 16) : '',
                                     submissionDeadline: r.submissionDeadline ? r.submissionDeadline.slice(0, 16) : '',
                                     state: r.state || 'UPCOMING'
@@ -213,10 +207,9 @@ const HackathonConfig = () => {
                 }
                 if (fetchedRounds.length === 0) {
                     fetchedRounds = fetchedCategories.map((cat, idx) => ({
-                        id: `rd_${idx + 1}`, phaseName: `Round ${idx + 1}`, categoryId: cat.id, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING'
+                        id: -(idx + 1), phaseName: `Round ${idx + 1}`, categoryId: cat.id, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING'
                     }));
                 }
-
                 formik.setValues({
                     name: data.name || '', theme: data.theme || '', term: data.term || 'Auto setup', year: data.year || new Date().getFullYear(),
                     regionScope: data.regionScope || 'Ha Noi', maximumAllowedTeams: data.maximumAllowedTeams || 100,
@@ -341,15 +334,13 @@ const HackathonConfig = () => {
                                             <Button variant="secondary" onClick={() => {
                                                 if (selectedUniToAdd && !formik.values.universities.includes(selectedUniToAdd)) {
                                                     formik.setFieldValue('universities', [...formik.values.universities, selectedUniToAdd]);
-                                                    setSelectedUniToAdd('');
-                                                }
+                                                    setSelectedUniToAdd('');}
                                             }}>Add</Button>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                             {formik.values.universities.map(uni => (
                                                 <span key={uni} style={{ background: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '4px', fontSize: '13px' }}>
-                                                    {uni}
-                                                    <button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{ background: 'none', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '0 0 0 4px' }}>x</button>
+                                                    {uni}<button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{ background: 'none', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '0 0 0 4px' }}>x</button>
                                                 </span>
                                             ))}
                                         </div>
@@ -362,7 +353,7 @@ const HackathonConfig = () => {
                                 <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Category Definition</h3>
-                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: Date.now().toString(), trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }])}>+ Add Category</Button>
+                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }])}>+ Add Category</Button>
                                     </div>
                                     <FieldArray name="categories">
                                         {() => (
@@ -381,15 +372,17 @@ const HackathonConfig = () => {
                                                             <Form.Label className="form-label">Description</Form.Label>
                                                             <Form.Control as="textarea" name={`categories[${index}].trackDescription`} className="form-textarea" value={t.trackDescription} onChange={formik.handleChange} />
                                                         </Form.Group>
-                                                        <div className="form-row">
-                                                            <Form.Group className="w-50">
+                                                        <div className="row g-3 mb-3">
+                                                            <Form.Group className="col-md-8 col-sm-10">
                                                                 <Form.Label className="form-label">Guideline URL</Form.Label>
                                                                 <Form.Control type="text" name={`categories[${index}].guidelineUrl`} className="form-input" value={t.guidelineUrl} onChange={formik.handleChange} />
                                                             </Form.Group>
-                                                            <Form.Group className="w-50">
+                                                            <Form.Group className="col-md-4 col-sm-2">
                                                                 <Form.Label className="form-label">Status</Form.Label>
                                                                 <Form.Select name={`categories[${index}].status`} className="form-select" value={t.status} onChange={formik.handleChange}>
-                                                                    <option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option><option value="CLOSED">CLOSED</option>
+                                                                    <option value="ACTIVE">ACTIVE</option>
+                                                                    <option value="INACTIVE">INACTIVE</option>
+                                                                    <option value="CLOSED">CLOSED</option>
                                                                 </Form.Select>
                                                             </Form.Group>
                                                         </div>
@@ -400,11 +393,10 @@ const HackathonConfig = () => {
                                     </FieldArray>
                                     {typeof formik.errors.categories === 'string' && <div className="text-danger mt-3" style={{ fontSize: '14px' }}>{formik.errors.categories}</div>}
                                 </div>
-
                                 <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
-                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: Date.now().toString(), phaseName: `Phase ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }])}>+ Add Round</Button>
+                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Phase ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }])}>+ Add Round</Button>
                                     </div>
                                     <FieldArray name="rounds">
                                         {() => (
@@ -416,7 +408,6 @@ const HackathonConfig = () => {
                                                             {index !== 0 && formik.values.status === 'UPCOMING' && (<button type="button" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} style={{ color: '#ef4444', background: 'none', border: 'none' }}>x</button>)}
                                                         </div>
                                                         <Form.Control.Feedback type="invalid" style={{ display: 'block' }}>{formik.errors.rounds?.[index]?.phaseName}</Form.Control.Feedback>
-
                                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                                             <Form.Group>
                                                                 <Form.Label style={{ fontSize: '12px' }}>Category</Form.Label>
@@ -436,7 +427,6 @@ const HackathonConfig = () => {
                                                                 </Form.Select>
                                                             </Form.Group>
                                                         </div>
-
                                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                                             <Form.Group>
                                                                 <Form.Label style={{ fontSize: '12px' }}>Submission Open</Form.Label>
@@ -456,7 +446,6 @@ const HackathonConfig = () => {
                                     </FieldArray>
                                     {typeof formik.errors.rounds === 'string' && <div className="text-danger mt-3" style={{ fontSize: '14px' }}>{formik.errors.rounds}</div>}
                                 </div>
-
                                 <div className="config-card">
                                     <Form.Group className="mb-3">
                                         <div className="section-label">Compliance Rules</div>
@@ -469,7 +458,6 @@ const HackathonConfig = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="action-bar-container" style={{ marginTop: '24px' }}>
                             <div className="action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
                                 {formik.status?.error ? (
