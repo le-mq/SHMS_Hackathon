@@ -134,9 +134,9 @@ export default function PublicHome() {
                     ) : (<div className="ph-contests-grid">
                             {contests.map(c => (
                                 <ContestCard key={c.id} contest={c}
-                                    onSelectContest={() => { setSelectedContest(c);
-                                        document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
+                                             onSelectContest={() => { setSelectedContest(c);
+                                                 document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                             }}
                                 />
                             ))}
                         </div>
@@ -146,9 +146,48 @@ export default function PublicHome() {
 
             <section className="ph-section" id="categories-section">
                 <div className="ph-container">
+                    {selectedContest && (
+                        <>
+                            <div className="ph-section-header">
+                                <h2>Contest Information</h2>
+                                <p>Comprehensive details about {selectedContest.name}</p>
+                            </div>
+                            <div className="ph-contest-details-card" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', marginBottom: '40px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Theme</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.theme || selectedContest.description || '—'}</div>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Region Scope</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.regionScope || '—'}</div>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Max Teams</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.maximumAllowedTeams || '—'}</div>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Compliance Rules</h4>
+                                        <div style={{ fontSize: '14px', color: '#374151', whiteSpace: 'pre-line', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                                            {selectedContest.complianceRules || 'No rules specified.'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Prize Structures</h4>
+                                        <div style={{ fontSize: '14px', color: '#374151', whiteSpace: 'pre-line', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                                            {selectedContest.tieredPrizeStructures || 'No prize structures specified.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
                     <div className="ph-section-header">
                         <h2>Open Competitive Tracks</h2>
-                        <p>Details of categories and timeline for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
+                        <p>Categories and timeline details for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
                     </div>
                     <div className="ph-tracks-table">
                         <table>
@@ -168,18 +207,18 @@ export default function PublicHome() {
                                     <td className="ph-category-name">{allCatNames}</td>
                                     <td colSpan={3}>No rounds defined</td>
                                 </tr>
-                            ) : (currentRounds.map((r, rId) => (
+                            ) : (currentRounds.map((r, rId) => {
+                                const catObj = selectedContest.categories[rId] || selectedContest.categories[0];
+                                const catName = typeof catObj === 'string' ? catObj : (catObj?.name || catObj?.categoryName || `Category ${rId + 1}`);
+                                return (
                                     <tr key={`round-${rId}`}>
-                                        {rId === 0 && (
-                                            <td className="ph-category-name" rowSpan={currentRounds.length} style={{ verticalAlign: 'middle', fontWeight: 600 }}>
-                                                {allCatNames}</td>
-                                        )}
+                                        <td className="ph-category-name" style={{ verticalAlign: 'middle', fontWeight: 600 }}>{catName}</td>
                                         <td>{r.phaseName}</td>
                                         <td>{fmtDate(r.submissionOpen)}</td>
                                         <td>{fmtDate(r.submissionDeadline)}</td>
                                     </tr>
-                                ))
-                            )}
+                                );
+                            }))}
                             </tbody>
                         </table>
                     </div>
