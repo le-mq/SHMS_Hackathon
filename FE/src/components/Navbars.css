@@ -75,15 +75,15 @@
     font-weight: 500;
     color: #94a3b8;
     cursor: pointer;
-    height: auto;
-    padding: 6px 2px;
-    display: inline-flex;
-    align-items: center;
     text-decoration: none;
     box-sizing: border-box;
-    border-bottom: 3px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
     flex-shrink: 0;
+    height: auto !important;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 2px 4px 2px !important;
+    border-bottom: 3px solid transparent !important;
+    transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .admin-nav-link:hover,
@@ -91,17 +91,21 @@
 .evaluator-nav-link:hover,
 .mentor-nav-link:hover,
 .public-nav-links a:hover {
-    color: #e2e8f0;
-    border-color: rgba(56, 189, 248, 0.4);
+    color: #e2e8f0 !important;
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    transform: translateY(-1px) !important;
 }
 
 .admin-nav-link.active,
 .student-nav-link.active,
 .evaluator-nav-link.active,
 .mentor-nav-link.active,
-.public-nav-links a.active {
-    color: white;
-    border-color: #38bdf8;
+.public-nav-links a.active,
+.evaluator-nav-links .active,
+.mentor-nav-links .active {
+    color: white !important;
+    border-color: #38bdf8 !important;
+    transform: translateY(-1px) !important;
 }
 
 .admin-nav-link.active::after,
@@ -109,7 +113,7 @@
 .evaluator-nav-link.active::after,
 .mentor-nav-link.active::after,
 .public-nav-links a.active::after {
-    display: none;
+    display: none !important;
 }
 
 .admin-nav-user,

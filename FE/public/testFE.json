@@ -1542,5 +1542,140 @@
         "templateId": 2
       }
     ]
+  },
+  "mentorCategory": {
+    "data": {
+      "contestName": "FPT Hackathon Summer 2026",
+      "trackOverviews": [
+        {
+          "trackName": "Web Development",
+          "assignedTeams": 12,
+          "completionPercentage": 75
+        },
+        {
+          "trackName": "AI Innovation",
+          "assignedTeams": 8,
+          "completionPercentage": 50
+        }
+      ],
+      "allocatedTeams": [
+        {
+          "teamId": "T001",
+          "teamName": "CodeCrafters",
+          "trackName": "Web Development",
+          "leaderName": "Nguyen Van A",
+          "githubRepoUrl": "https://github.com/codecrafters",
+          "liveDemoUrl": "https://codecrafters.demo",
+          "docsUrl": "https://docs.codecrafters.demo",
+          "slideUrl": "https://slides.codecrafters.demo"
+        },
+        {
+          "teamId": "T002",
+          "teamName": "AI Wizards",
+          "trackName": "AI Innovation",
+          "leaderName": "Tran Thi B",
+          "githubRepoUrl": "https://github.com/aiwizards",
+          "liveDemoUrl": "https://aiwizards.demo"
+        }
+      ]
+    }
+  },
+  "judgeHistory": {
+    "data": {
+      "records": [
+        {
+          "teamName": "CodeCrafters",
+          "teamId": "SEAL-2026-001",
+          "timestamp": "Jun 20, 2026\n14:30 PM",
+          "roundStatus": "ACTIVE_ROUND",
+          "totalScore": 92.5,
+          "details": [
+            {
+              "criteriaName": "Technical Complexity",
+              "pointsAwarded": 30,
+              "feedback": "Great architecture."
+            },
+            {
+              "criteriaName": "Innovation",
+              "pointsAwarded": 25,
+              "feedback": "Very innovative."
+            }
+          ]
+        },
+        {
+          "teamName": "AI Wizards",
+          "teamId": "SEAL-2026-002",
+          "timestamp": "Jun 21, 2026\n09:15 AM",
+          "roundStatus": "LOCKED",
+          "totalScore": 85.0,
+          "details": [
+            {
+              "criteriaName": "Technical Complexity",
+              "pointsAwarded": 25,
+              "feedback": "Good, but could be optimized."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "evaluatorDashboard": {
+    "data": {
+      "assignedCategoryCount": 2,
+      "totalAllocatedTeams": 5,
+      "evaluatedCount": 2,
+      "contests": [
+        {
+          "id": 1,
+          "name": "FPT Hackathon Summer 2026"
+        },
+        {
+          "id": 2,
+          "name": "FPT Fall Innovation Challenge"
+        }
+      ],
+      "queue": [
+        {
+          "teamId": "T001",
+          "teamName": "CodeCrafters",
+          "categoryName": "Web Development",
+          "roundName": "Final Sprint",
+          "submissionState": "SUBMITTED",
+          "contestId": 1
+        },
+        {
+          "teamId": "T002",
+          "teamName": "AI Wizards",
+          "categoryName": "AI Innovation",
+          "roundName": "Final Sprint",
+          "submissionState": "EVALUATED",
+          "contestId": 1
+        },
+        {
+          "teamId": "T003",
+          "teamName": "Cyber Sentry",
+          "categoryName": "Web Development",
+          "roundName": "Idea Submission",
+          "submissionState": "PENDING",
+          "contestId": 2
+        },
+        {
+          "teamId": "T004",
+          "teamName": "Syntax Error",
+          "categoryName": "Web Development",
+          "roundName": "Final Sprint",
+          "submissionState": "EVALUATED",
+          "contestId": 1
+        },
+        {
+          "teamId": "T005",
+          "teamName": "Quantum Leap",
+          "categoryName": "AI Innovation",
+          "roundName": "Final Sprint",
+          "submissionState": "SUBMITTED",
+          "contestId": 1
+        }
+      ]
+    }
   }
 }

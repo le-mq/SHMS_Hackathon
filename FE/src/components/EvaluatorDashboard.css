@@ -91,10 +91,11 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     margin-bottom: 32px;
+    background-color: #F3F4F6;
 }
 
 .stat-box {
-    background: white;
+    background: white !important;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 24px;
@@ -282,7 +283,8 @@
     display: inline-block;
 }
 
-.pill-submitted { background: #dcfce7; color: #16a34a; }
+.pill-evaluated { background: #dcfce7; color: #16a34a; }
+.pill-submitted { background: #dbeafe; color: #2563eb; }
 .pill-pending { background: #fef9c3; color: #ca8a04; }
 
 .evaluate-btn {
