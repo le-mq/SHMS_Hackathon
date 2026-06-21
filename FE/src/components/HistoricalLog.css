@@ -1,0 +1,238 @@
+.historical-container {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    padding-bottom: 60px;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.historical-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.historical-header {
+    margin-bottom: 32px;
+}
+
+.historical-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.historical-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.historical-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+.historical-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.historical-table th {
+    text-align: left;
+    padding: 16px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.historical-table td {
+    padding: 20px 24px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.historical-table tr:last-child td {
+    border-bottom: none;
+}
+
+.hist-team-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.hist-team-icon {
+    width: 36px;
+    height: 36px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.hist-team-name {
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 3px;
+}
+
+.hist-team-id {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.hist-timestamp {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.round-status-pill {
+    padding: 4px 14px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.rs-active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.rs-locked {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.hist-score {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.hist-score-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.hist-score-bar {
+    height: 3px;
+    background: #0f172a;
+    border-radius: 2px;
+}
+
+.hist-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.hist-view {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+}
+
+.hist-view:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.historical-table-footer {
+    padding: 16px 24px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2100;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    padding: 32px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 16px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #0f172a;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #64748b;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #0f172a;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #475569;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+}

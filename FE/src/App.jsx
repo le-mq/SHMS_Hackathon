@@ -21,6 +21,8 @@ import TeamRegistrationApproval from './components/TeamRegistrationApproval.jsx'
 import PanelAllocation from './components/PanelAllocation.jsx'
 import ProjectSubmission from './components/ProjectSubmission'
 import StandingsFeedback from './components/StandingsFeedback'
+import HistoricalLog from './components/HistoricalLog'
+import ProjectDeliverables from './components/ProjectDeliverables'
 
 function App() {
   return (
@@ -41,7 +43,9 @@ function App() {
         <Route path="/admin/team/approval" element={<TeamRegistrationApproval />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
+        <Route path="/judge/history" element={<HistoricalLog />} />
         <Route path="/mentor/workspace" element={<MentorCategory />} />
+        <Route path="/mentor/deliverables" element={<ProjectDeliverables />} />
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/student/results" element={<StandingsFeedback />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />

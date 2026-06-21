@@ -130,7 +130,7 @@ const EvaluatorDashboard = () => {
                                 <td><span className="category-txt">{team.categoryName}</span></td>
                                 <td><span className="round-txt">{team.roundName}</span></td>
                                 <td>
-                                        <span className={`status-pill ${['SUBMITTED', 'EVALUATED'].includes(team.submissionState?.toUpperCase()) ? 'pill-submitted' : 'pill-pending'}`}>
+                                        <span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : 'pill-pending'}`}>
                                             {team.submissionState === 'SUBMITTED' ? 'Submitted' : team.submissionState}
                                         </span>
                                 </td>
