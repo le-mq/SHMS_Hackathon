@@ -202,7 +202,7 @@ const LeaderboardDashboard = () => {
     const role = localStorage.getItem('shms_role');
     const renderNavbar = () => {
         const navbars = { ADMIN: <NavbarAdmin />,
-            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent /> };
+            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent /> };
         return navbars[role] || <NavbarHome />;
     };
 
