@@ -38,12 +38,16 @@ public class PublicHomeService {
                 .map(c -> {
                     List<com.fpt.shms.be.model.Category> categoriesModel = categoryRepository.findByContestId(c.getId());
                     List<com.fpt.shms.be.model.Round> contestRounds = roundRepository.findByContestId(c.getId());
+                    List<ContestDTO.CategoryDTO> categories = categoriesModel.stream().map(cat -> {
+                        List<ContestDTO.RoundDTO> catRounds = contestRounds.stream()
+                                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(cat.getId()))
+                                .map(r -> new ContestDTO.RoundDTO(r.getPhaseName(), r.getSubmissionOpen(), r.getSubmissionDeadline()))
+                                .toList();
+                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), catRounds);
+                    }).toList();
                     List<ContestDTO.RoundDTO> dtoRounds = contestRounds.stream()
                             .map(r -> new ContestDTO.RoundDTO(r.getPhaseName(), r.getSubmissionOpen(), r.getSubmissionDeadline()))
                             .toList();
-                    List<ContestDTO.CategoryDTO> categories = categoriesModel.stream().map(cat -> {
-                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), dtoRounds);
-                    }).toList();
                     return ContestDTO.from(c, categories, dtoRounds);
                 })
                 .toList();

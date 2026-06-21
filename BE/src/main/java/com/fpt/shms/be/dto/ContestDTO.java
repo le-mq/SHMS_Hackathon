@@ -16,6 +16,10 @@ public record ContestDTO(
         LocalDate registrationEnd,
         String status,
         String description,
+        String regionScope,
+        Integer maximumAllowedTeams,
+        String complianceRules,
+        String tieredPrizeStructures,
         java.util.List<CategoryDTO> categories,
         java.util.List<RoundDTO> rounds
 ) {
@@ -36,6 +40,10 @@ public record ContestDTO(
                 c.getRegistrationEnd(),
                 c.getStatus() != null ? c.getStatus().name() : null,
                 c.getDescription(),
+                c.getRegionScope(),
+                c.getMaximumAllowedTeams(),
+                c.getComplianceRules(),
+                c.getTieredPrizeStructures(),
                 categories != null ? categories : java.util.List.of(),
                 rounds != null ? rounds : java.util.List.of()
         );
