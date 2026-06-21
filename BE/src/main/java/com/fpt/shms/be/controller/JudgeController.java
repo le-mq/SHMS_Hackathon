@@ -1,6 +1,7 @@
 package com.fpt.shms.be.controller;
 
 import com.fpt.shms.be.dto.EvaluatorDashboardResponse;
+import com.fpt.shms.be.dto.SubmitScoreRequest;
 import com.fpt.shms.be.dto.UpdateProfileRequest;
 import com.fpt.shms.be.service.JudgeService;
 import com.fpt.shms.be.service.UserService;
@@ -96,4 +97,57 @@ public class JudgeController {
         }
     }
 
+    @PostMapping("/submit-score")
+    @Operation(summary = "Submit Score", description = "Judge submits scores and feedback for all criteria of a submission.")
+    public ResponseEntity<?> submitScore(HttpServletRequest request, @RequestBody SubmitScoreRequest scoreRequest) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String role = jwtUtils.extractRole(token);
+            if (!"JUDGE".equalsIgnoreCase(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access Denied: Only JUDGE can submit scores."));
+            }
+
+            for (SubmitScoreRequest.ScoreEntry entry : scoreRequest.getScores()) {
+                if (entry.getPointsAwarded() == null || entry.getPointsAwarded() < 0 || entry.getPointsAwarded() > 100) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Points must be provided between 0 and 100 for all criteria."));
+                }
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            judgeService.submitScore(username, scoreRequest);
+
+            return ResponseEntity.ok(Map.of("message", "Score submitted successfully and locked."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/history")
+    @Operation(summary = "Get judge's historical evaluation log")
+    public ResponseEntity<?> getHistory(HttpServletRequest request) {
+        try {
+            String token = jwtUtils.extractToken(request);
+            if (token == null || !jwtUtils.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+            }
+
+            String role = jwtUtils.extractRole(token);
+            if (!"JUDGE".equalsIgnoreCase(role)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Access Denied: Only JUDGE can view this history."));
+            }
+
+            String username = jwtUtils.getUsernameFromToken(token);
+            return ResponseEntity.ok(judgeService.getHistoricalLog(username));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
 }

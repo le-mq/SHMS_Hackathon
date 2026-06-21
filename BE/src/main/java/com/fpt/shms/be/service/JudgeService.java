@@ -2,6 +2,7 @@ package com.fpt.shms.be.service;
 
 import com.fpt.shms.be.dto.EvaluationDataResponse;
 import com.fpt.shms.be.dto.EvaluatorDashboardResponse;
+import com.fpt.shms.be.dto.SubmitScoreRequest;
 import com.fpt.shms.be.model.*;
 import com.fpt.shms.be.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ public class JudgeService {
     private final ScoreRepository scoreRepository;
     private final ContestRubricRepository contestRubricRepository;
     private final ContestRubricDetailsRepository contestRubricDetailsRepository;
+    private final RubricTemplateCriteriaRepository rubricTemplateCriteriaRepository;
+    private final JudgeRepository judgeRepository;
 
     @Transactional(readOnly = true)
     public EvaluatorDashboardResponse getDashboardData(String username, Long contestId) {
@@ -164,7 +167,7 @@ public class JudgeService {
                     .id(d.getId())
                     .name(d.getCriteriaName())
                     .description(d.getDescription())
-                    .weight((int) Math.round(d.getPercentageWeight())) // percentage_weight in db or max_score, assumed getPercentageWeight exists based on context or we should use getMaxScore? Wait, original code had d.getPercentageWeight() so it's correct.
+                    .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
 
@@ -187,5 +190,126 @@ public class JudgeService {
                 .teamName(team.getName())
                 .criteria(criteriaDtos)
                 .build();
+    }
+
+    @Transactional
+    public void submitScore(String username, SubmitScoreRequest request) {
+        com.fpt.shms.be.model.User judgeUser = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("Judge not found"));
+        Judge judge = judgeRepository.findById(judgeUser.getId()).orElseThrow(() -> new IllegalArgumentException("Judge profile not found"));
+        Submission submission = submissionRepository.findById(request.getSubmissionId()).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+        if (scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), submission.getId())) { throw new IllegalArgumentException("You have already evaluated this submission"); }
+
+        Score score = Score.builder()
+                .submission(submission)
+                .judge(judge)
+                .status("FINALIZED")
+                .details(new ArrayList<>())
+                .build();
+
+        double total = 0.0;
+        List<String> feedback = new ArrayList<>();
+        for (SubmitScoreRequest.ScoreEntry entry : request.getScores()) {
+            RubricTemplateCriteria criteria = rubricTemplateCriteriaRepository.findById(entry.getCriteriaId()).orElseThrow(() -> new IllegalArgumentException("Criteria not found"));
+            ContestRubricDetails rubricDetail = resolveContestRubricDetail(submission, criteria);
+            double weight = rubricDetail.getPercentageWeight() != null ? rubricDetail.getPercentageWeight() : 0.0;
+            double weighted = entry.getPointsAwarded() * weight / 100.0;
+            total += weighted;
+            if (entry.getFeedback() != null && !entry.getFeedback().isBlank()) {
+                feedback.add(criteria.getCriteriaName() + ": " + entry.getFeedback());
+            }
+
+            score.getDetails().add(ScoreDetail.builder()
+                    .score(score)
+                    .contestRubricDetail(rubricDetail)
+                    .rawScore(entry.getPointsAwarded())
+                    .weightedScore(weighted)
+                    .feedback(entry.getFeedback())
+                    .build());
+        }
+        score.setTotalScore(total);
+        score.setGeneralFeedback(String.join("\n", feedback));
+        scoreRepository.save(score);
+    }
+
+    @Transactional(readOnly = true)
+    public com.fpt.shms.be.dto.JudgeHistoricalLogResponse getHistoricalLog(String username) {
+        User judge = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Judge not found"));
+
+        List<Score> allScores = scoreRepository.findByJudgeId(judge.getId());
+
+        java.util.Map<Submission, List<Score>> scoresBySubmission = allScores.stream()
+                .collect(java.util.stream.Collectors.groupingBy(Score::getSubmission));
+
+        List<com.fpt.shms.be.dto.JudgeHistoricalLogResponse.Record> records = new java.util.ArrayList<>();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy\nHH:mm a");
+
+        for (java.util.Map.Entry<Submission, List<Score>> entry : scoresBySubmission.entrySet()) {
+            Submission submission = entry.getKey();
+            List<Score> scores = entry.getValue();
+
+            double totalScore = scores.stream().mapToDouble(Score::getPointsAwarded).sum();
+            Team team = submission.getTeam();
+
+            String timestampStr = submission.getSubmittedAt() != null
+                    ? submission.getSubmittedAt().format(formatter)
+                    : java.time.LocalDateTime.now().format(formatter);
+
+            List<com.fpt.shms.be.dto.JudgeHistoricalLogResponse.ScoreDetail> detailDtos = scores.stream()
+                    .flatMap(s -> s.getDetails().stream())
+                    .map(d -> com.fpt.shms.be.dto.JudgeHistoricalLogResponse.ScoreDetail.builder()
+                            .criteriaName(d.getContestRubricDetail() != null ? d.getContestRubricDetail().getCriteriaName() : "Unknown")
+                            .pointsAwarded(d.getRawScore())
+                            .feedback(d.getFeedback())
+                            .build())
+                    .toList();
+
+            records.add(com.fpt.shms.be.dto.JudgeHistoricalLogResponse.Record.builder()
+                    .teamName(team != null ? team.getName() : "Unknown Team")
+                    .teamId(team != null ? "TEAM-" + team.getId() : "TEAM-0")
+                    .timestamp(timestampStr)
+                    .roundStatus("LOCKED")
+                    .totalScore(totalScore)
+                    .details(detailDtos)
+                    .build());
+        }
+
+        return com.fpt.shms.be.dto.JudgeHistoricalLogResponse.builder()
+                .records(records)
+                .build();
+    }
+
+    private ContestRubricDetails resolveContestRubricDetail(Submission submission, RubricTemplateCriteria criteria) {
+        Team team = submission.getTeam();
+        Category category = submission.getRound() != null ? submission.getRound().getCategory() : null;
+        ContestRubric rubric = null;
+        if (category != null && submission.getRound() != null) {
+            rubric = contestRubricRepository.findByCategoryIdAndRoundId(category.getId(), submission.getRound().getId()).orElse(null);
+        }
+        if (rubric == null && category != null && submission.getRound() != null) {
+            rubric = contestRubricRepository.save(ContestRubric.builder()
+                    .category(category)
+                    .round(submission.getRound())
+                    .rubricTemplate(criteria.getRubricTemplate())
+                    .rubricName(criteria.getRubricTemplate() != null ? criteria.getRubricTemplate().getName() : "Rubric")
+                    .totalWeight(100.0)
+                    .status("ACTIVE")
+                    .build());
+        }
+        if (rubric == null) {
+            throw new IllegalArgumentException("Contest rubric not found");
+        }
+
+        final ContestRubric finalRubric = rubric;
+        return contestRubricDetailsRepository.findByContestRubricId(finalRubric.getId()).stream()
+                .filter(d -> d.getCriteriaName().equalsIgnoreCase(criteria.getCriteriaName()))
+                .findFirst()
+                .orElseGet(() -> contestRubricDetailsRepository.save(ContestRubricDetails.builder()
+                        .contestRubric(finalRubric)
+                        .criteriaName(criteria.getCriteriaName())
+                        .description(criteria.getDescription())
+                        .maxScore(criteria.getMaxScore())
+                        .percentageWeight(criteria.getPercentageWeight())
+                        .build()));
     }
 }
