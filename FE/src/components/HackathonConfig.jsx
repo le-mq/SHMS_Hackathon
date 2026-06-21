@@ -14,30 +14,22 @@ const HackathonConfig = () => {
     const [isLoading, setIsLoading] = useState(false);
     const todayStr = new Date().toISOString().slice(0, 10);
     const nowLocalStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    const getSemesterFromDate = (dateStr) => {
-        if (!dateStr) return 'SPRING';
-        const month = new Date(dateStr).getMonth() + 1;
-        if (month >= 1 && month <= 4) return 'SPRING';
-        if (month >= 5 && month <= 8) return 'SUMMER';
-        return 'FALL';
-    };
     const getSemesterBounds = (term, year) => {
-        year = year || new Date().getFullYear();
-        if (term === 'SPRING') {
-            return {start: new Date(year, 0, 1, 0, 0, 0), end: new Date(year, 3, 30, 23, 59, 59),
-                min: `${year}-01-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-01-01T00:00`, max: `${year}-04-30T23:59`
-            };
-        }
-        if (term === 'SUMMER') {
-            return {start: new Date(year, 4, 1, 0, 0, 0), end: new Date(year, 7, 31, 23, 59, 59),
-                min: `${year}-05-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-05-01T00:00`, max: `${year}-08-31T23:59`
-            };
-        }
-        return {start: new Date(year, 8, 1, 0, 0, 0), end: new Date(year, 11, 31, 23, 59, 59),
-            min: `${year}-09-01T00:00` < nowLocalStr ? nowLocalStr : `${year}-09-01T00:00`, max: `${year}-12-31T23:59`
+        const currentYear = year || new Date().getFullYear();
+        const baseDates = {
+            SPRING: { startMonth: 0, endMonth: 3, endDay: 30, maxTime: '04-30T23:59' },
+            SUMMER: { startMonth: 4, endMonth: 7, endDay: 31, maxTime: '08-31T23:59' },
+            FALL:   { startMonth: 8, endMonth: 11, endDay: 31, maxTime: '12-31T23:59' }
+        };
+        const config = baseDates[term] || baseDates.SPRING;
+        const startIso = `${currentYear}-${String(config.startMonth + 1).padStart(2, '0')}-01T00:00`;
+        return {
+            start: new Date(currentYear, config.startMonth, 1, 0, 0, 0),
+            end: new Date(currentYear, config.endMonth, config.endDay, 23, 59, 59),
+            min: startIso < nowLocalStr ? nowLocalStr : startIso,
+            max: `${currentYear}-${config.maxTime}`
         };
     };
-
     const fetchData = async (url, mockKey) => {
         try {
             const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } });
@@ -54,23 +46,18 @@ const HackathonConfig = () => {
 
     const fetchContests = async () => setContests(await fetchData('http://localhost:8080/api/v1/admin/contests', 'contests'));
     const fetchAllUniversities = async () => setAllUniversities(await fetchData('http://localhost:8080/api/v1/admin/universities', 'uni'));
-
     useEffect(() => {
         fetchContests();
         fetchAllUniversities();
     }, []);
-
     const initialValues = {
         name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(), regionScope: 'Ha Noi',
         maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
         complianceRules: '', tieredPrizeStructures: '', status: 'UPCOMING',
         universities: [],
         categories: [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }],
-        rounds: [
-            { id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }
-        ]
+        rounds: [{ id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }]
     };
-
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Event Name is required'),
         theme: Yup.string().required('Theme is required'),
@@ -84,22 +71,14 @@ const HackathonConfig = () => {
             return val ? new Date(val).getFullYear() === Number(this.parent.year) : true;
         }),
         universities: Yup.array().min(1, 'Add at least one university'),
-        categories: Yup.array().of(
-            Yup.object().shape({
-                trackName: Yup.string().required('Category Name is required')
-            })
-        ).min(1, 'Add at least one category'),
+        categories: Yup.array().of(Yup.object().shape({ trackName: Yup.string().required('Category Name is required') })).min(1, 'Add at least one category'),
         rounds: Yup.array().of(
             Yup.object().shape({
                 phaseName: Yup.string().required('Phase Name is required'),
-                categoryId: Yup.string()
-                    .required('Category is required')
-                    .test('unique-category', 'Category already assigned to another round', function(val) {
-                        if (!val) return true;
-                        const roundsArray = this.from[1].value.rounds;
-                        const count = roundsArray.filter(r => r.categoryId === val).length;
-                        return count <= 1;
-                    }),
+                categoryId: Yup.string().required('Category is required').test('unique-category', 'Category already assigned to another round', function (val) {
+                    if (!val) return true;
+                    return this.from[1].value.rounds.filter(r => String(r.categoryId) === String(val)).length <= 1;
+                }),
                 submissionOpen: Yup.date().required('Open time is required'),
                 submissionDeadline: Yup.date().required('Deadline is required').min(Yup.ref('submissionOpen'), 'Must be after Open time')
             })
@@ -111,10 +90,12 @@ const HackathonConfig = () => {
         validationSchema,
         onSubmit: async (values, { setSubmitting, setStatus }) => {
             const bounds = getSemesterBounds(values.term, values.year);
+            const startLimit = bounds.start.getTime();
+            const endLimit = bounds.end.getTime();
             const outOfBound = values.rounds.find(r => {
-                const d1 = r.submissionOpen ? new Date(r.submissionOpen) : null;
-                const d2 = r.submissionDeadline ? new Date(r.submissionDeadline) : null;
-                return (d1 && (d1 < bounds.start || d1 > bounds.end)) || (d2 && (d2 < bounds.start || d2 > bounds.end));
+                const d1 = r.submissionOpen ? new Date(r.submissionOpen).getTime() : null;
+                const d2 = r.submissionDeadline ? new Date(r.submissionDeadline).getTime() : null;
+                return (d1 && (d1 < startLimit || d1 > endLimit)) || (d2 && (d2 < startLimit || d2 > endLimit));
             });
             if (outOfBound) {
                 setStatus({ error: `Cannot save! ${outOfBound.phaseName} contains dates out of the ${values.term} ${values.year} season.` });
@@ -122,15 +103,14 @@ const HackathonConfig = () => {
                 return;
             }
             for (let i = 1; i < values.rounds.length; i++) {
-                const prev = values.rounds[i - 1];
-                const curr = values.rounds[i];
-                if (curr.submissionOpen && prev.submissionDeadline && new Date(curr.submissionOpen) <= new Date(prev.submissionDeadline)) {
-                    setStatus({ error: `${curr.phaseName} Open time must be after ${prev.phaseName} Deadline.` });
+                const prevDeadline = values.rounds[i - 1].submissionDeadline ? new Date(values.rounds[i - 1].submissionDeadline).getTime() : 0;
+                const currOpen = values.rounds[i].submissionOpen ? new Date(values.rounds[i].submissionOpen).getTime() : 0;
+                if (currOpen && prevDeadline && currOpen <= prevDeadline) {
+                    setStatus({ error: `${values.rounds[i].phaseName} Open time must be after ${values.rounds[i - 1].phaseName} Deadline.` });
                     setSubmitting(false);
                     return;
                 }
             }
-
             setIsLoading(true); setStatus({});
             try {
                 const token = localStorage.getItem('shms_token');
@@ -142,11 +122,8 @@ const HackathonConfig = () => {
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Failed to create contest configuration');
-                if (!currentContestId) {
-                    currentContestId = data.contestId;
-                    setSelectedContestId(data.contestId);
-                }
-
+                if (!currentContestId) currentContestId = data.contestId;
+                setSelectedContestId(currentContestId);
                 for (const category of values.categories) {
                     const categoryRounds = values.rounds.filter(r => String(r.categoryId) === String(category.id));
                     await fetch('http://localhost:8080/api/v1/admin/contests/rounds-tracks', {
@@ -168,8 +145,12 @@ const HackathonConfig = () => {
                 }
                 setStatus({ success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!' });
                 fetchContests();
-            } catch (err) { setStatus({ error: err.message || 'Failed to connect to the server' }); }
-            finally { setIsLoading(false); setSubmitting(false); }
+            } catch (err) {
+                setStatus({ error: err.message || 'Failed to connect to the server' });
+            } finally {
+                setIsLoading(false);
+                setSubmitting(false);
+            }
         }
     });
 
@@ -234,7 +215,14 @@ const HackathonConfig = () => {
     };
 
     const bounds = getSemesterBounds(formik.values.term, formik.values.year);
-    const filteredContests = contests.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || `${c.season} ${c.year}`.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredContests = contests.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        || `${c.season} ${c.year}`.toLowerCase().includes(searchQuery.toLowerCase()));
+    const isDateError = formik.status?.error && (
+        formik.status.error.toLowerCase().includes('time') ||
+        formik.status.error.toLowerCase().includes('date') ||
+        formik.status.error.toLowerCase().includes('season') ||
+        formik.status.error.toLowerCase().includes('round')
+    );
 
     return (
         <div className="admin-container">
@@ -252,14 +240,20 @@ const HackathonConfig = () => {
                     {searchQuery && (
                         <div className="partner-table-container mt-4">
                             <table className="partner-table">
-                                <thead><tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr></thead>
+                                <thead>
+                                <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
+                                </thead>
                                 <tbody>
                                 {filteredContests.length > 0 ? (filteredContests.map(c => (
                                     <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
                                         <td><div className="uni-name">{c.name}</div></td>
                                         <td><div className="uni-domain">{c.season} {c.year}</div></td>
                                         <td><span className="status-badge">{c.status || 'UPCOMING'}</span></td>
-                                        <td><button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>{selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}</button></td>
+                                        <td>
+                                            <button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
+                                                {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
                                 </tbody>
@@ -300,7 +294,7 @@ const HackathonConfig = () => {
                                             <Form.Control.Feedback type="invalid">{formik.errors.year}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>
-                                    <div className="form-row" style={{ display: 'block' }}>
+                                    <div className="form-row mb-3" style={{ display: 'block', width: '100%' }}>
                                         <Form.Group>
                                             <Form.Label className="form-label">Registration Start</Form.Label>
                                             <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={handleRegistrationStartChange} onBlur={formik.handleBlur} min={todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} />
@@ -334,13 +328,15 @@ const HackathonConfig = () => {
                                             <Button variant="secondary" onClick={() => {
                                                 if (selectedUniToAdd && !formik.values.universities.includes(selectedUniToAdd)) {
                                                     formik.setFieldValue('universities', [...formik.values.universities, selectedUniToAdd]);
-                                                    setSelectedUniToAdd('');}
+                                                    setSelectedUniToAdd('');
+                                                }
                                             }}>Add</Button>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                             {formik.values.universities.map(uni => (
                                                 <span key={uni} style={{ background: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '4px', fontSize: '13px' }}>
-                                                    {uni}<button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{ background: 'none', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '0 0 0 4px' }}>x</button>
+                                                    {uni}
+                                                    <button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{ background: 'none', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '0 0 0 4px' }}>x</button>
                                                 </span>
                                             ))}
                                         </div>
@@ -380,9 +376,7 @@ const HackathonConfig = () => {
                                                             <Form.Group className="col-md-4 col-sm-2">
                                                                 <Form.Label className="form-label">Status</Form.Label>
                                                                 <Form.Select name={`categories[${index}].status`} className="form-select" value={t.status} onChange={formik.handleChange}>
-                                                                    <option value="ACTIVE">ACTIVE</option>
-                                                                    <option value="INACTIVE">INACTIVE</option>
-                                                                    <option value="CLOSED">CLOSED</option>
+                                                                    <option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option><option value="CLOSED">CLOSED</option>
                                                                 </Form.Select>
                                                             </Form.Group>
                                                         </div>
@@ -401,49 +395,59 @@ const HackathonConfig = () => {
                                     <FieldArray name="rounds">
                                         {() => (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                {formik.values.rounds.map((round, index) => (
-                                                    <div key={round.id} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                                            <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.rounds?.[index]?.phaseName && !!formik.errors.rounds?.[index]?.phaseName} />
-                                                            {index !== 0 && formik.values.status === 'UPCOMING' && (<button type="button" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} style={{ color: '#ef4444', background: 'none', border: 'none' }}>x</button>)}
+                                                {formik.values.rounds.map((round, index) => {
+                                                    const roundTouched = formik.touched.rounds?.[index];
+                                                    const roundErrors = formik.errors.rounds?.[index];
+                                                    return (
+                                                        <div key={round.id} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                                                <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} />
+                                                                {index !== 0 && formik.values.status === 'UPCOMING' && (<button type="button" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} style={{ color: '#ef4444', background: 'none', border: 'none' }}>x</button>)}
+                                                            </div>
+                                                            {roundTouched?.phaseName && roundErrors?.phaseName && <div className="text-danger mb-2" style={{ fontSize: '12px' }}>{roundErrors.phaseName}</div>}
+
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                                                <Form.Group>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Category</Form.Label>
+                                                                    <Form.Select name={`rounds[${index}].categoryId`} className="form-select" value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.categoryId && !!roundErrors?.categoryId}>
+                                                                        <option value="">-- Select Category --</option>
+                                                                        {formik.values.categories.map(c => {
+                                                                            const isSelectedByOther = formik.values.rounds.some((r, rIdx) => rIdx !== index && r.categoryId === c.id);
+                                                                            return (<option key={c.id} value={c.id} disabled={isSelectedByOther}>{c.trackName || 'Unnamed Category'}</option>);
+                                                                        })}
+                                                                    </Form.Select>
+                                                                    {roundTouched?.categoryId && roundErrors?.categoryId && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.categoryId}</div>}
+                                                                </Form.Group>
+                                                                <Form.Group>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Status</Form.Label>
+                                                                    <Form.Select name={`rounds[${index}].state`} className="form-select" value={round.state} onChange={formik.handleChange}>
+                                                                        <option value="UPCOMING">UPCOMING</option><option value="ACTIVE">ACTIVE</option><option value="CLOSED">CLOSED</option>
+                                                                    </Form.Select>
+                                                                </Form.Group>
+                                                            </div>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                                                <Form.Group>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Open</Form.Label>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={bounds.min} max={bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} />
+                                                                    {roundTouched?.submissionOpen && roundErrors?.submissionOpen && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionOpen}</div>}
+                                                                </Form.Group>
+                                                                <Form.Group>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Deadline</Form.Label>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline} />
+                                                                    {roundTouched?.submissionDeadline && roundErrors?.submissionDeadline && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionDeadline}</div>}
+                                                                </Form.Group>
+                                                            </div>
                                                         </div>
-                                                        <Form.Control.Feedback type="invalid" style={{ display: 'block' }}>{formik.errors.rounds?.[index]?.phaseName}</Form.Control.Feedback>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                                            <Form.Group>
-                                                                <Form.Label style={{ fontSize: '12px' }}>Category</Form.Label>
-                                                                <Form.Select name={`rounds[${index}].categoryId`} className="form-select" value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.rounds?.[index]?.categoryId && !!formik.errors.rounds?.[index]?.categoryId}>
-                                                                    <option value="">-- Select Category --</option>
-                                                                    {formik.values.categories.map(c => {
-                                                                        const isSelectedByOther = formik.values.rounds.some((r, rIdx) => rIdx !== index && r.categoryId === c.id);
-                                                                        return (<option key={c.id} value={c.id} disabled={isSelectedByOther}>{c.trackName || 'Unnamed Category'}</option>);
-                                                                    })}
-                                                                </Form.Select>
-                                                                <Form.Control.Feedback type="invalid">{formik.errors.rounds?.[index]?.categoryId}</Form.Control.Feedback>
-                                                            </Form.Group>
-                                                            <Form.Group>
-                                                                <Form.Label style={{ fontSize: '12px' }}>Status</Form.Label>
-                                                                <Form.Select name={`rounds[${index}].state`} className="form-select" value={round.state} onChange={formik.handleChange}>
-                                                                    <option value="UPCOMING">UPCOMING</option><option value="ACTIVE">ACTIVE</option><option value="CLOSED">CLOSED</option>
-                                                                </Form.Select>
-                                                            </Form.Group>
-                                                        </div>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                                            <Form.Group>
-                                                                <Form.Label style={{ fontSize: '12px' }}>Submission Open</Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={bounds.min} max={bounds.max} isInvalid={formik.touched.rounds?.[index]?.submissionOpen && !!formik.errors.rounds?.[index]?.submissionOpen} />
-                                                                <Form.Control.Feedback type="invalid">{formik.errors.rounds?.[index]?.submissionOpen}</Form.Control.Feedback>
-                                                            </Form.Group>
-                                                            <Form.Group>
-                                                                <Form.Label style={{ fontSize: '12px' }}>Submission Deadline</Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen} isInvalid={formik.touched.rounds?.[index]?.submissionDeadline && !!formik.errors.rounds?.[index]?.submissionDeadline} />
-                                                                <Form.Control.Feedback type="invalid">{formik.errors.rounds?.[index]?.submissionDeadline}</Form.Control.Feedback>
-                                                            </Form.Group>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </FieldArray>
+                                    {formik.status?.error && isDateError && (
+                                        <div className="alert-error" style={{ marginTop: '16px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>
+                                            {formik.status.error}
+                                        </div>
+                                    )}
                                     {typeof formik.errors.rounds === 'string' && <div className="text-danger mt-3" style={{ fontSize: '14px' }}>{formik.errors.rounds}</div>}
                                 </div>
                                 <div className="config-card">
@@ -460,16 +464,13 @@ const HackathonConfig = () => {
                         </div>
                         <div className="action-bar-container" style={{ marginTop: '24px' }}>
                             <div className="action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
-                                {formik.status?.error ? (
+                                {formik.status?.error && !isDateError ? (
                                     <div className="alert-error" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>
-                                        {formik.status.error}
-                                    </div>
+                                        {formik.status.error}</div>
                                 ) : formik.status?.success ? (
                                     <div className="alert-success" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#dcfce7', color: '#166534' }}>
                                         {formik.status.success}
-                                    </div>
-                                ) : null}
-
+                                    </div>) : null}
                                 <Button type="submit" className="submit-btn" disabled={formik.isSubmitting} style={{ margin: 0 }}>
                                     {formik.isSubmitting ? 'Saving...' : selectedContestId ? 'Save Configuration' : 'Initialize Season Hackathon'}
                                 </Button>
