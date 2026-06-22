@@ -27,6 +27,8 @@ public class TeamScoreDetailsResponse {
     @Data
     @Builder
     public static class RubricScoreDto {
+        private String judgeLabel;
+        private Double judgeTotalScore;
         private String criteriaName;
         private Double weight;
         private Double pointsAwarded;
