@@ -354,7 +354,7 @@ const PartnerVerification = () => {
                                             className="table-input"
                                             placeholder="SE150000"
                                             value={s.studentCode}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'mssv', e.target.value)}
+                                            onChange={(e) => handleStudentChange(s.ui_id, 'studentCode', e.target.value)}
                                         />
                                     </td>
                                     <td>
