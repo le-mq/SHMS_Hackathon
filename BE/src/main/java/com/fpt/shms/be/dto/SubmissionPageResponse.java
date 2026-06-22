@@ -20,6 +20,12 @@ public class SubmissionPageResponse {
         private Long id;
         private String name;
         private String status;
+        private LocalDateTime submissionOpen;
+        private LocalDateTime submissionDeadline;
+        private Boolean eligible;
+        private String lockedReason;
+        private Boolean evaluated;
+        private Double totalScore;
     }
 
     @Data
@@ -33,5 +39,7 @@ public class SubmissionPageResponse {
         private String liveDemoUrl;
         private String docsUrl;
         private String slideUrl;
+        private Boolean evaluated;
+        private Double totalScore;
     }
 }

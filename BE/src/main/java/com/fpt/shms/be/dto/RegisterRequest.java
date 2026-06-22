@@ -25,7 +25,7 @@ public class RegisterRequest {
     private String targetUniversity;
 
     @NotBlank(message = "Student Identification Number is required")
-    private String mssv;
+    private String studentCode;
 
     @NotBlank(message = "Major is required")
     private String major;

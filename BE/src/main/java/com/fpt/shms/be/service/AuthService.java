@@ -148,16 +148,16 @@ public class AuthService {
     @Transactional
     public String register(RegisterRequest request) {
         log.info("Received registration request - username: '{}', email: '{}', mssv: '{}', fullName: '{}', university: '{}', major: '{}'",
-                request.getUsername(), request.getCorporateEmail(), request.getMssv(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
+                request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
 
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
             throw new IllegalArgumentException("Username is already taken");
         }
 
-        if (studentRepository.existsByMssv(request.getMssv())) {
-            log.warn("Registration failed: MSSV '{}' is already registered", request.getMssv());
-            throw new IllegalArgumentException("MSSV is already registered");
+        if (studentRepository.existsByMssv(request.getStudentCode())) {
+            log.warn("Registration failed: Student code '{}' is already registered", request.getStudentCode());
+            throw new IllegalArgumentException("Student code is already registered");
         }
         if (studentRepository.existsByCorporateEmail(request.getCorporateEmail())) {
             log.warn("Registration failed: Email '{}' is already registered", request.getCorporateEmail());
@@ -187,22 +187,22 @@ public class AuthService {
         String studentCodeRegex = university.getStudentCodeRegex();
         log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
         if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
-            boolean mssvMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getMssv());
+            boolean mssvMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getStudentCode());
             log.info("Student code matching outcome: {}", mssvMatches);
             if (!mssvMatches) {
-                log.warn("Registration failed: MSSV '{}' does not match university pattern '{}'", request.getMssv(), studentCodeRegex);
+                log.warn("Registration failed: Student code '{}' does not match university pattern '{}'", request.getStudentCode(), studentCodeRegex);
                 throw new IllegalArgumentException("Invalid student code format");
             }
         }
 
 
         log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
-                university.getId(), request.getMssv(), request.getCorporateEmail());
+                university.getId(), request.getStudentCode(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
-                .findByUniversityIdAndMssvAndCorporateEmail(university.getId(), request.getMssv(), request.getCorporateEmail())
+                .findByUniversityIdAndMssvAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail())
                 .orElseThrow(() -> {
                     log.warn("Registration failed: Student verification record not found for university_id={}, mssv='{}', email='{}'",
-                            university.getId(), request.getMssv(), request.getCorporateEmail());
+                            university.getId(), request.getStudentCode(), request.getCorporateEmail());
                     return new IllegalArgumentException("Student not found in university verification data");
                 });
 
@@ -232,7 +232,7 @@ public class AuthService {
                 .build();
 
         Student student = Student.builder()
-                .mssv(request.getMssv())
+                .mssv(request.getStudentCode())
                 .university(university)
                 .major(request.getMajor())
                 .corporateEmail(request.getCorporateEmail())
