@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class StudentVerificationDataDto {
-    private String mssv;
+    private String studentCode;
     private String fullName;
     private String corporateEmail;
     private String major;

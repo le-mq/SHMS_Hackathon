@@ -22,7 +22,7 @@ public class StudentVerificationData {
     private University university;
 
     @Column(name = "student_code", nullable = false, unique = true, length = 50)
-    private String mssv;
+    private String studentCode;
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "full_name", nullable = false, length = 100)

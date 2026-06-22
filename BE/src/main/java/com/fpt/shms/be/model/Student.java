@@ -26,7 +26,7 @@ public class Student {
     private University university;
 
     @Column(name = "student_code", nullable = false, unique = true, length = 50)
-    private String mssv;
+    private String studentCode;
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "major", nullable = false, length = 100)
@@ -39,7 +39,7 @@ public class Student {
     private String status;
 
     public String getStudentId() {
-        return this.mssv != null ? this.mssv : String.valueOf(this.id);
+        return this.studentCode != null ? this.studentCode : String.valueOf(this.id);
     }
 
     public String getFullName() {
