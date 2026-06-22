@@ -606,95 +606,64 @@ SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
 GO
 
 INSERT INTO Semester (term, [year], semester_code)
-VALUES ('Summer', 2026, 'SU26');
-GO
-
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, compliance_rules)
-VALUES (1, 'FPT Hackathon 2026', 'AI', 25, 'ACTIVE',
-        DATEADD(day, -7, GETDATE()), DATEADD(day, 7, GETDATE()), 'Nop bai dung han');
-GO
-
-INSERT INTO Category (contest_id, category_name, description, status)
-VALUES (1, 'AI', 'Bang dau danh cho AI', 'ACTIVE');
-GO
-INSERT INTO Semester (term, [year], semester_code)
-VALUES
-('Fall', 2026, 'FA26'),
-('Spring', 2027, 'SP27'),
-('Summer', 2027, 'SU27');
+VALUES 
+('Spring', 2026, 'SP26'),
+('Fall', 2025, 'FA25');
 GO
 
 INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end)
-VALUES
-(2, 'HCM Tech Arena 2026', 'Software Engineering', 50, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 10, GETDATE())),
-(3, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 20, GETDATE())),
-(4, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 15, GETDATE()));
+VALUES 
+(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 20, GETDATE())),
+(2, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', DATEADD(day, -5, GETDATE()), DATEADD(day, 15, GETDATE()));
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-(1, 'IoT & Smart Devices', N'Bảng đấu IoT', 'ACTIVE'),
-(1, 'Cyber Security', N'Bảng đấu An toàn thông tin', 'ACTIVE');
+    (1, 'Computer Vision', N'Nhận diện hình ảnh', 'ACTIVE'),
+    (1, 'NLP', N'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
+    (1, 'Data Science', N'Khoa học Dữ liệu', 'ACTIVE');
 
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (2, 'Web Development', N'Xây dựng ứng dụng Web', 'ACTIVE'),
-    (2, 'Mobile App', N'Phát triển ứng dụng Di động', 'ACTIVE'),
-    (2, 'Game Design', N'Thiết kế Game', 'ACTIVE');
-
-INSERT INTO Category (contest_id, category_name, description, status)
-VALUES
-    (3, 'Computer Vision', N'Nhận diện hình ảnh', 'ACTIVE'),
-    (3, 'NLP', N'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
-    (3, 'Data Science', N'Khoa học Dữ liệu', 'ACTIVE');
-
-INSERT INTO Category (contest_id, category_name, description, status)
-VALUES
-    (4, 'Smart Contracts', N'Lập trình Hợp đồng thông minh', 'ACTIVE'),
-    (4, 'DeFi', N'Tài chính phi tập trung', 'ACTIVE'),
-    (4, 'Web3 DApps', N'Phát triển Ứng dụng Web3', 'ACTIVE');
+    (2, 'Smart Contracts', N'Lập trình Hợp đồng thông minh', 'ACTIVE'),
+    (2, 'DeFi', N'Tài chính phi tập trung', 'ACTIVE'),
+    (2, 'Web3 DApps', N'Phát triển Ứng dụng Web3', 'ACTIVE');
 GO
 
 INSERT INTO ContestUniversity (contest_id, university_id)
-SELECT 1, university_id FROM University WHERE university_code = 'FPT';
+SELECT 1, university_id FROM University WHERE university_code IN ('HUFLIT', 'HCMUAF', 'FPT');
 
 INSERT INTO ContestUniversity (contest_id, university_id)
-SELECT 2, university_id FROM University WHERE university_code IN ('HCMUT', 'HCMUS');
-
-INSERT INTO ContestUniversity (contest_id, university_id)
-SELECT 3, university_id FROM University WHERE university_code IN ('HUFLIT', 'HCMUAF', 'FPT');
-
-INSERT INTO ContestUniversity (contest_id, university_id)
-SELECT 4, university_id FROM University;
+SELECT 2, university_id FROM University;
 GO
 
 DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT;
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CYBER01', 'Cyber Core', 'FORMING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE01', 'Cyber Core', 'FORMING');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('nhatmysocutedl@gmail.com', 'vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_CODE02', 'Code Rangers', 'FORMING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE02', 'Code Rangers', 'FORMING');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('huongtuongyen1982@gmail.com', 'vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_BYTE03', 'Byte Wizards', 'FORMING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE03', 'Byte Wizards', 'FORMING');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_TECH04', 'Tech Titans', 'FORMING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE04', 'Tech Titans', 'FORMING');
 SET @Team4_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('thuhien456@gmail.com', 'phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE_DATA05', 'Data Ninjas', 'FORMING');
+INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE05', 'Data Ninjas', 'FORMING');
 SET @Team5_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
