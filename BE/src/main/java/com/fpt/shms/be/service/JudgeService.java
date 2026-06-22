@@ -208,13 +208,16 @@ public class JudgeService {
         double total = 0.0;
         List<String> feedback = new ArrayList<>();
         for (SubmitScoreRequest.ScoreEntry entry : request.getScores()) {
-            RubricTemplateCriteria criteria = rubricTemplateCriteriaRepository.findById(entry.getCriteriaId()).orElseThrow(() -> new IllegalArgumentException("Criteria not found"));
-            ContestRubricDetails rubricDetail = resolveContestRubricDetail(submission, criteria);
+            ContestRubricDetails rubricDetail = contestRubricDetailsRepository.findById(entry.getCriteriaId()).orElse(null);
+            if (rubricDetail == null) {
+                RubricTemplateCriteria criteria = rubricTemplateCriteriaRepository.findById(entry.getCriteriaId()).orElseThrow(() -> new IllegalArgumentException("Criteria not found"));
+                rubricDetail = resolveContestRubricDetail(submission, criteria);
+            }
             double weight = rubricDetail.getPercentageWeight() != null ? rubricDetail.getPercentageWeight() : 0.0;
             double weighted = entry.getPointsAwarded() * weight / 100.0;
             total += weighted;
             if (entry.getFeedback() != null && !entry.getFeedback().isBlank()) {
-                feedback.add(criteria.getCriteriaName() + ": " + entry.getFeedback());
+                feedback.add(rubricDetail.getCriteriaName() + ": " + entry.getFeedback());
             }
 
             score.getDetails().add(ScoreDetail.builder()
