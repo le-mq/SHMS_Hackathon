@@ -62,7 +62,6 @@ public class JudgeService {
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
         List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
 
-        // Keep latest submission for each team
         Map<Long, Submission> latestSubmissions = submissions.stream()
                 .collect(Collectors.toMap(
                         sub -> sub.getTeam().getId(),

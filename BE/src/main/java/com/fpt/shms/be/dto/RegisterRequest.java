@@ -17,7 +17,6 @@ public class RegisterRequest {
     private String username;
 
     @NotBlank(message = "Password is required")
-    // BR-ACC-01: Strong password
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,}$",
             message = "Password must be at least 8 characters long and contain at least one letter and one number")
     private String password;

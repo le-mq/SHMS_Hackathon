@@ -76,7 +76,6 @@ public class ExpertAdminService {
 
             user.getRoles().add(role);
 
-            // Create Profile
             if (roleName.equals("JUDGE")) {
                 Judge judge = Judge.builder()
                         .user(user)

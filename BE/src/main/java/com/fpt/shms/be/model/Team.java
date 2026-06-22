@@ -33,7 +33,7 @@ public class Team {
 
     @Builder.Default
     @Column(name = "status", nullable = false, length = 50)
-    private String status = "FORMING"; // "FORMING", "PENDING", "APPROVED", "CANCELLED", "REJECTED"
+    private String status = "FORMING"; // "FORMING", "PENDING", "APPROVED", "CANCELLED", "REJECTED", "CLOSED"
 
     @Builder.Default
     @Column(name = "created_at")
