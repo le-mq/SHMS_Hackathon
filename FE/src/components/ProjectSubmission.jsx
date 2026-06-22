@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './ProjectSubmission.css';
 import NavbarStudent from './NavbarStudent';
 import './LeaderWorkspace.css';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const SUCCESS_RELOAD_DELAY_MS = 5000;
+const ERROR_MESSAGE_DURATION_MS = 5000;
 
 const ProjectSubmission = () => {
     const [formData, setFormData] = useState({
@@ -14,12 +16,22 @@ const ProjectSubmission = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [pageData, setPageData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [history, setHistory] = useState([]);
     const [timeLeft, setTimeLeft] = useState('--:--:--');
     const [formattedDeadline, setFormattedDeadline] = useState('');
     const [workspaceData, setWorkspaceData] = useState(null);
+    const errorTimerRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (errorTimerRef.current) {
+                clearTimeout(errorTimerRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -189,6 +201,8 @@ const ProjectSubmission = () => {
 
     const isTeamApproved = teamStatus === 'APPROVED';
     const isRoundActive = selectedRound?.status === 'ACTIVE';
+    const hasLoadedSubmissionRole = Boolean(pageData?.internalRole);
+    const isTeamLeader = pageData?.internalRole === 'LEADER';
 
     const registrationDeadline =
         workspaceData?.registrationDeadline ||
@@ -220,7 +234,7 @@ const ProjectSubmission = () => {
     const canSubmitProject =
         isTeamApproved &&
         isRoundActive &&
-        pageData?.internalRole === 'LEADER' &&
+        isTeamLeader &&
         !isSubmitting &&
         formData.roundId;
 
@@ -271,30 +285,80 @@ const ProjectSubmission = () => {
         );
     };
 
+    const getAssetUrl = (url) => {
+        const trimmedUrl = String(url || '').trim();
+        if (!trimmedUrl) return '';
+
+        if (/^https?:\/\//i.test(trimmedUrl)) {
+            return trimmedUrl;
+        }
+
+        return `https://${trimmedUrl}`;
+    };
+
+    const renderAssetLink = (url, label, icon) => {
+        const assetUrl = getAssetUrl(url);
+        if (!assetUrl) return null;
+
+        return (
+            <a
+                className="asset-link-icon"
+                href={assetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Open ${label}`}
+                aria-label={`Open ${label}`}
+            >
+                {icon}
+            </a>
+        );
+    };
+
+    const showErrorMessage = (message) => {
+        if (errorTimerRef.current) {
+            clearTimeout(errorTimerRef.current);
+        }
+
+        setError(message);
+        setSuccessMessage('');
+
+        errorTimerRef.current = setTimeout(() => {
+            setError('');
+            errorTimerRef.current = null;
+        }, ERROR_MESSAGE_DURATION_MS);
+    };
+
+    const clearErrorMessage = () => {
+        if (errorTimerRef.current) {
+            clearTimeout(errorTimerRef.current);
+            errorTimerRef.current = null;
+        }
+
+        setError('');
+    };
+
     const handleSubmit = async () => {
         if (!isTeamApproved) {
             const message = 'Your team has not been approved yet. You cannot submit.';
-            setError(message);
-            alert(message);
+            showErrorMessage(message);
             return;
         }
 
         if (!isRoundActive) {
             const message = 'This round is not active yet. You cannot submit.';
-            setError(message);
-            alert(message);
+            showErrorMessage(message);
             return;
         }
 
-        if (pageData?.internalRole !== 'LEADER') {
+        if (hasLoadedSubmissionRole && !isTeamLeader) {
             const message = 'Only Team Leaders are permitted to submit the project.';
-            setError(message);
-            alert(message);
+            showErrorMessage(message);
             return;
         }
 
         setIsSubmitting(true);
-        setError('');
+        clearErrorMessage();
+        setSuccessMessage('');
 
         try {
             const token = localStorage.getItem('shms_token');
@@ -312,24 +376,25 @@ const ProjectSubmission = () => {
 
             if (!response.ok) {
                 const message = getBackendMessage(result, 'Submission failed.');
-                setError(message);
-                alert(message);
+                showErrorMessage(message);
                 return;
             }
 
             const message = getBackendMessage(result, 'Project submitted successfully!');
-            alert(message);
+            clearErrorMessage();
+            setSuccessMessage(message);
 
             if (result.history) {
                 setHistory(result.history);
             } else {
-                window.location.reload();
+                setTimeout(() => {
+                    window.location.reload();
+                }, SUCCESS_RELOAD_DELAY_MS);
             }
         } catch (err) {
             console.warn('Submit API error:', err.message);
             const message = 'Cannot connect to server. Please try again later.';
-            setError(message);
-            alert(message);
+            showErrorMessage(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -347,8 +412,14 @@ const ProjectSubmission = () => {
                 )}
 
                 {error && (
-                    <p style={{ marginBottom: '16px', color: '#ef4444' }}>
+                    <p className="submission-message error">
                         {error}
+                    </p>
+                )}
+
+                {successMessage && (
+                    <p className="submission-message success">
+                        {successMessage}
                     </p>
                 )}
 
@@ -434,17 +505,6 @@ const ProjectSubmission = () => {
                                     <option key={r.id} value={r.id}>{r.name} ({r.status})</option>
                                 ))}
                             </select>
-                            {!isTeamApproved && (
-                                <p className="round-warning">
-                                    Your team has not been approved yet. Submission is disabled.
-                                </p>
-                            )}
-
-                            {isTeamApproved && selectedRound && !isRoundActive && (
-                                <p className="round-warning">
-                                    This round is not active yet. Submission is disabled.
-                                </p>
-                            )}
                         </div>
 
                         <div className="form-group">
@@ -516,11 +576,6 @@ const ProjectSubmission = () => {
                         </div>
                     </div>
 
-                    {pageData?.internalRole !== 'LEADER' && (
-                        <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '12px', textAlign: 'right' }}>
-                            Only Team Leaders are permitted to submit the project.
-                        </p>
-                    )}
                     <button
                         className="submit-btn"
                         onClick={handleSubmit}
@@ -550,7 +605,7 @@ const ProjectSubmission = () => {
                                 ? 'Team Not Approved'
                                 : !isRoundActive
                                     ? 'Round Not Active'
-                                    : pageData?.internalRole !== 'LEADER'
+                                    : hasLoadedSubmissionRole && !isTeamLeader
                                         ? 'Leader Only'
                                         : 'Submit Project Links'
                         }
@@ -591,10 +646,26 @@ const ProjectSubmission = () => {
                                             <td>{formattedTime}</td>
                                             <td>
                                                 <div className="asset-icons">
-                                                    {item.githubRepoUrl && <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="GitHub"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>}
-                                                    {item.liveDemoUrl && <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Live Demo"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
-                                                    {item.docsUrl && <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Docs"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                                                    {item.slideUrl && <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Slides"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>}
+                                                    {renderAssetLink(
+                                                        item.githubRepoUrl,
+                                                        'GitHub repository',
+                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                                    )}
+                                                    {renderAssetLink(
+                                                        item.liveDemoUrl,
+                                                        'live demo',
+                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                                    )}
+                                                    {renderAssetLink(
+                                                        item.docsUrl,
+                                                        'project documentation',
+                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                    )}
+                                                    {renderAssetLink(
+                                                        item.slideUrl,
+                                                        'presentation slides',
+                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td>

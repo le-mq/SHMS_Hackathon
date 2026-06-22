@@ -318,6 +318,25 @@
     color: #64748b;
 }
 
+.asset-link-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.asset-link-icon:hover,
+.asset-link-icon:focus-visible {
+    background: #e0e7ff;
+    color: #2563eb;
+    outline: none;
+}
+
 .status-badge {
     padding: 6px 12px;
     border-radius: 16px;
@@ -374,13 +393,6 @@
         grid-template-columns: 1fr;
     }
 }
-.round-warning {
-    margin: 8px 0 0;
-    font-size: 13px;
-    font-weight: 500;
-    color: #dc2626;
-}
-
 .input-with-icon input:disabled {
     background: #f1f5f9;
     color: #94a3b8;
