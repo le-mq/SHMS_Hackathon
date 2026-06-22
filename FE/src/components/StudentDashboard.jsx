@@ -125,6 +125,8 @@ const StudentDashboard = () => {
     const [invitationCode, setInvitationCode] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
+    const selectedContestId = activeContest?.id != null ? String(activeContest.id) : '';
+
     useEffect(() => {
         let cancelled = false;
 
@@ -317,7 +319,20 @@ const StudentDashboard = () => {
                             </div>
                         ) : activeContests.length > 0 ? (
                             activeContests.map(contest => (
-                                <div className="info-card" key={contest.id}>
+                                <div
+                                    className={`info-card contest-card ${selectedContestId === String(contest.id) ? 'selected' : ''}`}
+                                    key={contest.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-pressed={selectedContestId === String(contest.id)}
+                                    onClick={() => setActiveContest(contest)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setActiveContest(contest);
+                                        }
+                                    }}
+                                >
                                     <div className="ic-header">
                                         ACTIVE CONTEST
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +371,10 @@ const StudentDashboard = () => {
                     </div>
 
                     <div className="milestones-card">
-                        <div className="mc-header">Milestones</div>
+                        <div className="mc-header">
+                            Milestones
+                            {activeContest?.name ? <span>{activeContest.name}</span> : null}
+                        </div>
                         <table className="mc-table">
                             <thead>
                                 <tr>

@@ -10,6 +10,26 @@
     padding: 0 20px;
 }
 
+.submission-message {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.submission-message.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.submission-message.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
 /* ===== Header + status + deadline ===== */
 
 .submission-header {
@@ -298,6 +318,25 @@
     color: #64748b;
 }
 
+.asset-link-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.asset-link-icon:hover,
+.asset-link-icon:focus-visible {
+    background: #e0e7ff;
+    color: #2563eb;
+    outline: none;
+}
+
 .status-badge {
     padding: 6px 12px;
     border-radius: 16px;
@@ -354,13 +393,6 @@
         grid-template-columns: 1fr;
     }
 }
-.round-warning {
-    margin: 8px 0 0;
-    font-size: 13px;
-    font-weight: 500;
-    color: #dc2626;
-}
-
 .input-with-icon input:disabled {
     background: #f1f5f9;
     color: #94a3b8;
