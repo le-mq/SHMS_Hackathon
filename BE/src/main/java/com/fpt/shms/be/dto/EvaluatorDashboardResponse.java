@@ -24,9 +24,11 @@ public class EvaluatorDashboardResponse {
     @Data
     @Builder
     public static class AssignedTeamQueueDto {
+        private Long submissionId;
         private Long teamId;
         private String teamName;
         private String abbreviation;
+        private Long roundId;
         private String trackName;
         private String roundName;
         private String submissionState;
