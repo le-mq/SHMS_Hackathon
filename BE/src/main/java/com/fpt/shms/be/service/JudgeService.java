@@ -142,13 +142,12 @@ public class JudgeService {
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
         ContestRubric rubric = null;
 
-        if (latestSubmission.getRound() != null) {
-            List<ContestRubric> rubrics = contestRubricRepository.findByRoundId(latestSubmission.getRound().getId());
+        if (latestSubmission.getRound() != null && latestSubmission.getRound().getCategory() != null) {
+            List<ContestRubric> rubrics = contestRubricRepository.findByCategoryId(latestSubmission.getRound().getCategory().getId());
             rubric = rubrics.isEmpty() ? null : rubrics.get(0);
         }
 
         if (rubric == null) {
-
             Category fallbackCategory = assignments.stream()
                     .map(JudgeAssignment::getCategory)
                     .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
@@ -285,19 +284,21 @@ public class JudgeService {
         Team team = submission.getTeam();
         Category category = submission.getRound() != null ? submission.getRound().getCategory() : null;
         ContestRubric rubric = null;
-        if (category != null && submission.getRound() != null) {
-            rubric = contestRubricRepository.findByCategoryIdAndRoundId(category.getId(), submission.getRound().getId()).orElse(null);
+
+        if (category != null) {
+            rubric = contestRubricRepository.findFirstByCategoryId(category.getId()).orElse(null);
         }
-        if (rubric == null && category != null && submission.getRound() != null) {
+
+        if (rubric == null && category != null) {
             rubric = contestRubricRepository.save(ContestRubric.builder()
                     .category(category)
-                    .round(submission.getRound())
                     .rubricTemplate(criteria.getRubricTemplate())
                     .rubricName(criteria.getRubricTemplate() != null ? criteria.getRubricTemplate().getName() : "Rubric")
                     .totalWeight(100.0)
                     .status("ACTIVE")
                     .build());
         }
+
         if (rubric == null) {
             throw new IllegalArgumentException("Contest rubric not found");
         }
