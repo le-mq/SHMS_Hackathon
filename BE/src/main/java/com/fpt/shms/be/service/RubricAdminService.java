@@ -17,7 +17,6 @@ public class RubricAdminService {
 
     private final RubricTemplateRepository rubricTemplateRepository;
     private final CategoryRepository categoryRepository;
-    private final RoundRepository roundRepository;
     private final ContestRubricRepository contestRubricRepository;
     private final ContestRubricDetailsRepository contestRubricDetailsRepository;
 
@@ -34,13 +33,6 @@ public class RubricAdminService {
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-
-        Round round = roundRepository.findById(request.getRoundId())
-                .orElseThrow(() -> new IllegalArgumentException("Round not found"));
-
-        if (round.getContest() == null || category.getContest() == null || !round.getContest().getId().equals(category.getContest().getId())) {
-            throw new IllegalArgumentException("Round does not belong to the specified contest");
-        }
 
         RubricTemplate template = RubricTemplate.builder()
                 .name(request.getName())
@@ -66,7 +58,6 @@ public class RubricAdminService {
 
         ContestRubric contestRubric = ContestRubric.builder()
                 .category(category)
-                .round(round)
                 .rubricTemplate(template)
                 .rubricName(request.getName())
                 .totalWeight(totalWeight)
@@ -126,7 +117,7 @@ public class RubricAdminService {
             java.util.Map<String, Object> map = new java.util.HashMap<>();
             map.put("id", cr.getId());
             map.put("categoryId", cr.getCategory().getId());
-            map.put("roundId", cr.getRound().getId());
+            map.put("roundId", null);
             map.put("templateId", cr.getRubricTemplate().getId());
             map.put("contestId", cr.getCategory().getContest().getId());
             return map;
@@ -187,24 +178,6 @@ public class RubricAdminService {
         }
         template = rubricTemplateRepository.save(template);
 
-        if (request.getCategoryId() != null && request.getRoundId() != null) {
-            Category category = template.getCategory();
-            Round round = roundRepository.findById(request.getRoundId())
-                    .orElseThrow(() -> new IllegalArgumentException("Round not found"));
-            if (round.getContest() == null || category.getContest() == null || !round.getContest().getId().equals(category.getContest().getId())) {
-                throw new IllegalArgumentException("Round does not belong to the specified contest");
-            }
-            ContestRubric contestRubric = ContestRubric.builder()
-                    .category(category)
-                    .round(round)
-                    .rubricTemplate(template)
-                    .rubricName(template.getName())
-                    .totalWeight(100.0)
-                    .status("ACTIVE")
-                    .build();
-            contestRubric = contestRubricRepository.save(contestRubric);
-            syncContestRubricDetails(contestRubric, template.getCriteria());
-        }
         return template;
     }
 
