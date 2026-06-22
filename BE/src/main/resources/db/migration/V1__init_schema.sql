@@ -613,8 +613,8 @@ GO
 
 INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end)
 VALUES 
-(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'ACTIVE', '2026-02-01', '2026-02-10'),
-(2, 'Global Blockchain Summit 2026', 'Blockchain & Web3', 80, 'ACTIVE', '2025-09-01', '2025-09-15');
+(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15');
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
