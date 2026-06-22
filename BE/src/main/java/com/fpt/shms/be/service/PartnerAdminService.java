@@ -94,22 +94,22 @@ public class PartnerAdminService {
 
         List<StudentVerificationData> existingList = studentVerificationDataRepository.findByUniversity(universityName);
 
-        List<String> incomingMssvs = dtos.stream()
-                .map(StudentVerificationDataDto::getMssv)
-                .filter(mssv -> mssv != null && !mssv.isEmpty())
+        List<String> incomingStudentCodes = dtos.stream()
+                .map(StudentVerificationDataDto::getStudentCode)
+                .filter(code -> code != null && !code.isEmpty())
                 .collect(Collectors.toList());
 
         for (StudentVerificationData sv : existingList) {
-            if (!incomingMssvs.contains(sv.getMssv())) {
+            if (!incomingStudentCodes.contains(sv.getStudentCode())) {
                 studentVerificationDataRepository.delete(sv);
             }
         }
 
         for (StudentVerificationDataDto dto : dtos) {
-            if (dto.getMssv() == null || dto.getMssv().isEmpty()) continue;
+            if (dto.getStudentCode() == null || dto.getStudentCode().isEmpty()) continue;
 
-            StudentVerificationData sv = studentVerificationDataRepository.findByMssv(dto.getMssv())
-                    .orElseGet(() -> StudentVerificationData.builder().mssv(dto.getMssv()).build());
+            StudentVerificationData sv = studentVerificationDataRepository.findByStudentCode(dto.getStudentCode())
+                    .orElseGet(() -> StudentVerificationData.builder().studentCode(dto.getStudentCode()).build());
 
             sv.setFullName(dto.getFullName());
             sv.setCorporateEmail(dto.getCorporateEmail());
@@ -125,7 +125,7 @@ public class PartnerAdminService {
         List<StudentVerificationData> data = studentVerificationDataRepository.findByUniversity(university);
         return data.stream().map(sv -> {
             StudentVerificationDataDto dto = new StudentVerificationDataDto();
-            dto.setMssv(sv.getMssv());
+            dto.setStudentCode(sv.getStudentCode());
             dto.setFullName(sv.getFullName());
             dto.setCorporateEmail(sv.getCorporateEmail());
             dto.setMajor(sv.getMajor());

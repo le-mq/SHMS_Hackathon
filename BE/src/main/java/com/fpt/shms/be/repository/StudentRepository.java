@@ -9,9 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
-    boolean existsByMssv(String mssv);
+    boolean existsByStudentCode(String studentCode);
     boolean existsByCorporateEmail(String corporateEmail);
     Optional<Student> findByUser(User user);
-    Optional<Student> findByMssv(String mssv);
+    Optional<Student> findByStudentCode(String studentCode);
     boolean existsByUniversity(com.fpt.shms.be.model.University university);
 }

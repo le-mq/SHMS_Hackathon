@@ -9,10 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface StudentVerificationDataRepository extends JpaRepository<StudentVerificationData, Long> {
-    Optional<StudentVerificationData> findByMssv(String mssv);
+    Optional<StudentVerificationData> findByStudentCode(String studentCode);
 
     @Query("select sv from StudentVerificationData sv where sv.university.name = :university")
     java.util.List<StudentVerificationData> findByUniversity(String university);
 
-    java.util.Optional<StudentVerificationData> findByUniversityIdAndMssvAndCorporateEmail(Long universityId, String mssv, String corporateEmail);
+    java.util.Optional<StudentVerificationData> findByUniversityIdAndStudentCodeAndCorporateEmail(Long universityId, String studentCode, String corporateEmail);
 }

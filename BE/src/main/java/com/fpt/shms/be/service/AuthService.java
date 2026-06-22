@@ -147,7 +147,7 @@ public class AuthService {
 
     @Transactional
     public String register(RegisterRequest request) {
-        log.info("Received registration request - username: '{}', email: '{}', mssv: '{}', fullName: '{}', university: '{}', major: '{}'",
+        log.info("Received registration request - username: '{}', email: '{}', studentCode: '{}', fullName: '{}', university: '{}', major: '{}'",
                 request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
 
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -155,7 +155,7 @@ public class AuthService {
             throw new IllegalArgumentException("Username is already taken");
         }
 
-        if (studentRepository.existsByMssv(request.getStudentCode())) {
+        if (studentRepository.existsByStudentCode(request.getStudentCode())) {
             log.warn("Registration failed: Student code '{}' is already registered", request.getStudentCode());
             throw new IllegalArgumentException("Student code is already registered");
         }
@@ -187,27 +187,27 @@ public class AuthService {
         String studentCodeRegex = university.getStudentCodeRegex();
         log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
         if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
-            boolean mssvMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getStudentCode());
-            log.info("Student code matching outcome: {}", mssvMatches);
-            if (!mssvMatches) {
+            boolean codeMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getStudentCode());
+            log.info("Student code matching outcome: {}", codeMatches);
+            if (!codeMatches) {
                 log.warn("Registration failed: Student code '{}' does not match university pattern '{}'", request.getStudentCode(), studentCodeRegex);
                 throw new IllegalArgumentException("Invalid student code format");
             }
         }
 
 
-        log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
+        log.info("Looking up student verification data - university_id: {}, studentCode: '{}', email: '{}'",
                 university.getId(), request.getStudentCode(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
-                .findByUniversityIdAndMssvAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail())
+                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail())
                 .orElseThrow(() -> {
-                    log.warn("Registration failed: Student verification record not found for university_id={}, mssv='{}', email='{}'",
+                    log.warn("Registration failed: Student verification record not found for university_id={}, studentCode='{}', email='{}'",
                             university.getId(), request.getStudentCode(), request.getCorporateEmail());
                     return new IllegalArgumentException("Student not found in university verification data");
                 });
 
-        log.info("Verification record found: mssv='{}', fullName='{}', major='{}'",
-                verificationData.getMssv(), verificationData.getFullName(), verificationData.getMajor());
+        log.info("Verification record found: studentCode='{}', fullName='{}', major='{}'",
+                verificationData.getStudentCode(), verificationData.getFullName(), verificationData.getMajor());
 
         if (!verificationData.getFullName().equalsIgnoreCase(request.getFullName())) {
             log.warn("Registration failed: Full Name '{}' does not match verification data '{}'", request.getFullName(), verificationData.getFullName());
@@ -220,7 +220,7 @@ public class AuthService {
 
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalArgumentException("STUDENT role missing in DB"));
-        
+
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())
@@ -232,7 +232,7 @@ public class AuthService {
                 .build();
 
         Student student = Student.builder()
-                .mssv(request.getStudentCode())
+                .studentCode(request.getStudentCode())
                 .university(university)
                 .major(request.getMajor())
                 .corporateEmail(request.getCorporateEmail())

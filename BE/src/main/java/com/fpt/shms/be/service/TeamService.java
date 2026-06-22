@@ -231,9 +231,9 @@ public class TeamService{
         team = teamRepository.save(team);
 
         if ("APPROVED".equals(team.getStatus())) {
-            String leaderMssv = request.getLeaderStudentId();
-            if (leaderMssv != null && !leaderMssv.isEmpty()) {
-                Student leaderStudent = studentRepository.findByMssv(leaderMssv).orElse(null);
+            String leaderStudentCode = request.getLeaderStudentId();
+            if (leaderStudentCode != null && !leaderStudentCode.isEmpty()) {
+                Student leaderStudent = studentRepository.findByStudentCode(leaderStudentCode).orElse(null);
                 if (leaderStudent != null) {
 
                     List<TeamMembership> teamMembers = teamMembershipRepository.findByTeamId(team.getId());

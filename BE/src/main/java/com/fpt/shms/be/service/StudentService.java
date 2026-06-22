@@ -30,7 +30,7 @@ public class StudentService {
 
         return ProfileResponse.builder()
                 .fullName(student.getFullName())
-                .mssv(student.getMssv())
+                .studentCode(student.getStudentCode())
                 .major(student.getMajor())
                 .corporateEmail(student.getCorporateEmail())
                 .telephoneNumber(student.getTelephoneNumber())
