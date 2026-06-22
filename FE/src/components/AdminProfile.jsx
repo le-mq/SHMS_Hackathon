@@ -4,24 +4,24 @@ import './OperatorProfile.css';
 import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
+
 const AdminProfile = () => {
     const fileInputRef = useRef(null);
+    const navigate = useNavigate();
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [msg, setMsg] = useState({ text: '', type: '' });
 
-    const username = localStorage.getItem('shms_user') || 'admin@s-hms.vn';
-    const [identity] = useState({
-        adminId: 'ADM-001',
-        role: 'System Administrator',
-        corporateEmail: username,
+    // Chỉ giữ lại fullName và email trong state định danh
+    const [identity, setIdentity] = useState({
+        email: '',
+        fullName: ''
     });
 
     const [form, setForm] = useState({
-        fullName: localStorage.getItem('shms_fullname_' + username) || localStorage.getItem('shms_fullname') || 'Admin',
-        telephoneNumber: '+84 123 456 789',
+        telephoneNumber: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -34,30 +34,44 @@ const AdminProfile = () => {
                 const response = await fetch(API_BASE + '/admin/profile',
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                if (!response.ok)
-                    throw new Error();
+                if (!response.ok) throw new Error();
+
                 const data = await response.json();
-                setForm(f => ({ ...f, telephoneNumber: data.telephoneNumber || f.telephoneNumber, fullName: data.fullName || f.fullName })
-                );
-                if (data.avatarBase64)
-                    setAvatarPreview(data.avatarBase64);
+
+                setIdentity({
+                    email: data.corporateEmail || data.email || data.username || localStorage.getItem('shms_user') || 'admin@s-hms.vn',
+                    fullName: data.fullName || localStorage.getItem('shms_fullname') || 'System Administrator'
+                });
+
+                setForm(f => ({
+                    ...f,
+                    telephoneNumber: data.telephoneNumber || '+84 123 456 789'
+                }));
+
+                if (data.avatarBase64) setAvatarPreview(data.avatarBase64);
             }
             catch {
                 try {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     const profile = localJson.adminProfile;
+
+                    setIdentity({
+                        email: profile?.corporateEmail || profile?.email || profile?.username || localStorage.getItem('shms_user') || 'admin@s-hms.vn',
+                        fullName: profile?.fullName || localStorage.getItem('shms_fullname') || 'System Administrator'
+                    });
+
                     setForm(f => ({
-                        ...f, telephoneNumber: profile?.telephoneNumber || f.telephoneNumber,
-                        fullName: profile?.fullName || f.fullName
-                    })
-                    );
+                        ...f,
+                        telephoneNumber: profile?.telephoneNumber || '+84 123 456 789'
+                    }));
+
                     if (profile?.avatarBase64) {
                         setAvatarPreview(profile.avatarBase64);
                     }
                 }
                 catch (error) {
-                    console.error(error);
+                    console.error("Lỗi đồng bộ dữ liệu Profile:", error);
                 }
             }
         };
@@ -72,11 +86,43 @@ const AdminProfile = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            setMsg({ text: 'File size must be less than 5MB', type: 'error' }); return;
+        if (file.size > 2 * 1024 * 1024) {
+            setMsg({ text: 'File size must be less than 2MB', type: 'error' }); return;
         }
+
         const reader = new FileReader();
-        reader.onloadend = () => { setAvatarPreview(reader.result); setMsg({ text: '', type: '' }); };
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 150;
+                const MAX_HEIGHT = 150;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                setAvatarPreview(compressedBase64);
+                setMsg({ text: '', type: '' });
+            };
+            img.src = event.target.result;
+        };
         reader.readAsDataURL(file);
     };
 
@@ -93,6 +139,7 @@ const AdminProfile = () => {
         try {
             const token = localStorage.getItem('shms_token');
             const payload = {
+                fullName: identity.fullName,
                 telephoneNumber: form.telephoneNumber,
                 avatarBase64: avatarPreview,
                 ...(form.currentPassword && form.newPassword && {
@@ -100,26 +147,21 @@ const AdminProfile = () => {
                     newPassword: form.newPassword
                 })
             };
-            const response = await fetch('http://localhost:8080/api/v1/admin/profile', {
+            const response = await fetch(`${API_BASE}/admin/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
-            if (!response.ok)
-                throw new Error();
+            if (!response.ok) throw new Error();
             setMsg({ text: 'Profile updated successfully.', type: 'success' });
-            localStorage.setItem('shms_fullname_' + username, form.fullName);
             setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
         } catch {
-            setMsg({ text: 'Mock save success.', type: 'success' });
-            localStorage.setItem('shms_fullname_' + username, form.fullName);
+            setMsg({ text: 'Profile updated failed.', type: 'error' });
             setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
         } finally {
             setIsLoading(false);
         }
     };
-
-    const navigate = useNavigate();
 
     return (
         <div className="op-profile-container">
@@ -143,12 +185,12 @@ const AdminProfile = () => {
                             {avatarPreview
                                 ? <img src={avatarPreview} alt="avatar" className="op-avatar-img" />
                                 : <div className="op-avatar-fallback" style={{ fontSize: 44 }}>
-                                    {form.fullName.trim() ? form.fullName.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AU'}
+                                    {identity.fullName.trim() ? identity.fullName.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AU'}
                                 </div>
                             }
                         </div>
-                        <p className="op-display-name">{form.fullName || 'User'}</p>
-                        <span className="op-role-badge">{identity.role}</span>
+                        <p className="op-display-name">{identity.fullName || 'User'}</p>
+                        <span className="op-role-badge">System Administrator</span>
                         <div className="op-divider" />
                         <button className="op-upload-btn" onClick={() => fileInputRef.current?.click()}>
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,23 +212,15 @@ const AdminProfile = () => {
                             </h2>
                             <div className="op-form-body">
                                 <div className="op-field-row">
+                                    {/* Chỉ hiển thị FULL NAME ở ô bên trái */}
                                     <div className="op-field">
                                         <label className="op-label">FULL NAME</label>
-                                        <input className="op-input" name="fullName" value={form.fullName} onChange={handleChange} />
+                                        <input className="op-input readonly" value={identity.fullName} readOnly />
                                     </div>
-                                    <div className="op-field">
-                                        <label className="op-label">ADMIN ID</label>
-                                        <input className="op-input readonly" value={identity.adminId} readOnly />
-                                    </div>
-                                </div>
-                                <div className="op-field-row">
-                                    <div className="op-field">
-                                        <label className="op-label">ROLE</label>
-                                        <input className="op-input readonly" value={identity.role} readOnly />
-                                    </div>
+                                    {/* Chỉ hiển thị CORPORATE EMAIL ở ô bên phải */}
                                     <div className="op-field">
                                         <label className="op-label">CORPORATE EMAIL</label>
-                                        <input className="op-input readonly" value={identity.corporateEmail} readOnly />
+                                        <input className="op-input readonly" value={identity.email} readOnly />
                                     </div>
                                 </div>
                             </div>
