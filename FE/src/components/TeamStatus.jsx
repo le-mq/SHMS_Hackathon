@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './TeamStatus.css';
 import NavbarStudent from './NavbarStudent';
 
@@ -10,10 +10,56 @@ const isContestRegistrable = (contest) => {
     return !UNAVAILABLE_CONTEST_STATUSES.has(status);
 };
 
+const normalizeList = (json) => {
+    if (Array.isArray(json)) return json;
+    return json?.data || [];
+};
+
+const safeJson = async (res) => {
+    try {
+        return await res.json();
+    } catch {
+        return {};
+    }
+};
+
+const isJoinedTeam = (item) => {
+    return item && item.data && !item.data.error && item.data.status !== 'NO TEAM';
+};
+
+const getTeamIdentity = (team) => {
+    return String(team?.invitationCode || team?.teamName || '').trim().toUpperCase();
+};
+
+const isSameTeamData = (firstTeam, secondTeam) => {
+    const firstIdentity = getTeamIdentity(firstTeam);
+    const secondIdentity = getTeamIdentity(secondTeam);
+    return firstIdentity && secondIdentity && firstIdentity === secondIdentity;
+};
+
+const dedupeParticipatedTeams = (teams) => {
+    const seenTeams = new Set();
+
+    return teams.filter(item => {
+        const identity = getTeamIdentity(item?.data);
+        if (!identity) return true;
+        if (seenTeams.has(identity)) return false;
+
+        seenTeams.add(identity);
+        return true;
+    });
+};
+
+const findParticipatedTeamByContest = (teams, contestId) => {
+    const id = String(contestId || '');
+    return teams.find(item => String(item?.contest?.id || '') === id);
+};
+
 const TeamStatus = () => {
     const [teamData, setTeamData] = useState(null);
     const [contests, setContests] = useState([]);
     const [participatedTeams, setParticipatedTeams] = useState([]);
+    const participatedTeamsRef = useRef([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -28,46 +74,6 @@ const TeamStatus = () => {
         invitationCode: 'N/A',
         status: 'NO TEAM',
         roster: [],
-    };
-
-    const normalizeList = (json) => {
-        if (Array.isArray(json)) return json;
-        return json?.data || [];
-    };
-
-    const safeJson = async (res) => {
-        try {
-            return await res.json();
-        } catch {
-            return {};
-        }
-    };
-
-    const isJoinedTeam = (item) => {
-        return item && item.data && !item.data.error && item.data.status !== 'NO TEAM';
-    };
-
-    const getTeamIdentity = (team) => {
-        return String(team?.invitationCode || team?.teamName || '').trim().toUpperCase();
-    };
-
-    const isSameTeamData = (firstTeam, secondTeam) => {
-        const firstIdentity = getTeamIdentity(firstTeam);
-        const secondIdentity = getTeamIdentity(secondTeam);
-        return firstIdentity && secondIdentity && firstIdentity === secondIdentity;
-    };
-
-    const dedupeParticipatedTeams = (teams) => {
-        const seenTeams = new Set();
-
-        return teams.filter(item => {
-            const identity = getTeamIdentity(item?.data);
-            if (!identity) return true;
-            if (seenTeams.has(identity)) return false;
-
-            seenTeams.add(identity);
-            return true;
-        });
     };
 
     const applyTeamData = (team, contestList, contestId = '') => {
@@ -86,6 +92,10 @@ const TeamStatus = () => {
 
         setError('');
     };
+
+    useEffect(() => {
+        participatedTeamsRef.current = participatedTeams;
+    }, [participatedTeams]);
 
     useEffect(() => {
         let cancelled = false;
@@ -163,13 +173,19 @@ const TeamStatus = () => {
 
             if (cancelled) return;
 
+            const cachedTeam = currentContestId
+                ? findParticipatedTeamByContest(participatedTeamsRef.current, currentContestId)
+                : null;
+            const teamsForState = cachedTeam && !findParticipatedTeamByContest(joinedTeams, currentContestId)
+                ? dedupeParticipatedTeams([cachedTeam, ...joinedTeams])
+                : joinedTeams;
+
             setContests(contestList);
-            setParticipatedTeams(joinedTeams);
+            participatedTeamsRef.current = teamsForState;
+            setParticipatedTeams(teamsForState);
 
             if (currentContestId) {
-                const currentTeam = joinedTeams.find(
-                    item => String(item.contest.id) === currentContestId
-                );
+                const currentTeam = findParticipatedTeamByContest(teamsForState, currentContestId);
 
                 if (!viewContestId) {
                     setViewContestId(currentContestId);
@@ -177,6 +193,8 @@ const TeamStatus = () => {
 
                 if (currentTeam) {
                     applyTeamData(currentTeam.data, contestList, currentContestId);
+                } else if (cachedTeam) {
+                    applyTeamData(cachedTeam.data, contestList, currentContestId);
                 } else {
                     setTeamData(null);
                 }
@@ -221,13 +239,19 @@ const TeamStatus = () => {
             );
 
             if (cancelled) return;
+            const cachedTeam = currentContestId
+                ? findParticipatedTeamByContest(participatedTeamsRef.current, currentContestId)
+                : null;
+            const teamsForState = cachedTeam && !findParticipatedTeamByContest(mockJoinedTeams, currentContestId)
+                ? dedupeParticipatedTeams([cachedTeam, ...mockJoinedTeams])
+                : mockJoinedTeams;
+
             setContests(mockContests);
-            setParticipatedTeams(mockJoinedTeams);
+            participatedTeamsRef.current = teamsForState;
+            setParticipatedTeams(teamsForState);
 
             if (currentContestId) {
-                const currentTeam = mockJoinedTeams.find(
-                    item => String(item.contest.id) === currentContestId
-                );
+                const currentTeam = findParticipatedTeamByContest(teamsForState, currentContestId);
 
                 if (!viewContestId) {
                     setViewContestId(currentContestId);
@@ -235,6 +259,8 @@ const TeamStatus = () => {
 
                 if (currentTeam) {
                     applyTeamData(currentTeam.data, mockContests, currentContestId);
+                } else if (cachedTeam) {
+                    applyTeamData(cachedTeam.data, mockContests, currentContestId);
                 } else {
                     setTeamData(null);
                 }
@@ -261,7 +287,6 @@ const TeamStatus = () => {
 
                     if (!cancelled) {
                         setError('Could not connect to server.');
-                        setTeamData(null);
                     }
                 }
             } finally {
@@ -375,12 +400,16 @@ const upsertParticipatedTeam = (contestId, updatedTeam) => {
 
 const handleSelectTeam = (contestId) => {
     const id = String(contestId);
+    const selectedTeam = findParticipatedTeamByContest(participatedTeams, id);
 
     setViewContestId(id);
-    setSelectedContestId(id);
-    setSelectedLeader('');
-    setFormTeamName('');
-    setTeamData(null);
+
+    if (selectedTeam) {
+        applyTeamData(selectedTeam.data, contests, id);
+    } else {
+        setSelectedContestId(id);
+    }
+
     setSuccessMessage('');
     setError('');
 };

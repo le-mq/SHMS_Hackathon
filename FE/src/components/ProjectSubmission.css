@@ -10,6 +10,26 @@
     padding: 0 20px;
 }
 
+.submission-message {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.submission-message.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.submission-message.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
 /* ===== Header + status + deadline ===== */
 
 .submission-header {
