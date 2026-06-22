@@ -104,7 +104,7 @@ public class PartnerAdminService {
                 studentVerificationDataRepository.delete(sv);
             }
         }
-//
+
         for (StudentVerificationDataDto dto : dtos) {
             if (dto.getMssv() == null || dto.getMssv().isEmpty()) continue;
 

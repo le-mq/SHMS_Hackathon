@@ -20,16 +20,36 @@ const EvaluationWorkspace = () => {
                 if (!response.ok) throw new Error('API request failed');
                 const result = await response.json();
                 setEvalData(result);
-                setScores(result.criteria.map(c => ({ criteriaId: c.id, weight: c.weight, pointsAwarded: '', feedback: '' })));
+
+                if (result && result.criteria) {
+                    setScores(result.criteria.map(c => {
+                        // Lấy chuẩn ID số từ cặp id.criteriaId lồng nhau
+                        const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
+                        return {
+                            criteriaId: rawId ? Number(rawId) : 0,
+                            weight: c.weight || c.percentageWeight || 0,
+                            pointsAwarded: '',
+                            feedback: ''
+                        };
+                    }));
+                }
             } catch (err) {
                 console.warn('API call failed, falling back to mock data...');
                 try {
                     const mockRes = await fetch('/testFE.json');
                     const mockData = await mockRes.json();
                     const result = mockData.evaluationWorkspace?.data;
-                    if (result) {
+                    if (result && result.criteria) {
                         setEvalData(result);
-                        setScores(result.criteria.map(c => ({ criteriaId: c.id, weight: c.weight, pointsAwarded: '', feedback: '' })));
+                        setScores(result.criteria.map(c => {
+                            const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
+                            return {
+                                criteriaId: rawId ? Number(rawId) : 0,
+                                weight: c.weight || c.percentageWeight || 0,
+                                pointsAwarded: '',
+                                feedback: ''
+                            };
+                        }));
                     } else {
                         alert('Failed to load evaluation data (no mock data found)');
                     }
@@ -42,7 +62,9 @@ const EvaluationWorkspace = () => {
     }, [teamId]);
 
     const handleScoreChange = (id, field, value) => {
-        setScores(prev => prev.map(s => s.criteriaId === id ? { ...s, [field]: value } : s));
+        // Sử dụng Ép kiểu Number để đảm bảo so sánh chính xác giữa id thay đổi và criteriaId trong state
+        const targetId = Number(id);
+        setScores(prev => prev.map(s => Number(s.criteriaId) === targetId ? { ...s, [field]: value } : s));
     };
 
     const calculateWeightedTotal = () => {
@@ -60,12 +82,13 @@ const EvaluationWorkspace = () => {
     const handleSubmit = async () => {
         if (!isComplete) return;
         setIsSubmitting(true);
+
         const payload = {
-            submissionId: evalData?.submissionId,
+            submissionId: Number(evalData?.submissionId || evalData?.id || teamId),
             scores: scores.map(s => ({
-                criteriaId: s.criteriaId,
+                criteriaId: Number(s.criteriaId),
                 pointsAwarded: parseFloat(s.pointsAwarded),
-                feedback: s.feedback
+                feedback: s.feedback || ""
             }))
         };
 
@@ -81,9 +104,10 @@ const EvaluationWorkspace = () => {
             });
             if (response.ok) {
                 alert('Scores submitted and locked successfully.');
+                navigate('/judge/dashboard');
             } else {
-                const err = await response.json();
-                alert(`Error: ${err.error || 'Submission failed'}`);
+                const err = await response.json().catch(() => ({}));
+                alert(`Error: ${err.error || err.message || 'Submission failed'}`);
             }
         } catch (err) {
             alert('Could not submit score.');
@@ -91,17 +115,18 @@ const EvaluationWorkspace = () => {
             setIsSubmitting(false);
         }
     };
+
     const renderAssetLink = (url, label, iconPath) => {
         const isValid = !!url;
         return (
             <a href={url || '#'} className={`asset-link ${isValid ? 'asset-valid' : 'asset-missing'}`}
-               target="_blank" rel="noreferrer"
-               onClick={e => !isValid && e.preventDefault()}
+                target="_blank" rel="noreferrer"
+                onClick={e => !isValid && e.preventDefault()}
             ><div className="asset-left">
-                <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                </svg>{label}
-            </div>
+                    <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                    </svg>{label}
+                </div>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -119,7 +144,7 @@ const EvaluationWorkspace = () => {
                         Back
                     </button>
                     <div>
-                        <h1 className="eval-title" style={{ marginBottom: '4px' }}>Independent Evaluation Workspace</h1>
+                        <h1 className="eval-title" style={{ margin: '0 0 4px 0' }}>Independent Evaluation Workspace</h1>
                         <p className="eval-subtitle" style={{ margin: 0 }}>Secure judge environment. All evaluations are confidential and blind to peer data.</p>
                     </div>
                 </div>
@@ -130,7 +155,7 @@ const EvaluationWorkspace = () => {
                         {renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
                         {renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
                         {renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
-                        {renderAssetLink(evalData?.slideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                        {renderAssetLink(evalData?.slideUrl || evalData?.presentationSlideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
                         <div className="project-id-box">
                             <div className="pid-label">PROJECT ID</div>
                             <div className="pid-val">{evalData?.projectId || 'N/A'} - {evalData?.teamName}</div>
@@ -144,27 +169,31 @@ const EvaluationWorkspace = () => {
                             </h2>
                         </div>
                         <div className="criteria-list">
-                            {evalData?.criteria?.map((crit, idx) => (
-                                <div className="criteria-item" key={crit.id}>
-                                    <div className="criteria-header">
-                                        <div className="crit-left">
-                                            <span className="crit-name">{crit.name}</span>
-                                            <span className="crit-desc">{crit.description}</span>
+                            {(evalData?.criteria || []).map((crit, idx) => {
+                                const rawId = crit.id?.criteriaId || crit.id?.rubricId || crit.criterionId || crit.id;
+                                const currentId = rawId ? Number(rawId) : 0;
+                                return (
+                                    <div className="criteria-item" key={currentId || idx}>
+                                        <div className="criteria-header">
+                                            <div className="crit-left">
+                                                <span className="crit-name">{crit.criteriaName || crit.name}</span>
+                                                <span className="crit-desc">{crit.description}</span>
+                                            </div>
+                                            <div className="crit-right">
+                                                <span className="crit-weight">Weight: {crit.weight || crit.percentageWeight}%</span>
+                                                <input type="number" className="score-input"
+                                                    placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
+                                                    onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="crit-right">
-                                            <span className="crit-weight">Weight: {crit.weight}%</span>
-                                            <input type="number" className="score-input"
-                                                   placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
-                                                   onChange={(e) => handleScoreChange(crit.id, 'pointsAwarded', e.target.value)}
-                                            />
-                                        </div>
+                                        <textarea className="crit-feedback" placeholder="Feedback Critique..."
+                                            value={scores[idx]?.feedback || ''}
+                                            onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
+                                        ></textarea>
                                     </div>
-                                    <textarea className="crit-feedback" placeholder="Feedback Critique..."
-                                              value={scores[idx]?.feedback || ''}
-                                              onChange={(e) => handleScoreChange(crit.id, 'feedback', e.target.value)}
-                                    ></textarea>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className="rubric-footer">

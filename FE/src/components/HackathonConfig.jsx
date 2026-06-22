@@ -519,7 +519,7 @@ const HackathonConfig = () => {
                                 )}
                                 {isClosedContest && (
                                     <div style={{ color: '#6b7280', fontSize: '14px', fontStyle: 'italic', fontWeight: '500' }}>
-                                        🔒 This past contest has been closed and cannot be modified.
+                                        This past contest has been closed and cannot be modified.
                                     </div>
                                 )}
                             </div>

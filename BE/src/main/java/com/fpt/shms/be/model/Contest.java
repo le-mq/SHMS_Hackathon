@@ -47,7 +47,6 @@ public class Contest {
     @Column(name = "status", nullable = false, length = 50)
     private ContestStatus status;
 
-    /** Short description / tagline */
     @org.hibernate.annotations.Nationalized
     @Column(name = "theme", length = 100)
     private String description;

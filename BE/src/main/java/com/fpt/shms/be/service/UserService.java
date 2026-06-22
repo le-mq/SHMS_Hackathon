@@ -40,7 +40,7 @@ public class UserService {
         }
 
         if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
-            // Use PasswordEncoder when passwords are encrypted
+            
             if (!request.getCurrentPassword().equals(user.getPassword())) {
                 throw new IllegalArgumentException("Current password does not match");
             }

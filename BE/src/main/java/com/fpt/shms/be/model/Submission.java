@@ -49,5 +49,5 @@ public class Submission {
     private LocalDateTime submittedAt;
     
     @Column(name = "status", length = 50)
-    private String status; // "DRAFT", "SUBMITTED", "LATE", "ARCHIVED"
+    private String status; // "DRAFT", "SUBMITTED", "EVALUATED"
 }

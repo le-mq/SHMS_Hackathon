@@ -12,6 +12,8 @@ import com.fpt.shms.be.dto.CreateAnnouncementRequest;
 import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.model.ContestRubric;
+import com.fpt.shms.be.model.Round;
+import com.fpt.shms.be.repository.RoundRepository;
 import com.fpt.shms.be.service.ContestAdminService;
 import com.fpt.shms.be.service.RubricAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fpt.shms.be.service.UserService;
 import com.fpt.shms.be.dto.UpdateProfileRequest;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +49,7 @@ public class AdminController {
     private final TeamService teamService;
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final RoundRepository  roundRepository;
 
     private void requireAdminRole(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -125,6 +129,43 @@ public class AdminController {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/contests/{contestId}/rounds")
+    @Operation(summary = "Get Rounds for a Contest", description = "Returns rounds ordered by submission_open_at ASC.")
+    public ResponseEntity<?> getRoundsForContest(HttpServletRequest request, @PathVariable Long contestId) {
+        // Check role ADMIN qua JWT nếu cần
+        List<Round> rounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        List<Map<String, Object>> response = rounds.stream().map(r -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("roundId", r.getId());
+            map.put("roundName", r.getPhaseName());
+            map.put("submissionOpenAt", r.getSubmissionOpen());
+            if (r.getCategory() != null) {
+                map.put("categoryId", r.getCategory().getId());
+                map.put("categoryName", r.getCategory().getName());
+            }
+            return map;
+        }).toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/contests/{contestId}/rounds/{roundId}/teams")
+    @Operation(summary = "Get Eligible Teams for Round")
+    public ResponseEntity<?> getEligibleTeamsForRound(HttpServletRequest request,
+                                                      @PathVariable Long contestId,
+                                                      @PathVariable Long roundId) {
+        return ResponseEntity.ok(allocationAdminService.getEligibleTeamsForRound(roundId));
+    }
+
+    @GetMapping("/contests/allocations")
+    @Operation(summary = "Get Allocations", description = "Query allocations by roundId or get all legacy allocations.")
+    public ResponseEntity<?> getAllocations(HttpServletRequest request,
+                                            @RequestParam(value = "roundId", required = false) Long roundId) {
+        if (roundId != null) {
+            return ResponseEntity.ok(allocationAdminService.getAllocationsByRound(roundId));
+        }
+        return ResponseEntity.ok(allocationAdminService.getAllAllocations());
     }
 
     @PostMapping("/contests/rubrics")
@@ -416,19 +457,6 @@ public class AdminController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
-        }
-    }
-
-    @GetMapping("/contests/allocations")
-    @Operation(summary = "Get All Allocations", description = "Get current mentor and judge assignments for experts.")
-    public ResponseEntity<?> getAllocations(HttpServletRequest request) {
-        try {
-            requireAdminRole(request);
-            return ResponseEntity.ok(allocationAdminService.getAllAllocations());
-        } catch (SecurityException e) {
-            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
 

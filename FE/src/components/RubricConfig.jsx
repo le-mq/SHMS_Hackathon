@@ -6,7 +6,7 @@ const API = 'http://localhost:8080/api/v1/admin/contests';
 
 const newCriterion = () => ({
     _localId: Date.now() + Math.random(),
-    criteriaName: '', maxScore: 10, description: '', percentageWeight: 0
+    criteriaName: '', maxScore: 100, description: '', percentageWeight: ''
 });
 
 const RubricConfig = () => {
@@ -19,7 +19,7 @@ const RubricConfig = () => {
     const [templates, setTemplates] = useState([]);
     const [contestRubrics, setContestRubrics] = useState([]);
 
-    const [editorMode, setEditorMode] = useState(null); // null | 'new' | 'edit'
+    const [editorMode, setEditorMode] = useState(null);
     const [editingTemplate, setEditingTemplate] = useState(null);
     const [bindCategories, setBindCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +57,6 @@ const RubricConfig = () => {
             .then(data => setBindCategories(data.tracks || data.categories || data));
     }, [editingTemplate?.bindContestId]);
 
-
     const selectedCategory = useMemo(() =>
         categories.find(c => c.id == selectedCategoryId) || null, [categories, selectedCategoryId]
     );
@@ -72,7 +71,7 @@ const RubricConfig = () => {
     }, [contestRubrics, templates, selectedContestId, selectedCategoryId]);
 
     const totalWeight = useMemo(() =>
-            editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
+        editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
         [editingTemplate]
     );
 
@@ -82,7 +81,7 @@ const RubricConfig = () => {
         setEditingTemplate({
             id: null, name: selectedCategory ? `${selectedCategory.categoryName} Rubric` : '', description: '',
             publicVisibility: true, weightedScoring: true, bindContestId: '', bindCategoryId: '', bindRoundId: '',
-            criteria: [{ ...newCriterion(), percentageWeight: 100 }]
+            criteria: [{ ...newCriterion(), percentageWeight: '100' }]
         });
         setEditorMode('new'); setError(''); setSuccess('');
     };
@@ -90,11 +89,12 @@ const RubricConfig = () => {
     const startEdit = (tpl, isOfficial) => {
         const binding = contestRubrics.find(cr => cr.templateId == tpl.id && (!selectedContestId || cr.contestId == selectedContestId) && (!selectedCategoryId || cr.categoryId == selectedCategoryId))
             || contestRubrics.find(cr => cr.templateId == tpl.id);
-        setEditingTemplate({ ...JSON.parse(JSON.stringify(tpl)),
+        setEditingTemplate({
+            ...JSON.parse(JSON.stringify(tpl)),
             bindContestId: binding ? binding.contestId : '',
             bindCategoryId: binding ? binding.categoryId : '',
             bindRoundId: binding ? binding.roundId : '',
-            criteria: (tpl.criteria || []).map((c, i) => ({ ...c, _localId: c.id ?? i }))
+            criteria: (tpl.criteria || []).map((c, i) => ({ ...c, _localId: c.id ?? i, percentageWeight: c.percentageWeight !== undefined && c.percentageWeight !== null ? String(c.percentageWeight) : '' }))
         });
         setEditorMode('edit'); setError(''); setSuccess('');
     };
@@ -102,9 +102,13 @@ const RubricConfig = () => {
     const cancelEditor = () => { setEditorMode(null); setEditingTemplate(null); setError(''); setSuccess(''); };
 
     const handleCriterionChange = (localId, field, value) => {
+        let finalValue = value;
+        if (field === 'percentageWeight') {
+            finalValue = value.replace(/[^0-9]/g, '');
+        }
         setEditingTemplate(prev => ({
             ...prev,
-            criteria: prev.criteria.map(c => c._localId === localId ? { ...c, [field]: value } : c)
+            criteria: prev.criteria.map(c => c._localId === localId ? { ...c, [field]: finalValue } : c)
         }));
         setError('');
     };
@@ -117,14 +121,18 @@ const RubricConfig = () => {
         if (!isBalanced) return setError('Total weight must equal exactly 100%.');
         if (!editingTemplate.bindCategoryId) return setError('Template must be assigned to a Category.');
         if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return setError('All criteria must have a name.');
-        if (editingTemplate.bindCategoryId && editingTemplate.bindRoundId) {
+
+        const targetCategory = bindCategories.find(c => c.id == editingTemplate.bindCategoryId);
+        const autoRoundId = targetCategory?.rounds?.[0]?.id || targetCategory?.rounds?.[0]?.roundId || null;
+
+        if (editingTemplate.bindCategoryId && autoRoundId) {
             const isDuplicateOfficial = contestRubrics.some(cr =>
                 cr.categoryId == editingTemplate.bindCategoryId &&
-                cr.roundId == editingTemplate.bindRoundId &&
+                cr.roundId == autoRoundId &&
                 cr.templateId !== editingTemplate.id
             );
             if (isDuplicateOfficial) {
-                return setError('Cannot save! This Category for the selected Round already has an official rubric.');
+                return setError('Cannot save! This Category already has an official rubric assigned for its round.');
             }
         }
         setIsLoading(true); setError(''); setSuccess('');
@@ -133,8 +141,8 @@ const RubricConfig = () => {
             name: editingTemplate.name, description: editingTemplate.description || '',
             publicVisibility: editingTemplate.publicVisibility, weightedScoring: editingTemplate.weightedScoring,
             categoryId: editingTemplate.bindCategoryId ? Number(editingTemplate.bindCategoryId) : null,
-            roundId: editingTemplate.bindRoundId ? Number(editingTemplate.bindRoundId) : null,
-            criteria: editingTemplate.criteria.map(c => ({ criteriaName: c.criteriaName, description: c.description || '', maxScore: Number(c.maxScore), percentageWeight: Number(c.percentageWeight) }))
+            roundId: autoRoundId ? Number(autoRoundId) : null,
+            criteria: editingTemplate.criteria.map(c => ({ criteriaName: c.criteriaName, description: c.description || '', maxScore: Number(c.maxScore), percentageWeight: Number(c.percentageWeight || 0) }))
         };
 
         try {
@@ -266,10 +274,10 @@ const RubricConfig = () => {
                                     <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>Rubric Template Bank (Drafts)</h2>
                                     {templates.length > 0 ? (
                                         <div className="rt-card-grid">{templates.map(tpl => renderCard(tpl, false))}</div>
-                                    ) : ( <div className="rt-empty" style={{ marginBottom: 24 }}>
-                                            <svg width="48" height="48" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            <p>No rubric templates found in bank.</p>
-                                        </div>)}
+                                    ) : (<div className="rt-empty" style={{ marginBottom: 24 }}>
+                                        <svg width="48" height="48" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        <p>No rubric templates found in bank.</p>
+                                    </div>)}
                                 </div>
                             )}
                         </>
@@ -293,7 +301,7 @@ const RubricConfig = () => {
                                     {editorMode === 'edit' && <span className="rt-editing-label">#{editingTemplate.id}</span>}
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Template Name <span style={{color: 'red'}}>*</span></label>
+                                    <label className="form-label">Template Name <span style={{ color: 'red' }}>*</span></label>
                                     <input className="form-input" type="text" value={editingTemplate.name} onChange={e => setEditingTemplate(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Standard Evaluation Rubric" />
                                 </div>
                                 <div className="form-group">
@@ -329,7 +337,7 @@ const RubricConfig = () => {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Percentage Weight (%)</label>
-                                        <input type="number" className="form-input" min="0" max="100" value={c.percentageWeight} onChange={e => handleCriterionChange(c._localId, 'percentageWeight', Number(e.target.value))} />
+                                        <input type="text" className="form-input" placeholder="0" value={c.percentageWeight} onChange={e => handleCriterionChange(c._localId, 'percentageWeight', e.target.value)} />
                                     </div>
                                 </div>
                             ))}
@@ -362,24 +370,24 @@ const RubricConfig = () => {
                                 </div>
                                 <div className="rt-action-btns">
                                     <button className="save-btn" onClick={handleSave} disabled={isLoading || !isBalanced}>
-                                        {isLoading ? 'SAVING...' : editorMode === 'edit' ? 'UPDATE TEMPLATE' : (editingTemplate.bindRoundId ? 'SAVE OFFICIAL RUBRIC' : 'SAVE DRAFT TEMPLATE')}
+                                        {isLoading ? 'SAVING...' : editorMode === 'edit' ? 'UPDATE TEMPLATE' : (editingTemplate.bindCategoryId ? 'SAVE OFFICIAL RUBRIC' : 'SAVE DRAFT TEMPLATE')}
                                     </button>
                                     <button className="preview-btn" onClick={cancelEditor}>CANCEL</button>
                                 </div>
-                                {editorMode && error && <div className="alert-main alert-error" style={{marginTop: 16}}>{error}</div>}
-                                {editorMode && success && <div className="alert-main alert-success" style={{marginTop: 16}}>{success}</div>}
+                                {editorMode && error && <div className="alert-main alert-error" style={{ marginTop: 16 }}>{error}</div>}
+                                {editorMode && success && <div className="alert-main alert-success" style={{ marginTop: 16 }}>{success}</div>}
                             </div>
                             <div className="settings-card">
                                 <div className="settings-title">TEMPLATE CONFIGURATION</div>
-                                <div className="rt-info-badge" style={{backgroundColor: editingTemplate.bindRoundId ? '#dcfce7' : '#fef3c7'}}>
-                                    {editingTemplate.bindRoundId ? (<span style={{color: '#16a34a'}}>Saving as Official Contest Rubric</span>
-                                    ) : (<span style={{color: '#d97706'}}>Saving as Draft in Template Bank</span>)}
+                                <div className="rt-info-badge" style={{ backgroundColor: editingTemplate.bindCategoryId ? '#dcfce7' : '#fef3c7' }}>
+                                    {editingTemplate.bindCategoryId ? (<span style={{ color: '#16a34a' }}>Saving as Official Contest Rubric</span>
+                                    ) : (<span style={{ color: '#d97706' }}>Saving as Draft in Template Bank</span>)}
                                 </div>
                                 <p className="rt-card-desc" style={{ marginBottom: 12, fontSize: 12 }}>
-                                    Each template must be associated with a category. To officially use it, select a round.</p>
+                                    Each template must be associated with a category to officially map details.</p>
                                 <div className="form-group">
-                                    <label className="form-label">Contest <span style={{color: 'red'}}>*</span></label>
-                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value, bindCategoryId: '', bindRoundId: '' }))}>
+                                    <label className="form-label">Contest <span style={{ color: 'red' }}>*</span></label>
+                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value, bindCategoryId: '' }))}>
                                         <option value="">— Choose contest —</option>
                                         {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
@@ -387,22 +395,10 @@ const RubricConfig = () => {
 
                                 {editingTemplate.bindContestId && (
                                     <div className="form-group">
-                                        <label className="form-label">Category <span style={{color: 'red'}}>*</span></label>
-                                        <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value, bindRoundId: '' }))}>
+                                        <label className="form-label">Category <span style={{ color: 'red' }}>*</span></label>
+                                        <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))}>
                                             <option value="">— Choose category —</option>
                                             {bindCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.categoryName}</option>)}
-                                        </select>
-                                    </div>
-                                )}
-
-                                {editingTemplate.bindCategoryId && (
-                                    <div className="form-group">
-                                        <label className="form-label">Round - Optional</label>
-                                        <select className="form-select" value={editingTemplate.bindRoundId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindRoundId: e.target.value }))}>
-                                            <option value="">— Save as draft —</option>
-                                            {(bindCategories.find(c => c.id == editingTemplate.bindCategoryId)?.rounds || []).map(r =>
-                                                <option key={r.id} value={r.id}>{r.phaseName}</option>
-                                            )}
                                         </select>
                                     </div>
                                 )}

@@ -19,16 +19,13 @@ public class Semester {
     @Column(name = "semester_id")
     private Long id;
 
-    /** Human-readable label, e.g. "SPRING" or "FALL" */
     @org.hibernate.annotations.Nationalized
     @Column(name = "term", length = 50)
     private String name;
 
-    /** Academic year, e.g. 2026 */
     @Column(name = "year")
     private Integer year;
 
-    /** Short code used by Flyway schema: e.g. SP26, SU26 */
     @Column(name = "semester_code", nullable = false, unique = true, length = 50)
     private String code;   // e.g. "SP26", "SU26"
 
