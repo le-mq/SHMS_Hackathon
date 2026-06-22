@@ -19,16 +19,22 @@ const HackathonConfig = () => {
         const baseDates = {
             SPRING: { startMonth: 0, endMonth: 3, endDay: 30, maxTime: '04-30T23:59' },
             SUMMER: { startMonth: 4, endMonth: 7, endDay: 31, maxTime: '08-31T23:59' },
-            FALL:   { startMonth: 8, endMonth: 11, endDay: 31, maxTime: '12-31T23:59' }
+            FALL: { startMonth: 8, endMonth: 11, endDay: 31, maxTime: '12-31T23:59' }
         };
         const config = baseDates[term] || baseDates.SPRING;
         const startIso = `${currentYear}-${String(config.startMonth + 1).padStart(2, '0')}-01T00:00`;
         return {
             start: new Date(currentYear, config.startMonth, 1, 0, 0, 0),
             end: new Date(currentYear, config.endMonth, config.endDay, 23, 59, 59),
-            min: startIso < nowLocalStr ? nowLocalStr : startIso,
+            min: startIso,
             max: `${currentYear}-${config.maxTime}`
         };
+    };
+    const getSemesterFromDate = (dateStr) => {
+        const month = new Date(dateStr).getMonth();
+        if (month >= 0 && month <= 3) return 'SPRING';
+        if (month >= 4 && month <= 7) return 'SUMMER';
+        return 'FALL';
     };
     const fetchData = async (url, mockKey) => {
         try {
@@ -241,21 +247,21 @@ const HackathonConfig = () => {
                         <div className="partner-table-container mt-4">
                             <table className="partner-table">
                                 <thead>
-                                <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody>
-                                {filteredContests.length > 0 ? (filteredContests.map(c => (
-                                    <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
-                                        <td><div className="uni-name">{c.name}</div></td>
-                                        <td><div className="uni-domain">{c.season} {c.year}</div></td>
-                                        <td><span className="status-badge">{c.status || 'UPCOMING'}</span></td>
-                                        <td>
-                                            <button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
-                                                {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
+                                    {filteredContests.length > 0 ? (filteredContests.map(c => (
+                                        <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
+                                            <td><div className="uni-name">{c.name}</div></td>
+                                            <td><div className="uni-domain">{c.season} {c.year}</div></td>
+                                            <td><span className="status-badge">{c.status || 'UPCOMING'}</span></td>
+                                            <td>
+                                                <button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
+                                                    {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
                                 </tbody>
                             </table>
                         </div>
@@ -290,7 +296,7 @@ const HackathonConfig = () => {
                                         </Form.Group>
                                         <Form.Group style={{ flex: 1 }}>
                                             <Form.Label className="form-label">Year</Form.Label>
-                                            <Form.Control type="number" name="year" className="form-input" value={formik.values.year} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.year && !!formik.errors.year} />
+                                            <Form.Control type="number" name="year" className="form-input bg-light text-muted" value={formik.values.year} disabled />
                                             <Form.Control.Feedback type="invalid">{formik.errors.year}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>

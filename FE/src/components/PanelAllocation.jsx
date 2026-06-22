@@ -171,7 +171,7 @@ const PanelAllocation = () => {
     };
 
     const handleSave = async () => {
-        if (!selectedRoundId) return alert("Vui lòng chọn Round.");
+        if (!selectedRoundId) return alert("Please select Round.");
         setIsLoading(true);
         try {
             const expertAlloc = allocations[String(selectedExpertId)] || {};
@@ -190,10 +190,10 @@ const PanelAllocation = () => {
                     assignments: assignmentList
                 })
             });
-            if (response.ok) alert("Lưu phân bổ thành công!");
-            else alert("Lỗi khi lưu");
+            if (response.ok) alert("Save successfully!");
+            else alert("Save Error");
         } catch {
-            alert("Lưu thất bại!");
+            alert("Save Fail!");
         } finally {
             setIsLoading(false);
         }
@@ -227,7 +227,7 @@ const PanelAllocation = () => {
                                 value={selectedContestId}
                                 onChange={e => setSelectedContestId(e.target.value)}
                             >
-                                <option value="">-- Chọn Cuộc Thi --</option>
+                                <option value="">-- Choose Contest --</option>
                                 {contests.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
@@ -242,7 +242,7 @@ const PanelAllocation = () => {
                                 onChange={e => setSelectedRoundId(e.target.value)}
                                 disabled={rounds.length === 0}
                             >
-                                <option value="">-- Chọn Round --</option>
+                                <option value="">-- Choose Round --</option>
                                 {rounds.map(r => (
                                     <option key={r.roundId} value={r.roundId}>{r.roundName}</option>
                                 ))}
@@ -255,7 +255,7 @@ const PanelAllocation = () => {
                                 <div className="category-badge-readonly">
                                     {selectedRound.categoryName
                                         ? <><span className="cat-icon">🏷</span> {selectedRound.categoryName}</>
-                                        : <span style={{ color: '#94a3b8' }}>Chưa có category</span>
+                                        : <span style={{ color: '#94a3b8' }}>Category not available yet</span>
                                     }
                                 </div>
                             </div>
@@ -273,7 +273,7 @@ const PanelAllocation = () => {
                             <input
                                 type="text"
                                 className="search-input"
-                                placeholder="Tìm kiếm chuyên gia..."
+                                placeholder="Find Mentor"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
@@ -300,12 +300,12 @@ const PanelAllocation = () => {
                     <div className="right-panel" style={{ padding: '24px' }}>
                         {!selectedRoundId ? (
                             <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
-                                <p>Vui lòng chọn Contest và Round để bắt đầu phân bổ.</p>
+                                <p>Please select Contest and Round to begin the allocation process..</p>
                             </div>
                         ) : (
                             <>
                                 <div className="management-block">
-                                    <h3>🤝 Vai Trò Cố Vấn (Mentor)</h3>
+                                    <h3>Mentor</h3>
                                     <div className="global-teams-grid">
                                         {allTeams.map(team => {
                                             const isChecked = currentMentoredTeamIds.includes(String(team.id));
@@ -321,7 +321,7 @@ const PanelAllocation = () => {
                                                     />
                                                     <div className="team-name-text">
                                                         {team.name}
-                                                        {isTakenByAnother && <span style={{ color: '#94a3b8', fontSize: '11px' }}> (Đã có Mentor)</span>}
+                                                        {isTakenByAnother && <span style={{ color: '#94a3b8', fontSize: '11px' }}> (already have a mentor.)</span>}
                                                     </div>
                                                 </label>
                                             );
@@ -330,13 +330,13 @@ const PanelAllocation = () => {
                                 </div>
 
                                 <div className="management-block" style={{ marginTop: '24px' }}>
-                                    <h3>⚖️ Vai Trò Giám Khảo (Judge)</h3>
+                                    <h3>Judge</h3>
                                     {roundCategoryId ? (
                                         <table className="judge-pure-table">
                                             <thead>
                                                 <tr>
-                                                    <th>Hạng mục</th>
-                                                    <th className="center">Trạng thái chấm điểm</th>
+                                                    <th>Category</th>
+                                                    <th className="center">grading status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -356,12 +356,12 @@ const PanelAllocation = () => {
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    ) : <p>Chưa gán category cho round này.</p>}
+                                    ) : <p>This round has not been assigned a category yet.</p>}
                                 </div>
 
                                 <div className="panel-footer-actions">
                                     <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
-                                        {isLoading ? 'Đang lưu...' : '💾 Lưu phân bổ'}
+                                        {isLoading ? 'Saving...' : '💾 Save'}
                                     </button>
                                 </div>
                             </>
