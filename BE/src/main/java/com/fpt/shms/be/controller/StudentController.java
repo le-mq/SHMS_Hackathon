@@ -175,9 +175,14 @@ public class StudentController {
             }
 
             String username = jwtUtils.getUsernameFromToken(token);
-            submissionService.submitProject(submitRequest, username);
+            SubmissionPageResponse response = submissionService.submitProject(submitRequest, username);
 
-            return ResponseEntity.ok(Map.of("message", "Project submitted successfully"));
+            return ResponseEntity.ok(Map.of(
+                    "message", "Project submitted successfully",
+                    "history", response.getHistory(),
+                    "rounds", response.getRounds(),
+                    "submissionPage", response
+            ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -21,9 +22,10 @@ public class SubmissionService {
     private final UserRepository userRepository;
     private final RoundRepository roundRepository;
     private final ScoreRepository scoreRepository;
+    private final RankingResultRepository rankingResultRepository;
 
     @Transactional
-    public void submitProject(SubmitProjectRequest request, String username) {
+    public SubmissionPageResponse submitProject(SubmitProjectRequest request, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -53,6 +55,8 @@ public class SubmissionService {
             round = roundRepository.findById(request.getRoundId())
                     .orElseThrow(() -> new IllegalArgumentException("Round not found"));
         }
+
+        validateRoundSubmissionAccess(team, round);
 
         List<Submission> oldSubmissions = submissionRepository.findByTeamId(team.getId());
         Submission existingSub = null;
@@ -94,6 +98,8 @@ public class SubmissionService {
                     .build();
             submissionRepository.save(submission);
         }
+
+        return getSubmissionPageData(username);
     }
 
     public SubmissionPageResponse getSubmissionPageData(String username) {
@@ -115,11 +121,22 @@ public class SubmissionService {
         com.fpt.shms.be.model.Contest contest = team.getContest();
         if (contest != null) {
             List<Round> rounds = roundRepository.findByContestId(contest.getId());
+            rounds.sort(roundComparator());
             for (Round r : rounds) {
+                Submission roundSubmission = submissionRepository.findByTeamIdAndRoundId(team.getId(), r.getId()).orElse(null);
+                ScoreSummary scoreSummary = getScoreSummary(roundSubmission);
+                EligibilityResult eligibility = getRoundEligibility(team, r, rounds);
+
                 roundDtos.add(SubmissionPageResponse.RoundDto.builder()
                         .id(r.getId())
                         .name(r.getPhaseName())
                         .status(r.getState().name())
+                        .submissionOpen(r.getSubmissionOpen())
+                        .submissionDeadline(r.getSubmissionDeadline())
+                        .eligible(eligibility.eligible)
+                        .lockedReason(eligibility.lockedReason)
+                        .evaluated(scoreSummary.evaluated)
+                        .totalScore(scoreSummary.totalScore)
                         .build());
             }
         }
@@ -145,15 +162,19 @@ public class SubmissionService {
                     }
                 }
             }
+
+            ScoreSummary scoreSummary = getScoreSummary(s);
             historyDtos.add(SubmissionPageResponse.HistoryDto.builder()
                     .roundId(s.getRound() != null ? s.getRound().getId() : null)
                     .version(s.getVersion() != null ? s.getVersion() : 1)
                     .timestamp(s.getSubmittedAt())
-                    .status(s.getStatus())
+                    .status(scoreSummary.evaluated ? "EVALUATED" : s.getStatus())
                     .githubRepoUrl(s.getProjectRepositoryUrl())
                     .liveDemoUrl(s.getDemoVideoUrl())
                     .docsUrl(s.getDocumentationUrl())
                     .slideUrl(s.getPresentationSlideUrl())
+                    .evaluated(scoreSummary.evaluated)
+                    .totalScore(scoreSummary.totalScore)
                     .build());
         }
 
@@ -170,6 +191,108 @@ public class SubmissionService {
                 .rounds(roundDtos)
                 .history(historyDtos)
                 .build();
+    }
+
+    private void validateRoundSubmissionAccess(Team team, Round round) {
+        if (round == null) {
+            return;
+        }
+
+        if (round.getContest() != null && team.getContest() != null
+                && !round.getContest().getId().equals(team.getContest().getId())) {
+            throw new IllegalArgumentException("Selected round does not belong to your registered contest.");
+        }
+
+        if (!Round.RoundState.ACTIVE.equals(round.getState())) {
+            throw new IllegalArgumentException("This round is not active yet. You cannot submit.");
+        }
+
+        List<Round> contestRounds = round.getContest() != null
+                ? roundRepository.findByContestId(round.getContest().getId())
+                : List.of(round);
+        contestRounds.sort(roundComparator());
+
+        EligibilityResult eligibility = getRoundEligibility(team, round, contestRounds);
+        if (!eligibility.eligible) {
+            throw new IllegalArgumentException(eligibility.lockedReason);
+        }
+    }
+
+    private EligibilityResult getRoundEligibility(Team team, Round round, List<Round> contestRounds) {
+        if (round == null) {
+            return new EligibilityResult(true, null);
+        }
+
+        int roundIndex = -1;
+        for (int i = 0; i < contestRounds.size(); i++) {
+            if (contestRounds.get(i).getId().equals(round.getId())) {
+                roundIndex = i;
+                break;
+            }
+        }
+
+        if (roundIndex <= 0) {
+            return new EligibilityResult(true, null);
+        }
+
+        Round previousRound = contestRounds.get(roundIndex - 1);
+        boolean qualified = rankingResultRepository.findQualifiedByRoundId(previousRound.getId())
+                .stream()
+                .anyMatch(result -> result.getTeam() != null && result.getTeam().getId().equals(team.getId()));
+
+        if (qualified) {
+            return new EligibilityResult(true, null);
+        }
+
+        String previousRoundName = previousRound.getPhaseName() != null ? previousRound.getPhaseName() : "the previous round";
+        return new EligibilityResult(false, "Your team has not qualified from " + previousRoundName + " yet.");
+    }
+
+    private Comparator<Round> roundComparator() {
+        return Comparator
+                .comparing(Round::getRoundOrder, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(Round::getSubmissionOpen, Comparator.nullsLast(LocalDateTime::compareTo))
+                .thenComparing(Round::getId, Comparator.nullsLast(Long::compareTo));
+    }
+
+    private ScoreSummary getScoreSummary(Submission submission) {
+        if (submission == null || submission.getId() == null) {
+            return new ScoreSummary(false, null);
+        }
+
+        List<Score> scores = scoreRepository.findBySubmissionId(submission.getId());
+        if (scores.isEmpty()) {
+            return new ScoreSummary(false, null);
+        }
+
+        double averageScore = scores.stream()
+                .map(score -> score.getTotalScore() != null ? score.getTotalScore() : score.getPointsAwarded())
+                .filter(score -> score != null)
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        return new ScoreSummary(true, Math.round(averageScore * 100.0) / 100.0);
+    }
+
+    private static class EligibilityResult {
+        private final boolean eligible;
+        private final String lockedReason;
+
+        private EligibilityResult(boolean eligible, String lockedReason) {
+            this.eligible = eligible;
+            this.lockedReason = lockedReason;
+        }
+    }
+
+    private static class ScoreSummary {
+        private final boolean evaluated;
+        private final Double totalScore;
+
+        private ScoreSummary(boolean evaluated, Double totalScore) {
+            this.evaluated = evaluated;
+            this.totalScore = totalScore;
+        }
     }
 
     public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetails(String username) {
