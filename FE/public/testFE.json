@@ -344,14 +344,20 @@
           "name": "Idea Submission",
           "status": "OPEN",
           "submissionOpen": "2026-06-18T00:00:00+07:00",
-          "submissionDeadline": "2026-06-20T23:59:00+07:00"
+          "submissionDeadline": "2026-06-20T23:59:00+07:00",
+          "eligible": true,
+          "evaluated": true,
+          "totalScore": 91.25
         },
         {
           "id": "R002",
           "name": "Final Sprint",
-          "status": "UPCOMING",
+          "status": "ACTIVE",
           "submissionOpen": "2026-06-21T00:00:00+07:00",
-          "submissionDeadline": "2026-06-30T23:59:00+07:00"
+          "submissionDeadline": "2026-06-30T23:59:00+07:00",
+          "eligible": false,
+          "lockedReason": "Your team has not qualified from Idea Submission yet.",
+          "evaluated": false
         }
       ],
       "history": [
@@ -375,7 +381,9 @@
           "liveDemoUrl": "https://shms-final.vercel.app",
           "docsUrl": "https://docs.google.com/document/d/shms-final-docs",
           "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide",
-          "status": "SUBMITTED"
+          "status": "EVALUATED",
+          "evaluated": true,
+          "totalScore": 91.25
         }
       ]
     }
