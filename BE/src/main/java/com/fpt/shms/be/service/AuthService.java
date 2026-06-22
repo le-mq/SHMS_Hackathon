@@ -150,13 +150,11 @@ public class AuthService {
         log.info("Received registration request - username: '{}', email: '{}', mssv: '{}', fullName: '{}', university: '{}', major: '{}'",
                 request.getUsername(), request.getCorporateEmail(), request.getMssv(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
 
-        // Check if username exists
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
             throw new IllegalArgumentException("Username is already taken");
         }
 
-        // Check if MSSV or Email already registered
         if (studentRepository.existsByMssv(request.getMssv())) {
             log.warn("Registration failed: MSSV '{}' is already registered", request.getMssv());
             throw new IllegalArgumentException("MSSV is already registered");
@@ -174,7 +172,6 @@ public class AuthService {
                     return new IllegalArgumentException("University not found");
                 });
 
-        // Dynamic email validation
         String emailRegex = university.getEmailRegex();
         log.info("Loaded emailRegex for '{}': '{}'", university.getName(), emailRegex);
         if (emailRegex != null && !emailRegex.isBlank()) {
@@ -186,7 +183,7 @@ public class AuthService {
             }
         }
 
-        // Dynamic student code (MSSV) validation
+
         String studentCodeRegex = university.getStudentCodeRegex();
         log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
         if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
@@ -198,7 +195,7 @@ public class AuthService {
             }
         }
 
-        // BR-ACC-04: Cross-check with StudentVerificationData using university_id, student_code, and email
+
         log.info("Looking up student verification data - university_id: {}, mssv: '{}', email: '{}'",
                 university.getId(), request.getMssv(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
@@ -234,7 +231,6 @@ public class AuthService {
                 .isEmailVerified(false)
                 .build();
 
-        // Create Student linked to User
         Student student = Student.builder()
                 .mssv(request.getMssv())
                 .university(university)
@@ -246,7 +242,6 @@ public class AuthService {
 
         studentRepository.save(student); // Saves both because of CascadeType.ALL on User
 
-        // Generate OTP and send email
         String otp = String.format("%06d", new Random().nextInt(999999));
         VerificationToken token = VerificationToken.builder()
                 .token(otp)
@@ -280,12 +275,10 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP token");
         }
 
-        // Mark Email as Verified and activate the account
         user.setIsEmailVerified(true);
         user.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(user);
 
-        // Remove token
         tokenRepository.deleteByUser(user);
 
         return "Email verified successfully. Account activated.";

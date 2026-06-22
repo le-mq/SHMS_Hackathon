@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
         type = SecuritySchemeType.HTTP,
         scheme = "bearer",
         bearerFormat = "JWT",
-        description = "Nhập JWT Token của bạn vào đây (Không cần thêm chữ Bearer ở trước)"
+        description = "Enter your JWT Token here (No need to add Bearer before it)"
 )
 
 

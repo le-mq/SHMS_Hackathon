@@ -23,7 +23,7 @@ public class RubricAdminService {
 
     @Transactional
     public ContestRubric createRubric(CreateRubricRequest request) {
-        // BR-RUB-01: System must check total weight == 100%
+
         double totalWeight = request.getCriteria().stream()
                 .mapToDouble(CreateRubricRequest.CriterionDto::getPercentageWeight)
                 .sum();
@@ -32,7 +32,6 @@ public class RubricAdminService {
             throw new IllegalArgumentException("Total weight must equal exactly 100%. Current: " + totalWeight + "%");
         }
 
-        // Validate Category & Round (BR-RUB-02 binding)
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
@@ -43,7 +42,6 @@ public class RubricAdminService {
             throw new IllegalArgumentException("Round does not belong to the specified contest");
         }
 
-        // Create Template
         RubricTemplate template = RubricTemplate.builder()
                 .name(request.getName())
                 .category(category)
@@ -65,7 +63,7 @@ public class RubricAdminService {
 
         template = rubricTemplateRepository.save(template);
 
-        // Bind Template to Contest
+
         ContestRubric contestRubric = ContestRubric.builder()
                 .category(category)
                 .round(round)
@@ -79,7 +77,8 @@ public class RubricAdminService {
         syncContestRubricDetails(contestRubric, template.getCriteria());
         return contestRubric;
     }
-    // ----- Save template only (no round binding) -----
+
+
     @Transactional
     public RubricTemplate createTemplateOnly(CreateRubricRequest request) {
         double totalWeight = request.getCriteria().stream()
@@ -116,7 +115,7 @@ public class RubricAdminService {
         return rubricTemplateRepository.save(template);
     }
 
-    // ----- CRUD operations for Rubric Templates -----
+
     public List<RubricTemplate> getAllTemplates() {
         return rubricTemplateRepository.findAll();
     }
@@ -148,7 +147,7 @@ public class RubricAdminService {
                 .weightedScoring(original.getWeightedScoring())
                 .criteria(new ArrayList<>())
                 .build();
-        // Clone criteria
+
         List<RubricTemplateCriteria> clonedCriteria = original.getCriteria().stream()
                 .map(c -> RubricTemplateCriteria.builder()
                         .rubricTemplate(cloned)
@@ -173,9 +172,9 @@ public class RubricAdminService {
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             template.setCategory(category);
         }
-        // Clear existing criteria
+
         template.getCriteria().clear();
-        // Add new criteria from request
+
         for (CreateRubricRequest.CriterionDto critDto : request.getCriteria()) {
             RubricTemplateCriteria crit = RubricTemplateCriteria.builder()
                     .rubricTemplate(template)
