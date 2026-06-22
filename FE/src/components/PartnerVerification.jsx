@@ -139,7 +139,7 @@ const PartnerVerification = () => {
     };
 
     const handleAddStudent = () => {
-        setStudents([...students, { ui_id: `temp-${Date.now()}`, mssv: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true }]);
+        setStudents([...students, { ui_id: `temp-${Date.now()}`, studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true }]);
     };
 
     const handleStudentChange = (id, field, value) => {
@@ -166,7 +166,7 @@ const PartnerVerification = () => {
 
         // Validation
         for (let s of students) {
-            if (!s.mssv || !s.mssv.trim()) {
+            if (!s.studentCode || !s.studentCode.trim()) {
                 setStudentError('Student ID is required for all records.');
                 setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
                 return;
@@ -174,7 +174,7 @@ const PartnerVerification = () => {
         }
 
         const payload = students.map(s => ({
-            mssv: s.mssv,
+            studentCode: s.studentCode,
             fullName: s.fullName,
             corporateEmail: s.corporateEmail,
             major: s.major,
@@ -353,8 +353,8 @@ const PartnerVerification = () => {
                                             type="text"
                                             className="table-input"
                                             placeholder="SE150000"
-                                            value={s.mssv}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'mssv', e.target.value)}
+                                            value={s.studentCode}
+                                            onChange={(e) => handleStudentChange(s.ui_id, 'studentCode', e.target.value)}
                                         />
                                     </td>
                                     <td>

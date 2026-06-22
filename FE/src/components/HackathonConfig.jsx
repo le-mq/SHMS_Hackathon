@@ -314,12 +314,12 @@ const HackathonConfig = () => {
                                         </Form.Select>
                                     </div>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Event Name</Form.Label>
+                                        <Form.Label className="form-label">Event Name <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <Form.Control type="text" name="name" className="form-input" value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.name && !!formik.errors.name} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.name}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Theme</Form.Label>
+                                        <Form.Label className="form-label">Theme <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <Form.Control type="text" name="theme" className="form-input" value={formik.values.theme} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.theme && !!formik.errors.theme} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.theme}</Form.Control.Feedback>
                                     </Form.Group>
@@ -336,30 +336,30 @@ const HackathonConfig = () => {
                                     </div>
                                     <div className="form-row mb-3" style={{ display: 'block', width: '100%' }}>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Registration Start</Form.Label>
+                                            <Form.Label className="form-label">Registration Start <span style={{ color: 'red' }}>*</span></Form.Label>
                                             <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={handleRegistrationStartChange} onBlur={formik.handleBlur} min={todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} disabled={isClosedContest} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationStart}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Registration End</Form.Label>
+                                            <Form.Label className="form-label">Registration End <span style={{ color: 'red' }}>*</span></Form.Label>
                                             <Form.Control type="date" name="registrationEnd" className="form-input" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationStart || todayStr} disabled={!formik.values.registrationStart || isClosedContest} isInvalid={formik.touched.registrationEnd && !!formik.errors.registrationEnd} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationEnd}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Region Scope</Form.Label>
+                                        <Form.Label className="form-label">Region Scope <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <Form.Select name="regionScope" className="form-select" value={formik.values.regionScope} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.regionScope && !!formik.errors.regionScope} disabled={isClosedContest}>
                                             <option value="Ha Noi">Ha Noi</option><option value="Da Nang">Da Nang</option><option value="Ho Chi Minh">Ho Chi Minh</option><option value="Can Tho">Can Tho</option><option value="Quy Nhon">Quy Nhon</option>
                                         </Form.Select>
                                         <Form.Control.Feedback type="invalid">{formik.errors.regionScope}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Maximum Allowed Teams</Form.Label>
+                                        <Form.Label className="form-label">Maximum Allowed Teams <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <Form.Control type="number" name="maximumAllowedTeams" className="form-input" value={formik.values.maximumAllowedTeams} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.maximumAllowedTeams && !!formik.errors.maximumAllowedTeams} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.maximumAllowedTeams}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Participating Universities</Form.Label>
+                                        <Form.Label className="form-label">Participating Universities <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <div style={{ display: isClosedContest ? 'none' : 'flex', gap: '8px', marginBottom: '8px' }}>
                                             <Form.Select value={selectedUniToAdd} onChange={(e) => setSelectedUniToAdd(e.target.value)} className="form-select flex-grow-1">
                                                 <option value="">-- Select a University --</option>
@@ -400,7 +400,7 @@ const HackathonConfig = () => {
                                                             <button type="button" onClick={() => formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== index))} style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: 'none', border: 'none' }}>x</button>
                                                         )}
                                                         <Form.Group className="mb-3">
-                                                            <Form.Label className="form-label">Category Name</Form.Label>
+                                                            <Form.Label className="form-label">Category Name <span style={{ color: 'red' }}>*</span></Form.Label>
                                                             <Form.Control type="text" name={`categories[${index}].trackName`} className="form-input" value={t.trackName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.categories?.[index]?.trackName && !!formik.errors.categories?.[index]?.trackName} disabled={isClosedContest} />
                                                             <Form.Control.Feedback type="invalid">{formik.errors.categories?.[index]?.trackName}</Form.Control.Feedback>
                                                         </Form.Group>
@@ -467,12 +467,12 @@ const HackathonConfig = () => {
                                                             </div>
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Open</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Open <span style={{ color: 'red' }}>*</span></Form.Label>
                                                                     <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={bounds.min} max={bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} disabled={isClosedContest} />
                                                                     {roundTouched?.submissionOpen && roundErrors?.submissionOpen && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionOpen}</div>}
                                                                 </Form.Group>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Deadline</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Deadline <span style={{ color: 'red' }}>*</span></Form.Label>
                                                                     <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen || isClosedContest} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline} />
                                                                     {roundTouched?.submissionDeadline && roundErrors?.submissionDeadline && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionDeadline}</div>}
                                                                 </Form.Group>

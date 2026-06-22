@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface ContestRubricRepository extends JpaRepository<ContestRubric, Long> {
-    Optional<ContestRubric> findByCategoryIdAndRoundId(Long categoryId, Long roundId);
+    List<ContestRubric> findByCategoryId(Long categoryId);
     Optional<ContestRubric> findFirstByCategoryId(Long categoryId);
-    List<ContestRubric> findByRoundId(Long roundId);
+
 }

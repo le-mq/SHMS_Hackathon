@@ -32,7 +32,7 @@ public class RankingAdminService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByRoundId(round.getId());
+        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
         List<Long> roundCategoryIds = rubricsForRound.stream().map(cr -> cr.getCategory().getId()).distinct().toList();
 
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
@@ -136,7 +136,7 @@ public class RankingAdminService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByRoundId(round.getId());
+        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
         String actualCategoryName = "Unknown";
         if (!rubricsForRound.isEmpty() && rubricsForRound.get(0).getCategory() != null) {
             actualCategoryName = rubricsForRound.get(0).getCategory().getName();
@@ -210,7 +210,7 @@ public class RankingAdminService {
 
         rankingResultRepository.deleteByRoundId(round.getId());
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByRoundId(round.getId());
+        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
         Category exactCategory = rubricsForRound.isEmpty() ? null : rubricsForRound.get(0).getCategory();
 
         for (ProcessRankingsResponse.TeamRankingEntry entry : rankings.getResults()) {
