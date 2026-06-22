@@ -204,6 +204,12 @@ const ProjectSubmission = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const getNormalizedRoundStatus = (round) => {
+        return String(round?.status || round?.state || '')
+            .trim()
+            .toUpperCase();
+    };
+
     const selectedRound = pageData?.rounds?.find(
         round => String(round.id) === String(formData.roundId)
     );
@@ -227,7 +233,7 @@ const ProjectSubmission = () => {
             : null;
 
     const isTeamApproved = teamStatus === 'APPROVED';
-    const roundStatus = String(selectedRound?.status || '').toUpperCase();
+    const roundStatus = getNormalizedRoundStatus(selectedRound);
     const isRoundActive = ['ACTIVE', 'OPEN'].includes(roundStatus);
     const hasLoadedSubmissionRole = Boolean(pageData?.internalRole);
     const isTeamLeader = pageData?.internalRole === 'LEADER';
@@ -243,8 +249,8 @@ const ProjectSubmission = () => {
     const selectedRoundLockedReason =
         selectedRound?.lockedReason || 'Your team has not qualified for this round yet.';
     const selectedRoundEvaluatedHistory = history.find(item =>
-            String(item.roundId) === String(formData.roundId) &&
-            (item.evaluated || String(item.status).toUpperCase() === 'EVALUATED')
+        String(item.roundId) === String(formData.roundId) &&
+        (item.evaluated || String(item.status).toUpperCase() === 'EVALUATED')
     );
     const isSelectedRoundEvaluated =
         Boolean(selectedRound?.evaluated) ||
@@ -381,11 +387,11 @@ const ProjectSubmission = () => {
         return item?.status || 'Submitted';
     };
 
-    const getRoundStatusLabel = (round, index) => {
-        const status = String(round?.status || '').toUpperCase();
+    const getRoundStatusLabel = (round) => {
+        const status = getNormalizedRoundStatus(round);
 
-        if (index > 0 && round?.eligible === false) return 'UPCOMING';
         if (['ACTIVE', 'OPEN'].includes(status)) return 'ACTIVE';
+        if (['CLOSED', 'ENDED', 'FINISHED'].includes(status)) return 'CLOSED';
         if (['UPCOMING', 'PENDING', 'SCHEDULED', 'NOT_STARTED'].includes(status)) return 'UPCOMING';
 
         return status || 'UPCOMING';
@@ -623,8 +629,8 @@ const ProjectSubmission = () => {
                                 style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                             >
                                 <option value="" disabled>-- Select Round --</option>
-                                {pageData?.rounds?.map((r, index) => {
-                                    const labelSuffix = getRoundStatusLabel(r, index);
+                                {pageData?.rounds?.map((r) => {
+                                    const labelSuffix = getRoundStatusLabel(r);
 
                                     return (
                                         <option key={r.id} value={r.id}>
