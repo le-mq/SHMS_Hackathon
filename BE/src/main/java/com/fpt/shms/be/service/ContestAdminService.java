@@ -44,10 +44,12 @@ public class ContestAdminService {
         List<String> domains = universities.stream().map(ContestUniversity::getCorporateDomain).toList();
 
         List<Category> categories = categoryRepository.findByContestId(contestId);
-        List<Round> contestRounds = roundRepository.findByContestId(contestId);
+        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
 
         List<Map<String, Object>> tracks = categories.stream().map(c -> {
-            List<Map<String, Object>> roundsList = contestRounds.stream().map(r -> {
+            List<Map<String, Object>> roundsList = contestRounds.stream()
+                    .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(c.getId()))
+                    .map(r -> {
                 Map<String, Object> roundMap = new HashMap<>();
                 roundMap.put("id", r.getId());
                 roundMap.put("phaseName", r.getPhaseName());
@@ -231,10 +233,12 @@ public class ContestAdminService {
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
         category.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
+        category = categoryRepository.save(category);
 
         LocalDateTime now = LocalDateTime.now();
 
-        List<Round> existingRounds = roundRepository.findByContestId(contest.getId());
+        List<Round> existingRounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(category.getId());
+
         for (CreateTrackRoundRequest.RoundDto roundDto : request.getRounds()) {
             if (roundDto.getSubmissionDeadline().isBefore(roundDto.getSubmissionOpen())) {
                 throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
