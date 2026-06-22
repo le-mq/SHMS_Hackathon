@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import './ProjectSubmission.css';
 import NavbarStudent from './NavbarStudent';
-import './ProjectSubmission.css';
 import './LeaderWorkspace.css';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
@@ -271,6 +270,7 @@ const ProjectSubmission = () => {
             fallback
         );
     };
+
     const handleSubmit = async () => {
         if (!isTeamApproved) {
             const message = 'Your team has not been approved yet. You cannot submit.';
@@ -299,7 +299,7 @@ const ProjectSubmission = () => {
         try {
             const token = localStorage.getItem('shms_token');
 
-            const response = await fetch(API_STUDENT + '/submissions', {
+            const response = await fetch(API_STUDENT + '/submissions/project', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -327,7 +327,6 @@ const ProjectSubmission = () => {
             }
         } catch (err) {
             console.warn('Submit API error:', err.message);
-
             const message = 'Cannot connect to server. Please try again later.';
             setError(message);
             alert(message);
@@ -338,7 +337,6 @@ const ProjectSubmission = () => {
 
     return (
         <div className="submission-container">
-            {/* Top Navbar */}
             <NavbarStudent />
 
             <div className="submission-content">
@@ -554,7 +552,7 @@ const ProjectSubmission = () => {
                                     ? 'Round Not Active'
                                     : pageData?.internalRole !== 'LEADER'
                                         ? 'Leader Only'
-                                        : 'Submit Product Links'
+                                        : 'Submit Project Links'
                         }
                     </button>
                 </div>
