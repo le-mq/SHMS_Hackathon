@@ -4,8 +4,10 @@ import NavbarStudent from './NavbarStudent';
 import './LeaderWorkspace.css';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const SUCCESS_MESSAGE_DURATION_MS = 5000;
 const SUCCESS_RELOAD_DELAY_MS = 5000;
 const ERROR_MESSAGE_DURATION_MS = 5000;
+const SELECTED_ROUND_STORAGE_KEY = 'projectSubmissionSelectedRoundId';
 
 const ProjectSubmission = () => {
     const [formData, setFormData] = useState({
@@ -24,11 +26,21 @@ const ProjectSubmission = () => {
     const [formattedDeadline, setFormattedDeadline] = useState('');
     const [workspaceData, setWorkspaceData] = useState(null);
     const errorTimerRef = useRef(null);
+    const successTimerRef = useRef(null);
+    const reloadTimerRef = useRef(null);
 
     useEffect(() => {
         return () => {
             if (errorTimerRef.current) {
                 clearTimeout(errorTimerRef.current);
+            }
+
+            if (successTimerRef.current) {
+                clearTimeout(successTimerRef.current);
+            }
+
+            if (reloadTimerRef.current) {
+                clearTimeout(reloadTimerRef.current);
             }
         };
     }, []);
@@ -45,7 +57,18 @@ const ProjectSubmission = () => {
             if (data.rounds && data.rounds.length > 0) {
                 setFormData(prev => ({
                     ...prev,
-                    roundId: data.rounds[0].id,
+                    roundId: (() => {
+                        const savedRoundId = sessionStorage.getItem(SELECTED_ROUND_STORAGE_KEY);
+                        const currentRoundId = data.rounds.some(round => String(round.id) === String(prev.roundId))
+                            ? prev.roundId
+                            : '';
+
+                        if (savedRoundId && data.rounds.some(round => String(round.id) === String(savedRoundId))) {
+                            return savedRoundId;
+                        }
+
+                        return currentRoundId || data.rounds[0].id;
+                    })(),
                 }));
             }
 
@@ -174,6 +197,10 @@ const ProjectSubmission = () => {
     }, []);
 
     const handleChange = (e) => {
+        if (e.target.name === 'roundId') {
+            sessionStorage.setItem(SELECTED_ROUND_STORAGE_KEY, e.target.value);
+        }
+
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
@@ -200,9 +227,28 @@ const ProjectSubmission = () => {
             : null;
 
     const isTeamApproved = teamStatus === 'APPROVED';
-    const isRoundActive = selectedRound?.status === 'ACTIVE';
+    const roundStatus = String(selectedRound?.status || '').toUpperCase();
+    const isRoundActive = ['ACTIVE', 'OPEN'].includes(roundStatus);
     const hasLoadedSubmissionRole = Boolean(pageData?.internalRole);
     const isTeamLeader = pageData?.internalRole === 'LEADER';
+    const selectedRoundIndex = pageData?.rounds?.findIndex(
+        round => String(round.id) === String(formData.roundId)
+    ) ?? -1;
+    const isSelectedRoundEligible =
+        selectedRoundIndex <= 0
+            ? true
+            : typeof selectedRound?.eligible === 'boolean'
+                ? selectedRound.eligible
+                : false;
+    const selectedRoundLockedReason =
+        selectedRound?.lockedReason || 'Your team has not qualified for this round yet.';
+    const selectedRoundEvaluatedHistory = history.find(item =>
+            String(item.roundId) === String(formData.roundId) &&
+            (item.evaluated || String(item.status).toUpperCase() === 'EVALUATED')
+    );
+    const isSelectedRoundEvaluated =
+        Boolean(selectedRound?.evaluated) ||
+        Boolean(selectedRoundEvaluatedHistory);
 
     const registrationDeadline =
         workspaceData?.registrationDeadline ||
@@ -234,6 +280,8 @@ const ProjectSubmission = () => {
     const canSubmitProject =
         isTeamApproved &&
         isRoundActive &&
+        isSelectedRoundEligible &&
+        !isSelectedRoundEvaluated &&
         isTeamLeader &&
         !isSubmitting &&
         formData.roundId;
@@ -314,6 +362,35 @@ const ProjectSubmission = () => {
         );
     };
 
+    const getSubmissionStatusClass = (item) => {
+        const status = String(item?.status || '').toUpperCase();
+
+        if (item?.evaluated || status === 'EVALUATED') return 'status-evaluated';
+        if (status === 'ARCHIVED') return 'status-archived';
+        return 'status-official';
+    };
+
+    const getSubmissionStatusLabel = (item) => {
+        const status = String(item?.status || '').toUpperCase();
+
+        if (item?.evaluated || status === 'EVALUATED') {
+            return 'Evaluated';
+        }
+
+        if (status === 'SUBMITTED') return 'Official Version';
+        return item?.status || 'Submitted';
+    };
+
+    const getRoundStatusLabel = (round, index) => {
+        const status = String(round?.status || '').toUpperCase();
+
+        if (index > 0 && round?.eligible === false) return 'UPCOMING';
+        if (['ACTIVE', 'OPEN'].includes(status)) return 'ACTIVE';
+        if (['UPCOMING', 'PENDING', 'SCHEDULED', 'NOT_STARTED'].includes(status)) return 'UPCOMING';
+
+        return status || 'UPCOMING';
+    };
+
     const showErrorMessage = (message) => {
         if (errorTimerRef.current) {
             clearTimeout(errorTimerRef.current);
@@ -326,6 +403,33 @@ const ProjectSubmission = () => {
             setError('');
             errorTimerRef.current = null;
         }, ERROR_MESSAGE_DURATION_MS);
+    };
+
+    const showSuccessMessage = (message) => {
+        if (successTimerRef.current) {
+            clearTimeout(successTimerRef.current);
+        }
+
+        setSuccessMessage(message);
+
+        successTimerRef.current = setTimeout(() => {
+            setSuccessMessage('');
+            successTimerRef.current = null;
+        }, SUCCESS_MESSAGE_DURATION_MS);
+    };
+
+    const scheduleSubmissionReload = (roundId) => {
+        if (reloadTimerRef.current) {
+            clearTimeout(reloadTimerRef.current);
+        }
+
+        if (roundId) {
+            sessionStorage.setItem(SELECTED_ROUND_STORAGE_KEY, String(roundId));
+        }
+
+        reloadTimerRef.current = setTimeout(() => {
+            window.location.reload();
+        }, SUCCESS_RELOAD_DELAY_MS);
     };
 
     const clearErrorMessage = () => {
@@ -350,6 +454,16 @@ const ProjectSubmission = () => {
             return;
         }
 
+        if (!isSelectedRoundEligible) {
+            showErrorMessage(selectedRoundLockedReason);
+            return;
+        }
+
+        if (isSelectedRoundEvaluated) {
+            showErrorMessage('This submission has already been evaluated.');
+            return;
+        }
+
         if (hasLoadedSubmissionRole && !isTeamLeader) {
             const message = 'Only Team Leaders are permitted to submit the project.';
             showErrorMessage(message);
@@ -358,10 +472,11 @@ const ProjectSubmission = () => {
 
         setIsSubmitting(true);
         clearErrorMessage();
-        setSuccessMessage('');
+        showSuccessMessage('Project submitted successfully!');
 
         try {
             const token = localStorage.getItem('shms_token');
+            const submittedRoundId = formData.roundId;
 
             const response = await fetch(API_STUDENT + '/submissions/project', {
                 method: 'POST',
@@ -382,15 +497,28 @@ const ProjectSubmission = () => {
 
             const message = getBackendMessage(result, 'Project submitted successfully!');
             clearErrorMessage();
-            setSuccessMessage(message);
+            showSuccessMessage(message);
 
-            if (result.history) {
-                setHistory(result.history);
-            } else {
-                setTimeout(() => {
-                    window.location.reload();
-                }, SUCCESS_RELOAD_DELAY_MS);
+            const updatedPageData = result.submissionPage || result.data || null;
+            if (updatedPageData) {
+                setPageData(updatedPageData);
+            } else if (result.rounds) {
+                setPageData(prev => ({
+                    ...(prev || {}),
+                    rounds: result.rounds,
+                }));
             }
+
+            if (result.history || updatedPageData?.history) {
+                setHistory(result.history || updatedPageData.history);
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                roundId: submittedRoundId || prev.roundId,
+            }));
+
+            scheduleSubmissionReload(submittedRoundId);
         } catch (err) {
             console.warn('Submit API error:', err.message);
             const message = 'Cannot connect to server. Please try again later.';
@@ -414,12 +542,6 @@ const ProjectSubmission = () => {
                 {error && (
                     <p className="submission-message error">
                         {error}
-                    </p>
-                )}
-
-                {successMessage && (
-                    <p className="submission-message success">
-                        {successMessage}
                     </p>
                 )}
 
@@ -501,9 +623,15 @@ const ProjectSubmission = () => {
                                 style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                             >
                                 <option value="" disabled>-- Select Round --</option>
-                                {pageData?.rounds?.map(r => (
-                                    <option key={r.id} value={r.id}>{r.name} ({r.status})</option>
-                                ))}
+                                {pageData?.rounds?.map((r, index) => {
+                                    const labelSuffix = getRoundStatusLabel(r, index);
+
+                                    return (
+                                        <option key={r.id} value={r.id}>
+                                            {r.name} ({labelSuffix})
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
 
@@ -576,40 +704,52 @@ const ProjectSubmission = () => {
                         </div>
                     </div>
 
-                    <button
-                        className="submit-btn"
-                        onClick={handleSubmit}
-                        disabled={!canSubmitProject}
-                        style={{
-                            cursor: canSubmitProject ? 'pointer' : 'not-allowed',
-                            background: canSubmitProject ? '#2563eb' : '#94a3b8'
-                        }}
-                    >
-                        <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                    <div className="submit-action-row">
+                        {successMessage && (
+                            <p className="submission-message success inline">
+                                {successMessage}
+                            </p>
+                        )}
+
+                        <button
+                            className="submit-btn"
+                            onClick={handleSubmit}
+                            disabled={!canSubmitProject}
+                            style={{
+                                cursor: canSubmitProject ? 'pointer' : 'not-allowed',
+                                background: canSubmitProject ? '#2563eb' : '#94a3b8'
+                            }}
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                            />
-                        </svg>
-                        {isSubmitting
-                            ? 'Submitting...'
-                            : !isTeamApproved
-                                ? 'Team Not Approved'
-                                : !isRoundActive
-                                    ? 'Round Not Active'
-                                    : hasLoadedSubmissionRole && !isTeamLeader
-                                        ? 'Leader Only'
-                                        : 'Submit Project Links'
-                        }
-                    </button>
+                            <svg
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                                />
+                            </svg>
+                            {isSubmitting
+                                ? 'Submitting...'
+                                : isSelectedRoundEvaluated
+                                    ? 'Evaluated'
+                                    : !isTeamApproved
+                                        ? 'Team Not Approved'
+                                        : !isRoundActive
+                                            ? 'Round Not Active'
+                                            : !isSelectedRoundEligible
+                                                ? 'Not Qualified'
+                                                : hasLoadedSubmissionRole && !isTeamLeader
+                                                    ? 'Leader Only'
+                                                    : 'Submit Project Links'
+                            }
+                        </button>
+                    </div>
                 </div>
 
                 <div className="history-card">
@@ -669,11 +809,11 @@ const ProjectSubmission = () => {
                                                 </div>
                                             </td>
                                             <td>
-                                                <span className={`status-badge ${item.status === 'ARCHIVED' ? 'status-archived' : 'status-official'}`}>
-                                                    {item.status !== 'ARCHIVED' && (
+                                                <span className={`status-badge ${getSubmissionStatusClass(item)}`}>
+                                                    {String(item.status).toUpperCase() !== 'ARCHIVED' && (
                                                         <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                                                     )}
-                                                    {item.status === 'SUBMITTED' ? 'Official Version' : item.status}
+                                                    {getSubmissionStatusLabel(item)}
                                                 </span>
                                             </td>
                                         </tr>
