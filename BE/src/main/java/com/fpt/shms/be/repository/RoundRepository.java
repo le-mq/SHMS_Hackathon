@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface RoundRepository extends JpaRepository<Round, Long> {
     List<Round> findByContestId(Long contestId);
+
+    List<Round> findByContestIdOrderBySubmissionOpenAsc(Long contestId);
+    List<Round> findByCategoryIdOrderBySubmissionOpenAsc(Long categoryId);
+
 }

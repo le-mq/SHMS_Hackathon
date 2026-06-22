@@ -21,5 +21,5 @@ public class CreateAnnouncementRequest {
     @NotNull(message = "Type is required")
     private Announcement.AnnouncementType type;
 
-    private List<String> roles; // Optional if we want to filter, but for now we store for all
+    private List<String> roles;
 }

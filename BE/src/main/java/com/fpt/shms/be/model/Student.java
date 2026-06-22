@@ -38,10 +38,6 @@ public class Student {
     @Column(name = "status", length = 50)
     private String status;
 
-    /**
-     * Returns the student identifier as a display String for roster views.
-     * Uses MSSV (student code) as the primary identifier; falls back to numeric ID.
-     */
     public String getStudentId() {
         return this.mssv != null ? this.mssv : String.valueOf(this.id);
     }

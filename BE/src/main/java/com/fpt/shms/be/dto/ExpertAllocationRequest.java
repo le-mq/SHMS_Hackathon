@@ -11,6 +11,9 @@ public class ExpertAllocationRequest {
     @NotNull(message = "User ID is required")
     private Long userId;
 
+    @NotNull(message = "Round ID is required")
+    private Long roundId;
+
     private List<TrackAssignment> assignments;
 
     @Data

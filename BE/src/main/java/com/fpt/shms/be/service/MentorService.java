@@ -26,7 +26,6 @@ public class MentorService {
         User mentor = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Mentor not found"));
 
-        // Truy vấn Team qua bảng trung gian
         List<TeamMentor> teamMentors = teamMentorRepository.findByMentorId(mentor.getId());
 
         List<MentorTrackResponse.TrackOverviewDto> trackOverviews = new ArrayList<>();

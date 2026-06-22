@@ -22,8 +22,8 @@ public class ProcessRankingsResponse {
         private Long teamId;
         private String teamName;
         private String categoryName;
-        private Double averageScore;  // BR-JDG-03: average of all judge scores
+        private Double averageScore;
         private Integer rank;
-        private String status;        // QUALIFIED or ELIMINATED (BR-RNK-03)
+        private String status;        // QUALIFIED or ELIMINATED
     }
 }

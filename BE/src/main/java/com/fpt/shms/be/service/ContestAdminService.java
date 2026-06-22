@@ -104,7 +104,7 @@ public class ContestAdminService {
 
     @Transactional
     public Contest createContest(CreateContestRequest request) {
-        // Tạo mã ngắn: 2 ký tự đầu tiên của thuật ngữ + 2 chữ số cuối của năm (ví dụ: SU26)
+
         String semesterCode = request.getTerm().substring(0, Math.min(2, request.getTerm().length())).toUpperCase()
                 + String.valueOf(request.getYear()).substring(2);
 
@@ -152,14 +152,13 @@ public class ContestAdminService {
             try {
                 Contest.ContestStatus newStatus = Contest.ContestStatus.valueOf(request.getStatus().toUpperCase());
                 if (newStatus == Contest.ContestStatus.CLOSED && contest.getStatus() != Contest.ContestStatus.CLOSED) {
-                    // Cập nhật tất cả các hạng mục của cuộc thi này thành CLOSED
+
                     List<Category> categories = categoryRepository.findByContestId(contest.getId());
                     for (Category cat : categories) {
                         cat.setStatus("CLOSED");
                         categoryRepository.save(cat);
                     }
 
-                    // Cập nhật tất cả các vòng thi thành CLOSED
                     List<Round> rounds = roundRepository.findByContestId(contest.getId());
                     for (Round round : rounds) {
                         round.setState(Round.RoundState.CLOSED);
@@ -172,7 +171,6 @@ public class ContestAdminService {
                     for (Team team : teams) {
                         team.setStatus("CLOSED");
 
-                        // Lột lon Leader
                         if (teamLeaderRole != null && studentRole != null) {
                             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
                             for (TeamMembership tm : memberships) {
@@ -242,7 +240,6 @@ public class ContestAdminService {
                 throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
             }
 
-            // Determine state manually from UI
             Round.RoundState state = Round.RoundState.UPCOMING;
             if (roundDto.getState() != null) {
                 try {
@@ -264,7 +261,6 @@ public class ContestAdminService {
                         .orElse(null);
             }
 
-            // Fallback to phaseName if ID not found or not provided
             if (round == null) {
                 round = existingRounds.stream()
                         .filter(r -> r.getPhaseName().equals(roundDto.getPhaseName()))
