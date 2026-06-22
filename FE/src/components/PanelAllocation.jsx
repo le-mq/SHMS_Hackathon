@@ -21,7 +21,6 @@ const PanelAllocation = () => {
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-    // 1. Load contests & experts
     useEffect(() => {
         const fetchInitial = async () => {
             try {
@@ -46,7 +45,6 @@ const PanelAllocation = () => {
         fetchInitial();
     }, [headers]);
 
-    // 2. Load rounds when contest changes
     useEffect(() => {
         if (!selectedContestId) {
             setRounds([]);
@@ -68,7 +66,6 @@ const PanelAllocation = () => {
             });
     }, [selectedContestId, headers]);
 
-    // 3. Load teams & allocations when round changes
     useEffect(() => {
         if (!selectedContestId || !selectedRoundId) {
             setAllTeams([]);

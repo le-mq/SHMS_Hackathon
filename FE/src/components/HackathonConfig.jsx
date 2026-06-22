@@ -5,6 +5,8 @@ import { Form, Button } from 'react-bootstrap';
 import './HackathonConfig.css';
 import NavbarAdmin from './NavbarAdmin';
 
+const API_BASE = "http://localhost:8080/api/v1";
+
 const HackathonConfig = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
@@ -13,7 +15,7 @@ const HackathonConfig = () => {
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const todayStr = new Date().toISOString().slice(0, 10);
-    const nowLocalStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
     const getSemesterBounds = (term, year) => {
         const currentYear = year || new Date().getFullYear();
         const baseDates = {
@@ -30,12 +32,14 @@ const HackathonConfig = () => {
             max: `${currentYear}-${config.maxTime}`
         };
     };
+
     const getSemesterFromDate = (dateStr) => {
         const month = new Date(dateStr).getMonth();
         if (month >= 0 && month <= 3) return 'SPRING';
         if (month >= 4 && month <= 7) return 'SUMMER';
         return 'FALL';
     };
+
     const fetchData = async (url, mockKey) => {
         try {
             const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } });
@@ -50,12 +54,14 @@ const HackathonConfig = () => {
                 : mock.hackathonConfig?.contestDetail || {};
     };
 
-    const fetchContests = async () => setContests(await fetchData('http://localhost:8080/api/v1/admin/contests', 'contests'));
-    const fetchAllUniversities = async () => setAllUniversities(await fetchData('http://localhost:8080/api/v1/admin/universities', 'uni'));
+    const fetchContests = async () => setContests(await fetchData(`${API_BASE}/admin/contests`, 'contests'));
+    const fetchAllUniversities = async () => setAllUniversities(await fetchData(`${API_BASE}/admin/universities`, 'uni'));
+
     useEffect(() => {
         fetchContests();
         fetchAllUniversities();
     }, []);
+
     const initialValues = {
         name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(), regionScope: 'Ha Noi',
         maximumAllowedTeams: 100, registrationStart: '', registrationEnd: '',
@@ -64,6 +70,7 @@ const HackathonConfig = () => {
         categories: [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }],
         rounds: [{ id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }]
     };
+
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Event Name is required'),
         theme: Yup.string().required('Theme is required'),
@@ -121,7 +128,7 @@ const HackathonConfig = () => {
             try {
                 const token = localStorage.getItem('shms_token');
                 let currentContestId = selectedContestId;
-                const response = await fetch('http://localhost:8080/api/v1/admin/contests', {
+                const response = await fetch(`${API_BASE}/admin/contests`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ ...values, id: currentContestId || null, allowedCorporateDomains: values.universities.join(',') })
@@ -130,25 +137,38 @@ const HackathonConfig = () => {
                 if (!response.ok) throw new Error(data.error || 'Failed to create contest configuration');
                 if (!currentContestId) currentContestId = data.contestId;
                 setSelectedContestId(currentContestId);
+
                 for (const category of values.categories) {
                     const categoryRounds = values.rounds.filter(r => String(r.categoryId) === String(category.id));
-                    await fetch('http://localhost:8080/api/v1/admin/contests/rounds-tracks', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({
-                            contestId: currentContestId, categoryName: category.trackName,
-                            trackDescription: category.trackDescription || 'No description',
-                            guidelineUrl: category.guidelineUrl || '',
-                            status: values.status === 'CLOSED' ? 'CLOSED' : (category.status || 'ACTIVE'),
-                            rounds: categoryRounds.map((r) => ({
-                                id: r.id < 0 ? null : r.id, phaseName: r.phaseName,
-                                submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
-                                submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
-                                state: values.status === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
-                            }))
-                        })
-                    });
+
+                    if (categoryRounds.length > 0) {
+                        const trackRes = await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({
+                                contestId: currentContestId,
+                                categoryName: category.trackName,
+                                trackDescription: category.trackDescription || 'No description',
+                                guidelineUrl: category.guidelineUrl || '',
+                                status: values.status === 'CLOSED' ? 'CLOSED' : (category.status || 'ACTIVE'),
+                                rounds: categoryRounds.map((r, rIndex) => ({
+                                    id: String(r.id).startsWith('-') ? null : r.id,
+                                    phaseName: r.phaseName,
+                                    roundOrder: rIndex + 1,
+                                    submissionOpen: r.submissionOpen.length === 16 ? r.submissionOpen + ':00' : r.submissionOpen,
+                                    submissionDeadline: r.submissionDeadline.length === 16 ? r.submissionDeadline + ':00' : r.submissionDeadline,
+                                    state: values.status === 'CLOSED' ? 'CLOSED' : (r.state || 'UPCOMING')
+                                }))
+                            })
+                        });
+
+                        if (!trackRes.ok) {
+                            const errData = await trackRes.json();
+                            throw new Error(errData.error || `Failed to save rounds for category: ${category.trackName}`);
+                        }
+                    }
                 }
+
                 setStatus({ success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!' });
                 fetchContests();
             } catch (err) {
@@ -169,34 +189,44 @@ const HackathonConfig = () => {
         }
         setSelectedContestId(id); setIsLoading(true);
         try {
-            const data = await fetchData(`http://localhost:8080/api/v1/admin/contests/${id}`);
+            const data = await fetchData(`${API_BASE}/admin/contests/${id}`);
             if (data) {
                 const fetchedCategories = data.tracks?.length ? data.tracks.map((t, idx) => ({
                     id: t.id || -(idx + 1), trackName: t.categoryName || '', trackDescription: t.trackDescription || '',
                     guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVE'
                 })) : [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }];
+
                 let fetchedRounds = [];
                 if (data.tracks?.length) {
+                    const roundMap = new Map();
                     data.tracks.forEach((t, tIdx) => {
                         const cat = fetchedCategories.find(c => c.trackName === t.categoryName);
                         const catId = t.id || (cat ? cat.id : -(tIdx + 1));
                         if (t.rounds?.length) {
-                            t.rounds.forEach((r, rIdx) => {
-                                fetchedRounds.push({
-                                    id: r.id || -(tIdx * 100 + rIdx + 1), phaseName: r.phaseName || '', categoryId: catId,
-                                    submissionOpen: r.submissionOpen ? r.submissionOpen.slice(0, 16) : '',
-                                    submissionDeadline: r.submissionDeadline ? r.submissionDeadline.slice(0, 16) : '',
-                                    state: r.state || 'UPCOMING'
-                                });
+                            t.rounds.forEach((r) => {
+                                const rId = r.roundId || r.id;
+                                if (rId && !roundMap.has(String(rId))) {
+                                    roundMap.set(String(rId), {
+                                        id: rId,
+                                        phaseName: r.roundName || r.phaseName || '',
+                                        categoryId: catId,
+                                        submissionOpen: r.submissionOpen ? r.submissionOpen.slice(0, 16) : '',
+                                        submissionDeadline: r.submissionDeadline ? r.submissionDeadline.slice(0, 16) : '',
+                                        state: r.status || r.state || 'UPCOMING'
+                                    });
+                                }
                             });
                         }
                     });
+                    fetchedRounds = Array.from(roundMap.values());
                 }
+
                 if (fetchedRounds.length === 0) {
                     fetchedRounds = fetchedCategories.map((cat, idx) => ({
                         id: -(idx + 1), phaseName: `Round ${idx + 1}`, categoryId: cat.id, submissionOpen: '', submissionDeadline: '', state: 'UPCOMING'
                     }));
                 }
+
                 formik.setValues({
                     name: data.name || '', theme: data.theme || '', term: data.term || 'Auto setup', year: data.year || new Date().getFullYear(),
                     regionScope: data.regionScope || 'Ha Noi', maximumAllowedTeams: data.maximumAllowedTeams || 100,
@@ -204,7 +234,8 @@ const HackathonConfig = () => {
                     registrationEnd: data.registrationEnd ? data.registrationEnd.slice(0, 10) : '',
                     complianceRules: data.complianceRules || '', tieredPrizeStructures: data.tieredPrizeStructures || '',
                     status: data.status || 'UPCOMING', universities: data.universities || [],
-                    categories: fetchedCategories, rounds: fetchedRounds
+                    categories: fetchedCategories,
+                    rounds: fetchedRounds
                 });
             } else { formik.setStatus({ error: 'Failed to fetch contest details' }); }
         } catch (err) { formik.setStatus({ error: 'Failed to connect to the server' }); }
@@ -256,7 +287,7 @@ const HackathonConfig = () => {
                                             <td><div className="uni-domain">{c.season} {c.year}</div></td>
                                             <td><span className="status-badge">{c.status || 'UPCOMING'}</span></td>
                                             <td>
-                                                <button className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
+                                                <button type="button" className={selectedContestId === c.id ? "delete-btn" : "edit-btn"} onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
                                                     {selectedContestId === c.id ? 'Deselect' : 'Select to Edit'}
                                                 </button>
                                             </td>
@@ -355,7 +386,7 @@ const HackathonConfig = () => {
                                 <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Category Definition</h3>
-                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }])}>+ Add Category</Button>
+                                        <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE' }])}>+ Add Category</Button>
                                     </div>
                                     <FieldArray name="categories">
                                         {() => (
@@ -396,7 +427,7 @@ const HackathonConfig = () => {
                                 <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
-                                        <Button variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Phase ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }])}>+ Add Round</Button>
+                                        <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Phase ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', state: 'UPCOMING' }])}>+ Add Round</Button>
                                     </div>
                                     <FieldArray name="rounds">
                                         {() => (
@@ -418,7 +449,7 @@ const HackathonConfig = () => {
                                                                     <Form.Select name={`rounds[${index}].categoryId`} className="form-select" value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.categoryId && !!roundErrors?.categoryId}>
                                                                         <option value="">-- Select Category --</option>
                                                                         {formik.values.categories.map(c => {
-                                                                            const isSelectedByOther = formik.values.rounds.some((r, rIdx) => rIdx !== index && r.categoryId === c.id);
+                                                                            const isSelectedByOther = formik.values.rounds.some((r, rIdx) => rIdx !== index && String(r.categoryId) === String(c.id));
                                                                             return (<option key={c.id} value={c.id} disabled={isSelectedByOther}>{c.trackName || 'Unnamed Category'}</option>);
                                                                         })}
                                                                     </Form.Select>
