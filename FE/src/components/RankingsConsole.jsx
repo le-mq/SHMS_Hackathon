@@ -216,7 +216,12 @@ const RankingsConsole = () => {
     };
 
     const maxBar = Math.max(...readinessData.summary.bars, 1);
+    const totalTeams = readinessData.summary.totalTeams;
 
+    const isTopNValid =
+        Number.isInteger(Number(topN)) &&
+        Number(topN) > 0 &&
+        Number(topN) <= totalTeams;
     return (
         <div className="rankings-container">
             <NavbarAdmin />
@@ -275,18 +280,42 @@ const RankingsConsole = () => {
                             className="top-n-input"
                             value={topN}
                             min={1}
-                            max={100}
-                            onChange={e => setTopN(e.target.value)}
+                            max={readinessData.summary.totalTeams}
+                            onKeyDown={(e) => {
+                                // Chặn e, E, +, -, .
+                                if (
+                                    ['e', 'E', '+', '-', '.'].includes(e.key)
+                                ) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (!/^\d*$/.test(value)) return;
+                                if (value === '') {
+                                    setTopN('');
+                                    return;
+                                }
+                                const num = Number(value);
+                                if (num < 1) {
+                                    setTopN(1);
+                                } else if (num > readinessData.summary.totalTeams) {
+                                    setTopN(readinessData.summary.totalTeams);
+                                } else {
+                                    setTopN(num);
+                                }
+                            }}
                         />
                         <button
                             id="btn-generate-ranking"
                             className={`generate-btn ${isProcessing ? 'processing' : ''}`}
-                            disabled={!readinessData.allReady || isProcessing}
+                            disabled={
+                                !readinessData.allReady ||
+                                isProcessing ||
+                                !isTopNValid
+                            }
                             onClick={handleGenerate}
                         >
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
                             {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
                         </button>
                         <div className="config-warning">
@@ -380,11 +409,11 @@ const RankingsConsole = () => {
                         <div className="result-stats">
                             <div className="result-stat">
                                 <div className="result-stat-label">Qualified</div>
-                                <div className="result-stat-val qualified">{result.qualifiedCount}</div>
+                                <div className="result-stat-val qualified"> {topN} </div>
                             </div>
                             <div className="result-stat">
                                 <div className="result-stat-label">Eliminated</div>
-                                <div className="result-stat-val eliminated">{result.eliminatedCount}</div>
+                                <div className="result-stat-val eliminated">{result.results.length - topN}</div>
                             </div>
                             <div className="result-stat">
                                 <div className="result-stat-label">Total Processed</div>
@@ -415,20 +444,32 @@ const RankingsConsole = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {result.results.slice(0, 5).map(r => (
-                                    <tr key={r.rank}>
-                                        <td style={{ fontWeight: 'bold', color: '#0f172a' }}>#{r.rank}</td>
-                                        <td style={{ color: '#0f172a' }}>{r.teamName}</td>
-                                        <td style={{ color: '#0f172a' }}>{r.averageScore}</td>
-                                        <td>
-                                            <span style={{
-                                                padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold',
-                                                background: r.status === 'QUALIFIED' ? '#dcfce7' : '#fee2e2',
-                                                color: r.status === 'QUALIFIED' ? '#166534' : '#991b1b'
-                                            }}>{r.status}</span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {result.results.map(r => {
+                                    const isQualified = r.rank <= topN;
+                                    return (
+                                        <tr key={r.rank}>
+                                            <td>#{r.rank}</td>
+                                            <td>{r.teamName}</td>
+                                            <td>{r.averageScore}</td>
+                                            <td>
+                                                <span
+                                                    style={{
+                                                        padding: '4px 8px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '12px',
+                                                        fontWeight: 'bold',
+                                                        background: isQualified ? '#dcfce7' : '#fee2e2',
+                                                        color: isQualified ? '#166534' : '#991b1b'
+                                                    }}
+                                                >
+                                                    {isQualified
+                                                        ? 'QUALIFIED'
+                                                        : 'ELIMINATED'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -437,5 +478,4 @@ const RankingsConsole = () => {
         </div>
     );
 };
-
 export default RankingsConsole;
