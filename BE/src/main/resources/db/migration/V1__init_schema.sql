@@ -333,14 +333,12 @@ GO
 CREATE TABLE ContestRubric (
                                contest_rubric_id BIGINT IDENTITY(1,1) NOT NULL,
                                rubric_template_id BIGINT NOT NULL,
-                               round_id BIGINT NOT NULL,
                                category_id BIGINT NOT NULL,
                                rubric_name NVARCHAR(100) NULL,
                                total_weight DECIMAL(18,2) NULL,
                                status VARCHAR(50) NULL,
                                CONSTRAINT pk_contest_rubric PRIMARY KEY (contest_rubric_id),
                                CONSTRAINT fk_cr_template FOREIGN KEY (rubric_template_id) REFERENCES RubricTemplate(rubric_template_id),
-                               CONSTRAINT fk_cr_round FOREIGN KEY (round_id) REFERENCES [Round](round_id),
                                CONSTRAINT fk_cr_category FOREIGN KEY (category_id) REFERENCES Category(category_id)
 );
 GO
