@@ -39,6 +39,8 @@ public class Contest {
     @Column(name = "registration_end")
     private LocalDate registrationEnd;
 
+    @Column(name = "closed_at")
+    private java.time.LocalDateTime closedAt;
 
     /**
      * Overall contest status: ACTIVE | UPCOMING | CLOSED

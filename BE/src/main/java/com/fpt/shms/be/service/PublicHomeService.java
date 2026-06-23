@@ -31,7 +31,11 @@ public class PublicHomeService {
 
     public PublicHomeResponse getHomeData() {
 
-        List<Contest> activeContests = contestRepository.findByStatusIn(List.of(Contest.ContestStatus.ACTIVE, Contest.ContestStatus.UPCOMING));
+        List<Contest> activeContests = contestRepository.findByStatusIn(List.of(
+                Contest.ContestStatus.ACTIVE,
+                Contest.ContestStatus.UPCOMING,
+                Contest.ContestStatus.CLOSED
+        ));
 
         List<ContestDTO> contests = activeContests.stream()
                 .map(c -> {

@@ -232,5 +232,19 @@ public class RankingAdminService {
                     .datePublishedAt(LocalDateTime.now())
                     .build());
         }
+
+        List<Round> allRounds = roundRepository.findByContestId(request.getContestId());
+        int maxOrder = allRounds.stream()
+                .mapToInt(r -> r.getRoundOrder() != null ? r.getRoundOrder() : 0)
+                .max()
+                .orElse(0);
+
+        if (round.getRoundOrder() != null && round.getRoundOrder() == maxOrder) {
+            Contest contest = contestRepository.findById(request.getContestId())
+                    .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+            contest.setStatus(Contest.ContestStatus.CLOSED);
+            contest.setClosedAt(LocalDateTime.now());
+            contestRepository.save(contest);
+        }
     }
 }
