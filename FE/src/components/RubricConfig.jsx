@@ -91,7 +91,7 @@ const RubricConfig = () => {
     }, [contestRubrics, templates, selectedContestId, selectedCategoryId]);
 
     const totalWeight = useMemo(() =>
-            editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
+        editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
         [editingTemplate]
     );
 
@@ -216,12 +216,33 @@ const RubricConfig = () => {
         if (tpl) setTemplates(prev => [...prev, { ...tpl, id: Date.now(), name: tpl.name + ' (Copy)' }]);
     });
 
-    const handleDelete = (id) => {
-        if (window.confirm("Are you sure you want to delete this template?")) {
-            handleAction(id, 'DELETE', 'Template deleted!', () => {
-                setTemplates(prev => prev.filter(t => t.id !== id));
-                setContestRubrics(prev => prev.filter(cr => cr.templateId !== id));
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this template?')) return;
+
+        setIsLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const res = await fetch(`${CONTEST_API}/rubric-templates/${id}`, {
+                method: 'DELETE',
+                headers,
             });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                throw new Error(data.error || data.message || `Delete failed (${res.status})`);
+            }
+
+            setTemplates(prev => prev.filter(t => String(t.id) !== String(id)));
+            setContestRubrics(prev => prev.filter(cr => String(cr.templateId) !== String(id)));
+
+            setSuccess(data.message || 'Template deleted successfully!');
+        } catch (e) {
+            setError(e.message || 'Cannot delete this template. It may be in use.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
