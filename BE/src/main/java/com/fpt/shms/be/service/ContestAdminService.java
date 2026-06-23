@@ -191,7 +191,6 @@ public class ContestAdminService {
                     }
                     teamRepository.saveAll(teams);
                 }
-                contest.setStatus(newStatus);
             } catch (IllegalArgumentException e) {
             }
         }
@@ -232,7 +231,7 @@ public class ContestAdminService {
                         .build());
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
-        category.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
+        category.setStatus(request.getStatus() != null ? request.getStatus().replace("INACTIVE", "INACTIVED").replace("ACTIVE", "ACTIVED") : "ACTIVED");
         category = categoryRepository.save(category);
 
         LocalDateTime now = LocalDateTime.now();

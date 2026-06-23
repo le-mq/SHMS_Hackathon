@@ -24,7 +24,7 @@ public class Contest {
     private String name;
 
     /**
-     * Season label: SPRING, SUMMER, FALL, WINTER
+     * Season label: SPRING, SUMMER, FALL
      */
     @Enumerated(EnumType.STRING)
     @Transient
@@ -41,7 +41,7 @@ public class Contest {
 
 
     /**
-     * Overall contest status: ACTIVE | UPCOMING | CLOSED
+     * Overall contest status: ACTIVED | UPCOMING | CLOSED
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
@@ -73,6 +73,9 @@ public class Contest {
     @Column(name = "created_at")
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
 
+    @Column(name = "contest_end_at")
+    private java.time.LocalDateTime contestEndAt;
+
     public enum Season {
         SPRING, SUMMER, FALL, WINTER
     }
@@ -100,5 +103,17 @@ public class Contest {
             return year;
         }
         return semester != null ? semester.getYear() : null;
+    }
+
+    public ContestStatus getStatus() {
+        if (this.registrationStart == null) return ContestStatus.UPCOMING;
+
+        java.time.LocalDate nowDay = java.time.LocalDate.now();
+        java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
+
+        if (nowDay.isBefore(this.registrationStart)) return ContestStatus.UPCOMING;
+        if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) return ContestStatus.CLOSED;
+
+        return ContestStatus.ACTIVE;
     }
 }

@@ -1,12 +1,8 @@
 package com.fpt.shms.be.dto;
 
 import com.fpt.shms.be.model.Contest;
-
 import java.time.LocalDate;
 
-/**
- * DTO representing a single seasonal hackathon for the public home page.
- */
 public record ContestDTO(
         Long id,
         String name,
@@ -14,6 +10,7 @@ public record ContestDTO(
         Integer year,
         LocalDate registrationStart,
         LocalDate registrationEnd,
+        java.time.LocalDateTime contestEndAt,
         String status,
         String description,
         String regionScope,
@@ -23,7 +20,15 @@ public record ContestDTO(
         java.util.List<CategoryDTO> categories,
         java.util.List<RoundDTO> rounds
 ) {
-    public record RoundDTO(String phaseName, java.time.LocalDateTime submissionOpen, java.time.LocalDateTime submissionDeadline) {}
+    public record RoundDTO(
+            String phaseName,
+            java.time.LocalDateTime submissionOpen,
+            java.time.LocalDateTime submissionDeadline,
+            java.time.LocalDateTime gradingOpenAt,
+            java.time.LocalDateTime gradingDeadlineAt,
+            java.time.LocalDateTime publishResultAt
+    ) {}
+
     public record CategoryDTO(Long id, String name, java.util.List<RoundDTO> rounds) {}
 
     public static ContestDTO from(Contest c) {
@@ -38,6 +43,7 @@ public record ContestDTO(
                 c.getYear(),
                 c.getRegistrationStart(),
                 c.getRegistrationEnd(),
+                c.getContestEndAt(), // MỚI THÊM
                 c.getStatus() != null ? c.getStatus().name() : null,
                 c.getDescription(),
                 c.getRegionScope(),
