@@ -27,8 +27,8 @@ public class JudgeController {
 
     @GetMapping("/assigned-submissions")
     @Operation(summary = "Get Assigned Submissions", description = "Returns teams and submissions allocated to the judge.")
-    public ResponseEntity<?> getAssignedSubmissions(HttpServletRequest request, 
-            @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
+    public ResponseEntity<?> getAssignedSubmissions(HttpServletRequest request,
+                                                    @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
         try {
             String token = jwtUtils.extractToken(request);
             if (token == null || !jwtUtils.validateToken(token)) {
@@ -46,9 +46,7 @@ public class JudgeController {
 
     @GetMapping("/evaluation-data/{teamId}")
     @Operation(summary = "Get Evaluation Data", description = "Returns team submission and rubric.")
-    public ResponseEntity<?> getEvaluationData(HttpServletRequest request,
-                                               @org.springframework.web.bind.annotation.PathVariable Long teamId,
-                                               @org.springframework.web.bind.annotation.RequestParam(required = false) Long submissionId) {
+    public ResponseEntity<?> getEvaluationData(HttpServletRequest request, @org.springframework.web.bind.annotation.PathVariable Long teamId) {
         try {
             String token = jwtUtils.extractToken(request);
             if (token == null || !jwtUtils.validateToken(token)) {
@@ -56,7 +54,7 @@ public class JudgeController {
             }
 
             String username = jwtUtils.getUsernameFromToken(token);
-            return ResponseEntity.ok(judgeService.getEvaluationData(username, teamId, submissionId));
+            return ResponseEntity.ok(judgeService.getEvaluationData(username, teamId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

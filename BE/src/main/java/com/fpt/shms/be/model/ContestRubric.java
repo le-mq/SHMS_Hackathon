@@ -21,6 +21,9 @@ public class ContestRubric {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id", nullable = false)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round_id", referencedColumnName = "round_id", nullable = false)
+    private Round round;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rubric_template_id", referencedColumnName = "rubric_template_id", nullable = false)

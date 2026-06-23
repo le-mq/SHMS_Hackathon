@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,13 +52,7 @@ public class JudgeService {
                     .toList();
         }
 
-        List<Long> assignedContestIds = categories.stream()
-                .map(Category::getContest)
-                .filter(c -> c != null)
-                .map(Contest::getId)
-                .distinct()
-                .toList();
-        List<Long> assignedCategoryIds = categories.stream().map(Category::getId).distinct().toList();
+        List<Long> assignedContestIds = categories.stream().map(c -> c.getContest().getId()).distinct().toList();
 
         List<Team> assignedTeams = new ArrayList<>();
         for (Long cId : assignedContestIds) {
@@ -68,71 +61,53 @@ public class JudgeService {
 
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
         List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
-        Map<Long, List<Submission>> submissionsByTeam = submissions.stream()
-                .collect(Collectors.groupingBy(sub -> sub.getTeam().getId()));
+
+        Map<Long, Submission> latestSubmissions = submissions.stream()
+                .collect(Collectors.toMap(
+                        sub -> sub.getTeam().getId(),
+                        sub -> sub,
+                        (s1, s2) -> s1.getVersion() > s2.getVersion() ? s1 : s2
+                ));
 
         int evaluatedCount = 0;
+
         List<EvaluatorDashboardResponse.AssignedTeamQueueDto> queue = new ArrayList<>();
         for (Team team : assignedTeams) {
+            Submission latestSub = latestSubmissions.get(team.getId());
+            boolean isEvaluated = false;
+            if (latestSub != null) {
+                isEvaluated = scoreRepository.existsByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
+            }
+            if (isEvaluated) {
+                evaluatedCount++;
+            }
+
+            String submissionState = isEvaluated ? "Evaluated" : (latestSub != null ? latestSub.getStatus() : "Pending");
+            String roundName = latestSub != null && latestSub.getRound() != null ? latestSub.getRound().getPhaseName() : "Latest Round";
+
             String abbreviation = team.getName() != null && team.getName().length() >= 2
                     ? team.getName().substring(0, 2).toUpperCase()
                     : "TM";
-            List<Submission> teamSubmissions = submissionsByTeam.getOrDefault(team.getId(), List.of()).stream()
-                    .filter(sub -> sub.getRound() == null
-                            || sub.getRound().getCategory() == null
-                            || assignedCategoryIds.contains(sub.getRound().getCategory().getId()))
-                    .sorted(submissionQueueComparator())
-                    .toList();
 
-            if (teamSubmissions.isEmpty()) {
-                String trackName = categories.stream()
-                        .filter(c -> c.getContest() != null && team.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+            String trackName = categories.stream()
+                    .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                    .map(Category::getName)
+                    .collect(Collectors.joining(", "));
 
-                queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
-                        .teamId(team.getId())
-                        .teamName(team.getName())
-                        .abbreviation(abbreviation)
-                        .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
-                        .roundName("No Submission")
-                        .submissionState("Pending")
-                        .themeClass("ai")
-                        .build());
-                continue;
-            }
-
-            for (Submission sub : teamSubmissions) {
-                boolean isEvaluated = scoreRepository.existsByJudgeIdAndSubmissionId(user.getId(), sub.getId());
-                if (isEvaluated) {
-                    evaluatedCount++;
-                }
-
-                Round round = sub.getRound();
-                String trackName = round != null && round.getCategory() != null
-                        ? round.getCategory().getName()
-                        : categories.stream()
-                        .filter(c -> c.getContest() != null && team.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
-
-                queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
-                        .submissionId(sub.getId())
-                        .teamId(team.getId())
-                        .teamName(team.getName())
-                        .abbreviation(abbreviation)
-                        .roundId(round != null ? round.getId() : null)
-                        .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
-                        .roundName(resolveRoundDisplayName(round))
-                        .submissionState(isEvaluated ? "Evaluated" : (sub.getStatus() != null ? sub.getStatus() : "Submitted"))
-                        .themeClass("ai")
-                        .build());
-            }
+            queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
+                    .teamId(team.getId())
+                    .teamName(team.getName())
+                    .abbreviation(abbreviation)
+                    .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
+                    .roundName(roundName)
+                    .submissionState(submissionState)
+                    .themeClass("ai")
+                    .build());
         }
 
         return EvaluatorDashboardResponse.builder()
                 .assignedTrackCount(categories.size())
-                .totalAllocatedTeams(queue.size())
+                .totalAllocatedTeams(assignedTeams.size())
                 .evaluatedCount(evaluatedCount)
                 .contests(contestDtos)
                 .queue(queue)
@@ -140,7 +115,7 @@ public class JudgeService {
     }
 
     @Transactional(readOnly = true)
-    public EvaluationDataResponse getEvaluationData(String username, Long teamId, Long submissionId) {
+    public EvaluationDataResponse getEvaluationData(String username, Long teamId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -155,33 +130,25 @@ public class JudgeService {
             throw new IllegalArgumentException("You are not assigned to evaluate this team");
         }
 
-        Submission selectedSubmission;
-        if (submissionId != null) {
-            selectedSubmission = submissionRepository.findById(submissionId)
-                    .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
-            if (selectedSubmission.getTeam() == null || !selectedSubmission.getTeam().getId().equals(team.getId())) {
-                throw new IllegalArgumentException("Submission does not belong to this team");
-            }
-        } else {
-            List<Submission> teamSubmissions = submissionRepository.findByTeamId(team.getId());
-            if (teamSubmissions.isEmpty()) {
-                throw new IllegalArgumentException("Team has no submissions");
-            }
-
-            selectedSubmission = teamSubmissions.stream()
-                    .max(submissionQueueComparator())
-                    .orElseThrow();
+        List<Submission> teamSubmissions = submissionRepository.findByTeamId(team.getId());
+        if (teamSubmissions.isEmpty()) {
+            throw new IllegalArgumentException("Team has no submissions");
         }
+
+        Submission latestSubmission = teamSubmissions.stream()
+                .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                .orElseThrow();
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
         ContestRubric rubric = null;
 
-        if (selectedSubmission.getRound() != null) {
-            List<ContestRubric> rubrics = contestRubricRepository.findByRoundId(selectedSubmission.getRound().getId());
+        if (latestSubmission.getRound() != null) {
+            List<ContestRubric> rubrics = contestRubricRepository.findByRoundId(latestSubmission.getRound().getId());
             rubric = rubrics.isEmpty() ? null : rubrics.get(0);
         }
 
         if (rubric == null) {
+
             Category fallbackCategory = assignments.stream()
                     .map(JudgeAssignment::getCategory)
                     .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
@@ -213,13 +180,11 @@ public class JudgeService {
         }
 
         return EvaluationDataResponse.builder()
-                .submissionId(selectedSubmission.getId())
-                .roundId(selectedSubmission.getRound() != null ? selectedSubmission.getRound().getId() : null)
-                .roundName(resolveRoundDisplayName(selectedSubmission.getRound()))
-                .githubRepoUrl(selectedSubmission.getProjectRepositoryUrl())
-                .liveDemoUrl(selectedSubmission.getDemoVideoUrl())
-                .docsUrl(selectedSubmission.getDocumentationUrl())
-                .slideUrl(selectedSubmission.getPresentationSlideUrl())
+                .submissionId(latestSubmission.getId())
+                .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
+                .liveDemoUrl(latestSubmission.getDemoVideoUrl())
+                .docsUrl(latestSubmission.getDocumentationUrl())
+                .slideUrl(latestSubmission.getPresentationSlideUrl())
                 .projectId("#" + team.getInvitationCode())
                 .teamName(team.getName())
                 .criteria(criteriaDtos)
@@ -320,21 +285,19 @@ public class JudgeService {
         Team team = submission.getTeam();
         Category category = submission.getRound() != null ? submission.getRound().getCategory() : null;
         ContestRubric rubric = null;
-
-        if (category != null) {
-            rubric = contestRubricRepository.findFirstByCategoryId(category.getId()).orElse(null);
+        if (category != null && submission.getRound() != null) {
+            rubric = contestRubricRepository.findByCategoryIdAndRoundId(category.getId(), submission.getRound().getId()).orElse(null);
         }
-
-        if (rubric == null && category != null) {
+        if (rubric == null && category != null && submission.getRound() != null) {
             rubric = contestRubricRepository.save(ContestRubric.builder()
                     .category(category)
+                    .round(submission.getRound())
                     .rubricTemplate(criteria.getRubricTemplate())
                     .rubricName(criteria.getRubricTemplate() != null ? criteria.getRubricTemplate().getName() : "Rubric")
                     .totalWeight(100.0)
                     .status("ACTIVE")
                     .build());
         }
-
         if (rubric == null) {
             throw new IllegalArgumentException("Contest rubric not found");
         }
@@ -350,27 +313,5 @@ public class JudgeService {
                         .maxScore(criteria.getMaxScore())
                         .percentageWeight(criteria.getPercentageWeight())
                         .build()));
-    }
-
-    private Comparator<Submission> submissionQueueComparator() {
-        return Comparator
-                .comparing((Submission sub) -> sub.getRound() != null ? sub.getRound().getRoundOrder() : null,
-                        Comparator.nullsLast(Integer::compareTo))
-                .thenComparing(Submission::getSubmittedAt, Comparator.nullsLast(java.time.LocalDateTime::compareTo))
-                .thenComparing(Submission::getId, Comparator.nullsLast(Long::compareTo));
-    }
-
-    private String resolveRoundDisplayName(Round round) {
-        if (round == null) {
-            return "Latest Round";
-        }
-
-        String roundName = round.getPhaseName();
-        if (roundName != null && !roundName.isBlank() && !"Round".equalsIgnoreCase(roundName.trim())) {
-            return roundName;
-        }
-
-        Integer roundOrder = round.getRoundOrder();
-        return "Round " + (roundOrder != null ? roundOrder : "");
     }
 }
