@@ -717,44 +717,25 @@ const ProjectSubmission = () => {
                             </p>
                         )}
 
-                        <button
-                            className="submit-btn"
-                            onClick={handleSubmit}
-                            disabled={!canSubmitProject}
-                            style={{
-                                cursor: canSubmitProject ? 'pointer' : 'not-allowed',
-                                background: canSubmitProject ? '#2563eb' : '#94a3b8'
-                            }}
-                        >
-                            <svg
-                                width="16"
-                                height="16"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                                />
-                            </svg>
-                            {isSubmitting
-                                ? 'Submitting...'
-                                : isSelectedRoundEvaluated
-                                    ? 'Evaluated'
-                                    : !isTeamApproved
-                                        ? 'Team Not Approved'
-                                        : !isRoundActive
-                                            ? 'Round Not Active'
-                                            : !isSelectedRoundEligible
-                                                ? 'Not Qualified'
-                                                : hasLoadedSubmissionRole && !isTeamLeader
-                                                    ? 'Leader Only'
-                                                    : 'Submit Project Links'
+                        {(() => {
+                            const selectedRound = pageData?.rounds?.find(r => String(r.id) === String(formData.roundId));
+                            const now = new Date().getTime();
+                            const deadline = selectedRound?.submissionDeadline ? new Date(selectedRound.submissionDeadline).getTime() : Infinity;
+
+                            if (now > deadline) {
+                                return (
+                                    <div className="alert alert-danger" style={{ textAlign: 'center', marginTop: '20px', padding: '20px', borderRadius: '10px' }}>
+                                        <h4 style={{ color: '#dc3545', fontWeight: 'bold' }}>⏳ HẾT HẠN NỘP BÀI</h4>
+                                        <p>Cổng nộp bài cho vòng thi này đã đóng vào lúc: {new Date(selectedRound.submissionDeadline).toLocaleString()}</p>
+                                    </div>
+                                );
                             }
-                        </button>
+                            return (
+                                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                                    {isSubmitting ? 'Submitting...' : 'Submit Project'}
+                                </button>
+                            );
+                        })()}
                     </div>
                 </div>
 

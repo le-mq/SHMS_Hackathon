@@ -133,6 +133,7 @@ CREATE TABLE Contest (
                          compliance_rules NVARCHAR(MAX) NULL,
                          tiered_prize_structures NVARCHAR(MAX) NULL,
                          created_at DATETIME NULL CONSTRAINT df_contest_created_at DEFAULT GETDATE(),
+                         contest_end_at DATETIME NULL,
                          CONSTRAINT pk_contest PRIMARY KEY (contest_id),
                          CONSTRAINT fk_contest_semester FOREIGN KEY (semester_id) REFERENCES Semester(semester_id)
 );
@@ -260,6 +261,9 @@ CREATE TABLE [Round] (
                             round_order INT NULL,
                             submission_open_at DATETIME NOT NULL,
                             submission_deadline_at DATETIME NOT NULL,
+                            grading_open_at DATETIME NULL,
+                            grading_deadline_at DATETIME NULL,
+                            publish_result_at DATETIME NULL,
                             status VARCHAR(50) NOT NULL,
                             CONSTRAINT pk_round PRIMARY KEY (round_id),
                             CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),

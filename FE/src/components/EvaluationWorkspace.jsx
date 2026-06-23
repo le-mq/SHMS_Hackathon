@@ -23,7 +23,6 @@ const EvaluationWorkspace = () => {
 
                 if (result && result.criteria) {
                     setScores(result.criteria.map(c => {
-                        // Lấy chuẩn ID số từ cặp id.criteriaId lồng nhau
                         const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
                         return {
                             criteriaId: rawId ? Number(rawId) : 0,
@@ -62,7 +61,6 @@ const EvaluationWorkspace = () => {
     }, [teamId]);
 
     const handleScoreChange = (id, field, value) => {
-        // Sử dụng Ép kiểu Number để đảm bảo so sánh chính xác giữa id thay đổi và criteriaId trong state
         const targetId = Number(id);
         setScores(prev => prev.map(s => Number(s.criteriaId) === targetId ? { ...s, [field]: value } : s));
     };

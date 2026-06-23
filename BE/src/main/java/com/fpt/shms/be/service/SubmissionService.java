@@ -203,6 +203,15 @@ public class SubmissionService {
             throw new IllegalArgumentException("Selected round does not belong to your registered contest.");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+        if (round.getSubmissionOpen() != null && now.isBefore(round.getSubmissionOpen())) {
+            throw new IllegalArgumentException("The submission portal for this round is not yet open!");
+        }
+
+        if (round.getSubmissionDeadline() != null && now.isAfter(round.getSubmissionDeadline())) {
+            throw new IllegalArgumentException("The submission deadline has passed. The submission portal is closed!");
+        }
+
         if (!Round.RoundState.ACTIVE.equals(round.getState())) {
             throw new IllegalArgumentException("This round is not active yet. You cannot submit.");
         }
@@ -315,6 +324,11 @@ public class SubmissionService {
         for (Submission sub : submissions) {
             if (sub.getRound() == null) continue;
 
+            LocalDateTime now = LocalDateTime.now();
+            if (sub.getRound().getPublishResultAt() == null || now.isBefore(sub.getRound().getPublishResultAt())) {
+                continue;
+            }
+
             List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
             if (scores.isEmpty()) continue;
 
@@ -325,7 +339,7 @@ public class SubmissionService {
                 totalRoundScore += score.getTotalScore().doubleValue();
 
                 detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                        .criteriaName("Tổng hợp từ Giám khảo " + (score.getJudge() != null ? score.getJudge().getUser().getFullName() : "N/A"))
+                        .criteriaName("Feedback Summary from the Judges" + (score.getJudge() != null ? score.getJudge().getUser().getFullName() : "N/A"))
                         .weight(1.0)
                         .pointsAwarded(score.getTotalScore().doubleValue())
                         .feedback(score.getFeedback())

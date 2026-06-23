@@ -2,7 +2,6 @@ package com.fpt.shms.be.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -23,7 +22,7 @@ public class CreateTrackRoundRequest {
 
     private String guidelineUrl;
 
-    private String status = "ACTIVE";
+    private String status = "ACTIVED";
 
     @Valid
     private List<RoundDto> rounds;
@@ -36,10 +35,21 @@ public class CreateTrackRoundRequest {
         private String phaseName;
 
         @NotNull(message = "Submission open time is required")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime submissionOpen;
 
         @NotNull(message = "Submission deadline is required")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime submissionDeadline;
+
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime gradingOpenAt;
+
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime gradingDeadlineAt;
+
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime publishResultAt;
 
         private String state = "UPCOMING";
     }

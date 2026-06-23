@@ -31,7 +31,9 @@ public class PublicHomeService {
 
     public PublicHomeResponse getHomeData() {
 
-        List<Contest> activeContests = contestRepository.findByStatusIn(List.of(Contest.ContestStatus.ACTIVE, Contest.ContestStatus.UPCOMING));
+        List<Contest> activeContests = contestRepository.findAll().stream()
+                .filter(c -> c.getStatus() == Contest.ContestStatus.ACTIVE || c.getStatus() == Contest.ContestStatus.UPCOMING)
+                .toList();
 
         List<ContestDTO> contests = activeContests.stream()
                 .map(c -> {
@@ -40,12 +42,26 @@ public class PublicHomeService {
                     List<ContestDTO.CategoryDTO> categories = categoriesModel.stream().map(cat -> {
                         List<ContestDTO.RoundDTO> catRounds = contestRounds.stream()
                                 .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(cat.getId()))
-                                .map(r -> new ContestDTO.RoundDTO(r.getPhaseName(), r.getSubmissionOpen(), r.getSubmissionDeadline()))
+                                .map(r -> new ContestDTO.RoundDTO(
+                                        r.getPhaseName(),
+                                        r.getSubmissionOpen(),
+                                        r.getSubmissionDeadline(),
+                                        r.getGradingOpenAt(),
+                                        r.getGradingDeadlineAt(),
+                                        r.getPublishResultAt()
+                                ))
                                 .toList();
                         return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), catRounds);
                     }).toList();
                     List<ContestDTO.RoundDTO> dtoRounds = contestRounds.stream()
-                            .map(r -> new ContestDTO.RoundDTO(r.getPhaseName(), r.getSubmissionOpen(), r.getSubmissionDeadline()))
+                            .map(r -> new ContestDTO.RoundDTO(
+                                    r.getPhaseName(),
+                                    r.getSubmissionOpen(),
+                                    r.getSubmissionDeadline(),
+                                    r.getGradingOpenAt(),
+                                    r.getGradingDeadlineAt(),
+                                    r.getPublishResultAt()
+                            ))
                             .toList();
                     return ContestDTO.from(c, categories, dtoRounds);
                 })

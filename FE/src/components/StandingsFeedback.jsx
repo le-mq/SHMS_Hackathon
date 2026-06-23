@@ -143,51 +143,74 @@ const StandingsFeedback = () => {
                             </div>
                         </div>
                     </div>
-                    
-                    <table className="history-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-                        <thead>
-                            <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
-                                <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
-                                <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {isLoading ? (
-                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                        Loading result data...
-                                    </td>
+
+                    {(() => {
+                        const now = new Date().getTime();
+                        const currentRound = rounds && rounds.length > 0 ? rounds[0] : null;
+                        const publishTime = currentRound?.publishResultAt ? new Date(currentRound.publishResultAt).getTime() : 0;
+
+                        if (publishTime !== 0 && now < publishTime) {
+                            return (
+                                <div className="waiting-result-card" style={{ background: '#f8fafc', padding: '40px', textAlign: 'center', borderRadius: '15px', border: '2px dashed #cbd5e1', marginTop: '20px' }}>
+                                    <h3 style={{ color: '#475569' }}>🔒 Điểm Số Đang Được Bảo Mật</h3>
+                                    <p style={{ color: '#64748b', fontSize: '1.1rem', margin: '15px 0' }}>
+                                        Ban giám khảo đang tổng hợp điểm. Kết quả sẽ tự động công bố vào lúc:<br/>
+                                        <strong style={{ color: '#2563eb', fontSize: '1.3rem', display: 'block', marginTop: '10px' }}>
+                                            {new Date(currentRound.publishResultAt).toLocaleString('vi-VN')}
+                                        </strong>
+                                    </p>
+                                    <p style={{ fontStyle: 'italic', color: '#94a3b8' }}>Vui lòng quay lại sau sếp nhé!</p>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <table className="history-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
+                                <thead>
+                                <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
+                                    <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
+                                    <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
                                 </tr>
-                            ) : error ? (
-                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
-                                        {error}
-                                    </td>
-                                </tr>
-                            ) : rounds.length > 0 ? rounds.map((r, idx) => (
-                                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
-                                    <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>{r.totalScore.toFixed(2)} / 100</td>
-                                    <td style={{ padding: '16px', textAlign: 'right' }}>
-                                        <button 
-                                            className="view-rubric-btn" 
-                                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
-                                            onClick={() => setSelectedDetail(r)}
-                                        >
-                                            View Detail
-                                        </button>
-                                    </td>
-                                </tr>
-                            )) : (
-                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                        No result data available yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                {isLoading ? (
+                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                            Loading result data...
+                                        </td>
+                                    </tr>
+                                ) : error ? (
+                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
+                                            {error}
+                                        </td>
+                                    </tr>
+                                ) : rounds.length > 0 ? rounds.map((r, idx) => (
+                                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
+                                        <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>{r.totalScore.toFixed(2)} / 100</td>
+                                        <td style={{ padding: '16px', textAlign: 'right' }}>
+                                            <button
+                                                className="view-rubric-btn"
+                                                style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
+                                                onClick={() => setSelectedDetail(r)}
+                                            >
+                                                View Detail
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                            No result data available yet.
+                                        </td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+                        );
+                    })()}
                 </div>
             </div>
 

@@ -39,6 +39,7 @@ public class RubricAdminService {
                 .category(category)
                 .publicVisibility(request.getPublicVisibility())
                 .weightedScoring(request.getWeightedScoring())
+                .status("ACTIVE")
                 .criteria(new ArrayList<>())
                 .build();
 
@@ -91,6 +92,7 @@ public class RubricAdminService {
                 .category(category)
                 .publicVisibility(request.getPublicVisibility() != null ? request.getPublicVisibility() : true)
                 .weightedScoring(request.getWeightedScoring() != null ? request.getWeightedScoring() : true)
+                .status("DRAFT")
                 .criteria(new ArrayList<>())
                 .build();
         for (CreateRubricRequest.CriterionDto critDto : request.getCriteria()) {
@@ -136,6 +138,7 @@ public class RubricAdminService {
                 .description(original.getDescription())
                 .publicVisibility(original.getPublicVisibility())
                 .weightedScoring(original.getWeightedScoring())
+                .status("DRAFT")
                 .criteria(new ArrayList<>())
                 .build();
 
@@ -181,8 +184,16 @@ public class RubricAdminService {
         return template;
     }
 
+    @Transactional
     public void deleteTemplate(Long id) {
-        rubricTemplateRepository.deleteById(id);
+        RubricTemplate template = getTemplateById(id);
+        List<ContestRubric> contestRubrics = contestRubricRepository.findByRubricTemplateId(id);
+
+        if (!contestRubrics.isEmpty() || "ACTIVE".equals(template.getStatus())) {
+            throw new IllegalStateException("Cannot delete Rubric because it is ACTIVED and in use.");
+        }
+
+        rubricTemplateRepository.delete(template);
     }
 
     private void syncContestRubricDetails(ContestRubric contestRubric, List<RubricTemplateCriteria> criteria) {

@@ -1025,11 +1025,11 @@
     "contests": {
       "data": [
         {
-          "id": "1",
-          "name": "Summer Hackathon 2026",
+          "id": 1,
+          "name": "FPT Hackathon Summer 2026",
           "tracks": [
             {
-              "name": "AI",
+              "trackName": "Web Development",
               "rounds": [
                 {
                   "phaseName": "Phase 01: Screening"
@@ -1048,79 +1048,109 @@
     },
     "readiness": {
       "summary": {
-        "totalTeams": 18,
-        "avgScore": 78.6,
-        "scoreRange": "42 - 96",
+        "totalTeams": 10,
+        "avgScore": 83.4,
+        "scoreRange": "65-98",
         "bars": [
+          0,
+          0,
+          0,
           0,
           1,
           1,
           2,
-          3,
-          4,
           2,
-          3,
-          1,
-          1
+          2,
+          2
         ]
       },
       "evaluators": [
         {
           "name": "Nguyen Van A",
-          "dept": "Computer Science",
+          "dept": "Software Engineering",
           "status": "Finalized",
-          "date": "2026-06-15 08:30"
+          "date": "2026-06-23"
         },
         {
           "name": "Tran Thi B",
           "dept": "Artificial Intelligence",
           "status": "Finalized",
-          "date": "2026-06-15 09:12"
+          "date": "2026-06-23"
         },
         {
           "name": "Le Van C",
-          "dept": "Software Engineering",
-          "status": "Pending",
-          "date": "-"
+          "dept": "Information Security",
+          "status": "Finalized",
+          "date": "2026-06-23"
         }
       ],
-      "allReady": false
+      "allReady": true
     },
     "rankingResult": {
       "roundName": "Phase 01: Screening",
-      "qualifiedCount": 10,
-      "eliminatedCount": 8,
-      "totalProcessed": 18,
+      "qualifiedCount": 5,
+      "eliminatedCount": 5,
+      "totalProcessed": 10,
       "results": [
         {
           "rank": 1,
-          "teamName": "AI Warriors",
-          "averageScore": 95.4,
+          "teamName": "CodeCrafters",
+          "averageScore": 98,
           "status": "QUALIFIED"
         },
         {
           "rank": 2,
-          "teamName": "Data Miners",
-          "averageScore": 93.2,
+          "teamName": "AI Wizards",
+          "averageScore": 95,
           "status": "QUALIFIED"
         },
         {
           "rank": 3,
-          "teamName": "Code Titans",
-          "averageScore": 91.8,
+          "teamName": "Quantum Leap",
+          "averageScore": 92,
           "status": "QUALIFIED"
         },
         {
           "rank": 4,
-          "teamName": "NextGen",
-          "averageScore": 89.7,
+          "teamName": "Syntax Error",
+          "averageScore": 90,
           "status": "QUALIFIED"
         },
         {
           "rank": 5,
-          "teamName": "HackStorm",
-          "averageScore": 88.5,
+          "teamName": "Cyber Sentry",
+          "averageScore": 88,
           "status": "QUALIFIED"
+        },
+        {
+          "rank": 6,
+          "teamName": "ByteForce",
+          "averageScore": 84,
+          "status": "ELIMINATED"
+        },
+        {
+          "rank": 7,
+          "teamName": "Pixel Pirates",
+          "averageScore": 81,
+          "status": "ELIMINATED"
+        },
+        {
+          "rank": 8,
+          "teamName": "Data Dragons",
+          "averageScore": 77,
+          "status": "ELIMINATED"
+        },
+        {
+          "rank": 9,
+          "teamName": "Hack Titans",
+          "averageScore": 72,
+          "status": "ELIMINATED"
+        },
+        {
+          "rank": 10,
+          "teamName": "Bug Hunters",
+          "averageScore": 65,
+          "status": "ELIMINATED"
         }
       ]
     }
@@ -1685,5 +1715,74 @@
         }
       ]
     }
+  },
+  "evaluatorDashboard": {
+    "data": {
+      "assignedCategoryCount": 2,
+      "totalAllocatedTeams": 5,
+      "evaluatedCount": 2,
+      "contests": [
+        {
+          "id": 1,
+          "name": "FPT Hackathon Summer 2026"
+        },
+        {
+          "id": 2,
+          "name": "FPT Fall Innovation Challenge"
+        }
+      ],
+      "queue": [
+        {
+          "teamId": "T001",
+          "teamName": "CodeCrafters",
+          "categoryName": "Web Development",
+          "roundName": "Final Sprint",
+          "submissionState": "SUBMITTED",
+          "contestId": 1
+        }
+      ]
+    }
+  },
+  "publicationDataExport": {
+    "contests": [
+      {
+        "id": 1,
+        "name": "FPT AI Hackathon 2026"
+      },
+      {
+        "id": 2,
+        "name": "Startup Innovation Challenge"
+      },
+      {
+        "id": 3,
+        "name": "Smart City Competition"
+      }
+    ],
+    "announcements": [
+      {
+        "id": 1,
+        "contestId": 1,
+        "title": "Submission Deadline Extended",
+        "content": "The submission deadline has been extended to July 15.",
+        "type": "DEADLINE_REMINDER",
+        "roles": [
+          "Student",
+          "Mentor"
+        ],
+        "createdAt": "2026-06-20T10:00:00"
+      },
+      {
+        "id": 2,
+        "contestId": 1,
+        "title": "Judge Assignment Completed",
+        "content": "All judges have been assigned to categories.",
+        "type": "GENERAL_UPDATE",
+        "roles": [
+          "Judge",
+          "Admin"
+        ],
+        "createdAt": "2026-06-21T09:30:00"
+      }
+    ]
   }
 }
