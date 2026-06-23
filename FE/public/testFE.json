@@ -1685,5 +1685,74 @@
         }
       ]
     }
+  },
+  "evaluatorDashboard": {
+    "data": {
+      "assignedCategoryCount": 2,
+      "totalAllocatedTeams": 5,
+      "evaluatedCount": 2,
+      "contests": [
+        {
+          "id": 1,
+          "name": "FPT Hackathon Summer 2026"
+        },
+        {
+          "id": 2,
+          "name": "FPT Fall Innovation Challenge"
+        }
+      ],
+      "queue": [
+        {
+          "teamId": "T001",
+          "teamName": "CodeCrafters",
+          "categoryName": "Web Development",
+          "roundName": "Final Sprint",
+          "submissionState": "SUBMITTED",
+          "contestId": 1
+        }
+      ]
+    }
+  },
+  "publicationDataExport": {
+    "contests": [
+      {
+        "id": 1,
+        "name": "FPT AI Hackathon 2026"
+      },
+      {
+        "id": 2,
+        "name": "Startup Innovation Challenge"
+      },
+      {
+        "id": 3,
+        "name": "Smart City Competition"
+      }
+    ],
+    "announcements": [
+      {
+        "id": 1,
+        "contestId": 1,
+        "title": "Submission Deadline Extended",
+        "content": "The submission deadline has been extended to July 15.",
+        "type": "DEADLINE_REMINDER",
+        "roles": [
+          "Student",
+          "Mentor"
+        ],
+        "createdAt": "2026-06-20T10:00:00"
+      },
+      {
+        "id": 2,
+        "contestId": 1,
+        "title": "Judge Assignment Completed",
+        "content": "All judges have been assigned to categories.",
+        "type": "GENERAL_UPDATE",
+        "roles": [
+          "Judge",
+          "Admin"
+        ],
+        "createdAt": "2026-06-21T09:30:00"
+      }
+    ]
   }
 }

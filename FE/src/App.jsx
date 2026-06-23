@@ -22,7 +22,7 @@ import PanelAllocation from './components/PanelAllocation.jsx'
 import ProjectSubmission from './components/ProjectSubmission'
 import StandingsFeedback from './components/StandingsFeedback'
 import HistoricalLog from './components/HistoricalLog'
-
+import PublicationDataExport from './components/PublicationDataExport'
 function App() {
   return (
     <Router>
@@ -40,6 +40,7 @@ function App() {
         <Route path="/admin/experts/provision" element={<ExpertProvision />} />
         <Route path="/admin/experts/allocation" element={<PanelAllocation />} />
         <Route path="/admin/team/approval" element={<TeamRegistrationApproval />} />
+        <Route path="/admin/publication" element={<PublicationDataExport />} />
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
         <Route path="/judge/history" element={<HistoricalLog />} />

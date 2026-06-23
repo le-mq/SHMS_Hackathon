@@ -5,7 +5,7 @@ import './RankingsConsole.css';
 import NavbarAdmin from './NavbarAdmin';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = "http://localhost:8080/api/v1/admin";
 const RankingsConsole = () => {
     const [topN, setTopN] = useState(10);
     const [contests, setContests] = useState([]);
@@ -24,7 +24,12 @@ const RankingsConsole = () => {
         let cancelled = false;
         async function fetchInitialData() {
             try {
-                const res = await fetch(API_BASE + "/contests");
+                const token = localStorage.getItem("shms_token");
+                const res = await fetch(API_BASE + "/contests", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
                 if (!res.ok)
                     throw new Error("HTTP " + res.status);
                 const json = await res.json();
@@ -65,7 +70,12 @@ const RankingsConsole = () => {
             try {
                 let data;
                 try {
-                    const res = await fetch(API_BASE + `/contests/${selectedContestId}`);
+                    const token = localStorage.getItem("shms_token");
+                    const res = await fetch(API_BASE + `/contests/${selectedContestId}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
                     if (!res.ok)
                         throw new Error();
                     data = await res.json();
@@ -78,7 +88,7 @@ const RankingsConsole = () => {
                 if (data.tracks) {
                     const rounds = data.tracks.flatMap(track => track.rounds || [])
                         .map(round => round.phaseName);
-                    setAvailableRounds(rounds);
+                    setRounds(rounds);
                 }
             }
             catch (err) {
@@ -95,7 +105,12 @@ const RankingsConsole = () => {
             try {
                 let data;
                 try {
-                    const res = await fetch(API_BASE + `/rankings/readiness?contestId=${selectedContestId}&round=${round}`);
+                    const token = localStorage.getItem("shms_token");
+                    const res = await fetch(API_BASE + `/rankings/readiness?contestId=${selectedContestId}&round=${round}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
                     if (!res.ok)
                         throw new Error();
                     data = await res.json();
