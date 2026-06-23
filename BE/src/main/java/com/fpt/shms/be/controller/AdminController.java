@@ -230,6 +230,8 @@ public class AdminController {
         try {
             rubricAdminService.deleteTemplate(id);
             return ResponseEntity.ok(Map.of("message", "Template deleted successfully"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error",
                     "Cannot delete template because it might be in use, or another error occurred: " + e.getMessage()));
