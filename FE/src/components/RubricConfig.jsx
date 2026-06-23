@@ -197,10 +197,10 @@ const RubricConfig = () => {
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
                 setTemplates(updatedTemplates); setContestRubrics(updatedRubrics);
-            } else {
-                throw new Error('API failed');
+                const d = await res.json().catch(() => ({}));
+                setError(d.error || `Error ${res.status}: ${res.statusText}`);
             }
-        } catch {
+        } catch (e) {
             if (mockAction) {
                 mockAction();
                 setSuccess(`${successMsg}`);
@@ -256,29 +256,38 @@ const RubricConfig = () => {
                     )}
                 </div>
                 {(() => {
-                    const renderCard = (tpl, isOfficial) => (
-                        <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className="rt-card">
-                            <div className="rt-card-top">
-                                <div className="rt-card-icon">
-                                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    const renderCard = (tpl, isOfficial) => {
+                        const isActived = contestRubrics.some(cr => cr.templateId === tpl.id);
+                        return (
+                            <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className="rt-card">
+                                <div className="rt-card-top">
+                                    <div className="rt-card-icon">
+                                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                    </div>
+                                    <div className="rt-card-info">
+                                        <h3 className="rt-card-name">{tpl.name} {isOfficial && <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6, fontWeight: 500 }}>(Official)</span>}</h3>
+                                        <p className="rt-card-desc">{tpl.description || 'No description'}</p>
+                                    </div>
                                 </div>
-                                <div className="rt-card-info">
-                                    <h3 className="rt-card-name">{tpl.name} {isOfficial && <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6, fontWeight: 500 }}>(Official)</span>}</h3>
-                                    <p className="rt-card-desc">{tpl.description || 'No description'}</p>
+                                <div className="rt-card-meta">
+                                    <span className="rt-chip">{(tpl.criteria || []).length} criteria</span>
+                                    {tpl.publicVisibility && <span className="rt-chip rt-chip-green">Public</span>}
+                                    {tpl.weightedScoring && <span className="rt-chip rt-chip-blue">Weighted</span>}
+                                </div>
+                                <div className="rt-card-actions">
+                                    <button className="rt-btn-ghost" onClick={() => startEdit(tpl, isOfficial)}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit</button>
+                                    <button className="rt-btn-ghost" onClick={() => handleClone(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Clone</button>
+                                    {!isActived ? (
+                                        <button className="rt-btn-ghost" style={{ color: '#dc2626' }} onClick={() => handleDelete(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Delete</button>
+                                    ) : (
+                                        <span className="rt-btn-ghost" style={{ color: '#9ca3af', cursor: 'not-allowed', fontSize: 13 }} title="Cannot delete ACTIVED rubric"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>In Use</span>
+                                    )}
                                 </div>
                             </div>
-                            <div className="rt-card-meta">
-                                <span className="rt-chip">{(tpl.criteria || []).length} criteria</span>
-                                {tpl.publicVisibility && <span className="rt-chip rt-chip-green">Public</span>}
-                                {tpl.weightedScoring && <span className="rt-chip rt-chip-blue">Weighted</span>}
-                            </div>
-                            <div className="rt-card-actions">
-                                <button className="rt-btn-ghost" onClick={() => startEdit(tpl, isOfficial)}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit</button>
-                                <button className="rt-btn-ghost" onClick={() => handleClone(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Clone</button>
-                                <button className="rt-btn-ghost" style={{ color: '#dc2626' }} onClick={() => handleDelete(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Delete</button>
-                            </div>
-                        </div>
-                    );
+                        );
+                    };
+
+                    const draftTemplates = templates.filter(tpl => !contestRubrics.some(cr => cr.templateId === tpl.id));
                     return (
                         <>
                             {officialTemplates.length > 0 && editorMode === null && (
@@ -292,8 +301,8 @@ const RubricConfig = () => {
                             {editorMode === null && (
                                 <div style={{ marginBottom: 32 }}>
                                     <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>Rubric Template Bank (Drafts)</h2>
-                                    {templates.length > 0 ? (
-                                        <div className="rt-card-grid">{templates.map(tpl => renderCard(tpl, false))}</div>
+                                    {draftTemplates.length > 0 ? (
+                                        <div className="rt-card-grid">{draftTemplates.map(tpl => renderCard(tpl, false))}</div>
                                     ) : (<div className="rt-empty" style={{ marginBottom: 24 }}>
                                         <svg width="48" height="48" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         <p>No rubric templates found in bank.</p>
