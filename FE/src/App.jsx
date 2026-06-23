@@ -22,7 +22,8 @@ import PanelAllocation from './components/PanelAllocation.jsx'
 import ProjectSubmission from './components/ProjectSubmission'
 import StandingsFeedback from './components/StandingsFeedback'
 import HistoricalLog from './components/HistoricalLog'
-import PublicationDataExport from './components/PublicationDataExport'
+import EnforcementAuditLogs from './components/EnforcementAuditLogs'
+
 function App() {
   return (
     <Router>
@@ -50,6 +51,7 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/student/submission" element={<ProjectSubmission />} />
+        <Route path="/admin/audit-logs" element={<EnforcementAuditLogs />} />
       </Routes>
       <Footer />
     </Router>
