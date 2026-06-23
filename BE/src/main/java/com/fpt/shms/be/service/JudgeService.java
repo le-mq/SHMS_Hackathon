@@ -192,10 +192,29 @@ public class JudgeService {
 
     @Transactional
     public void submitScore(String username, SubmitScoreRequest request) {
-        com.fpt.shms.be.model.User judgeUser = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("Judge not found"));
-        Judge judge = judgeRepository.findById(judgeUser.getId()).orElseThrow(() -> new IllegalArgumentException("Judge profile not found"));
-        Submission submission = submissionRepository.findById(request.getSubmissionId()).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
-        if (scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), submission.getId())) { throw new IllegalArgumentException("You have already evaluated this submission"); }
+        com.fpt.shms.be.model.User judgeUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Judge not found"));
+        Judge judge = judgeRepository.findById(judgeUser.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Judge profile not found"));
+        Submission submission = submissionRepository.findById(request.getSubmissionId())
+                .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+
+        if (scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), submission.getId())) {
+            throw new IllegalArgumentException("You have already evaluated this submission");
+        }
+
+        Round round = submission.getRound();
+        if (round != null) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+            if (round.getGradingOpenAt() != null && now.isBefore(round.getGradingOpenAt())) {
+                throw new IllegalArgumentException("It is not yet time to grade. Please return later!");
+            }
+
+            if (round.getGradingDeadlineAt() != null && now.isAfter(round.getGradingDeadlineAt())) {
+                throw new IllegalArgumentException("The grading deadline has passed. The system is now closed!");
+            }
+        }
 
         Score score = Score.builder()
                 .submission(submission)
@@ -209,12 +228,15 @@ public class JudgeService {
         for (SubmitScoreRequest.ScoreEntry entry : request.getScores()) {
             ContestRubricDetails rubricDetail = contestRubricDetailsRepository.findById(entry.getCriteriaId()).orElse(null);
             if (rubricDetail == null) {
-                RubricTemplateCriteria criteria = rubricTemplateCriteriaRepository.findById(entry.getCriteriaId()).orElseThrow(() -> new IllegalArgumentException("Criteria not found"));
+                RubricTemplateCriteria criteria = rubricTemplateCriteriaRepository.findById(entry.getCriteriaId())
+                        .orElseThrow(() -> new IllegalArgumentException("Criteria not found"));
                 rubricDetail = resolveContestRubricDetail(submission, criteria);
             }
+
             double weight = rubricDetail.getPercentageWeight() != null ? rubricDetail.getPercentageWeight() : 0.0;
             double weighted = entry.getPointsAwarded() * weight / 100.0;
             total += weighted;
+
             if (entry.getFeedback() != null && !entry.getFeedback().isBlank()) {
                 feedback.add(rubricDetail.getCriteriaName() + ": " + entry.getFeedback());
             }

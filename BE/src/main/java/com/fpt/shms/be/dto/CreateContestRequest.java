@@ -26,6 +26,10 @@ public class CreateContestRequest {
     private java.time.LocalDate registrationStart;
     private java.time.LocalDate registrationEnd;
 
+    // --- MỚI THÊM: Thời gian đóng cuộc thi ---
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private java.time.LocalDateTime contestEndAt;
+
     @NotBlank(message = "Region scope is required")
     private String regionScope;
 
