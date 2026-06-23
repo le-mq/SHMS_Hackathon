@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ContestRubricDetailsRepository extends JpaRepository<ContestRubricDetails, Long> {
     List<ContestRubricDetails> findByContestRubricId(Long contestRubricId);
+    void deleteByContestRubricId(Long contestRubricId);
 }

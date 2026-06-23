@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface ContestRubricRepository extends JpaRepository<ContestRubric, Long> {
     List<ContestRubric> findByCategoryId(Long categoryId);
     Optional<ContestRubric> findFirstByCategoryId(Long categoryId);
+    List<ContestRubric> findByRubricTemplateId(Long templateId);
 
 }
