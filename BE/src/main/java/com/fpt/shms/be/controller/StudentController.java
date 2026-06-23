@@ -108,7 +108,7 @@ public class StudentController {
             return org.springframework.http.ResponseEntity.status(401).body(java.util.Map.of("error", "Unauthorized"));
         }
     }
-
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/categories")
     public ResponseEntity<?> getCategories(@RequestParam(required = false) Long contestId) {
         List<Category> categories;
