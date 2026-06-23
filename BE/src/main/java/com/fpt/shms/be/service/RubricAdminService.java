@@ -181,7 +181,13 @@ public class RubricAdminService {
         return template;
     }
 
+    @Transactional
     public void deleteTemplate(Long id) {
+        List<ContestRubric> contestRubrics = contestRubricRepository.findByRubricTemplateId(id);
+        for (ContestRubric cr : contestRubrics) {
+            contestRubricDetailsRepository.deleteByContestRubricId(cr.getId());
+            contestRubricRepository.delete(cr);
+        }
         rubricTemplateRepository.deleteById(id);
     }
 
