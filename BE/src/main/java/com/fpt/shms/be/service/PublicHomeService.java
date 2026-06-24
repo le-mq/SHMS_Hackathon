@@ -110,9 +110,32 @@ public class PublicHomeService {
     }
 
     public List<AnnouncementDTO> getAnnouncements() {
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        java.util.List<String> userRoles = new java.util.ArrayList<>();
+
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            userRoles = auth.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .toList();
+        }
+
+        final java.util.List<String> currentRoles = userRoles;
+
         return announcementRepository
                 .findByIsActiveTrueOrderByPublishedAtDesc()
                 .stream()
+                .filter(a -> {
+
+                    if (a.getTargetRoles() == null || a.getTargetRoles().isBlank()) return true;
+
+                    if (currentRoles.isEmpty()) return false;
+
+                    java.util.List<String> targetRolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
+                    return currentRoles.stream().anyMatch(role ->
+                            targetRolesList.stream().anyMatch(t -> t.equalsIgnoreCase(role))
+                    );
+                })
                 .map(AnnouncementDTO::from)
                 .toList();
     }

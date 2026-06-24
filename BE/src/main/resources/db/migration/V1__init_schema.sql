@@ -166,6 +166,7 @@ CREATE TABLE Announcement (
                               announcement_type VARCHAR(50) NULL,
                               status VARCHAR(50) NULL,
                               published_at DATETIME NULL,
+                              target_roles VARCHAR(255) NULL,
                               CONSTRAINT pk_announcement PRIMARY KEY (announcement_id),
                               CONSTRAINT fk_announcement_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
                               CONSTRAINT fk_announcement_admin FOREIGN KEY (user_id) REFERENCES Admin(user_id)

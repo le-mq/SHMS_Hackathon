@@ -42,10 +42,12 @@ public class JudgeController {
 
     @GetMapping("/evaluation-data/{teamId}")
     @Operation(summary = "Get Evaluation Data", description = "Returns team submission and rubric.")
-    public ResponseEntity<?> getEvaluationData(HttpServletRequest request, @org.springframework.web.bind.annotation.PathVariable Long teamId) {
+    public ResponseEntity<?> getEvaluationData(HttpServletRequest request,
+                                               @org.springframework.web.bind.annotation.PathVariable Long teamId,
+                                               @org.springframework.web.bind.annotation.RequestParam(required = false) Long roundId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            return ResponseEntity.ok(judgeService.getEvaluationData(username, teamId));
+            return ResponseEntity.ok(judgeService.getEvaluationData(username, teamId, roundId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
