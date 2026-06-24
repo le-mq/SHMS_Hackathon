@@ -3,7 +3,7 @@ import './LatestAnnouncements.css';
 
 const API_URL = 'http://localhost:8080/api/v1/public/announcements';
 
-const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
+const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAll, setShowAll] = useState(false);
@@ -116,9 +116,9 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
                     <h3>Latest Announcements</h3>
                 </div>
 
-                <div>
+                <div className="announcement-header-actions">
                     <button
-                        className="view-all-btn"
+                        className="mark-all-read-btn"
                         onClick={() => setReadIds(announcements.map(item => item.id))}
                     >
                         Mark all read
@@ -126,7 +126,7 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
 
                     {announcements.length > 3 && (
                         <button
-                            className="view-all-btn"
+                            className="show-all-announcements-btn"
                             onClick={() => setShowAll(!showAll)}
                         >
                             {showAll ? 'Show Less' : 'View All'}
@@ -167,18 +167,22 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
                             const isRead = readIds.includes(announcement.id);
 
                             return (
-                                <tr key={announcement.id}>
-                                    <td>
+
+                                <tr
+                                    key={announcement.id}
+                                    className="announcement-row"
+                                    onClick={() => openDetail(announcement)}
+                                >
+                                    <td className="announcement-title-cell">
                                         <div className="ann-title">
                                             {announcement.title}
                                         </div>
 
                                         <div className="ann-desc">
-                                            {announcement.content?.length > 60
-                                                ? announcement.content.slice(0, 60) + '...'
-                                                : announcement.content}
+                                            {announcement.content || 'No content'}
                                         </div>
                                     </td>
+
 
                                     <td>
                                         <span className={`ann-category ${getCategoryClass(announcement.type)}`}>
@@ -192,20 +196,25 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
                                         </span>
                                     </td>
 
-                                    <td>
-                                        <button
-                                            className="view-all-btn"
-                                            onClick={(e) => toggleRead(e, announcement.id)}
-                                        >
-                                            {isRead ? 'Mark unread' : 'Mark read'}
-                                        </button>
+                                    <td className="announcement-action-cell">
+                                        <div className="announcement-action-buttons">
+                                            <button
+                                                className={`announcement-action-btn ${isRead ? 'unread-btn' : 'read-btn'}`}
+                                                onClick={(e) => toggleRead(e, announcement.id)}
+                                            >
+                                                {isRead ? 'Mark unread' : 'Mark read'}
+                                            </button>
 
-                                        <button
-                                            className="action-btn"
-                                            onClick={() => openDetail(announcement)}
-                                        >
-                                            View
-                                        </button>
+                                            <button
+                                                className="announcement-action-btn view-detail-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openDetail(announcement);
+                                                }}
+                                            >
+                                                View
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             );
@@ -213,10 +222,15 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
                     </tbody>
                 </table>
             </div>
-
             {selectedAnnouncement && (
-                <div className="announcement-detail-modal">
-                    <div className="announcement-detail-content">
+                <div
+                    className="announcement-detail-modal"
+                    onClick={() => setSelectedAnnouncement(null)}
+                >
+                    <div
+                        className="announcement-detail-content"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button
                             className="close-detail-btn"
                             onClick={() => setSelectedAnnouncement(null)}
@@ -239,7 +253,7 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => {} }) => {
                         </div>
 
                         <div className="detail-body">
-                            {selectedAnnouncement.content}
+                            {selectedAnnouncement.content || 'No content'}
                         </div>
                     </div>
                 </div>
