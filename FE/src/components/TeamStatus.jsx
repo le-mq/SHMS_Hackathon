@@ -63,6 +63,7 @@ const TeamStatus = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [statusRefreshKey, setStatusRefreshKey] = useState(0);
 
     const [formTeamName, setFormTeamName] = useState('');
     const [selectedContestId, setSelectedContestId] = useState('');
@@ -96,6 +97,16 @@ const TeamStatus = () => {
     useEffect(() => {
         participatedTeamsRef.current = participatedTeams;
     }, [participatedTeams]);
+
+    useEffect(() => {
+        if (!successMessage) return;
+
+        const timerId = setTimeout(() => {
+            setSuccessMessage('');
+        }, 3000);
+
+        return () => clearTimeout(timerId);
+    }, [successMessage]);
 
     useEffect(() => {
         let cancelled = false;
@@ -301,7 +312,7 @@ const TeamStatus = () => {
         return () => {
             cancelled = true;
         };
-    }, [viewContestId]);
+    }, [viewContestId, statusRefreshKey]);
 
 const data = teamData || emptyTeam;
 const roster = Array.isArray(data.roster) ? data.roster : [];
@@ -477,12 +488,9 @@ const handleSubmitRegistration = async () => {
         setTeamData(updatedTeam);
         upsertParticipatedTeam(selectedContestId, updatedTeam);
         setViewContestId(String(selectedContestId));
+        setStatusRefreshKey(prev => prev + 1);
         setSuccessMessage('Registration submitted successfully!');
         setError('');
-
-        setTimeout(() => {
-            window.location.reload();
-        }, 5000);
 
     } catch (err) {
         console.warn('Register team API unavailable, use mock:', err.message);
@@ -498,6 +506,7 @@ const handleSubmitRegistration = async () => {
         upsertParticipatedTeam(selectedContestId, updatedTeam);
 
         setViewContestId(String(selectedContestId));
+        setStatusRefreshKey(prev => prev + 1);
         setSuccessMessage('Registration submitted successfully!');
         setError('');
     }
