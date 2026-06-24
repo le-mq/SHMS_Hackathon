@@ -9,6 +9,8 @@ public class PublishLeaderboardRequest {
     @NotNull(message = "Contest ID is required")
     private Long contestId;
 
+    private Long categoryId;
+
     @NotBlank(message = "Round name is required")
     private String roundName;
 
