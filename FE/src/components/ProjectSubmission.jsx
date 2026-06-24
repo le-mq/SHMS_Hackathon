@@ -9,6 +9,25 @@ const SUCCESS_RELOAD_DELAY_MS = 5000;
 const ERROR_MESSAGE_DURATION_MS = 5000;
 const SELECTED_ROUND_STORAGE_KEY = 'projectSubmissionSelectedRoundId';
 
+const formatScheduleDate = (dateValue, emptyText, invalidText) => {
+    if (!dateValue) {
+        return emptyText;
+    }
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+        return invalidText;
+    }
+
+    return date.toLocaleString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).replace(',', ' \u2022');
+};
+
 const ProjectSubmission = () => {
     const [formData, setFormData] = useState({
         githubRepoUrl: '',
@@ -22,7 +41,7 @@ const ProjectSubmission = () => {
     const [pageData, setPageData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [history, setHistory] = useState([]);
-    const [timeLeft, setTimeLeft] = useState('--:--:--');
+    const [timeLeft, setTimeLeft] = useState('');
     const [formattedDeadline, setFormattedDeadline] = useState('');
     const [workspaceData, setWorkspaceData] = useState(null);
     const errorTimerRef = useRef(null);
@@ -269,7 +288,26 @@ const ProjectSubmission = () => {
         workspaceData?.submissionDeadline ||
         '2026-06-24T15:32:00+07:00';
 
+    const registrationOpen =
+        workspaceData?.registrationStart ||
+        workspaceData?.teamRegistrationStart ||
+        pageData?.registrationStart ||
+        pageData?.teamRegistrationStart;
+
+    const roundOpen =
+        selectedRound?.submissionOpen ||
+        selectedRound?.openDate ||
+        selectedRound?.startDate ||
+        workspaceData?.submissionOpen;
+
+    const currentOpen = isTeamApproved ? roundOpen : registrationOpen;
     const currentDeadline = isTeamApproved ? roundDeadline : registrationDeadline;
+
+    const formattedOpenDate = formatScheduleDate(
+        currentOpen,
+        'No Open Date Set',
+        'Invalid Open Date'
+    );
 
     const deadlineLabel = isTeamApproved
         ? 'SUBMISSION DEADLINE'
@@ -283,6 +321,10 @@ const ProjectSubmission = () => {
         ? 'Gateway Closes:'
         : 'Registration Closes:';
 
+    const deadlineOpenText = isTeamApproved
+        ? 'Gateway Opens:'
+        : 'Registration Opens:';
+
     const canSubmitProject =
         isTeamApproved &&
         isRoundActive &&
@@ -292,42 +334,72 @@ const ProjectSubmission = () => {
         !isSubmitting &&
         formData.roundId;
 
+    const selectedRoundSubmitDeadline =
+        selectedRound?.submissionDeadline ||
+        selectedRound?.deadline ||
+        selectedRound?.endDate;
+    const selectedRoundSubmitDeadlineTime = selectedRoundSubmitDeadline
+        ? new Date(selectedRoundSubmitDeadline).getTime()
+        : Infinity;
+    const isSelectedRoundClosed =
+        Number.isFinite(selectedRoundSubmitDeadlineTime) &&
+        Date.now() > selectedRoundSubmitDeadlineTime;
+    const closedRoundMessage = isSelectedRoundClosed
+        ? `Submission closed at ${new Date(selectedRoundSubmitDeadline).toLocaleString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        })}.`
+        : '';
+    const submitFeedbackMessage = error || successMessage || closedRoundMessage;
+    const submitFeedbackType = error || closedRoundMessage ? 'error' : 'success';
+    const submitFeedbackVariant = closedRoundMessage ? ' closed' : '';
+
     useEffect(() => {
         if (!currentDeadline) {
             setFormattedDeadline('No Deadline Set');
-            setTimeLeft('--:--:--');
+            setTimeLeft('');
             return;
         }
+
         const deadline = new Date(currentDeadline);
         if (Number.isNaN(deadline.getTime())) {
             setFormattedDeadline('Invalid Deadline');
-            setTimeLeft('--:--:--');
+            setTimeLeft('');
             return;
         }
-        setFormattedDeadline(
-            deadline.toLocaleString('en-US', {
-                month: 'short',
-                day: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-            }).replace(',', ' •')
-        );
-        const timer = setInterval(() => {
+
+        setFormattedDeadline(formatScheduleDate(currentDeadline, 'No Deadline Set', 'Invalid Deadline'));
+
+        const open = currentOpen ? new Date(currentOpen) : null;
+        const hasValidOpen = open && !Number.isNaN(open.getTime());
+
+        const updateCountdown = () => {
             const now = new Date();
-            const diff = deadline - now;
-            if (diff <= 0) {
-                setTimeLeft('00:00:00');
-                clearInterval(timer);
+
+            if (!isTeamApproved || !hasValidOpen || now < open || now > deadline) {
+                setTimeLeft('');
                 return;
             }
+
+            const diff = deadline - now;
+            if (diff <= 0) {
+                setTimeLeft('');
+                return;
+            }
+
             const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
             const minutes = Math.floor((diff / (1000 * 60)) % 60).toString().padStart(2, '0');
             const seconds = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
             setTimeLeft(`${hours}:${minutes}:${seconds}`);
-        }, 1000);
+        };
+
+        updateCountdown();
+        const timer = setInterval(updateCountdown, 1000);
         return () => clearInterval(timer);
-    }, [currentDeadline]);
+    }, [currentDeadline, currentOpen, isTeamApproved]);
 
     const getBackendMessage = (data, fallback) => {
         return (
@@ -454,6 +526,12 @@ const ProjectSubmission = () => {
             return;
         }
 
+        if (hasLoadedSubmissionRole && !isTeamLeader) {
+            const message = 'Only Team Leaders are permitted to submit the project.';
+            showErrorMessage(message);
+            return;
+        }
+
         if (!isRoundActive) {
             const message = 'This round is not active yet. You cannot submit.';
             showErrorMessage(message);
@@ -467,12 +545,6 @@ const ProjectSubmission = () => {
 
         if (isSelectedRoundEvaluated) {
             showErrorMessage('This submission has already been evaluated.');
-            return;
-        }
-
-        if (hasLoadedSubmissionRole && !isTeamLeader) {
-            const message = 'Only Team Leaders are permitted to submit the project.';
-            showErrorMessage(message);
             return;
         }
 
@@ -545,12 +617,6 @@ const ProjectSubmission = () => {
                     </p>
                 )}
 
-                {error && (
-                    <p className="submission-message error">
-                        {error}
-                    </p>
-                )}
-
                 <div className="submission-header">
                     <div className="submission-header-left">
                         <h1 className="submission-title">Project Submission Portal</h1>
@@ -603,13 +669,21 @@ const ProjectSubmission = () => {
                             {deadlineName}
                         </div>
 
-                        <div className="deadline-small-body">
-                            <div className="deadline-small-time">
-                                {timeLeft}
-                            </div>
-                            <div className="deadline-small-date">
-                                {deadlineCloseText}
-                                <span>{formattedDeadline}</span>
+                        <div className={`deadline-small-body${timeLeft ? '' : ' no-countdown'}`}>
+                            {timeLeft && (
+                                <div className="deadline-small-time">
+                                    {timeLeft}
+                                </div>
+                            )}
+                            <div className="deadline-small-dates">
+                                <div className="deadline-small-date">
+                                    {deadlineOpenText}
+                                    <span>{formattedOpenDate}</span>
+                                </div>
+                                <div className="deadline-small-date">
+                                    {deadlineCloseText}
+                                    <span>{formattedDeadline}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -711,31 +785,17 @@ const ProjectSubmission = () => {
                     </div>
 
                     <div className="submit-action-row">
-                        {successMessage && (
-                            <p className="submission-message success inline">
-                                {successMessage}
+                        {submitFeedbackMessage && (
+                            <p className={`submission-message ${submitFeedbackType} submit-feedback${submitFeedbackVariant}`}>
+                                {submitFeedbackMessage}
                             </p>
                         )}
 
-                        {(() => {
-                            const selectedRound = pageData?.rounds?.find(r => String(r.id) === String(formData.roundId));
-                            const now = new Date().getTime();
-                            const deadline = selectedRound?.submissionDeadline ? new Date(selectedRound.submissionDeadline).getTime() : Infinity;
-
-                            if (now > deadline) {
-                                return (
-                                    <div className="alert alert-danger" style={{ textAlign: 'center', marginTop: '20px', padding: '20px', borderRadius: '10px' }}>
-                                        <h4 style={{ color: '#dc3545', fontWeight: 'bold' }}>⏳ HẾT HẠN NỘP BÀI</h4>
-                                        <p>Cổng nộp bài cho vòng thi này đã đóng vào lúc: {new Date(selectedRound.submissionDeadline).toLocaleString()}</p>
-                                    </div>
-                                );
-                            }
-                            return (
-                                <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Submitting...' : 'Submit Project'}
-                                </button>
-                            );
-                        })()}
+                        {!isSelectedRoundClosed && (
+                            <button type="button" className="submit-btn" onClick={handleSubmit} disabled={isSubmitting}>
+                                {isSubmitting ? 'Submitting...' : 'Submit Project'}
+                            </button>
+                        )}
                     </div>
                 </div>
 

@@ -19,15 +19,19 @@ const normalizeScoreData = (payload) => {
 
     const fallbackRound = {
         roundName: rawData.roundName || 'Round',
+        publishResultAt: rawData.publishResultAt || rawData.resultPublishAt || null,
+        resultPublished: rawData.resultPublished,
         totalScore: toScoreNumber(rawData.totalScore),
         detailedScores: Array.isArray(rawData.detailedScores) ? rawData.detailedScores : [],
     };
 
-    const rounds = Array.isArray(rawData.rounds) && rawData.rounds.length > 0
+    const rounds = Array.isArray(rawData.rounds)
         ? rawData.rounds.map(round => ({
             ...round,
             roundName: round.roundName || round.name || 'Round',
-            totalScore: toScoreNumber(round.totalScore ?? round.score),
+            publishResultAt: round.publishResultAt || round.resultPublishAt || round.publishAt || null,
+            resultPublished: typeof round.resultPublished === 'boolean' ? round.resultPublished : undefined,
+            totalScore: round.totalScore == null && round.score == null ? null : toScoreNumber(round.totalScore ?? round.score),
             detailedScores: Array.isArray(round.detailedScores) ? round.detailedScores : [],
         }))
         : [fallbackRound];
@@ -115,16 +119,52 @@ const StandingsFeedback = () => {
     }, []);
 
     const rounds = scoreData?.rounds || [];
+    const unpublishedRound = rounds.find(round => {
+        if (round.resultPublished === false) return true;
+
+        const publishTime = round.publishResultAt ? new Date(round.publishResultAt).getTime() : 0;
+        return publishTime !== 0 && Date.now() < publishTime;
+    });
+    const publishTimeText = unpublishedRound?.publishResultAt
+        ? new Date(unpublishedRound.publishResultAt).toLocaleString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+        : '';
+    const shouldShowPrivateResults =
+        !isLoading &&
+        !error &&
+        scoreData &&
+        (Boolean(unpublishedRound) || rounds.length === 0);
 
     return (
         <div className="standings-container">
             <NavbarStudent />
 
             <div className="standings-content">
-                <div className="standings-header">
-                    <h1 className="standings-title">Competition Standings & Feedback</h1>
-                    
-                </div>
+                {shouldShowPrivateResults ? (
+                    <div className="results-empty-state">
+                        <div className="waiting-result-icon">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <h1>Scores are not public yet.</h1>
+                        <p>
+                            The judging scores have not been published.
+                            {publishTimeText && (
+                                <> Results will be available on <strong>{publishTimeText}</strong>.</>
+                            )}
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="standings-header">
+                            <h1 className="standings-title">Competition Standings & Feedback</h1>
+                        </div>
 
                 <div className="my-result-card" style={{ marginTop: '20px' }}>
                     <div className="result-top" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '16px' }}>
@@ -146,20 +186,42 @@ const StandingsFeedback = () => {
 
                     {(() => {
                         const now = new Date().getTime();
-                        const currentRound = rounds && rounds.length > 0 ? rounds[0] : null;
-                        const publishTime = currentRound?.publishResultAt ? new Date(currentRound.publishResultAt).getTime() : 0;
+                        const unpublishedRound = rounds.find(round => {
+                            if (round.resultPublished === false) return true;
 
-                        if (publishTime !== 0 && now < publishTime) {
+                            const publishTime = round.publishResultAt ? new Date(round.publishResultAt).getTime() : 0;
+                            return publishTime !== 0 && now < publishTime;
+                        });
+                        const publishTimeText = unpublishedRound?.publishResultAt
+                            ? new Date(unpublishedRound.publishResultAt).toLocaleString('en-US', {
+                                month: 'short',
+                                day: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })
+                            : '';
+                        const shouldShowPrivateResults =
+                            unpublishedRound ||
+                            (!isLoading && !error && scoreData && rounds.length === 0);
+
+                        if (shouldShowPrivateResults) {
                             return (
-                                <div className="waiting-result-card" style={{ background: '#f8fafc', padding: '40px', textAlign: 'center', borderRadius: '15px', border: '2px dashed #cbd5e1', marginTop: '20px' }}>
-                                    <h3 style={{ color: '#475569' }}>🔒 Điểm Số Đang Được Bảo Mật</h3>
-                                    <p style={{ color: '#64748b', fontSize: '1.1rem', margin: '15px 0' }}>
-                                        Ban giám khảo đang tổng hợp điểm. Kết quả sẽ tự động công bố vào lúc:<br/>
-                                        <strong style={{ color: '#2563eb', fontSize: '1.3rem', display: 'block', marginTop: '10px' }}>
-                                            {new Date(currentRound.publishResultAt).toLocaleString('vi-VN')}
-                                        </strong>
-                                    </p>
-                                    <p style={{ fontStyle: 'italic', color: '#94a3b8' }}>Vui lòng quay lại sau sếp nhé!</p>
+                                <div className="waiting-result-card">
+                                    <div className="waiting-result-icon">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3>Scores are not public yet.</h3>
+                                        <p>
+                                            The judging scores {unpublishedRound?.roundName ? `for ${unpublishedRound.roundName}` : 'for your team'} have not been published.
+                                            {publishTimeText && (
+                                                <> Results will be available on <strong>{publishTimeText}</strong>.</>
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
                             );
                         }
@@ -189,7 +251,9 @@ const StandingsFeedback = () => {
                                 ) : rounds.length > 0 ? rounds.map((r, idx) => (
                                     <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                                         <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
-                                        <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>{r.totalScore.toFixed(2)} / 100</td>
+                                        <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>
+                                            {r.totalScore == null ? 'Not public' : `${r.totalScore.toFixed(2)} / 100`}
+                                        </td>
                                         <td style={{ padding: '16px', textAlign: 'right' }}>
                                             <button
                                                 className="view-rubric-btn"
@@ -212,6 +276,8 @@ const StandingsFeedback = () => {
                         );
                     })()}
                 </div>
+                    </>
+                )}
             </div>
 
             {selectedDetail && (
