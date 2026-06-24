@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OperatorProfile.css';
 import NavbarJudge from './NavbarJudge';
-
+import NavbarMentor from './NavbarMentor';
 const ExpertProfile = () => {
     const fileInputRef = useRef(null);
     const [avatarPreview, setAvatarPreview] = useState(null);
@@ -10,12 +10,16 @@ const ExpertProfile = () => {
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [msg, setMsg] = useState({ text: '', type: '' });
-
+    const currentRole = localStorage.getItem('shms_role');
     const username = localStorage.getItem('shms_user') || 'alex.nguyen@university.edu';
     const [identity] = useState({
         corporateEmail: username,
         roleLabel: localStorage.getItem('shms_role') === 'JUDGE' ? 'Judge' : 'Mentor'
     });
+
+    const apiEndpoint = currentRole === 'JUDGE'
+        ? 'http://localhost:8080/api/v1/judge/profile'
+        : 'http://localhost:8080/api/v1/mentor/profile';
 
     const [form, setForm] = useState({
         fullName: '',
@@ -33,7 +37,7 @@ const ExpertProfile = () => {
                 if (!token) throw new Error("No token found");
 
                 // ĐỔI ĐƯỜNG DẪN TỪ expert THÀNH judge TẠI ĐÂY
-                const response = await fetch('http://localhost:8080/api/v1/judge/profile', {
+                const response = await fetch(apiEndpoint, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -70,7 +74,7 @@ const ExpertProfile = () => {
             }
         };
         fetchProfile();
-    }, []);
+    }, [apiEndpoint]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -109,7 +113,7 @@ const ExpertProfile = () => {
                     newPassword: form.newPassword
                 })
             };
-            const response = await fetch('http://localhost:8080/api/v1/judge/profile', {
+            const response = await fetch(apiEndpoint, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
@@ -137,7 +141,8 @@ const ExpertProfile = () => {
 
     return (
         <div className="op-profile-container">
-            <NavbarJudge />
+            {/* 2. HIỂN THỊ NAVBAR THEO VAI TRÒ (CONDITIONAL RENDERING) */}
+            {currentRole === 'JUDGE' ? <NavbarJudge /> : <NavbarMentor />}
 
             <div className="op-profile-content">
                 <div className="op-profile-header">
@@ -175,7 +180,7 @@ const ExpertProfile = () => {
 
                     {/* Right: Forms */}
                     <div className="op-forms-col">
-                        {/* Institutional Credentials (read-only) */}
+                        {/* Institutional Credentials */}
                         <div className="op-form-card">
                             <h2 className="op-card-title">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +206,7 @@ const ExpertProfile = () => {
                             </div>
                         </div>
 
-                        {/* Contact & Security (editable) */}
+                        {/* Contact & Security */}
                         <div className="op-form-card">
                             <h2 className="op-card-title">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
