@@ -26,6 +26,7 @@ public class JudgeService {
     private final ContestRubricDetailsRepository contestRubricDetailsRepository;
     private final RubricTemplateCriteriaRepository rubricTemplateCriteriaRepository;
     private final JudgeRepository judgeRepository;
+    private final RoundRepository roundRepository;
 
     @Transactional(readOnly = true)
     public EvaluatorDashboardResponse getDashboardData(String username, Long contestId) {
@@ -71,6 +72,8 @@ public class JudgeService {
 
         int evaluatedCount = 0;
 
+        java.util.Map<Long, List<Round>> contestRoundsCache = new java.util.HashMap<>();
+
         List<EvaluatorDashboardResponse.AssignedTeamQueueDto> queue = new ArrayList<>();
         for (Team team : assignedTeams) {
             Submission latestSub = latestSubmissions.get(team.getId());
@@ -82,7 +85,26 @@ public class JudgeService {
                 evaluatedCount++;
             }
 
-            String submissionState = isEvaluated ? "Evaluated" : (latestSub != null ? latestSub.getStatus() : "Pending");
+            boolean missedDeadline = false;
+            if (latestSub == null) {
+                Long teamContestId = team.getContest().getId();
+                List<Round> cRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc);
+                if (!cRounds.isEmpty() && cRounds.get(0).getSubmissionDeadline() != null) {
+                    if (java.time.LocalDateTime.now().isAfter(cRounds.get(0).getSubmissionDeadline())) {
+                        missedDeadline = true;
+                    }
+                }
+            }
+
+            String submissionState;
+            if (isEvaluated) {
+                submissionState = "Evaluated";
+            } else if (latestSub != null) {
+                submissionState = latestSub.getStatus();
+            } else {
+                submissionState = missedDeadline ? "Not Submitted" : "Pending";
+            }
+
             String roundName = latestSub != null && latestSub.getRound() != null ? latestSub.getRound().getPhaseName() : "Latest Round";
 
             String abbreviation = team.getName() != null && team.getName().length() >= 2
