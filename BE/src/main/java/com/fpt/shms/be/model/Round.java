@@ -56,4 +56,18 @@ public class Round {
     public enum RoundState {
         UPCOMING, ACTIVE, CLOSED
     }
+
+    public RoundState getState() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (this.submissionDeadline != null && now.isAfter(this.submissionDeadline)) {
+            return RoundState.CLOSED;
+        }
+        if (this.submissionOpen != null && now.isBefore(this.submissionOpen)) {
+            return RoundState.UPCOMING;
+        }
+        if (this.submissionOpen != null && this.submissionDeadline != null) {
+            return RoundState.ACTIVE;
+        }
+        return this.state != null ? this.state : RoundState.UPCOMING;
+    }
 }
