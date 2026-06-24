@@ -102,7 +102,7 @@ const EvaluationWorkspace = () => {
             });
             if (response.ok) {
                 alert('Scores submitted and locked successfully.');
-                navigate('/judge/dashboard');
+                navigate('/judge/workspace');
             } else {
                 const err = await response.json().catch(() => ({}));
                 alert(`Error: ${err.error || err.message || 'Submission failed'}`);
@@ -118,13 +118,13 @@ const EvaluationWorkspace = () => {
         const isValid = !!url;
         return (
             <a href={url || '#'} className={`asset-link ${isValid ? 'asset-valid' : 'asset-missing'}`}
-                target="_blank" rel="noreferrer"
-                onClick={e => !isValid && e.preventDefault()}
+               target="_blank" rel="noreferrer"
+               onClick={e => !isValid && e.preventDefault()}
             ><div className="asset-left">
-                    <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                    </svg>{label}
-                </div>
+                <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                </svg>{label}
+            </div>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -180,14 +180,14 @@ const EvaluationWorkspace = () => {
                                             <div className="crit-right">
                                                 <span className="crit-weight">Weight: {crit.weight || crit.percentageWeight}%</span>
                                                 <input type="number" className="score-input"
-                                                    placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
-                                                    onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
+                                                       placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
+                                                       onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
                                                 />
                                             </div>
                                         </div>
                                         <textarea className="crit-feedback" placeholder="Feedback Critique..."
-                                            value={scores[idx]?.feedback || ''}
-                                            onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
+                                                  value={scores[idx]?.feedback || ''}
+                                                  onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
                                         ></textarea>
                                     </div>
                                 );

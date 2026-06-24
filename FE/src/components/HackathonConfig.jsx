@@ -22,7 +22,7 @@ function HackathonConfig() {
         const start = new Date(startDateStr).getTime();
         const end = new Date(endDateStr).getTime();
         if (now < start) return 'UPCOMING';
-        if (now >= start && now <= end) return 'ACTIVED';
+        if (now >= start && now <= end) return 'ACTIVE';
         return 'CLOSED';
     };
 
@@ -100,7 +100,12 @@ function HackathonConfig() {
             registrationEnd: Yup.date().required('Registration End is required').min(Yup.ref('registrationStart'), 'Must be after start date').test('year-match', 'Year must match core settings', function (val) {
                 return val ? new Date(val).getFullYear() === Number(this.parent.year) : true;
             }),
-            contestEndAt: Yup.date().required('Contest End Time is required').min(Yup.ref('registrationEnd'), 'Contest End Time must be after Registration End'),
+            contestEndAt: Yup.date().required('Contest End Time is required').test('is-after-reg', 'Contest End Time must be after Registration End', function(val) {
+                const regEnd = this.parent.registrationEnd;
+                if (!val || !regEnd) return true;
+                const endOfDayReg = new Date(regEnd); endOfDayReg.setHours(23, 59, 59, 999);
+                return new Date(val) > endOfDayReg;
+            }),
             universities: Yup.array().min(1, 'Add at least one university'),
             categories: Yup.array().of(Yup.object().shape({trackName: Yup.string().required('Category Name is required')})).min(1, 'Add at least one category'),
             rounds: Yup.array().of(
@@ -110,24 +115,49 @@ function HackathonConfig() {
                         if (!val) return true;
                         return this.from[1].value.rounds.filter(r => String(r.categoryId) === String(val)).length <= 1;
                     }),
-                    submissionOpen: Yup.date().required('Open time is required').test('is-after-reg', 'Must be after Registration End', function(val) {
-                        const regEnd = this.from[1].value.registrationEnd;
-                        if (!val || !regEnd) return true;
-                        const startOfDay = new Date(regEnd); startOfDay.setHours(0,0,0,0);
-                        return new Date(val) > startOfDay;
-                    }),
-                    submissionDeadline: Yup.date().required('Deadline is required').test('is-after-sub', 'Must be after Open time', function(val) {
-                        return (!val || !this.parent.submissionOpen) || new Date(val) > new Date(this.parent.submissionOpen);
-                    }),
-                    gradingOpenAt: Yup.date().required('Grading Open time is required').test('is-after-sub-dl', 'Must be after Submission Deadline', function(val) {
-                        return (!val || !this.parent.submissionDeadline) || new Date(val) > new Date(this.parent.submissionDeadline);
-                    }),
-                    gradingDeadlineAt: Yup.date().required('Grading Deadline is required').test('is-after-grad-op', 'Must be after Grading Open time', function(val) {
-                        return (!val || !this.parent.gradingOpenAt) || new Date(val) > new Date(this.parent.gradingOpenAt);
-                    }),
-                    publishResultAt: Yup.date().required('Publish Result time is required').test('is-after-grad-dl', 'Must be after Grading Deadline', function(val) {
-                        return (!val || !this.parent.gradingDeadlineAt) || new Date(val) > new Date(this.parent.gradingDeadlineAt);
-                    })
+                    submissionOpen: Yup.date().required('Open time is required')
+                        .test('is-after-reg', 'Must be after Registration End', function(val) {
+                            const regEnd = this.from[1].value.registrationEnd;
+                            if (!val || !regEnd) return true;
+                            const startOfDay = new Date(regEnd); startOfDay.setHours(0,0,0,0);
+                            return new Date(val) > startOfDay;
+                        })
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                            const contestEnd = this.from[1].value.contestEndAt;
+                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
+                        }),
+                    submissionDeadline: Yup.date().required('Deadline is required')
+                        .test('is-after-sub', 'Must be after Open time', function(val) {
+                            return (!val || !this.parent.submissionOpen) || new Date(val) > new Date(this.parent.submissionOpen);
+                        })
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                            const contestEnd = this.from[1].value.contestEndAt;
+                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
+                        }),
+                    gradingOpenAt: Yup.date().required('Grading Open time is required')
+                        .test('is-after-sub-dl', 'Must be after Submission Deadline', function(val) {
+                            return (!val || !this.parent.submissionDeadline) || new Date(val) > new Date(this.parent.submissionDeadline);
+                        })
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                            const contestEnd = this.from[1].value.contestEndAt;
+                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
+                        }),
+                    gradingDeadlineAt: Yup.date().required('Grading Deadline is required')
+                        .test('is-after-grad-op', 'Must be after Grading Open time', function(val) {
+                            return (!val || !this.parent.gradingOpenAt) || new Date(val) > new Date(this.parent.gradingOpenAt);
+                        })
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                            const contestEnd = this.from[1].value.contestEndAt;
+                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
+                        }),
+                    publishResultAt: Yup.date().required('Publish Result time is required')
+                        .test('is-after-grad-dl', 'Must be after Grading Deadline', function(val) {
+                            return (!val || !this.parent.gradingDeadlineAt) || new Date(val) > new Date(this.parent.gradingDeadlineAt);
+                        })
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                            const contestEnd = this.from[1].value.contestEndAt;
+                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
+                        })
                 })
             ).min(1, 'Add at least one round')
         }),
@@ -248,8 +278,8 @@ function HackathonConfig() {
             if (data) {
                 const fetchedCategories = data.tracks?.length ? data.tracks.map((t, idx) => ({
                     id: t.id || -(idx + 1), trackName: t.categoryName || '', trackDescription: t.trackDescription || '',
-                    guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVED'
-                })) : [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVED'}];
+                    guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVE'
+                })) : [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVE'}];
                 let fetchedRounds = [];
                 if (data.tracks?.length) {
                     const roundMap = new Map();
@@ -407,7 +437,7 @@ function HackathonConfig() {
                                         </Form.Group>
                                         <Form.Group>
                                             <Form.Label className="form-label">Contest End Time <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="datetime-local" name="contestEndAt" className="form-input" value={formik.values.contestEndAt} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.contestEndAt && !!formik.errors.contestEndAt} disabled={isClosedContest}/>
+                                            <Form.Control type="datetime-local" name="contestEndAt" className="form-input" value={formik.values.contestEndAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : ''} isInvalid={formik.touched.contestEndAt && !!formik.errors.contestEndAt} disabled={isClosedContest}/>
                                             <Form.Control.Feedback type="invalid">{formik.errors.contestEndAt}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>
@@ -454,7 +484,7 @@ function HackathonConfig() {
                                 <div className="config-card" style={{marginBottom: '24px'}}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Category Definition</h3>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: selectedContestId ? 'ACTIVED' : 'UNSAVED' }])}>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: selectedContestId ? 'ACTIVE' : 'UNSAVED' }])}>
                                             <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Category
                                         </Button>}
                                     </div>
@@ -534,28 +564,28 @@ function HackathonConfig() {
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                                                 <Form.Group>
                                                                     <Form.Label style={{fontSize: '12px'}}>Submission Open <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min} max={bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} disabled={isClosedContest}/>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} disabled={isClosedContest}/>
                                                                     {roundTouched?.submissionOpen && roundErrors?.submissionOpen && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.submissionOpen}</div>}
                                                                 </Form.Group>
                                                                 <Form.Group>
                                                                     <Form.Label style={{fontSize: '12px'}}>Submission Deadline <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={bounds.max} disabled={!round.submissionOpen || isClosedContest} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline}/>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={formik.values.contestEndAt || bounds.max} disabled={!round.submissionOpen || isClosedContest} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline}/>
                                                                     {roundTouched?.submissionDeadline && roundErrors?.submissionDeadline && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.submissionDeadline}</div>}
                                                                 </Form.Group>
                                                             </div>
                                                             <div className="form-group mt-3">
                                                                 <Form.Label style={{fontSize: '12px'}}>Grading Open Time <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingOpenAt`} className="form-input" value={round.gradingOpenAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={bounds.max} isInvalid={roundTouched?.gradingOpenAt && !!roundErrors?.gradingOpenAt} disabled={!round.submissionDeadline || isClosedContest}/>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingOpenAt`} className="form-input" value={round.gradingOpenAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingOpenAt && !!roundErrors?.gradingOpenAt} disabled={!round.submissionDeadline || isClosedContest}/>
                                                                 {roundTouched?.gradingOpenAt && roundErrors?.gradingOpenAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.gradingOpenAt}</div>}
                                                             </div>
                                                             <div className="form-group mt-3">
                                                                 <Form.Label style={{fontSize: '12px'}}>Grading Deadline <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingOpenAt || bounds.min} max={bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.gradingOpenAt || isClosedContest}/>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingOpenAt || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.gradingOpenAt || isClosedContest}/>
                                                                 {roundTouched?.gradingDeadlineAt && roundErrors?.gradingDeadlineAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.gradingDeadlineAt}</div>}
                                                             </div>
                                                             <div className="form-group mt-3">
                                                                 <Form.Label style={{fontSize: '12px'}}>Publish Result At <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].publishResultAt`} className="form-input" value={round.publishResultAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingDeadlineAt || bounds.min} max={bounds.max} isInvalid={roundTouched?.publishResultAt && !!roundErrors?.publishResultAt} disabled={!round.gradingDeadlineAt || isClosedContest}/>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].publishResultAt`} className="form-input" value={round.publishResultAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingDeadlineAt || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.publishResultAt && !!roundErrors?.publishResultAt} disabled={!round.gradingDeadlineAt || isClosedContest}/>
                                                                 {roundTouched?.publishResultAt && roundErrors?.publishResultAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.publishResultAt}</div>}
                                                             </div>
                                                         </div>

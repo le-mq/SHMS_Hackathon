@@ -53,6 +53,10 @@ const EvaluatorDashboard = () => {
         evaluatedCount: 0, contests: [], queue: []
     };
 
+    const notSubmittedCount = dashboardData.queue?.filter(t => t.submissionState === 'Not Submitted').length || 0;
+    const effectiveTotalTeams = Math.max(0, (dashboardData.totalAllocatedTeams || 0) - notSubmittedCount);
+    const remainingToGrade = Math.max(0, effectiveTotalTeams - (dashboardData.evaluatedCount || 0));
+
     return (
         <div className="evaluator-container">
             <NavbarJudge/>
@@ -109,11 +113,11 @@ const EvaluatorDashboard = () => {
                     <div className="stat-box">
                         <div className="progress-box">
                             <div> <span
-                                className="progress-large">{dashboardData.evaluatedCount}/{dashboardData.totalAllocatedTeams} </span>
+                                className="progress-large">{dashboardData.evaluatedCount}/{effectiveTotalTeams} </span>
                                 <span className="progress-small">EVALUATED</span>
                             </div>
                             <span
-                                className="stat-sub">{dashboardData.totalAllocatedTeams - dashboardData.evaluatedCount} teams remaining to be graded.</span>
+                                className="stat-sub">{remainingToGrade} teams remaining to be graded.</span>
                         </div>
                     </div>
                 </div>
@@ -176,6 +180,19 @@ const EvaluatorDashboard = () => {
                                                         borderColor: '#fca5a5'
                                                     }} disabled>
                                                         Not in Grading Time
+                                                    </button>
+                                                );
+                                            }
+
+                                            if (team.submissionState === 'Not Submitted') {
+                                                return (
+                                                    <button className="evaluate-btn" style={{
+                                                        background: '#fee2e2',
+                                                        color: '#ef4444',
+                                                        cursor: 'not-allowed',
+                                                        borderColor: '#fca5a5'
+                                                    }} disabled>
+                                                        Not Submitted (0 pts)
                                                     </button>
                                                 );
                                             }
