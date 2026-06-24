@@ -6,12 +6,16 @@ import NavbarAdmin from './NavbarAdmin';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const API_BASE = "http://localhost:8080/api/v1/admin";
+
 const RankingsConsole = () => {
     const [topN, setTopN] = useState(10);
     const [contests, setContests] = useState([]);
+    
+    // ĐÃ THÊM: Khai báo đầy đủ state cho ID cuộc thi và ID vòng thi
     const [selectedContestId, setSelectedContestId] = useState('');
-    const [rounds, setRounds] = useState(['Phase 01: Screening', 'Phase 02: Semi-Final', 'Phase 03: Final']);
-    const [round, setRound] = useState('Phase 01: Screening');
+    const [selectedRoundId, setSelectedRoundId] = useState('');
+    
+    const [rounds, setRounds] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState(null);
     const [readinessData, setReadinessData] = useState({
@@ -20,23 +24,20 @@ const RankingsConsole = () => {
         allReady: false
     });
 
+    // 1. Lấy danh sách cuộc thi ban đầu
     useEffect(() => {
         let cancelled = false;
         async function fetchInitialData() {
             try {
                 const token = localStorage.getItem("shms_token");
                 const res = await fetch(API_BASE + "/contests", {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-                if (!res.ok)
-                    throw new Error("HTTP " + res.status);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                
                 const json = await res.json();
-                const contestsData =
-                    Array.isArray(json)
-                        ? json
-                        : json.data || [];
+                const contestsData = Array.isArray(json) ? json : json.data || [];
+                
                 if (!cancelled) {
                     setContests(contestsData);
                     if (contestsData.length > 0) {
@@ -45,7 +46,7 @@ const RankingsConsole = () => {
                 }
             }
             catch (error) {
-                console.warn(error.message);
+                console.warn("Lỗi kết nối API contest, dùng mock:", error.message);
                 const localRes = await fetch("/testFE.json");
                 const localJson = await localRes.json();
                 const contestsData = localJson.rankingConsole?.contests?.data || [];
@@ -58,103 +59,97 @@ const RankingsConsole = () => {
             }
         }
         fetchInitialData();
-        return () => {
-            cancelled = true;
-        };
+        return () => { cancelled = true; };
     }, []);
 
+    // 2. Tự động lấy danh sách vòng thi (Round) kèm theo ID số khi Contest thay đổi
     useEffect(() => {
         const fetchRounds = async () => {
-            if (!selectedContestId)
-                return;
+            if (!selectedContestId) return;
             try {
                 let data;
                 try {
                     const token = localStorage.getItem("shms_token");
                     const res = await fetch(API_BASE + `/contests/${selectedContestId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                        headers: { Authorization: `Bearer ${token}` }
                     });
-                    if (!res.ok)
-                        throw new Error();
+                    if (!res.ok) throw new Error();
                     data = await res.json();
-                }
-                catch {
+                } catch {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole.contests.data.find(c => c.id == selectedContestId);
                 }
-                if (data.tracks) {
-                    const rounds = data.tracks.flatMap(track => track.rounds || [])
-                        .map(round => round.phaseName);
-                    setRounds(rounds);
+
+                if (data && data.tracks) {
+                    const allRounds = data.tracks.flatMap(track => track.rounds || [])
+                        .map(r => ({ id: r.id, phaseName: r.phaseName })); 
+
+                    setRounds(allRounds);
+                    if (allRounds.length > 0) {
+                        setSelectedRoundId(allRounds[0].id); // Set ID số của vòng thi đầu tiên
+                    } else {
+                        setSelectedRoundId('');
+                    }
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 console.error(err);
             }
         };
         fetchRounds();
     }, [selectedContestId]);
 
+    // 3. Gọi API readiness dựa trên ID cuộc thi và ID vòng thi thật (Dạng số)
     useEffect(() => {
         const fetchReadiness = async () => {
-            if (!selectedContestId || !round)
-                return;
+            if (!selectedContestId || !selectedRoundId) return; 
             try {
                 let data;
                 try {
                     const token = localStorage.getItem("shms_token");
-                    const res = await fetch(API_BASE + `/rankings/readiness?contestId=${selectedContestId}&round=${round}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                    const res = await fetch(API_BASE + `/rankings/readiness?contestId=${selectedContestId}&roundId=${selectedRoundId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
-                    if (!res.ok)
-                        throw new Error();
+                    if (!res.ok) throw new Error();
                     data = await res.json();
-                }
-                catch {
+                } catch {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole?.readiness;
                 }
                 setReadinessData(data);
                 setResult(null);
-                setReadinessData(data);
-                setResult(null);
-            }
-            catch (err) {
+            } catch (err) {
                 console.error(err);
-                setReadinessData({
-                    summary: {
-                        totalTeams: 0,
-                        avgScore: 0,
-                        scoreRange: '0-0',
-                        bars: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                    },
-                    evaluators: [],
-                    allReady: false
-                });
             }
         };
         fetchReadiness();
-    }, [selectedContestId, round]);
+    }, [selectedContestId, selectedRoundId]);
 
+    // 4. Gửi dữ liệu tính toán bằng Request JSON Body đúng như Swagger yêu cầu
     const handleGenerate = async () => {
-        if (!readinessData.allReady) return;
+        if (!readinessData.allReady || !isTopNValid) return;
         setIsProcessing(true);
         setResult(null);
         try {
+            const token = localStorage.getItem("shms_token");
             let data;
             try {
-                const res = await fetch(API_BASE + "/rankings/process", { method: "POST" });
-                if (!res.ok)
-                    throw new Error();
+                const res = await fetch(API_BASE + "/rankings/process", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        contestId: Number(selectedContestId),
+                        roundId: Number(selectedRoundId),
+                        topN: Number(topN)
+                    })
+                });
+                if (!res.ok) throw new Error();
                 data = await res.json();
-            }
-            catch {
+            } catch {
                 const localRes = await fetch("/testFE.json");
                 const localJson = await localRes.json();
                 data = localJson.rankingConsole?.rankingResult;
@@ -162,26 +157,33 @@ const RankingsConsole = () => {
             setResult(data);
         } catch (err) {
             console.error(err);
-        }
-        finally {
+        } finally {
             setIsProcessing(false);
         }
     };
 
     const handlePublish = async () => {
-        if (!result)
-            return;
+        if (!result) return;
         try {
+            const token = localStorage.getItem("shms_token");
             try {
-                const res = await fetch(API_BASE + "/rankings/publish", { method: "POST" });
-                if (!res.ok)
-                    throw new Error();
+                const res = await fetch(API_BASE + "/rankings/publish", { 
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        contestId: Number(selectedContestId),
+                        roundId: Number(selectedRoundId)
+                    })
+                });
+                if (!res.ok) throw new Error();
                 alert("Leaderboard published successfully!");
             }
             catch {
                 alert("Mock publish success!");
             }
-            alert("Leaderboard published successfully!");
         }
         catch (err) {
             console.error(err);
@@ -196,12 +198,7 @@ const RankingsConsole = () => {
         const csvRows = [headers.join(',')];
 
         for (const row of result.results) {
-            const values = [
-                row.rank,
-                `"${row.teamName}"`,
-                row.averageScore,
-                row.status
-            ];
+            const values = [row.rank, `"${row.teamName}"`, row.averageScore, row.status];
             csvRows.push(values.join(','));
         }
 
@@ -209,19 +206,15 @@ const RankingsConsole = () => {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Leaderboard_${result.roundName}.csv`);
+        link.setAttribute("download", `Leaderboard_${result.roundName || 'Result'}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    const maxBar = Math.max(...readinessData.summary.bars, 1);
     const totalTeams = readinessData.summary.totalTeams;
+    const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && Number(topN) <= totalTeams;
 
-    const isTopNValid =
-        Number.isInteger(Number(topN)) &&
-        Number(topN) > 0 &&
-        Number(topN) <= totalTeams;
     return (
         <div className="rankings-container">
             <NavbarAdmin />
@@ -243,8 +236,11 @@ const RankingsConsole = () => {
                         </div>
                         <div className="round-select-wrap">
                             <label className="round-select-label">Competition Round</label>
-                            <select className="round-select" value={round} onChange={e => setRound(e.target.value)}>
-                                {rounds.map((r, i) => <option key={i} value={r}>{r}</option>)}
+                            {/* ĐÃ SỬA: value gắn vào selectedRoundId, duyệt hiển thị r.phaseName */}
+                            <select className="round-select" value={selectedRoundId} onChange={e => setSelectedRoundId(e.target.value)}>
+                                {rounds.map((r) => (
+                                    <option key={r.id} value={r.id}>{r.phaseName}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -271,9 +267,7 @@ const RankingsConsole = () => {
                 <div className="rankings-grid">
                     <div className="config-card">
                         <h2 className="config-card-title">Promotion Configuration</h2>
-                        <p className="config-card-desc">
-                            Define how many teams will advance to the next stage based on the compiled rankings.
-                        </p>
+                        <p className="config-card-desc">Define how many teams will advance to the next stage based on the compiled rankings.</p>
                         <label className="config-label">Define Top N Promotion Cap</label>
                         <input
                             type="number"
@@ -282,46 +276,28 @@ const RankingsConsole = () => {
                             min={1}
                             max={readinessData.summary.totalTeams}
                             onKeyDown={(e) => {
-                                // Chặn e, E, +, -, .
-                                if (
-                                    ['e', 'E', '+', '-', '.'].includes(e.key)
-                                ) {
-                                    e.preventDefault();
-                                }
+                                if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
                             }}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (!/^\d*$/.test(value)) return;
-                                if (value === '') {
-                                    setTopN('');
-                                    return;
-                                }
+                                if (value === '') { setTopN(''); return; }
                                 const num = Number(value);
-                                if (num < 1) {
-                                    setTopN(1);
-                                } else if (num > readinessData.summary.totalTeams) {
-                                    setTopN(readinessData.summary.totalTeams);
-                                } else {
-                                    setTopN(num);
-                                }
+                                if (num < 1) { setTopN(1); } 
+                                else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); } 
+                                else { setTopN(num); }
                             }}
                         />
                         <button
                             id="btn-generate-ranking"
                             className={`generate-btn ${isProcessing ? 'processing' : ''}`}
-                            disabled={
-                                !readinessData.allReady ||
-                                isProcessing ||
-                                !isTopNValid
-                            }
+                            disabled={!readinessData.allReady || isProcessing || !isTopNValid}
                             onClick={handleGenerate}
                         >
                             {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
                         </button>
                         <div className="config-warning">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             This action will lock current scores.
                         </div>
                     </div>
@@ -331,7 +307,6 @@ const RankingsConsole = () => {
                             <h2 className="summary-card-title">Pre-Compilation Summary</h2>
                             <span className="live-badge">Live DB Sync</span>
                         </div>
-
                         <div className="stats-row">
                             <div className="stat-cell">
                                 <div className="stat-cell-label">Total Teams</div>
@@ -346,7 +321,6 @@ const RankingsConsole = () => {
                                 <div className="stat-cell-val" style={{ fontSize: '26px' }}>{readinessData.summary.scoreRange}</div>
                             </div>
                         </div>
-
                         <div style={{ height: '150px', marginTop: '16px' }}>
                             <Bar
                                 data={{
@@ -400,16 +374,15 @@ const RankingsConsole = () => {
                         </tbody>
                     </table>
                 </div>
+
                 {result && (
-                    <div className={`result-card visible`} style={{ marginTop: 24 }}>
+                    <div className="result-card visible" style={{ marginTop: 24 }}>
                         <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                        <p className="result-card-sub">
-                            Round: {result.roundName} · Top N = {topN} · Scores are now locked.
-                        </p>
+                        <p className="result-card-sub">Round: {result.roundName} · Top N = {topN} · Scores are now locked.</p>
                         <div className="result-stats">
                             <div className="result-stat">
                                 <div className="result-stat-label">Qualified</div>
-                                <div className="result-stat-val qualified"> {topN} </div>
+                                <div className="result-stat-val qualified">{topN}</div>
                             </div>
                             <div className="result-stat">
                                 <div className="result-stat-label">Eliminated</div>
@@ -452,19 +425,8 @@ const RankingsConsole = () => {
                                             <td>{r.teamName}</td>
                                             <td>{r.averageScore}</td>
                                             <td>
-                                                <span
-                                                    style={{
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold',
-                                                        background: isQualified ? '#dcfce7' : '#fee2e2',
-                                                        color: isQualified ? '#166534' : '#991b1b'
-                                                    }}
-                                                >
-                                                    {isQualified
-                                                        ? 'QUALIFIED'
-                                                        : 'ELIMINATED'}
+                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
+                                                    {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                 </span>
                                             </td>
                                         </tr>

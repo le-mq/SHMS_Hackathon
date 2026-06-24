@@ -141,7 +141,6 @@ const ExpertProfile = () => {
 
     return (
         <div className="op-profile-container">
-            {/* 2. HIỂN THỊ NAVBAR THEO VAI TRÒ (CONDITIONAL RENDERING) */}
             {currentRole === 'JUDGE' ? <NavbarJudge /> : <NavbarMentor />}
 
             <div className="op-profile-content">
