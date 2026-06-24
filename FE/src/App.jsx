@@ -23,6 +23,7 @@ import ProjectSubmission from './components/ProjectSubmission'
 import StandingsFeedback from './components/StandingsFeedback'
 import HistoricalLog from './components/HistoricalLog'
 import EnforcementAuditLogs from './components/EnforcementAuditLogs'
+import PublicationDataExport from "./components/PublicationDataExport.jsx";
 
 function App() {
   return (

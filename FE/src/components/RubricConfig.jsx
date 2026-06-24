@@ -91,7 +91,7 @@ const RubricConfig = () => {
     }, [contestRubrics, templates, selectedContestId, selectedCategoryId]);
 
     const totalWeight = useMemo(() =>
-        editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
+            editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
         [editingTemplate]
     );
 
@@ -112,7 +112,7 @@ const RubricConfig = () => {
         setEditingTemplate({
             ...JSON.parse(JSON.stringify(tpl)),
             bindContestId: binding ? binding.contestId : '',
-            bindCategoryId: binding ? binding.categoryId : tpl.categoryId || '',
+            bindCategoryId: binding ? binding.categoryId : (tpl.categoryId || (tpl.category ? tpl.category.id : '')),
             criteria: (tpl.criteria || []).map((c, i) => ({ ...c, _localId: c.id ?? i, percentageWeight: c.percentageWeight !== undefined && c.percentageWeight !== null ? String(c.percentageWeight) : '' }))
         });
         setEditorMode('edit'); setError(''); setSuccess('');
@@ -298,10 +298,8 @@ const RubricConfig = () => {
                                 <div className="rt-card-actions">
                                     <button className="rt-btn-ghost" onClick={() => startEdit(tpl, isOfficial)}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit</button>
                                     <button className="rt-btn-ghost" onClick={() => handleClone(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Clone</button>
-                                    {!isActived ? (
+                                    {!isActived && (
                                         <button className="rt-btn-ghost" style={{ color: '#dc2626' }} onClick={() => handleDelete(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Delete</button>
-                                    ) : (
-                                        <span className="rt-btn-ghost" style={{ color: '#9ca3af', cursor: 'not-allowed', fontSize: 13 }} title="Cannot delete ACTIVED rubric"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>In Use</span>
                                     )}
                                 </div>
                             </div>
@@ -368,7 +366,7 @@ const RubricConfig = () => {
                                             CRITERION #{index + 1}
                                         </div>
                                         <button className="delete-btn" onClick={() => handleDeleteCriterion(c._localId)}>
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5( 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
                                     <div className="form-row">
