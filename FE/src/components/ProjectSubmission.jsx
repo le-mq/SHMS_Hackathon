@@ -402,13 +402,25 @@ const ProjectSubmission = () => {
     }, [currentDeadline, currentOpen, isTeamApproved]);
 
     const getBackendMessage = (data, fallback) => {
-        return (
+        const message =
             data?.message ||
             data?.error ||
             data?.detail ||
             data?.data?.message ||
-            fallback
-        );
+            fallback;
+
+        const fullMessage = JSON.stringify(data || {}).toLowerCase();
+
+        if (
+            String(message).toLowerCase().includes('validation failed') ||
+            fullMessage.includes('submitprojectrequest') ||
+            fullMessage.includes('valid url') ||
+            fullMessage.includes('github url')
+        ) {
+            return 'Invalid URL format. Please check again.';
+        }
+
+        return message;
     };
 
     const getAssetUrl = (url) => {
