@@ -308,7 +308,7 @@ const ExpertProvisioning = () => {
                             <div className="form-header">
                                 <div className="form-title">System Provisioning Form</div>
                             </div>
-                            {/* Hàng 1: Chia 2 cột bằng nhau cho Name & Email */}
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Full Name</label>
@@ -320,7 +320,6 @@ const ExpertProvisioning = () => {
                                 </div>
                             </div>
 
-                            {/* Hàng 2: Chia 2 cột bằng nhau cho Username & Password */}
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Username</label>
