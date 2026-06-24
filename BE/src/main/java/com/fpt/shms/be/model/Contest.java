@@ -106,13 +106,16 @@ public class Contest {
     }
 
     public ContestStatus getStatus() {
-        if (this.registrationStart == null) return ContestStatus.UPCOMING;
-
-        java.time.LocalDate nowDay = java.time.LocalDate.now();
         java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
+        java.time.LocalDate nowDay = java.time.LocalDate.now();
 
-        if (nowDay.isBefore(this.registrationStart)) return ContestStatus.UPCOMING;
-        if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) return ContestStatus.CLOSED;
+        if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) {
+            return ContestStatus.CLOSED;
+        }
+
+        if (this.registrationStart != null && nowDay.isBefore(this.registrationStart)) {
+            return ContestStatus.UPCOMING;
+        }
 
         return ContestStatus.ACTIVE;
     }

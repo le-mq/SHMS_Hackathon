@@ -280,7 +280,7 @@ CREATE TABLE Submission (
                             document_url VARCHAR(255) NULL,
                             slide_url VARCHAR(255) NULL,
                             version INT NULL,
-                            history_log NVARCHAR(100) NULL,
+                            history_log NVARCHAR(MAX) NULL,
                             submitted_at DATETIME NULL,
                             status VARCHAR(50) NULL,
                             CONSTRAINT pk_submission PRIMARY KEY (submission_id),
@@ -613,10 +613,10 @@ VALUES
 ('Fall', 2025, 'FA25');
 GO
 
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end)
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, contest_end_at)
 VALUES 
-(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10'),
-(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15');
+(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10', '2026-03-30 23:59:59'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59');
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
