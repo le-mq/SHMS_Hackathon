@@ -25,11 +25,15 @@ public class EvaluatorDashboardResponse {
     @Builder
     public static class AssignedTeamQueueDto {
         private Long teamId;
+        private Long submissionId;
+        private Long roundId;
         private String teamName;
         private String abbreviation;
         private String trackName;
         private String roundName;
         private String submissionState;
         private String themeClass;
+        private java.time.LocalDateTime gradingOpenAt;
+        private java.time.LocalDateTime gradingDeadlineAt;
     }
 }

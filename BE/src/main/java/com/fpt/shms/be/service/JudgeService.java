@@ -76,61 +76,72 @@ public class JudgeService {
         java.util.Map<Long, List<Round>> contestRoundsCache = new java.util.HashMap<>();
 
         List<EvaluatorDashboardResponse.AssignedTeamQueueDto> queue = new ArrayList<>();
+        final List<Category> finalCategories = categories;
         for (Team team : assignedTeams) {
-            Submission latestSub = latestSubmissions.get(team.getId());
-            boolean isEvaluated = false;
-            if (latestSub != null) {
-                isEvaluated = scoreRepository.existsByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
-            }
-            if (isEvaluated) {
-                evaluatedCount++;
-            }
+            Long teamContestId = team.getContest().getId();
+            List<Round> cRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc)
+                    .stream()
+                    .filter(r -> r.getCategory() == null || finalCategories.stream().anyMatch(c -> c.getId().equals(r.getCategory().getId())))
+                    .toList();
 
-            boolean missedDeadline = false;
-            if (latestSub == null) {
-                Long teamContestId = team.getContest().getId();
-                List<Round> cRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc);
-                if (!cRounds.isEmpty() && cRounds.get(0).getSubmissionDeadline() != null) {
-                    if (java.time.LocalDateTime.now().isAfter(cRounds.get(0).getSubmissionDeadline())) {
+            for (Round round : cRounds) {
+                Submission latestSub = submissions.stream()
+                        .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
+                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .orElse(null);
+
+                boolean isEvaluated = false;
+                if (latestSub != null) {
+                    isEvaluated = scoreRepository.existsByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
+                }
+                if (isEvaluated) {
+                    evaluatedCount++;
+                }
+
+                boolean missedDeadline = false;
+                if (latestSub == null) {
+                    if (round.getSubmissionDeadline() != null && java.time.LocalDateTime.now().isAfter(round.getSubmissionDeadline())) {
                         missedDeadline = true;
                     }
                 }
+
+                String submissionState;
+                if (isEvaluated) {
+                    submissionState = "Evaluated";
+                } else if (latestSub != null) {
+                    submissionState = latestSub.getStatus();
+                } else {
+                    submissionState = missedDeadline ? "Not Submitted" : "Pending";
+                }
+
+                String abbreviation = team.getName() != null && team.getName().length() >= 2
+                        ? team.getName().substring(0, 2).toUpperCase()
+                        : "TM";
+
+                String trackName = categories.stream()
+                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                        .map(Category::getName)
+                        .collect(Collectors.joining(", "));
+
+                queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
+                        .teamId(team.getId())
+                        .submissionId(latestSub != null ? latestSub.getId() : null)
+                        .roundId(round.getId())
+                        .teamName(team.getName())
+                        .abbreviation(abbreviation)
+                        .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
+                        .roundName(round.getPhaseName())
+                        .submissionState(submissionState)
+                        .themeClass("ai")
+                        .gradingOpenAt(round.getGradingOpenAt())
+                        .gradingDeadlineAt(round.getGradingDeadlineAt())
+                        .build());
             }
-
-            String submissionState;
-            if (isEvaluated) {
-                submissionState = "Evaluated";
-            } else if (latestSub != null) {
-                submissionState = latestSub.getStatus();
-            } else {
-                submissionState = missedDeadline ? "Not Submitted" : "Pending";
-            }
-
-            String roundName = latestSub != null && latestSub.getRound() != null ? latestSub.getRound().getPhaseName() : "Latest Round";
-
-            String abbreviation = team.getName() != null && team.getName().length() >= 2
-                    ? team.getName().substring(0, 2).toUpperCase()
-                    : "TM";
-
-            String trackName = categories.stream()
-                    .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                    .map(Category::getName)
-                    .collect(Collectors.joining(", "));
-
-            queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
-                    .teamId(team.getId())
-                    .teamName(team.getName())
-                    .abbreviation(abbreviation)
-                    .trackName(trackName.isEmpty() ? "Unknown Track" : trackName)
-                    .roundName(roundName)
-                    .submissionState(submissionState)
-                    .themeClass("ai")
-                    .build());
         }
 
         return EvaluatorDashboardResponse.builder()
                 .assignedTrackCount(categories.size())
-                .totalAllocatedTeams(assignedTeams.size())
+                .totalAllocatedTeams(queue.size())
                 .evaluatedCount(evaluatedCount)
                 .contests(contestDtos)
                 .queue(queue)
@@ -138,7 +149,7 @@ public class JudgeService {
     }
 
     @Transactional(readOnly = true)
-    public EvaluationDataResponse getEvaluationData(String username, Long teamId) {
+    public EvaluationDataResponse getEvaluationData(String username, Long teamId, Long roundId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -158,9 +169,17 @@ public class JudgeService {
             throw new IllegalArgumentException("Team has no submissions");
         }
 
-        Submission latestSubmission = teamSubmissions.stream()
-                .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
-                .orElseThrow();
+        Submission latestSubmission;
+        if (roundId != null) {
+            latestSubmission = teamSubmissions.stream()
+                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(roundId))
+                    .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                    .orElseThrow(() -> new IllegalArgumentException("Team has no submissions for this round"));
+        } else {
+            latestSubmission = teamSubmissions.stream()
+                    .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                    .orElseThrow(() -> new IllegalArgumentException("Team has no submissions"));
+        }
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
         ContestRubric rubric = null;

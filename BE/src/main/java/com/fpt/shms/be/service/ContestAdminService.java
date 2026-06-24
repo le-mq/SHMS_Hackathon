@@ -338,6 +338,11 @@ public class ContestAdminService {
         Contest contest = contestRepository.findById(request.getContestId())
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
 
+        String rolesString = null;
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            rolesString = String.join(",", request.getRoles());
+        }
+
         Announcement announcement = Announcement.builder()
                 .contest(contest)
                 .title(request.getTitle())
@@ -346,6 +351,7 @@ public class ContestAdminService {
                 .publishedAt(java.time.LocalDateTime.now())
                 .isActive(true)
                 .status("ACTIVE")
+                .targetRoles(rolesString)
                 .build();
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);

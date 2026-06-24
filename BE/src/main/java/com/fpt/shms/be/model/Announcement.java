@@ -34,6 +34,9 @@ public class Announcement {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
+    @Column(name = "target_roles")
+    private String targetRoles;
+
     @Builder.Default
     @Transient
     private Boolean isActive = true;

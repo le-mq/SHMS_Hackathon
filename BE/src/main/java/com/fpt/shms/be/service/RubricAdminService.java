@@ -165,6 +165,7 @@ public class RubricAdminService {
         return clonedTemplate;
     }
 
+    @Transactional
     public RubricTemplate updateTemplate(Long id, CreateRubricRequest request) {
         RubricTemplate template = getTemplateById(id);
         template.setName(request.getName());
