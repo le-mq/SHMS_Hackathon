@@ -13,15 +13,14 @@ const ExpertProfile = () => {
 
     const username = localStorage.getItem('shms_user') || 'alex.nguyen@university.edu';
     const [identity] = useState({
-        expertId: 'EXP-2026-042',
-        department: 'Software Engineering',
         corporateEmail: username,
         roleLabel: localStorage.getItem('shms_role') === 'JUDGE' ? 'Judge' : 'Mentor'
     });
 
     const [form, setForm] = useState({
-        fullName: localStorage.getItem('shms_fullname_' + username) || localStorage.getItem('shms_fullname') || 'Expert User',
-        telephoneNumber: '+84 123456789',
+        fullName: '',
+        email: '',
+        telephoneNumber: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -31,32 +30,42 @@ const ExpertProfile = () => {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const response = await fetch('http://localhost:8080/api/v1/expert/profile', {
+                if (!token) throw new Error("No token found");
+
+                // ĐỔI ĐƯỜNG DẪN TỪ expert THÀNH judge TẠI ĐÂY
+                const response = await fetch('http://localhost:8080/api/v1/judge/profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    const data = await response.json();
-                    setForm(f => ({ ...f, telephoneNumber: data.telephoneNumber || f.telephoneNumber }));
-                    if (data.avatarBase64) setAvatarPreview(data.avatarBase64);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            } catch {
 
-                const localRes = await fetch('/testFE.json');
-                const localJson = await localRes.json();
+                const data = await response.json();
 
-                const data = localJson.expertProfile;
-
-                if (!data) return;
-
+                // Áp dụng đúng các trường dữ liệu trả về từ database
                 setForm(f => ({
                     ...f,
-                    fullName: data.fullName || f.fullName,
-                    telephoneNumber:
-                        data.telephoneNumber || f.telephoneNumber
+                    fullName: data.full_name || data.fullName || '', // Đề phòng backend trả về snake_case theo DB
+                    email: data.corporateEmail || '',
+                    telephoneNumber: data.phone || data.telephoneNumber || '' // DB lưu là 'phone'
                 }));
 
-                if (data.avatarBase64) {
-                    setAvatarPreview(data.avatarBase64);
+            } catch (error) {
+                console.error("Lỗi kết nối API thật, dùng dữ liệu Mock:", error);
+                // Giữ nguyên phần đọc file local testFE.json của bạn ở đây...
+                const localRes = await fetch('/testFE.json');
+                if (localRes.ok) {
+                    const localJson = await localRes.json();
+                    const data = localJson.expertProfile;
+                    if (data) {
+                        setForm(f => ({
+                            ...f,
+                            fullName: data.fullName,
+                            email: data.email,
+                            telephoneNumber: data.telephoneNumber
+                        }));
+                    }
                 }
             }
         };
@@ -100,7 +109,7 @@ const ExpertProfile = () => {
                     newPassword: form.newPassword
                 })
             };
-            const response = await fetch('http://localhost:8080/api/v1/expert/profile', {
+            const response = await fetch('http://localhost:8080/api/v1/judge/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
@@ -181,18 +190,12 @@ const ExpertProfile = () => {
                                         <input className="op-input" name="fullName" value={form.fullName} onChange={handleChange} />
                                     </div>
                                     <div className="op-field">
-                                        <label className="op-label">Expert ID</label>
-                                        <input className="op-input readonly" value={identity.expertId} readOnly />
-                                    </div>
-                                </div>
-                                <div className="op-field-row">
-                                    <div className="op-field">
-                                        <label className="op-label">Department</label>
-                                        <input className="op-input readonly" value={identity.department} readOnly />
-                                    </div>
-                                    <div className="op-field">
-                                        <label className="op-label">Corporate Email</label>
-                                        <input className="op-input readonly" value={identity.corporateEmail} readOnly />
+                                        <label className="op-label">Email</label>
+                                        <input
+                                            className="op-input readonly"
+                                            value={form.email}
+                                            readOnly
+                                        />
                                     </div>
                                 </div>
                             </div>
