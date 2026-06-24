@@ -33,6 +33,7 @@
 /* ===== Header + status + deadline ===== */
 
 .submission-header {
+    --submission-summary-card-height: 168px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 32px;
@@ -71,10 +72,11 @@
 
 .submission-status-card {
     width: 100%;
-    height: 136px;
+    height: var(--submission-summary-card-height);
+    min-height: var(--submission-summary-card-height);
     box-sizing: border-box;
     margin-top: 20px;
-    padding: 22px 28px;
+    padding: 28px;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -111,9 +113,10 @@
 
 .submission-deadline-small {
     width: 100%;
-    height: 136px;
+    height: var(--submission-summary-card-height);
+    min-height: var(--submission-summary-card-height);
     box-sizing: border-box;
-    padding: 22px 28px;
+    padding: 20px 24px;
     background: #0f172a;
     color: white;
     border-radius: 12px;
@@ -128,40 +131,61 @@
     font-weight: 700;
     letter-spacing: 1.5px;
     color: #94a3b8;
-    margin-bottom: 10px;
+    margin-bottom: 7px;
+}
+
+.deadline-small-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 8px;
 }
 
 .deadline-small-body {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(130px, max-content) minmax(0, 1fr);
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: 16px;
+}
+
+.deadline-small-body.no-countdown {
+    grid-template-columns: 1fr;
 }
 
 .deadline-small-time {
-    font-size: 34px;
+    font-size: 30px;
     font-weight: 800;
     letter-spacing: 2px;
     line-height: 1;
     flex-shrink: 0;
+    min-width: 130px;
+}
+
+.deadline-small-dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    min-width: 0;
 }
 
 .deadline-small-date {
-    min-width: 190px;
-    padding: 14px 18px;
+    min-width: 0;
+    padding: 8px 12px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 12px;
+    font-size: 11px;
     color: #cbd5e1;
-    line-height: 1.5;
+    line-height: 1.35;
 }
 
 .deadline-small-date span {
     display: block;
     color: white;
     font-weight: 700;
-    margin-top: 4px;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
 }
 
 /* ===== Form submission ===== */
@@ -243,6 +267,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    flex-shrink: 0;
     margin-left: auto;
     padding: 12px 24px;
     background: #0f172a;
@@ -262,12 +287,20 @@
     gap: 12px;
 }
 
-.submission-message.success.inline {
+.submission-message.submit-feedback {
+    max-width: 520px;
     margin: 0;
-    min-height: 42px;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
+    flex: 1 1 360px;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.submission-message.submit-feedback.closed {
+    max-width: 360px;
+    flex: 0 1 auto;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .submit-btn:hover {
@@ -392,13 +425,16 @@
     }
 
     .deadline-small-body {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         align-items: flex-start;
+    }
+
+    .deadline-small-dates {
+        width: 100%;
     }
 
     .deadline-small-date {
         width: 100%;
-        min-width: unset;
     }
 
     .deadline-small-time {
