@@ -26,11 +26,8 @@ public class RankingAdminService {
     private final RankingResultRepository rankingResultRepository;
     private final ContestRubricRepository contestRubricRepository;
 
-    public RankingReadinessResponse getReadiness(Long contestId, Long categoryId, String roundName) {
-        Round round = roundRepository.findByContestId(contestId).stream()
-                .filter(r -> categoryId == null || (r.getCategory() != null && r.getCategory().getId().equals(categoryId)))
-                .filter(r -> roundName == null || roundName.equalsIgnoreCase(r.getPhaseName()))
-                .findFirst()
+    public RankingReadinessResponse getReadiness(Long contestId, Long roundId) {
+        Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
@@ -124,19 +121,17 @@ public class RankingAdminService {
                 .build();
     }
 
-    public ProcessRankingsResponse processRankings(Long contestId, Long categoryId, String roundName, int topN) {
-        RankingReadinessResponse readiness = getReadiness(contestId, categoryId, roundName);
+    public ProcessRankingsResponse processRankings(Long contestId, Long roundId, int topN) {
+        RankingReadinessResponse readiness = getReadiness(contestId, roundId);
         if (!readiness.isAllReady()) {
             throw new IllegalArgumentException("Not all evaluators have finalized scores");
         }
         Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new IllegalArgumentException("Contest not found"));
         String contestName = contest.getName();
 
-        Round round = roundRepository.findByContestId(contestId).stream()
-                .filter(r -> categoryId == null || (r.getCategory() != null && r.getCategory().getId().equals(categoryId)))
-                .filter(r -> roundName == null || roundName.equalsIgnoreCase(r.getPhaseName()))
-                .findFirst()
+        Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+        String roundName = round.getPhaseName();
 
         List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
         String actualCategoryName = "Unknown";
@@ -204,11 +199,8 @@ public class RankingAdminService {
 
     @Transactional
     public void publishLeaderboard(com.fpt.shms.be.dto.PublishLeaderboardRequest request) throws Exception {
-        ProcessRankingsResponse rankings = processRankings(request.getContestId(), request.getCategoryId(), request.getRoundName(), request.getTopN());
-        Round round = roundRepository.findByContestId(request.getContestId()).stream()
-                .filter(r -> request.getCategoryId() == null || (r.getCategory() != null && r.getCategory().getId().equals(request.getCategoryId())))
-                .filter(r -> request.getRoundName() == null || request.getRoundName().equalsIgnoreCase(r.getPhaseName()))
-                .findFirst()
+        ProcessRankingsResponse rankings = processRankings(request.getContestId(), request.getRoundId(), request.getTopN());
+        Round round = roundRepository.findById(request.getRoundId())
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         rankingResultRepository.deleteByRoundId(round.getId());

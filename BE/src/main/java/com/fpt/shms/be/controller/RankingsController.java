@@ -28,10 +28,9 @@ public class RankingsController {
     public ResponseEntity<?> getReadiness(
             HttpServletRequest request,
             @RequestParam Long contestId,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam String roundName) {
+            @RequestParam Long roundId) {
         try {
-            RankingReadinessResponse readiness = rankingAdminService.getReadiness(contestId, categoryId, roundName);
+            RankingReadinessResponse readiness = rankingAdminService.getReadiness(contestId, roundId);
             return ResponseEntity.ok(readiness);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -50,8 +49,7 @@ public class RankingsController {
 
             ProcessRankingsResponse response = rankingAdminService.processRankings(
                     rankingsRequest.getContestId(),
-                    rankingsRequest.getCategoryId(),
-                    rankingsRequest.getRound(),
+                    rankingsRequest.getRoundId(),
                     rankingsRequest.getTopN()
             );
 
