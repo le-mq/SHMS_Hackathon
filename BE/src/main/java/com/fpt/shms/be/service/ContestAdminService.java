@@ -239,7 +239,16 @@ public class ContestAdminService {
                         .build());
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
-        category.setStatus(request.getStatus() != null ? request.getStatus().replace("INACTIVE", "INACTIVED").replace("ACTIVE", "ACTIVED") : "ACTIVED");
+        String statusStr = "ACTIVED";
+        if (request.getStatus() != null) {
+            statusStr = request.getStatus();
+            if ("ACTIVE".equalsIgnoreCase(statusStr)) {
+                statusStr = "ACTIVED";
+            } else if ("INACTIVE".equalsIgnoreCase(statusStr)) {
+                statusStr = "INACTIVED";
+            }
+        }
+        category.setStatus(statusStr);
         category = categoryRepository.save(category);
 
         LocalDateTime now = LocalDateTime.now();

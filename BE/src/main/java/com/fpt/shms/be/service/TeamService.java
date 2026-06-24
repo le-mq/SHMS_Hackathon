@@ -344,7 +344,20 @@ public class TeamService{
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        team.setStatus(status.toUpperCase());
+        String newStatus = status.toUpperCase();
+        String currentStatus = team.getStatus() != null ? team.getStatus().toUpperCase() : "";
+
+        if ("CANCELED".equals(newStatus) || "CANCELLED".equals(newStatus) || "REJECTED".equals(newStatus)) {
+            if (!"APPROVED".equals(currentStatus)) {
+                throw new IllegalArgumentException("Can only cancel a team that is currently approved.");
+            }
+        } else if ("APPROVED".equals(newStatus)) {
+            if (!"CANCELED".equals(currentStatus) && !"CANCELLED".equals(currentStatus) && !"REJECTED".equals(currentStatus)) {
+                throw new IllegalArgumentException("Can only approve a team that is currently canceled.");
+            }
+        }
+
+        team.setStatus(newStatus);
         teamRepository.save(team);
         auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), null, team.getStatus(), "Updated by admin");
 
