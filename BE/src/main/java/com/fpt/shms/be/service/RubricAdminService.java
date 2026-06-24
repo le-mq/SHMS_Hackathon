@@ -34,6 +34,10 @@ public class RubricAdminService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
+        if (!contestRubricRepository.findByCategoryId(category.getId()).isEmpty()) {
+            throw new IllegalArgumentException("This category already has an official rubric assigned. Cannot overwrite. Please edit the existing official rubric.");
+        }
+
         RubricTemplate template = RubricTemplate.builder()
                 .name(request.getName())
                 .category(category)
@@ -179,9 +183,43 @@ public class RubricAdminService {
                     .build();
             template.getCriteria().add(crit);
         }
-        template = rubricTemplateRepository.save(template);
+        RubricTemplate savedTemplate = rubricTemplateRepository.save(template);
 
-        return template;
+        List<ContestRubric> contestRubrics = contestRubricRepository.findByRubricTemplateId(id);
+        for (ContestRubric cr : contestRubrics) {
+            cr.setRubricName(request.getName());
+            cr.setTotalWeight(request.getCriteria().stream().mapToDouble(CreateRubricRequest.CriterionDto::getPercentageWeight).sum());
+            contestRubricRepository.save(cr);
+
+            contestRubricDetailsRepository.deleteByContestRubricId(cr.getId());
+            syncContestRubricDetails(cr, savedTemplate.getCriteria());
+        }
+        if (request.getContestId() != null && request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+            if (category != null) {
+                List<ContestRubric> existingCatRubrics = contestRubricRepository.findByCategoryId(category.getId());
+                boolean alreadyBoundToThisTemplate = existingCatRubrics.stream().anyMatch(cr -> cr.getRubricTemplate().getId().equals(savedTemplate.getId()));
+
+                if (!alreadyBoundToThisTemplate) {
+                    if (!existingCatRubrics.isEmpty()) {
+                        throw new IllegalArgumentException("This category already has an official rubric assigned. Cannot overwrite. Please edit the existing official rubric.");
+                    }
+
+                    double totalWeight = request.getCriteria().stream().mapToDouble(CreateRubricRequest.CriterionDto::getPercentageWeight).sum();
+                    ContestRubric newContestRubric = ContestRubric.builder()
+                            .category(category)
+                            .rubricTemplate(savedTemplate)
+                            .rubricName(request.getName())
+                            .totalWeight(totalWeight)
+                            .status("ACTIVE")
+                            .build();
+                    newContestRubric = contestRubricRepository.save(newContestRubric);
+                    syncContestRubricDetails(newContestRubric, savedTemplate.getCriteria());
+                }
+            }
+        }
+
+        return savedTemplate;
     }
 
     @Transactional
