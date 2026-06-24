@@ -23,6 +23,8 @@ public class CreateRubricRequest {
 
     private Long roundId;
 
+    private Long contestId;
+    
     @NotEmpty(message = "At least one criterion is required")
     @Valid
     private List<CriterionDto> criteria;

@@ -32,6 +32,9 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName());
+        }
         if (request.getTelephoneNumber() != null) {
             user.setPhone(request.getTelephoneNumber());
         }
