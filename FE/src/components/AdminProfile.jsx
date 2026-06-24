@@ -13,14 +13,9 @@ const AdminProfile = () => {
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [msg, setMsg] = useState({ text: '', type: '' });
-
-    // Chỉ giữ lại fullName và email trong state định danh
-    const [identity, setIdentity] = useState({
-        email: '',
-        fullName: ''
-    });
-
     const [form, setForm] = useState({
+        fullName: localStorage.getItem('shms_fullname') || 'System Administrator',
+        email: localStorage.getItem('shms_user') || 'admin@s-hms.vn',
         telephoneNumber: '',
         currentPassword: '',
         newPassword: '',
@@ -38,13 +33,10 @@ const AdminProfile = () => {
 
                 const data = await response.json();
 
-                setIdentity({
-                    email: data.corporateEmail || data.email || data.username || localStorage.getItem('shms_user') || 'admin@s-hms.vn',
-                    fullName: data.fullName || localStorage.getItem('shms_fullname') || 'System Administrator'
-                });
-
                 setForm(f => ({
                     ...f,
+                    fullName: data.fullName || localStorage.getItem('shms_fullname') || f.fullName,
+                    email: data.corporateEmail || data.email || data.username || localStorage.getItem('shms_user') || f.email,
                     telephoneNumber: data.telephoneNumber || '+84 123 456 789'
                 }));
 
@@ -56,13 +48,10 @@ const AdminProfile = () => {
                     const localJson = await localRes.json();
                     const profile = localJson.adminProfile;
 
-                    setIdentity({
-                        email: profile?.corporateEmail || profile?.email || profile?.username || localStorage.getItem('shms_user') || 'admin@s-hms.vn',
-                        fullName: profile?.fullName || localStorage.getItem('shms_fullname') || 'System Administrator'
-                    });
-
                     setForm(f => ({
                         ...f,
+                        fullName: profile?.fullName || localStorage.getItem('shms_fullname') || f.fullName,
+                        email: profile?.corporateEmail || profile?.email || profile?.username || localStorage.getItem('shms_user') || f.email,
                         telephoneNumber: profile?.telephoneNumber || '+84 123 456 789'
                     }));
 
@@ -127,6 +116,9 @@ const AdminProfile = () => {
     };
 
     const handleSave = async () => {
+        if (!form.fullName.trim()) {
+            setMsg({ text: 'Full name cannot be empty.', type: 'error' }); return;
+        }
         if (form.newPassword && form.newPassword.length < 8) {
             setMsg({ text: 'New password must be at least 8 characters.', type: 'error' }); return;
         }
@@ -139,7 +131,7 @@ const AdminProfile = () => {
         try {
             const token = localStorage.getItem('shms_token');
             const payload = {
-                fullName: identity.fullName,
+                fullName: form.fullName,
                 telephoneNumber: form.telephoneNumber,
                 avatarBase64: avatarPreview,
                 ...(form.currentPassword && form.newPassword && {
@@ -153,6 +145,9 @@ const AdminProfile = () => {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) throw new Error();
+
+            localStorage.setItem('shms_fullname', form.fullName);
+
             setMsg({ text: 'Profile updated successfully.', type: 'success' });
             setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
         } catch {
@@ -185,11 +180,11 @@ const AdminProfile = () => {
                             {avatarPreview
                                 ? <img src={avatarPreview} alt="avatar" className="op-avatar-img" />
                                 : <div className="op-avatar-fallback" style={{ fontSize: 44 }}>
-                                    {identity.fullName.trim() ? identity.fullName.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AU'}
+                                    {form.fullName.trim() ? form.fullName.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AU'}
                                 </div>
                             }
                         </div>
-                        <p className="op-display-name">{identity.fullName || 'User'}</p>
+                        <p className="op-display-name">{form.fullName || 'User'}</p>
                         <span className="op-role-badge">System Administrator</span>
                         <div className="op-divider" />
                         <button className="op-upload-btn" onClick={() => fileInputRef.current?.click()}>
@@ -212,15 +207,23 @@ const AdminProfile = () => {
                             </h2>
                             <div className="op-form-body">
                                 <div className="op-field-row">
-                                    {/* Chỉ hiển thị FULL NAME ở ô bên trái */}
                                     <div className="op-field">
                                         <label className="op-label">FULL NAME</label>
-                                        <input className="op-input readonly" value={identity.fullName} readOnly />
+                                        <input
+                                            className="op-input"
+                                            name="fullName"
+                                            value={form.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                        />
                                     </div>
-                                    {/* Chỉ hiển thị CORPORATE EMAIL ở ô bên phải */}
                                     <div className="op-field">
-                                        <label className="op-label">CORPORATE EMAIL</label>
-                                        <input className="op-input readonly" value={identity.email} readOnly />
+                                        <label className="op-label">EMAIL</label>
+                                        <input
+                                            className="op-input readonly"
+                                            value={form.email}
+                                            readOnly
+                                        />
                                     </div>
                                 </div>
                             </div>
