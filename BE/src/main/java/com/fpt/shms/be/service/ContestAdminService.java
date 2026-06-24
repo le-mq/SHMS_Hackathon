@@ -50,14 +50,16 @@ public class ContestAdminService {
             List<Map<String, Object>> roundsList = contestRounds.stream()
                     .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(c.getId()))
                     .map(r -> {
-                Map<String, Object> roundMap = new HashMap<>();
-                roundMap.put("id", r.getId());
-                roundMap.put("phaseName", r.getPhaseName());
-                roundMap.put("submissionOpen", r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
-                roundMap.put("submissionDeadline", r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
-
-                roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
-                return roundMap;
+                        Map<String, Object> roundMap = new HashMap<>();
+                        roundMap.put("id", r.getId());
+                        roundMap.put("phaseName", r.getPhaseName());
+                        roundMap.put("submissionOpen", r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
+                        roundMap.put("submissionDeadline", r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
+                        roundMap.put("gradingOpenAt", r.getGradingOpenAt() != null ? r.getGradingOpenAt().toString() : "");
+                        roundMap.put("gradingDeadlineAt", r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
+                        roundMap.put("publishResultAt", r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
+                        roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
+                        return roundMap;
             }).toList();
 
             List<Team> catTeams = teamMentorRepository.findByCategoryId(c.getId())
@@ -92,6 +94,7 @@ public class ContestAdminService {
         response.put("year", contest.getYear() != null ? contest.getYear() : "");
         response.put("registrationStart", contest.getRegistrationStart() != null ? contest.getRegistrationStart().toString() : "");
         response.put("registrationEnd", contest.getRegistrationEnd() != null ? contest.getRegistrationEnd().toString() : "");
+        response.put("contestEndAt", contest.getContestEndAt() != null ? contest.getContestEndAt().toString() : "");
         response.put("status", contest.getStatus() != null ? contest.getStatus().name() : "UPCOMING");
         response.put("regionScope", contest.getRegionScope() != null ? contest.getRegionScope() : "");
         response.put("maximumAllowedTeams", contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
@@ -148,6 +151,7 @@ public class ContestAdminService {
         contest.setTieredPrizeStructures(request.getTieredPrizeStructures());
         contest.setRegistrationStart(request.getRegistrationStart());
         contest.setRegistrationEnd(request.getRegistrationEnd());
+        contest.setContestEndAt(request.getContestEndAt());
         contest.setSemester(semester);
 
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
@@ -282,7 +286,9 @@ public class ContestAdminService {
 
             round.setSubmissionOpen(roundDto.getSubmissionOpen());
             round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
-
+            round.setGradingOpenAt(roundDto.getGradingOpenAt());
+            round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
+            round.setPublishResultAt(roundDto.getPublishResultAt());
             round.setState(state);
             round.setContest(contest);
             round.setCategory(category);
