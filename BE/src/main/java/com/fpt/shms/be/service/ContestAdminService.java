@@ -30,6 +30,7 @@ public class ContestAdminService {
     private final AnnouncementRepository announcementRepository;
     private final UniversityRepository universityRepository;
     private final TeamMentorRepository teamMentorRepository;
+    private final AuditLogService auditLogService;
 
     public List<Contest> getAllContests() {
         return contestRepository.findAll();
@@ -200,6 +201,9 @@ public class ContestAdminService {
         }
 
         contest = contestRepository.save(contest);
+        
+        String action = (request.getId() != null) ? "UPDATE_CONTEST" : "CREATE_CONTEST";
+        auditLogService.log(action, "Contest", contest.getId(), null, contest.getStatus().name(), contest.getName());
 
         contestUniversityRepository.deleteByContest(contest);
 
@@ -315,7 +319,9 @@ public class ContestAdminService {
             });
         }
 
-        return categoryRepository.save(category);
+        Category savedCategory = categoryRepository.save(category);
+        auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getId(), null, savedCategory.getStatus(), "Update Track and Rounds");
+        return savedCategory;
     }
 
     @org.springframework.transaction.annotation.Transactional
@@ -333,7 +339,9 @@ public class ContestAdminService {
                 .status("ACTIVE")
                 .build();
 
-        return announcementRepository.save(announcement);
+        Announcement savedAnnouncement = announcementRepository.save(announcement);
+        auditLogService.log("CREATE_ANNOUNCEMENT", "Announcement", savedAnnouncement.getId(), null, savedAnnouncement.getStatus(), request.getTitle());
+        return savedAnnouncement;
     }
 
     private Contest.Season parseSeason(String term) {

@@ -27,6 +27,7 @@ public class JudgeService {
     private final RubricTemplateCriteriaRepository rubricTemplateCriteriaRepository;
     private final JudgeRepository judgeRepository;
     private final RoundRepository roundRepository;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public EvaluatorDashboardResponse getDashboardData(String username, Long contestId) {
@@ -274,6 +275,7 @@ public class JudgeService {
         score.setTotalScore(total);
         score.setGeneralFeedback(String.join("\n", feedback));
         scoreRepository.save(score);
+        auditLogService.log("SUBMIT_SCORE", "Submission", submission.getId(), null, "FINALIZED", "Total Score: " + total);
     }
 
     @Transactional(readOnly = true)
