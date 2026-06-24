@@ -24,6 +24,7 @@ public class TeamService{
     private final SubmissionRepository submissionRepository;
     private final ContestUniversityRepository contestUniversityRepository;
     private final JwtUtils jwtUtils;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -35,6 +36,7 @@ public class TeamService{
                 .build();
         team.generateInvitationCode();
         team = teamRepository.save(team);
+        auditLogService.log("CREATE_TEAM", "Team", team.getId(), null, team.getStatus(), "Leader: " + leaderUsername);
 
         TeamMembership memberMembership = TeamMembership.builder()
                 .team(team)
@@ -77,6 +79,7 @@ public class TeamService{
                 .status("APPROVED")
                 .build();
         teamMembershipRepository.save(newMember);
+        auditLogService.log("JOIN_TEAM", "Team", team.getId(), null, team.getStatus(), "User: " + username);
     }
 
     @Transactional(readOnly = true)
@@ -169,6 +172,7 @@ public class TeamService{
         }
 
         teamMembershipRepository.delete(membership);
+        auditLogService.log("LEAVE_TEAM", "Team", team.getId(), null, team.getStatus(), "User: " + username);
     }
 
     @Transactional
@@ -229,6 +233,7 @@ public class TeamService{
             team.setStatus("APPROVED");
         }
         team = teamRepository.save(team);
+        auditLogService.log("REGISTER_TEAM", "Team", team.getId(), null, team.getStatus(), "Registered by: " + username);
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -341,6 +346,7 @@ public class TeamService{
 
         team.setStatus(status.toUpperCase());
         teamRepository.save(team);
+        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), null, team.getStatus(), "Updated by admin");
 
         if("APPROVED".equalsIgnoreCase(status)) {
             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());

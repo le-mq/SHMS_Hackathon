@@ -26,7 +26,7 @@ public class AllocationAdminService {
     private final TeamMentorRepository teamMentorRepository;
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
-
+    private final AuditLogService auditLogService;
 
     @Transactional
     public void allocateExpert(ExpertAllocationRequest request) {
@@ -100,6 +100,8 @@ public class AllocationAdminService {
                 judgeAssignmentRepository.save(judgeAssignment);
             }
         }
+        
+        auditLogService.log("ALLOCATE_EXPERT", "User", user.getId(), null, "ALLOCATED", "Assigned expert to track/team");
     }
 
     @Transactional(readOnly = true)
