@@ -251,7 +251,7 @@
 .generate-btn {
     width: 300px;
     padding: 14px 24px;
-    background-color: #0d1b2a;
+    background-color: #0d1b2a !important;
     color: white;
     border: none;
     border-radius: 8px;
@@ -265,7 +265,7 @@
 }
 
 .generate-btn:hover {
-    background-color: #1a2c40;
+    background-color: #1a2c40 !important;
 }
 
 .generate-btn:disabled {
