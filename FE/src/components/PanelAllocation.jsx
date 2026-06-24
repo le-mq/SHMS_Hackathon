@@ -303,27 +303,34 @@ const PanelAllocation = () => {
                             <>
                                 <div className="management-block">
                                     <h3>Mentor</h3>
-                                    <div className="global-teams-grid">
-                                        {allTeams.map(team => {
-                                            const isChecked = currentMentoredTeamIds.includes(String(team.id));
-                                            const isTakenByAnother = allAssignedTeamIds.has(String(team.id));
-                                            const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
-                                            return (
-                                                <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isChecked}
-                                                        onChange={() => handleGlobalTeamToggle(team.id)}
-                                                        disabled={isMentorDisabled}
-                                                    />
-                                                    <div className="team-name-text">
-                                                        {team.name}
-                                                        {isTakenByAnother && <span style={{ color: '#94a3b8', fontSize: '11px' }}> (already have a mentor.)</span>}
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
+                                    {allTeams.length === 0 ? (
+                                        <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
+                                            <p>Chưa có kết quả từ vòng trước hoặc không có đội nào đủ điều kiện.</p>
+                                            <p style={{ fontSize: '12px' }}>Chỉ có thể phân công Giám khảo (Judge).</p>
+                                        </div>
+                                    ) : (
+                                        <div className="global-teams-grid">
+                                            {allTeams.map(team => {
+                                                const isChecked = currentMentoredTeamIds.includes(String(team.id));
+                                                const isTakenByAnother = allAssignedTeamIds.has(String(team.id));
+                                                const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
+                                                return (
+                                                    <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => handleGlobalTeamToggle(team.id)}
+                                                            disabled={isMentorDisabled}
+                                                        />
+                                                        <div className="team-name-text">
+                                                            {team.name}
+                                                            {isTakenByAnother && <span style={{ color: '#94a3b8', fontSize: '11px' }}> (already have a mentor.)</span>}
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="management-block" style={{ marginTop: '24px' }}>
