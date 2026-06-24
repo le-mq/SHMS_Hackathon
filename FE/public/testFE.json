@@ -1784,5 +1784,14 @@
         "createdAt": "2026-06-21T09:30:00"
       }
     ]
+  },
+  "expertProfile": {
+    "expertId": "EXP-2026-042",
+    "fullName": "Nguyen Van An",
+    "department": "Software Engineering",
+    "corporateEmail": "alex.nguyen@university.edu",
+    "telephoneNumber": "+84 912345678",
+    "avatarBase64": null,
+    "roleLabel": "Judge"
   }
 }

@@ -24,6 +24,7 @@ import StandingsFeedback from './components/StandingsFeedback'
 import HistoricalLog from './components/HistoricalLog'
 import EnforcementAuditLogs from './components/EnforcementAuditLogs'
 import PublicationDataExport from './components/PublicationDataExport'
+import ExpertProfile from './components/ExpertProfile.jsx'
 function App() {
   return (
     <Router>
@@ -45,6 +46,7 @@ function App() {
         <Route path="/judge/workspace" element={<EvaluatorDashboard />} />
         <Route path="/judge/evaluate/:teamId" element={<EvaluationWorkspace />} />
         <Route path="/judge/history" element={<HistoricalLog />} />
+        <Route path="/expert/profile" element={<ExpertProfile />} />
         <Route path="/mentor/workspace" element={<MentorCategory />} />
         <Route path="/student/team/status" element={<TeamStatus />} />
         <Route path="/student/results" element={<StandingsFeedback />} />
