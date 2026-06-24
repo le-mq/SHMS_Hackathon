@@ -12,7 +12,7 @@ public class JwtUtils {
 
     // In a real application, this should be injected from environment variables
     private final String SECRET_KEY = "SHMS_Hackathon_Super_Secret_Key_For_JWT_Signing_Must_Be_Long_Enough";
-    private final long EXPIRATION_TIME = 86400000; // 24 hours
+    private final long EXPIRATION_TIME = 604800000; // 24 hours
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);

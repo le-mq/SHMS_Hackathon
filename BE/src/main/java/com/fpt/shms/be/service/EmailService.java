@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -29,6 +30,30 @@ public class EmailService {
             log.info("Sent verification OTP to: {}", toEmail);
         } catch (Exception e) {
             log.error("Failed to send email to {}", toEmail, e);
+        }
+    }
+
+    @Async
+    public void sendExpertWelcomeEmailAsync(String toEmail, String fullName, String username, String password, String role) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("SEAL Hackathon - Expert Account Credentials");
+
+            String textContent = "Welcome, " + fullName + "!\n\n" +
+                    "You have been successfully registered as a " + role + " for the SEAL Hackathon.\n\n" +
+                    "Here are your login credentials:\n" +
+                    "Username: " + username + "\n" +
+                    "Password: " + password + "\n\n" +
+                    "For security reasons, we strongly recommend changing your password after your first login.";
+
+            message.setText(textContent);
+
+            mailSender.send(message);
+            log.info("Sent welcome email to expert: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}", toEmail, e);
         }
     }
 }

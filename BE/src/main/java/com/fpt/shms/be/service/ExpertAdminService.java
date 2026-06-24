@@ -33,6 +33,7 @@ public class ExpertAdminService {
     private final com.fpt.shms.be.repository.JudgeAssignmentRepository judgeAssignmentRepository;
     private final com.fpt.shms.be.repository.MentorAssignmentRepository mentorAssignmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional
     public void createExpert(CreateExpertRequest request) {
@@ -60,12 +61,14 @@ public class ExpertAdminService {
         }
 
 
+        String rawPassword = request.getPassword();
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getProfessionalEmail())
                 .fullName(request.getFullName())
                 .password(request.getPassword())
                 .status(User.UserStatus.ACTIVE)
+                .isEmailVerified(true)
                 .roles(new HashSet<>())
                 .build();
         user = userRepository.save(user);
@@ -97,6 +100,17 @@ public class ExpertAdminService {
             for (String roleName : distinctRoles) {
                 userRepository.updateUserRoleExpiry(user.getId(), roleName, request.getAccessExpiry());
             }
+        }
+
+        String rolesStr = String.join(" / ", distinctRoles);
+        if (request.getProfessionalEmail() != null && !request.getProfessionalEmail().isEmpty()) {
+            emailService.sendExpertWelcomeEmailAsync(
+                    request.getProfessionalEmail(),
+                    request.getFullName(),
+                    request.getUsername(),
+                    rawPassword,
+                    rolesStr
+            );
         }
     }
 
