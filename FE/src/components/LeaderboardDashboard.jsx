@@ -9,14 +9,12 @@ import NavbarAdmin from './NavbarAdmin';
 export const LeaderboardPresentation = ({ leaderboards }) => {
     const [selectedContestId, setSelectedContestId] = useState(null);
     const [selectedRound, setSelectedRound] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
     useEffect(() => {
         if (leaderboards && leaderboards.length > 0) {
             const firstBoard = leaderboards[0];
             setSelectedContestId(firstBoard.contestId);
             setSelectedRound(firstBoard.roundName);
-            setSelectedCategory(firstBoard.data?.results?.[0]?.categoryName || "All Categories");
         }
     }, [leaderboards]);
 
@@ -39,16 +37,8 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
     const currentBoard = leaderboards.find(lb => lb.contestId === selectedContestId && lb.roundName === selectedRound);
     const rawResults = currentBoard?.data?.results || [];
 
-    const categories = [];
-    rawResults.forEach(r => {
-        if (r.categoryName && !categories.includes(r.categoryName)) {
-            categories.push(r.categoryName);
-        }
-    });
-    const activeCategory = categories.includes(selectedCategory) ? selectedCategory : (categories[0] || "");
-    const filteredResults = rawResults.filter(r => r.categoryName === activeCategory);
-    const top3 = filteredResults.slice(0, 3);
-    const others = filteredResults.slice(3);
+    const top3 = rawResults.slice(0, 3);
+    const others = rawResults.slice(3);
 
     return (
         <div className="leader-content">
@@ -61,7 +51,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                                 setSelectedContestId(newContestId);
                                 const targetBoard = leaderboards.find(lb => lb.contestId === newContestId);
                                 setSelectedRound(targetBoard?.roundName || "");
-                                setSelectedCategory(targetBoard?.data?.results?.[0]?.categoryName || "");
                             }}
                             style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                     >{contests.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}</select>
@@ -69,8 +58,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                     <select className="cat-select" value={selectedRound || ""}
                             onChange={e => {
                                 const newRound = e.target.value; setSelectedRound(newRound);
-                                const targetBoard = leaderboards.find(lb => lb.contestId === selectedContestId && lb.roundName === newRound);
-                                setSelectedCategory(targetBoard?.data?.results?.[0]?.categoryName || "");
                             }}
                             style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                     >{rounds.map((r, idx) => (<option key={idx} value={r}>{r}</option>))}</select>
@@ -108,12 +95,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
 
             <div className="leader-table-card">
                 <div className="lt-header">
-                    <h2 className="lt-title">Ranking: {activeCategory}</h2>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <select className="cat-select" value={activeCategory} onChange={e => setSelectedCategory(e.target.value)}>
-                            {categories.map((cat, idx) => (<option key={idx} value={cat}>{cat || ""}</option>))}
-                        </select>
-                    </div>
+                    <h2 className="lt-title">Ranking</h2>
                 </div>
 
                 <table className="lt-table">
@@ -169,7 +151,10 @@ function processLeaderboardData(rawData) {
             board.data.results.sort((a, b) => a.rank - b.rank);
             return board;
         })
-        .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        .sort((a, b) => {
+            if (b.contestId !== a.contestId) return b.contestId - a.contestId;
+            return new Date(b.publishedAt) - new Date(a.publishedAt);
+        });
 }
 
 export const LeaderboardContent = ({ leaderboards }) => {
