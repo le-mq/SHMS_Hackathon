@@ -5,6 +5,8 @@ import NavbarJudge from './NavbarJudge';
 
 const EvaluationWorkspace = () => {
     const { teamId } = useParams();
+    const [searchParams] = import('react-router-dom').then(m => m.useSearchParams ? m.useSearchParams() : [new URLSearchParams()]).catch(() => [new URLSearchParams()]);
+
     const navigate = useNavigate();
     const [evalData, setEvalData] = useState(null);
     const [scores, setScores] = useState([]);
@@ -14,7 +16,16 @@ const EvaluationWorkspace = () => {
         const fetchEvalData = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const response = await fetch(`http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`, {
+
+                // Get roundId from query params safely
+                const urlParams = new URLSearchParams(window.location.search);
+                const roundId = urlParams.get('roundId');
+                let fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`;
+                if (roundId) {
+                    fetchUrl += `?roundId=${roundId}`;
+                }
+
+                const response = await fetch(fetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('API request failed');

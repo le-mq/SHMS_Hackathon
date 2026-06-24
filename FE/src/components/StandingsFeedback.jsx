@@ -333,48 +333,48 @@ const StandingsFeedback = () => {
                                 return (
                                     <table className="history-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
                                         <thead>
-                                            <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
-                                                <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
-                                                <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
-                                            </tr>
+                                        <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
+                                            <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
+                                        </tr>
                                         </thead>
                                         <tbody>
-                                            {isLoading ? (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                                        Loading result data...
-                                                    </td>
-                                                </tr>
-                                            ) : error ? (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
-                                                        {error}
-                                                    </td>
-                                                </tr>
-                                            ) : rounds.length > 0 ? rounds.map((r, idx) => (
-                                                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
-                                                    <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>
-                                                        {r.totalScore == null ? 'Not public' : `${r.totalScore.toFixed(2)} / 100`}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'right' }}>
-                                                        <button
-                                                            className="view-rubric-btn"
-                                                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
-                                                            onClick={() => setSelectedDetail(r)}
-                                                        >
-                                                            View Detail
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            )) : (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                                        No result data available yet.
-                                                    </td>
-                                                </tr>
-                                            )}
+                                        {isLoading ? (
+                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                                    Loading result data...
+                                                </td>
+                                            </tr>
+                                        ) : error ? (
+                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
+                                                    {error}
+                                                </td>
+                                            </tr>
+                                        ) : rounds.length > 0 ? rounds.map((r, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
+                                                <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>
+                                                    {r.totalScore == null ? 'Not public' : `${r.totalScore.toFixed(2)} / 100`}
+                                                </td>
+                                                <td style={{ padding: '16px', textAlign: 'right' }}>
+                                                    <button
+                                                        className="view-rubric-btn"
+                                                        style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
+                                                        onClick={() => setSelectedDetail(r)}
+                                                    >
+                                                        View Detail
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                                    No result data available yet.
+                                                </td>
+                                            </tr>
+                                        )}
                                         </tbody>
                                     </table>
                                 );
@@ -399,38 +399,38 @@ const StandingsFeedback = () => {
                         {selectedDetail.detailedScores && selectedDetail.detailedScores.length > 0 ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                                 <thead>
-                                    <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
-                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Criteria</th>
-                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '16%' }}>Judge</th>
-                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Weight</th>
-                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Points</th>
-                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Feedback</th>
-                                    </tr>
+                                <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Criteria</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '16%' }}>Category</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Weight</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Points</th>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Feedback</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedDetail.detailedScores.map((score, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b', wordBreak: 'break-word' }}>
-                                                {cleanCriteriaName(score.criteriaName || score.criterionName)}
-                                            </td>
+                                {selectedDetail.detailedScores.map((score, i) => (
+                                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b', wordBreak: 'break-word' }}>
+                                            {cleanCriteriaName(score.criteriaName || score.criterionName)}
+                                        </td>
 
-                                            <td style={{ padding: '12px', textAlign: 'center', color: '#475569', fontWeight: '600' }}>
-                                                {getJudgeLabel(score, i)}
-                                            </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', color: '#475569', fontWeight: '600' }}>
+                                            {score.categoryName || score.trackName || selectedDetail?.categoryName || 'Category'}
+                                        </td>
 
-                                            <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>
-                                                {getCriteriaWeight(selectedDetail, score)}%
-                                            </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>
+                                            {getCriteriaWeight(selectedDetail, score)}%
+                                        </td>
 
-                                            <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#3b82f6' }}>
-                                                {score.pointsAwarded ?? score.points ?? score.score ?? 0}
-                                            </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#3b82f6' }}>
+                                            {score.pointsAwarded ?? score.points ?? score.score ?? 0}
+                                        </td>
 
-                                            <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word' }}>
-                                                {score.feedback || 'No feedback provided.'}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word' }}>
+                                            {score.feedback || 'No feedback provided.'}
+                                        </td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         ) : (

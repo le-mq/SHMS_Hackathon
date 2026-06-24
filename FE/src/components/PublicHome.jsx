@@ -189,38 +189,61 @@ export default function PublicHome() {
                         <h2>Open Competitive Tracks</h2>
                         <p>Categories and timeline details for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
                     </div>
-                    <div className="ph-tracks-table">
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Category Name</th>
-                                <th>Round</th>
-                                <th>Submission Open</th>
-                                <th>Submission Deadline</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {!selectedContest || !selectedContest.categories || selectedContest.categories.length === 0 ? (
-                                <tr><td colSpan={4} style={{ textAlign: 'center', color: '#9ca3af', padding: 32 }}>No categories available for this contest.</td>
-                                </tr>) : currentRounds.length === 0 ? (
-                                <tr>
-                                    <td className="ph-category-name">{allCatNames}</td>
-                                    <td colSpan={3}>No rounds defined</td>
-                                </tr>
-                            ) : (currentRounds.map((r, rId) => {
-                                const catObj = selectedContest.categories[rId] || selectedContest.categories[0];
-                                const catName = typeof catObj === 'string' ? catObj : (catObj?.name || catObj?.categoryName || `Category ${rId + 1}`);
-                                return (
-                                    <tr key={`round-${rId}`}>
-                                        <td className="ph-category-name" style={{ verticalAlign: 'middle', fontWeight: 600 }}>{catName}</td>
-                                        <td>{r.phaseName}</td>
-                                        <td>{fmtDate(r.submissionOpen)}</td>
-                                        <td>{fmtDate(r.submissionDeadline)}</td>
-                                    </tr>
-                                );
-                            }))}
-                            </tbody>
-                        </table>
+                    <div className="ph-tracks-table" style={{ background: 'transparent', padding: 0, border: 'none', boxShadow: 'none' }}>
+                        {!selectedContest || !selectedContest.categories || selectedContest.categories.length === 0 ? (
+                            <div style={{ textAlign: 'center', color: '#9ca3af', padding: 32, background: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                                No categories available for this contest.
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                {selectedContest.categories.map((cat, idx) => {
+                                    const catName = typeof cat === 'string' ? cat : (cat.name || cat.categoryName || `Category ${idx + 1}`);
+                                    const rounds = cat.rounds || selectedContest.rounds || [];
+                                    const description = typeof cat === 'object' ? cat.description : null;
+                                    const guidelineUrl = typeof cat === 'object' ? cat.guidelineUrl : null;
+
+                                    return (
+                                        <div key={`cat-${idx}`} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                                <div>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
+                                                    {description && <p style={{ fontSize: '14px', color: '#4b5563', margin: '0 0 8px 0' }}>{description}</p>}
+                                                </div>
+                                                {guidelineUrl && (
+                                                    <a href={guidelineUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#f3f4f6', color: '#374151', borderRadius: '6px', fontSize: '13px', fontWeight: 500, textDecoration: 'none', border: '1px solid #e5e7eb', whiteSpace: 'nowrap', marginLeft: '16px' }}>View Guidelines</a>
+                                                )}
+                                            </div>
+                                            {rounds.length > 0 ? (
+                                                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
+                                                        <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <tr>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Round</th>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Open</th>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Deadline</th>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Result Announcement</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {rounds.map((r, rId) => (
+                                                            <tr key={`r-${rId}`} style={{ borderBottom: rId < rounds.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
+                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}>{r.phaseName}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.submissionOpen)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.submissionDeadline)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.publishResultAt)}</td>
+                                                            </tr>
+                                                        ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ) : (
+                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>No rounds defined for this category.</div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
