@@ -50,21 +50,21 @@
 }
 
 .ph-nav-actions {
-    display: flex;
+    display: flex !important;
     gap: 10px;
     justify-self: end;
 }
 
 .ph-btn-ghost {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, .3);
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, .3) !important;
     color: var(--white);
     padding: 6px 14px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-sm) !important;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
+    transition: var(--transition) !important;
 }
 
 .ph-btn-ghost:hover {
@@ -72,7 +72,7 @@
 }
 
 .ph-btn-primary {
-    background: var(--accent);
+    background: var(--accent)!important;
     border: none;
     color: var(--white);
     padding: 6px 16px;
@@ -84,6 +84,6 @@
 }
 
 .ph-btn-primary:hover {
-    background: var(--accent-2);
-    transform: translateY(-1px);
+    background: var(--accent-2)!important;
+    transform: translateY(-1px) !important;
 }

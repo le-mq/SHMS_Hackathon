@@ -10,11 +10,9 @@ const API_BASE = "http://localhost:8080/api/v1/admin";
 const RankingsConsole = () => {
     const [topN, setTopN] = useState(10);
     const [contests, setContests] = useState([]);
-    
-    // ĐÃ THÊM: Khai báo đầy đủ state cho ID cuộc thi và ID vòng thi
     const [selectedContestId, setSelectedContestId] = useState('');
     const [selectedRoundId, setSelectedRoundId] = useState('');
-    
+
     const [rounds, setRounds] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState(null);
@@ -23,8 +21,6 @@ const RankingsConsole = () => {
         evaluators: [],
         allReady: false
     });
-
-    // 1. Lấy danh sách cuộc thi ban đầu
     useEffect(() => {
         let cancelled = false;
         async function fetchInitialData() {
@@ -34,26 +30,27 @@ const RankingsConsole = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error("HTTP " + res.status);
-                
+
                 const json = await res.json();
                 const contestsData = Array.isArray(json) ? json : json.data || [];
-                
+                const sorted = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id));
                 if (!cancelled) {
-                    setContests(contestsData);
-                    if (contestsData.length > 0) {
-                        setSelectedContestId(contestsData[0].id);
+                    setContests(sorted);
+                    if (sorted.length > 0) {
+                        setSelectedContestId(sorted[0].id);
                     }
                 }
             }
             catch (error) {
-                console.warn("Lỗi kết nối API contest, dùng mock:", error.message);
+                console.warn("Fail to connect API contest, use mock:", error.message);
                 const localRes = await fetch("/testFE.json");
                 const localJson = await localRes.json();
                 const contestsData = localJson.rankingConsole?.contests?.data || [];
+                const sorted = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id));
                 if (!cancelled) {
-                    setContests(contestsData);
-                    if (contestsData.length > 0) {
-                        setSelectedContestId(contestsData[0].id);
+                    setContests(sorted);
+                    if (sorted.length > 0) {
+                        setSelectedContestId(sorted[0].id);
                     }
                 }
             }
@@ -61,8 +58,6 @@ const RankingsConsole = () => {
         fetchInitialData();
         return () => { cancelled = true; };
     }, []);
-
-    // 2. Tự động lấy danh sách vòng thi (Round) kèm theo ID số khi Contest thay đổi
     useEffect(() => {
         const fetchRounds = async () => {
             if (!selectedContestId) return;
@@ -83,11 +78,15 @@ const RankingsConsole = () => {
 
                 if (data && data.tracks) {
                     const allRounds = data.tracks.flatMap(track => track.rounds || [])
-                        .map(r => ({ id: r.id, phaseName: r.phaseName })); 
+                        .map(r => ({ id: r.id, phaseName: r.phaseName }));
 
-                    setRounds(allRounds);
-                    if (allRounds.length > 0) {
-                        setSelectedRoundId(allRounds[0].id); // Set ID số của vòng thi đầu tiên
+                    const uniqueRoundsMap = new Map();
+                    allRounds.forEach(r => uniqueRoundsMap.set(r.id, r));
+                    const sortedRounds = Array.from(uniqueRoundsMap.values()).sort((a, b) => Number(b.id) - Number(a.id));
+
+                    setRounds(sortedRounds);
+                    if (sortedRounds.length > 0) {
+                        setSelectedRoundId(sortedRounds[0].id);
                     } else {
                         setSelectedRoundId('');
                     }
@@ -98,11 +97,9 @@ const RankingsConsole = () => {
         };
         fetchRounds();
     }, [selectedContestId]);
-
-    // 3. Gọi API readiness dựa trên ID cuộc thi và ID vòng thi thật (Dạng số)
     useEffect(() => {
         const fetchReadiness = async () => {
-            if (!selectedContestId || !selectedRoundId) return; 
+            if (!selectedContestId || !selectedRoundId) return;
             try {
                 let data;
                 try {
@@ -125,8 +122,6 @@ const RankingsConsole = () => {
         };
         fetchReadiness();
     }, [selectedContestId, selectedRoundId]);
-
-    // 4. Gửi dữ liệu tính toán bằng Request JSON Body đúng như Swagger yêu cầu
     const handleGenerate = async () => {
         if (!readinessData.allReady || !isTopNValid) return;
         setIsProcessing(true);
@@ -167,7 +162,7 @@ const RankingsConsole = () => {
         try {
             const token = localStorage.getItem("shms_token");
             try {
-                const res = await fetch(API_BASE + "/rankings/publish", { 
+                const res = await fetch(API_BASE + "/rankings/publish", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -236,7 +231,6 @@ const RankingsConsole = () => {
                         </div>
                         <div className="round-select-wrap">
                             <label className="round-select-label">Competition Round</label>
-                            {/* ĐÃ SỬA: value gắn vào selectedRoundId, duyệt hiển thị r.phaseName */}
                             <select className="round-select" value={selectedRoundId} onChange={e => setSelectedRoundId(e.target.value)}>
                                 {rounds.map((r) => (
                                     <option key={r.id} value={r.id}>{r.phaseName}</option>
@@ -283,8 +277,8 @@ const RankingsConsole = () => {
                                 if (!/^\d*$/.test(value)) return;
                                 if (value === '') { setTopN(''); return; }
                                 const num = Number(value);
-                                if (num < 1) { setTopN(1); } 
-                                else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); } 
+                                if (num < 1) { setTopN(1); }
+                                else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
                                 else { setTopN(num); }
                             }}
                         />
@@ -325,17 +319,11 @@ const RankingsConsole = () => {
                             <Bar
                                 data={{
                                     labels: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
-                                    datasets: [{
-                                        label: 'Teams',
-                                        data: readinessData.summary.bars,
-                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                        borderColor: 'rgba(54, 162, 235, 1)',
-                                        borderWidth: 1,
+                                    datasets: [{ label: 'Teams', data: readinessData.summary.bars,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1,
                                     }]
                                 }}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
+                                options={{ responsive: true, maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                                 }}
@@ -347,30 +335,29 @@ const RankingsConsole = () => {
                 <div className="eval-table-card">
                     <table className="eval-table">
                         <thead>
-                            <tr>
-                                <th>Evaluator Name</th>
-                                <th>Department</th>
-                                <th>Review Status</th>
-                                <th>Finalized Date</th>
-                            </tr>
+                        <tr>
+                            <th>Evaluator Name</th>
+                            <th>Department</th>
+                            <th>Review Status</th>
+                            <th>Finalized Date</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {readinessData.evaluators.map((ev, idx) => (
-                                <tr key={idx}>
-                                    <td className="eval-name">{ev.name}</td>
-                                    <td>{ev.dept}</td>
-                                    <td>
-                                        {ev.status === 'Finalized'
-                                            ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
-                                            : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
-                                        }
-                                    </td>
-                                    <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
-                                </tr>
-                            ))}
-                            {readinessData.evaluators.length === 0 && (
-                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
-                            )}
+                        {readinessData.evaluators.map((ev, idx) => (
+                            <tr key={idx}>
+                                <td className="eval-name">{ev.name}</td>
+                                <td>{ev.dept}</td>
+                                <td>{ev.status === 'Finalized'
+                                        ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
+                                        : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
+                                    }
+                                </td>
+                                <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
+                            </tr>
+                        ))}
+                        {readinessData.evaluators.length === 0 && (
+                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
+                        )}
                         </tbody>
                     </table>
                 </div>
@@ -409,29 +396,29 @@ const RankingsConsole = () => {
                         </div>
                         <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                             <thead>
-                                <tr>
-                                    <th style={{ color: '#0f172a' }}>Rank</th>
-                                    <th style={{ color: '#0f172a' }}>Team Name</th>
-                                    <th style={{ color: '#0f172a' }}>Average Score</th>
-                                    <th style={{ color: '#0f172a' }}>Status</th>
-                                </tr>
+                            <tr>
+                                <th style={{ color: '#0f172a' }}>Rank</th>
+                                <th style={{ color: '#0f172a' }}>Team Name</th>
+                                <th style={{ color: '#0f172a' }}>Average Score</th>
+                                <th style={{ color: '#0f172a' }}>Status</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {result.results.map(r => {
-                                    const isQualified = r.rank <= topN;
-                                    return (
-                                        <tr key={r.rank}>
-                                            <td>#{r.rank}</td>
-                                            <td>{r.teamName}</td>
-                                            <td>{r.averageScore}</td>
-                                            <td>
+                            {result.results.map(r => {
+                                const isQualified = r.rank <= topN;
+                                return (
+                                    <tr key={r.rank}>
+                                        <td>#{r.rank}</td>
+                                        <td>{r.teamName}</td>
+                                        <td>{r.averageScore}</td>
+                                        <td>
                                                 <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
                                                     {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                 </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>

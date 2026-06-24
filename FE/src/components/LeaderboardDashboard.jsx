@@ -28,13 +28,14 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
     }
     const contests = [];
     leaderboards.forEach(lb => {
-        if (!contests.find(c => c.id === lb.contestId)) {
-            contests.push({ id: lb.contestId, name: lb.data?.contestName || `Contest #${lb.contestId}` });
+        if (!contests.find(c => Number(c.id) === Number(lb.contestId))) {
+            contests.push({ id: Number(lb.contestId), name: lb.data?.contestName || `Contest #${lb.contestId}` });
         }
     });
-    const rounds = leaderboards.filter(lb => lb.contestId === selectedContestId)
-        .map(lb => lb.roundName);
-    const currentBoard = leaderboards.find(lb => lb.contestId === selectedContestId && lb.roundName === selectedRound);
+    const rounds = Array.from(new Set(leaderboards
+        .filter(lb => Number(lb.contestId) === Number(selectedContestId))
+        .map(lb => lb.roundName)));
+    const currentBoard = leaderboards.find(lb => Number(lb.contestId) === Number(selectedContestId) && lb.roundName === selectedRound);
     const rawResults = currentBoard?.data?.results || [];
 
     const top3 = rawResults.slice(0, 3);
@@ -47,9 +48,9 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <select className="cat-select" value={selectedContestId || ""}
                             onChange={e => {
-                                const newContestId = parseInt(e.target.value);
+                                const newContestId = Number(e.target.value);
                                 setSelectedContestId(newContestId);
-                                const targetBoard = leaderboards.find(lb => lb.contestId === newContestId);
+                                const targetBoard = leaderboards.find(lb => Number(lb.contestId) === newContestId);
                                 setSelectedRound(targetBoard?.roundName || "");
                             }}
                             style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
@@ -152,7 +153,7 @@ function processLeaderboardData(rawData) {
             return board;
         })
         .sort((a, b) => {
-            if (b.contestId !== a.contestId) return b.contestId - a.contestId;
+            if (Number(b.contestId) !== Number(a.contestId)) return Number(b.contestId) - Number(a.contestId);
             return new Date(b.publishedAt) - new Date(a.publishedAt);
         });
 }
