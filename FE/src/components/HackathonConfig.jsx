@@ -525,7 +525,7 @@ function HackathonConfig() {
                                 <div className="config-card" style={{marginBottom: '24px'}}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Phase ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED' }])}>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED' }])}>
                                             <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Round
                                         </Button>}
                                     </div>
