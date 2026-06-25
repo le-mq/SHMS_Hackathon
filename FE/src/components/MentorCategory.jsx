@@ -14,7 +14,7 @@ const MentorCategory = () => {
         const fetchMentorData = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const response = await fetch('ht/tp://localhost:8080/api/v1/mentor/assigned-teams', {
+                const response = await fetch('http://localhost:8080/api/v1/mentor/assigned-teams', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('API failed');

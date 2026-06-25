@@ -93,7 +93,12 @@ const EvaluatorDashboard = () => {
 
     useEffect(() => {
         if (allRounds.length > 0 && !roundMap[selectedRound]) {
-            setSelectedRound(allRounds[allRounds.length - 1].name); // pick newest / last
+            const saved = sessionStorage.getItem('judgeSelectedRound');
+            if (saved && roundMap[saved]) {
+                setSelectedRound(saved);
+            } else {
+                setSelectedRound(allRounds[0].name);
+            }
         }
     }, [allRounds.length, selectedRound, JSON.stringify(roundMap)]);
 
@@ -171,7 +176,10 @@ const EvaluatorDashboard = () => {
                                 ))}
                             </select>
                             <select className="eval-contest-select" value={selectedRound}
-                                    onChange={(e) => setSelectedRound(e.target.value)}
+                                    onChange={(e) => {
+                                        setSelectedRound(e.target.value);
+                                        sessionStorage.setItem('judgeSelectedRound', e.target.value);
+                                    }}
                                     style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', outline: 'none' }}>
                                 {allRounds.map((r, idx) => (
                                     <option key={idx} value={r.name}>{r.name}</option>
@@ -276,45 +284,30 @@ const EvaluatorDashboard = () => {
                                 </td>
                                 <td>
                                     {team.submissionState?.toUpperCase() === 'EVALUATED' ? (
-                                        <button className="evaluate-btn" style={{
-                                            background: '#e2e8f0',
-                                            color: '#64748b',
-                                            cursor: 'not-allowed',
-                                            borderColor: '#cbd5e1'
+                                        <button className="evaluate-btn" style={{ background: '#e2e8f0',
+                                            color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
                                         }} disabled>
                                             Already Evaluated
                                         </button>
                                     ) : (
-                                        (() => {
-                                            const now = new Date().getTime();
+                                        (() => {const now = new Date().getTime();
                                             const openTime = team.gradingOpenAt ? new Date(team.gradingOpenAt).getTime() : 0;
                                             const closeTime = team.gradingDeadlineAt ? new Date(team.gradingDeadlineAt).getTime() : Infinity;
                                             if (openTime !== 0 && (now < openTime || now > closeTime)) {
                                                 return (
-                                                    <button className="evaluate-btn" style={{
-                                                        background: '#fee2e2',
-                                                        color: '#ef4444',
-                                                        cursor: 'not-allowed',
-                                                        borderColor: '#fca5a5'
-                                                    }} disabled>
-                                                        Not in Grading Time
-                                                    </button>
+                                                    <button className="evaluate-btn" style={{ background: '#fee2e2',
+                                                        color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
+                                                    }} disabled>Not in Grading Time</button>
                                                 );
                                             }
 
                                             if (team.submissionState === 'Not Submitted') {
                                                 return (
-                                                    <button className="evaluate-btn" style={{
-                                                        background: '#fee2e2',
-                                                        color: '#ef4444',
-                                                        cursor: 'not-allowed',
-                                                        borderColor: '#fca5a5'
-                                                    }} disabled>
-                                                        Not Submitted (0 pts)
-                                                    </button>
+                                                    <button className="evaluate-btn" style={{ background: '#fee2e2',
+                                                        color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
+                                                    }} disabled>Not Submitted (0 pts)</button>
                                                 );
                                             }
-
                                             return (
                                                 <button className="evaluate-btn"
                                                         onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>

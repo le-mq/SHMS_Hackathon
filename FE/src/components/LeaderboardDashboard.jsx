@@ -9,7 +9,6 @@ import NavbarAdmin from './NavbarAdmin';
 export const LeaderboardPresentation = ({ leaderboards }) => {
     const [selectedContestId, setSelectedContestId] = useState(null);
     const [selectedRound, setSelectedRound] = useState(null);
-
     useEffect(() => {
         if (leaderboards && leaderboards.length > 0) {
             const firstBoard = leaderboards[0];
@@ -17,7 +16,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
             setSelectedRound(firstBoard.roundName);
         }
     }, [leaderboards]);
-
     if (!leaderboards || leaderboards.length === 0) {
         return (
             <div className="leader-content" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
@@ -37,10 +35,8 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
         .map(lb => lb.roundName)));
     const currentBoard = leaderboards.find(lb => Number(lb.contestId) === Number(selectedContestId) && lb.roundName === selectedRound);
     const rawResults = currentBoard?.data?.results || [];
-
     const top3 = rawResults.slice(0, 3);
     const others = rawResults.slice(3);
-
     return (
         <div className="leader-content">
             <div style={{ marginBottom: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -64,7 +60,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                     >{rounds.map((r, idx) => (<option key={idx} value={r}>{r}</option>))}</select>
                 </div>
             </div>
-
             <div className="top-pods-row">
                 {top3[1] && (
                     <div className="pod-card" style={{ height: '90%' }}>
@@ -74,7 +69,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                         <div className="pod-pts-label">POINTS</div>
                     </div>
                 )}
-
                 {top3[0] && (
                     <div className="pod-card pod-1">
                         <div className="pod-rank-bg">1</div>
@@ -83,7 +77,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                         <div className="pod-pts-label">POINTS</div>
                     </div>
                 )}
-
                 {top3[2] && (
                     <div className="pod-card" style={{ height: '75%' }}>
                         <div className="pod-rank-bg">3</div>
@@ -93,12 +86,10 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                     </div>
                 )}
             </div>
-
             <div className="leader-table-card">
                 <div className="lt-header">
                     <h2 className="lt-title">Ranking</h2>
                 </div>
-
                 <table className="lt-table">
                     <thead>
                     <tr>
@@ -131,7 +122,6 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
         </div>
     );
 };
-
 function processLeaderboardData(rawData) {
     const boardsMap = {};
     rawData.forEach(item => {
