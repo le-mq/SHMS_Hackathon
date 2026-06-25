@@ -170,7 +170,8 @@ const RankingsConsole = () => {
                     },
                     body: JSON.stringify({
                         contestId: Number(selectedContestId),
-                        roundId: Number(selectedRoundId)
+                        roundId: Number(selectedRoundId),
+                        topN: Number(topN)
                     })
                 });
                 if (!res.ok) throw new Error();
@@ -179,7 +180,7 @@ const RankingsConsole = () => {
             catch {
                 alert("Mock publish success!");
             }
-        }
+        } 
         catch (err) {
             console.error(err);
             alert("Failed to publish leaderboard.");
