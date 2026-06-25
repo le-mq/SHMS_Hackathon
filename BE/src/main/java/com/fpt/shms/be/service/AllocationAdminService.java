@@ -100,7 +100,7 @@ public class AllocationAdminService {
                 judgeAssignmentRepository.save(judgeAssignment);
             }
         }
-        
+
         auditLogService.log("ALLOCATE_EXPERT", "User", user.getId(), null, "ALLOCATED", "Assigned expert to track/team");
     }
 
@@ -162,15 +162,12 @@ public class AllocationAdminService {
             return result;
         }
 
-        // Lấy danh sách rounds sắp xếp
-        List<Round> categoryRounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(categoryId);
+        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
 
-        // Kiểm tra xem round này có phải round đầu tiên của category không
-        boolean isFirstRound = categoryRounds.isEmpty() ||
-                categoryRounds.get(0).getId().equals(round.getId());
+        boolean isFirstRound = contestRounds.isEmpty() ||
+                contestRounds.get(0).getId().equals(round.getId());
 
         if (isFirstRound) {
-            // Round đầu tiên -> Lấy toàn bộ team APPROVED
             List<Team> approvedTeams = teamRepository.findByContestId(contestId)
                     .stream()
                     .filter(t -> "APPROVED".equals(t.getStatus()))
@@ -184,11 +181,10 @@ public class AllocationAdminService {
                 result.add(tm);
             }
         } else {
-            // Round N -> Lấy các team QUALIFIED ở round trước đó
             Round previousRound = null;
-            for (int i = 1; i < categoryRounds.size(); i++) {
-                if (categoryRounds.get(i).getId().equals(round.getId())) {
-                    previousRound = categoryRounds.get(i - 1);
+            for (int i = 1; i < contestRounds.size(); i++) {
+                if (contestRounds.get(i).getId().equals(round.getId())) {
+                    previousRound = contestRounds.get(i - 1);
                     break;
                 }
             }

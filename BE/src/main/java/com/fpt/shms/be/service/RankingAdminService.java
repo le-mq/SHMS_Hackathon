@@ -26,6 +26,7 @@ public class RankingAdminService {
     private final RankingResultRepository rankingResultRepository;
     private final ContestRubricRepository contestRubricRepository;
     private final AuditLogService auditLogService;
+    private final TeamRepository teamRepository;
 
     public RankingReadinessResponse getReadiness(Long contestId, Long roundId) {
         Round round = roundRepository.findById(roundId)
@@ -227,7 +228,10 @@ public class RankingAdminService {
                     .qualificationStatus(entry.getStatus())
                     .datePublishedAt(LocalDateTime.now())
                     .build());
-            
+
+            team.setStatus(entry.getStatus());
+            teamRepository.save(team);
+
             auditLogService.log("ADVANCE_TOP_N", "Team", team.getId(), "PENDING", entry.getStatus(), "Enter Top " + request.getTopN());
         }
     }
