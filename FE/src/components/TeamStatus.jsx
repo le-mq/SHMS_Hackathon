@@ -321,12 +321,7 @@ const statusClass = status.toLowerCase().replace(/\s+/g, '-');
 
 const hasTeam = status !== 'NO TEAM';
 
-const canLeaveTeam = participatedTeams.some(item =>
-    hasTeam &&
-    String(item.contest.id) === String(viewContestId) &&
-    String(item.contest.status).toUpperCase() === 'ACTIVE' &&
-    !['APPROVED', 'PENDING'].includes(status.toUpperCase())
-);
+const canLeaveTeam = hasTeam && !['APPROVED', 'PENDING'].includes(status.toUpperCase());
 
 const isSubmitted = status === 'APPROVED' || status === 'PENDING';
 
@@ -617,19 +612,11 @@ return (
                         </p>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="header-actions">
                         {canLeaveTeam && (
                             <button
+                                className="leave-team-btn"
                                 onClick={handleLeaveTeam}
-                                style={{
-                                    padding: '8px 14px',
-                                    background: '#ef4444',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '999px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                }}
                             >
                                 Leave Team
                             </button>
