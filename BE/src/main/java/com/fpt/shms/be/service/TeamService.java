@@ -25,6 +25,7 @@ public class TeamService{
     private final ContestUniversityRepository contestUniversityRepository;
     private final JwtUtils jwtUtils;
     private final AuditLogService auditLogService;
+    private final AnnouncementRepository announcementRepository;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -312,29 +313,30 @@ public class TeamService{
 
         int maxMembers = 5;
 
+        List<WorkspaceResponse.AnnouncementDto> realAnnouncements = announcementRepository
+                .findByIsActiveTrueOrderByPublishedAtDesc()
+                .stream()
+                .filter(a -> a.getContest() == null || a.getContest().getId().equals(team.getContest().getId()))
+                .limit(5)
+                .map(a -> WorkspaceResponse.AnnouncementDto.builder()
+                        .id(a.getId())
+                        .title(a.getTitle())
+                        .subtitle(a.getContent() != null && a.getContent().length() > 60
+                                ? a.getContent().substring(0, 60) + "..."
+                                : a.getContent())
+                        .category(a.getType() != null ? a.getType().name() : "INFO")
+                        .datePosted(a.getPublishedAt())
+                        .build())
+                .toList();
+
         return WorkspaceResponse.builder()
                 .teamStatus(team.getStatus() != null ? team.getStatus() : "FORMING")
                 .submissionDeadline(deadline)
                 .currentMembers(teamMembers.size())
                 .maxMembers(maxMembers)
                 .isSubmitted(isSubmitted)
-                .currentRank(isSubmitted ? 12 : null) // Keep mock rank
-                .announcements(List.of(
-                        WorkspaceResponse.AnnouncementDto.builder()
-                                .id(1L)
-                                .title("Tournament Schedule Update")
-                                .subtitle("Final presentation slots have been randomized.")
-                                .category("Schedule")
-                                .datePosted(LocalDateTime.now().minusHours(2))
-                                .build(),
-                        WorkspaceResponse.AnnouncementDto.builder()
-                                .id(2L)
-                                .title("Workshop: Scaling with JWT")
-                                .subtitle("Guest lecture starts in 2 hours at Hall A.")
-                                .category("Workshop")
-                                .datePosted(LocalDateTime.now().minusHours(4))
-                                .build()
-                ))
+                .currentRank(null)
+                .announcements(realAnnouncements)
                 .build();
     }
 
