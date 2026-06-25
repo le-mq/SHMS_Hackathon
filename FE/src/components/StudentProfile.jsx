@@ -171,9 +171,6 @@ const StudentProfile = () => {
                 <p className="profile-subtitle">Update your personal information and security settings.</p>
             </div>
 
-            {error && <div className="alert alert-error">{error}</div>}
-            {success && <div className="alert alert-success">{success}</div>}
-
             <div className="profile-grid">
                 {/* Left Column - Avatar */}
                 <div className="profile-card avatar-section">
@@ -320,6 +317,19 @@ const StudentProfile = () => {
                         <button className="save-btn" onClick={handleSave} disabled={isLoading}>
                             {isLoading ? 'Saving...' : 'Save Profile Changes'}
                         </button>
+                    </div>
+
+                    <div className="profile-message-area">
+                        {error && (
+                            <div className="profile-alert profile-alert-error" role="alert">
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="profile-alert profile-alert-success" role="status">
+                                {success}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

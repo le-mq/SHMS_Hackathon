@@ -51,6 +51,7 @@
     border: none;
     position: relative;
     overflow: hidden;
+    min-height: 168px;
 }
 
 .status-card.dark::after {
@@ -107,7 +108,21 @@
     color: white;
     font-size: 48px;
     letter-spacing: 2px;
+    font-family: "Consolas", "SFMono-Regular", "Liberation Mono", Menlo, monospace;
     font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    width: 280px;
+    min-width: 280px;
+    line-height: 1;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.status-card.dark .status-info {
+    flex: 0 0 280px;
+    min-width: 280px;
+    position: relative;
+    z-index: 1;
 }
 
 .status-desc {
@@ -123,6 +138,10 @@
     padding: 16px;
     font-size: 13px;
     color: #cbd5e1;
+    flex: 1 1 auto;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .deadline-box span {

@@ -34,6 +34,7 @@
 
 .submission-header {
     --submission-summary-card-height: 168px;
+    --deadline-countdown-width: 180px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 32px;
@@ -143,9 +144,8 @@
 
 .deadline-small-body {
     display: grid;
-    grid-template-columns: minmax(130px, max-content) minmax(0, 1fr);
+    grid-template-columns: var(--deadline-countdown-width) minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
     gap: 16px;
 }
 
@@ -154,12 +154,19 @@
 }
 
 .deadline-small-time {
+    width: var(--deadline-countdown-width);
+    min-width: var(--deadline-countdown-width);
+    max-width: 100%;
     font-size: 30px;
     font-weight: 800;
-    letter-spacing: 2px;
+    font-family: "Consolas", "SFMono-Regular", "Liberation Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: 1px;
     line-height: 1;
     flex-shrink: 0;
-    min-width: 130px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .deadline-small-dates {
@@ -439,6 +446,8 @@
 
     .deadline-small-time {
         font-size: 28px;
+        width: var(--deadline-countdown-width);
+        min-width: var(--deadline-countdown-width);
     }
 
     .submission-status-value {
