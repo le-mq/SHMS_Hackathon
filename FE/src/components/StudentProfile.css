@@ -191,9 +191,27 @@
     cursor: not-allowed;
 }
 
-.alert {
+.profile-message-area {
+    clear: both;
+    margin-top: 16px;
+}
+
+.profile-alert {
     padding: 12px;
     border-radius: 6px;
-    margin-bottom: 20px;
     font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.profile-alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.profile-alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
 }
