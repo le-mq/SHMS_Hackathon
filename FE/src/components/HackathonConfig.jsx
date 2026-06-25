@@ -427,12 +427,12 @@ function HackathonConfig() {
                                     <div className="form-row mb-3" style={{display: 'block', width: '100%'}}>
                                         <Form.Group>
                                             <Form.Label className="form-label">Registration Start <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={handleRegistrationStartChange} onBlur={formik.handleBlur} min={todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} disabled={isClosedContest}/>
+                                            <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={handleRegistrationStartChange} onBlur={formik.handleBlur} min={selectedContestId ? undefined : todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} disabled={isClosedContest}/>
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationStart}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
                                             <Form.Label className="form-label">Registration End <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="date" name="registrationEnd" className="form-input" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationStart || todayStr} disabled={!formik.values.registrationStart || isClosedContest} isInvalid={formik.touched.registrationEnd && !!formik.errors.registrationEnd}/>
+                                            <Form.Control type="date" name="registrationEnd" className="form-input" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationStart || (selectedContestId ? undefined : todayStr)} disabled={!formik.values.registrationStart || isClosedContest} isInvalid={formik.touched.registrationEnd && !!formik.errors.registrationEnd}/>
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationEnd}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
