@@ -1,6 +1,5 @@
 package com.fpt.shms.be.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
