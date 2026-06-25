@@ -305,8 +305,8 @@ const PanelAllocation = () => {
                                     <h3>Mentor</h3>
                                     {allTeams.length === 0 ? (
                                         <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
-                                            <p>Chưa có kết quả từ vòng trước hoặc không có đội nào đủ điều kiện.</p>
-                                            <p style={{ fontSize: '12px' }}>Chỉ có thể phân công Giám khảo (Judge).</p>
+                                            <p>There are no results from the previous round, or no teams have qualified.</p>
+                                            <p style={{ fontSize: '12px' }}>Only judges can be assigned.</p>
                                         </div>
                                     ) : (
                                         <div className="global-teams-grid">

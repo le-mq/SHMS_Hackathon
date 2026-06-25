@@ -22,6 +22,7 @@ const RankingsConsole = () => {
         evaluators: [],
         allReady: false
     });
+
     useEffect(() => {
         let cancelled = false;
         async function fetchInitialData() {
@@ -59,6 +60,7 @@ const RankingsConsole = () => {
         fetchInitialData();
         return () => { cancelled = true; };
     }, []);
+
     useEffect(() => {
         const fetchRounds = async () => {
             if (!selectedContestId) return;
@@ -98,8 +100,9 @@ const RankingsConsole = () => {
         };
         fetchRounds();
     }, [selectedContestId]);
+
     useEffect(() => {
-        const fetchReadiness = async () => {
+        const fetchReadinessAndRestoreCache = async () => {
             if (!selectedContestId || !selectedRoundId) return;
             try {
                 let data;
@@ -116,17 +119,29 @@ const RankingsConsole = () => {
                     data = localJson.rankingConsole?.readiness;
                 }
                 setReadinessData(data);
-                setResult(null);
+
+                const cacheKey = `ranking_cache_${selectedContestId}_${selectedRoundId}`;
+                const savedCache = localStorage.getItem(cacheKey);
+
+                if (savedCache) {
+                    const parsedCache = JSON.parse(savedCache);
+                    setResult(parsedCache.resultData);
+                    setCurrentCompiledTopN(parsedCache.compiledTopN);
+                    setTopN(parsedCache.inputTopN); 
+                } else {
+                    setResult(null); 
+                }
+
             } catch (err) {
                 console.error(err);
             }
         };
-        fetchReadiness();
+        fetchReadinessAndRestoreCache();
     }, [selectedContestId, selectedRoundId]);
+
     const handleGenerate = async () => {
         if (!readinessData.allReady || !isTopNValid) return;
         setIsProcessing(true);
-        setResult(null);
         try {
             const token = localStorage.getItem("shms_token");
             let data;
@@ -150,8 +165,25 @@ const RankingsConsole = () => {
                 const localJson = await localRes.json();
                 data = localJson.rankingConsole?.rankingResult;
             }
+
+            if (data && data.results) {
+                const sortedResults = [...data.results].sort((a, b) => Number(b.averageScore) - Number(a.averageScore));
+                data.results = sortedResults.map((item, index) => ({
+                    ...item,
+                    rank: index + 1
+                }));
+            }
+
             setCurrentCompiledTopN(Number(topN));
             setResult(data);
+
+            const cacheKey = `ranking_cache_${selectedContestId}_${selectedRoundId}`;
+            localStorage.setItem(cacheKey, JSON.stringify({
+                resultData: data,
+                compiledTopN: Number(topN),
+                inputTopN: Number(topN)
+            }));
+
         } catch (err) {
             console.error(err);
         } finally {
@@ -173,7 +205,7 @@ const RankingsConsole = () => {
                     body: JSON.stringify({
                         contestId: Number(selectedContestId),
                         roundId: Number(selectedRoundId),
-                        topN: Number(topN)
+                        topN: Number(currentCompiledTopN)
                     })
                 });
                 if (!res.ok) throw new Error();
@@ -196,7 +228,9 @@ const RankingsConsole = () => {
         const csvRows = [headers.join(',')];
 
         for (const row of result.results) {
-            const values = [row.rank, `"${row.teamName}"`, row.averageScore, row.status];
+            const isQualified = row.rank <= currentCompiledTopN;
+            const csvStatus = isQualified ? 'QUALIFIED' : 'ELIMINATED';
+            const values = [row.rank, `"${row.teamName}"`, row.averageScore, csvStatus];
             csvRows.push(values.join(','));
         }
 
@@ -374,11 +408,11 @@ const RankingsConsole = () => {
                         <div className="result-stats">
                             <div className="result-stat">
                                 <div className="result-stat-label">Qualified</div>
-                                <div className="result-stat-val qualified">{topN}</div>
+                                <div className="result-stat-val qualified">{currentCompiledTopN}</div>
                             </div>
                             <div className="result-stat">
                                 <div className="result-stat-label">Eliminated</div>
-                                <div className="result-stat-val eliminated">{result.results.length - topN}</div>
+                                <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
                             </div>
                             <div className="result-stat">
                                 <div className="result-stat-label">Total Processed</div>
