@@ -44,6 +44,7 @@ public class RubricTemplate {
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<RubricTemplateCriteria> criteria = new ArrayList<>();
 
+    @com.fasterxml.jackson.annotation.JsonProperty("categoryId")
     @Transient
     public Long getCategoryId(){
         if (this.category != null) {

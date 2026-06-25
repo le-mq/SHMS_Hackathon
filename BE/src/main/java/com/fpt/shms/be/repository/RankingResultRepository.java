@@ -20,4 +20,7 @@ public interface RankingResultRepository extends JpaRepository<RankingResult, Lo
     @Query("select rr from RankingResult rr where rr.round.id = :roundId and rr.qualificationStatus = 'QUALIFIED'")
     List<RankingResult> findQualifiedByRoundId(@Param("roundId") Long roundId);
 
+    @Query("SELECT r FROM RankingResult r WHERE r.datePublishedAt IS NOT NULL AND r.round.publishResultAt IS NOT NULL AND r.round.publishResultAt <= CURRENT_TIMESTAMP")
+    List<RankingResult> findPublishedLeaderboards();
+
 }
