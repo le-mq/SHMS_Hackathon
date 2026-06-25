@@ -5,8 +5,6 @@ import NavbarJudge from './NavbarJudge';
 
 const EvaluationWorkspace = () => {
     const { teamId } = useParams();
-    const [searchParams] = import('react-router-dom').then(m => m.useSearchParams ? m.useSearchParams() : [new URLSearchParams()]).catch(() => [new URLSearchParams()]);
-
     const navigate = useNavigate();
     const [evalData, setEvalData] = useState(null);
     const [scores, setScores] = useState([]);

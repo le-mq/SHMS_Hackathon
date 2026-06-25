@@ -111,8 +111,9 @@ const RubricConfig = () => {
             || contestRubrics.find(cr => cr.templateId == tpl.id);
         setEditingTemplate({
             ...JSON.parse(JSON.stringify(tpl)),
-            bindContestId: binding ? binding.contestId : '',
-            bindCategoryId: binding ? binding.categoryId : (tpl.categoryId || (tpl.category ? tpl.category.id : '')),
+            isOfficialBinding: isOfficial,
+            bindContestId: binding ? String(binding.contestId) : '',
+            bindCategoryId: binding ? String(binding.categoryId) : (tpl.categoryId ? String(tpl.categoryId) : (tpl.category ? String(tpl.category.id) : '')),
             criteria: (tpl.criteria || []).map((c, i) => ({ ...c, _localId: c.id ?? i, percentageWeight: c.percentageWeight !== undefined && c.percentageWeight !== null ? String(c.percentageWeight) : '' }))
         });
         setEditorMode('edit'); setError(''); setSuccess('');
@@ -176,6 +177,7 @@ const RubricConfig = () => {
 
             if (res.ok) {
                 setSuccess(editorMode === 'edit' ? 'Template updated successfully!' : 'Template saved successfully!');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
                 setTemplates(updatedTemplates); setContestRubrics(updatedRubrics);
@@ -183,8 +185,12 @@ const RubricConfig = () => {
             } else {
                 const d = await res.json().catch(() => ({}));
                 setError(d.error || d.message || `Error ${res.status}: ${res.statusText}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        } catch (e) { setError('Connection error: ' + e.message); }
+        } catch (e) {
+            setError('Connection error: ' + e.message);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         finally { setIsLoading(false); }
     };
 
@@ -197,15 +203,20 @@ const RubricConfig = () => {
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
                 setTemplates(updatedTemplates); setContestRubrics(updatedRubrics);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
                 const d = await res.json().catch(() => ({}));
-                setError(d.error || `Error ${res.status}: ${res.statusText}`);
+                setError(d.error || d.message || `Error ${res.status}: ${res.statusText}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         } catch (e) {
             if (mockAction) {
                 mockAction();
                 setSuccess(`${successMsg}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                setError('Server error');
+                setError('Server error: ' + e.message);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
         finally { setIsLoading(false); }
@@ -239,8 +250,10 @@ const RubricConfig = () => {
             setContestRubrics(prev => prev.filter(cr => String(cr.templateId) !== String(id)));
 
             setSuccess(data.message || 'Template deleted successfully!');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e) {
             setError(e.message || 'Cannot delete this template. It may be in use.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsLoading(false);
         }
@@ -306,7 +319,7 @@ const RubricConfig = () => {
                         );
                     };
 
-                    const draftTemplates = templates.filter(tpl => !contestRubrics.some(cr => cr.templateId === tpl.id));
+                    const bankTemplates = templates.filter(t => !contestRubrics.some(cr => String(cr.templateId) === String(t.id)));
                     return (
                         <>
                             {officialTemplates.length > 0 && editorMode === null && (
@@ -319,9 +332,9 @@ const RubricConfig = () => {
                             )}
                             {editorMode === null && (
                                 <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>Rubric Template Bank (Drafts)</h2>
-                                    {draftTemplates.length > 0 ? (
-                                        <div className="rt-card-grid">{draftTemplates.map(tpl => renderCard(tpl, false))}</div>
+                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>Rubric Template Bank</h2>
+                                    {bankTemplates.length > 0 ? (
+                                        <div className="rt-card-grid">{bankTemplates.map(tpl => renderCard(tpl, false))}</div>
                                     ) : (<div className="rt-empty" style={{ marginBottom: 24 }}>
                                         <svg width="48" height="48" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         <p>No rubric templates found in bank.</p>
@@ -436,15 +449,18 @@ const RubricConfig = () => {
 
                                 <div className="form-group">
                                     <label className="form-label">Category <span style={{ color: 'red' }}>*</span></label>
-                                    <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))}>
+                                    <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
                                         <option value="">— Choose category —</option>
                                         {allGlobalCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.categoryName}</option>)}
+                                        {editingTemplate.bindCategoryId && !allGlobalCategories.some(c => String(c.id) === String(editingTemplate.bindCategoryId)) && (
+                                            <option value={editingTemplate.bindCategoryId}>Category #{editingTemplate.bindCategoryId}</option>
+                                        )}
                                     </select>
                                 </div>
 
                                 <div className="form-group">
                                     <label className="form-label">Contest</label>
-                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value }))}>
+                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
                                         <option value="">— Optional (Bank Draft Template) —</option>
                                         {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
