@@ -123,6 +123,7 @@ public class RankingAdminService {
                 .build();
     }
 
+    @Transactional
     public ProcessRankingsResponse processRankings(Long contestId, Long roundId, int topN) {
         RankingReadinessResponse readiness = getReadiness(contestId, roundId);
         if (!readiness.isAllReady()) {
@@ -187,6 +188,27 @@ public class RankingAdminService {
             rank++;
         }
 
+        rankingResultRepository.deleteByRoundId(round.getId());
+
+        for (ProcessRankingsResponse.TeamRankingEntry entry : results) {
+            Team team = submissionRepository.findAll().stream()
+                    .map(Submission::getTeam)
+                    .filter(t -> t != null && t.getId().equals(entry.getTeamId()))
+                    .findFirst()
+                    .orElse(null);
+            if (team == null) continue;
+
+            rankingResultRepository.save(RankingResult.builder()
+                    .round(round)
+                    .category(rubricsForRound.isEmpty() ? null : rubricsForRound.get(0).getCategory())
+                    .team(team)
+                    .rankNo(entry.getRank())
+                    .finalScore(entry.getAverageScore())
+                    .qualificationStatus(entry.getStatus())
+                    .datePublishedAt(null)
+                    .build());
+        }
+
         return ProcessRankingsResponse.builder()
                 .contestId(contestId)
                 .contestName(contestName)
@@ -201,38 +223,19 @@ public class RankingAdminService {
 
     @Transactional
     public void publishLeaderboard(com.fpt.shms.be.dto.PublishLeaderboardRequest request) throws Exception {
-        ProcessRankingsResponse rankings = processRankings(request.getContestId(), request.getRoundId(), request.getTopN());
         Round round = roundRepository.findById(request.getRoundId())
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        rankingResultRepository.deleteByRoundId(round.getId());
+        List<RankingResult> results = rankingResultRepository.findByRoundId(round.getId());
+        if (results.isEmpty()) {
+            throw new IllegalArgumentException("Leaderboard must be generated before publishing");
+        }
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
-        Category exactCategory = rubricsForRound.isEmpty() ? null : rubricsForRound.get(0).getCategory();
+        for (RankingResult rr : results) {
+            rr.setDatePublishedAt(LocalDateTime.now());
+            rankingResultRepository.save(rr);
 
-        for (ProcessRankingsResponse.TeamRankingEntry entry : rankings.getResults()) {
-            Team team = submissionRepository.findAll().stream()
-                    .map(Submission::getTeam)
-                    .filter(t -> t != null && t.getId().equals(entry.getTeamId()))
-                    .findFirst()
-                    .orElse(null);
-            if (team == null) {
-                continue;
-            }
-            rankingResultRepository.save(RankingResult.builder()
-                    .round(round)
-                    .category(exactCategory)
-                    .team(team)
-                    .rankNo(entry.getRank())
-                    .finalScore(entry.getAverageScore())
-                    .qualificationStatus(entry.getStatus())
-                    .datePublishedAt(LocalDateTime.now())
-                    .build());
-
-            team.setStatus(entry.getStatus());
-            teamRepository.save(team);
-
-            auditLogService.log("ADVANCE_TOP_N", "Team", team.getId(), "PENDING", entry.getStatus(), "Enter Top " + request.getTopN());
+            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getId(), "PENDING", rr.getQualificationStatus(), "Published Leaderboard");
         }
     }
 }

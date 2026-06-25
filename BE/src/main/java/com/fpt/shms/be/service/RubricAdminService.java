@@ -144,6 +144,7 @@ public class RubricAdminService {
         RubricTemplate cloned = RubricTemplate.builder()
                 .name(original.getName() + " (Copy)")
                 .description(original.getDescription())
+                .category(original.getCategory())
                 .publicVisibility(original.getPublicVisibility())
                 .weightedScoring(original.getWeightedScoring())
                 .status("DRAFT")

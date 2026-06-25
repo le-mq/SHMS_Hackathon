@@ -39,4 +39,10 @@ public class PublicHomeController {
         return ResponseEntity.ok(publicHomeService.getAnnouncements());
     }
 
+    @GetMapping("/leaderboards")
+    @Operation(summary = "Get published leaderboards", description = "Returns leaderboard data that has been published and whose publish date is past")
+    public ResponseEntity<?> getLeaderboards() {
+        return ResponseEntity.ok(publicHomeService.getLeaderboards());
+    }
+
 }

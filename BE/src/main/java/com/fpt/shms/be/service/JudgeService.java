@@ -27,6 +27,7 @@ public class JudgeService {
     private final RubricTemplateCriteriaRepository rubricTemplateCriteriaRepository;
     private final JudgeRepository judgeRepository;
     private final RoundRepository roundRepository;
+    private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
@@ -63,7 +64,6 @@ public class JudgeService {
 
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
         List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
-
         Map<Long, Submission> latestSubmissions = submissions.stream()
                 .collect(Collectors.toMap(
                         sub -> sub.getTeam().getId(),
@@ -84,7 +84,18 @@ public class JudgeService {
                     .filter(r -> r.getCategory() == null || finalCategories.stream().anyMatch(c -> c.getId().equals(r.getCategory().getId())))
                     .toList();
 
-            for (Round round : cRounds) {
+            for (int i = 0; i < cRounds.size(); i++) {
+                Round round = cRounds.get(i);
+
+                if (i > 0) {
+                    Round previousRound = cRounds.get(i - 1);
+                    boolean isQualified = rankingResultRepository.existsByTeamIdAndRoundIdAndQualificationStatus(
+                            team.getId(), previousRound.getId(), "QUALIFIED");
+                    if (!isQualified) {
+                        continue;
+                    }
+                }
+
                 Submission latestSub = submissions.stream()
                         .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
                         .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
@@ -344,7 +355,6 @@ public class JudgeService {
                 .records(records)
                 .build();
     }
-
     private ContestRubricDetails resolveContestRubricDetail(Submission submission, RubricTemplateCriteria criteria) {
         Team team = submission.getTeam();
         Category category = submission.getRound() != null ? submission.getRound().getCategory() : null;

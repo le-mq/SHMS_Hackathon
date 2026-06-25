@@ -9,6 +9,8 @@ import com.fpt.shms.be.repository.AnnouncementRepository;
 import com.fpt.shms.be.repository.CategoryRepository;
 import com.fpt.shms.be.repository.ContestRepository;
 import com.fpt.shms.be.repository.RoundRepository;
+import com.fpt.shms.be.repository.RankingResultRepository;
+import com.fpt.shms.be.model.RankingResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class PublicHomeService {
     private final com.fpt.shms.be.repository.UniversityRepository universityRepository;
     private final RoundRepository roundRepository;
     private final AnnouncementRepository announcementRepository;
+    private final RankingResultRepository rankingResultRepository;
 
     public PublicHomeResponse getHomeData() {
 
@@ -138,5 +141,22 @@ public class PublicHomeService {
                 })
                 .map(AnnouncementDTO::from)
                 .toList();
+    }
+
+    public List<Map<String, Object>> getLeaderboards() {
+        List<RankingResult> results = rankingResultRepository.findPublishedLeaderboards();
+        return results.stream().map(r -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("contestId", r.getRound().getContest() != null ? r.getRound().getContest().getId() : null);
+            map.put("contestName", r.getRound().getContest() != null ? r.getRound().getContest().getName() : "");
+            map.put("roundName", r.getRound().getPhaseName());
+            map.put("publishedAt", r.getDatePublishedAt().toString());
+            map.put("teamName", r.getTeam().getName());
+            map.put("rank", r.getRankNo());
+            map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
+            map.put("status", r.getQualificationStatus());
+            map.put("finalScore", r.getFinalScore());
+            return map;
+        }).toList();
     }
 }
