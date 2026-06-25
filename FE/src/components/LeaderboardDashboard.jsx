@@ -125,6 +125,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
 function processLeaderboardData(rawData) {
     const boardsMap = {};
     rawData.forEach(item => {
+        if (item.status !== 'QUALIFIED') return;
         const key = `${item.contestId}-${item.roundName}`;
         if (!boardsMap[key]) {
             boardsMap[key] = {
