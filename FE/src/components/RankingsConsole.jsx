@@ -8,7 +8,8 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const API_BASE = "http://localhost:8080/api/v1/admin";
 
 const RankingsConsole = () => {
-    const [topN, setTopN] = useState(10);
+    const [topN, setTopN] = useState(1);
+    const [currentCompiledTopN, setCurrentCompiledTopN] = useState(1);
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
     const [selectedRoundId, setSelectedRoundId] = useState('');
@@ -149,6 +150,7 @@ const RankingsConsole = () => {
                 const localJson = await localRes.json();
                 data = localJson.rankingConsole?.rankingResult;
             }
+            setCurrentCompiledTopN(Number(topN));
             setResult(data);
         } catch (err) {
             console.error(err);
@@ -180,7 +182,7 @@ const RankingsConsole = () => {
             catch {
                 alert("Mock publish success!");
             }
-        } 
+        }
         catch (err) {
             console.error(err);
             alert("Failed to publish leaderboard.");
@@ -320,11 +322,13 @@ const RankingsConsole = () => {
                             <Bar
                                 data={{
                                     labels: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
-                                    datasets: [{ label: 'Teams', data: readinessData.summary.bars,
+                                    datasets: [{
+                                        label: 'Teams', data: readinessData.summary.bars,
                                         backgroundColor: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1,
                                     }]
                                 }}
-                                options={{ responsive: true, maintainAspectRatio: false,
+                                options={{
+                                    responsive: true, maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                                 }}
@@ -336,29 +340,29 @@ const RankingsConsole = () => {
                 <div className="eval-table-card">
                     <table className="eval-table">
                         <thead>
-                        <tr>
-                            <th>Evaluator Name</th>
-                            <th>Department</th>
-                            <th>Review Status</th>
-                            <th>Finalized Date</th>
-                        </tr>
+                            <tr>
+                                <th>Evaluator Name</th>
+                                <th>Department</th>
+                                <th>Review Status</th>
+                                <th>Finalized Date</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {readinessData.evaluators.map((ev, idx) => (
-                            <tr key={idx}>
-                                <td className="eval-name">{ev.name}</td>
-                                <td>{ev.dept}</td>
-                                <td>{ev.status === 'Finalized'
+                            {readinessData.evaluators.map((ev, idx) => (
+                                <tr key={idx}>
+                                    <td className="eval-name">{ev.name}</td>
+                                    <td>{ev.dept}</td>
+                                    <td>{ev.status === 'Finalized'
                                         ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
                                         : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
                                     }
-                                </td>
-                                <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
-                            </tr>
-                        ))}
-                        {readinessData.evaluators.length === 0 && (
-                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
-                        )}
+                                    </td>
+                                    <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
+                                </tr>
+                            ))}
+                            {readinessData.evaluators.length === 0 && (
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -366,7 +370,7 @@ const RankingsConsole = () => {
                 {result && (
                     <div className="result-card visible" style={{ marginTop: 24 }}>
                         <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                        <p className="result-card-sub">Round: {result.roundName} · Top N = {topN} · Scores are now locked.</p>
+                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN} · Scores are now locked.</p>
                         <div className="result-stats">
                             <div className="result-stat">
                                 <div className="result-stat-label">Qualified</div>
@@ -397,29 +401,29 @@ const RankingsConsole = () => {
                         </div>
                         <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                             <thead>
-                            <tr>
-                                <th style={{ color: '#0f172a' }}>Rank</th>
-                                <th style={{ color: '#0f172a' }}>Team Name</th>
-                                <th style={{ color: '#0f172a' }}>Average Score</th>
-                                <th style={{ color: '#0f172a' }}>Status</th>
-                            </tr>
+                                <tr>
+                                    <th style={{ color: '#0f172a' }}>Rank</th>
+                                    <th style={{ color: '#0f172a' }}>Team Name</th>
+                                    <th style={{ color: '#0f172a' }}>Average Score</th>
+                                    <th style={{ color: '#0f172a' }}>Status</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {result.results.map(r => {
-                                const isQualified = r.rank <= topN;
-                                return (
-                                    <tr key={r.rank}>
-                                        <td>#{r.rank}</td>
-                                        <td>{r.teamName}</td>
-                                        <td>{r.averageScore}</td>
-                                        <td>
+                                {result.results.map(r => {
+                                    const isQualified = r.rank <= currentCompiledTopN;
+                                    return (
+                                        <tr key={r.rank}>
+                                            <td>#{r.rank}</td>
+                                            <td>{r.teamName}</td>
+                                            <td>{r.averageScore}</td>
+                                            <td>
                                                 <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
                                                     {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                 </span>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
