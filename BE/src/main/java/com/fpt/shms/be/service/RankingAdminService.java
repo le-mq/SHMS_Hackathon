@@ -27,6 +27,36 @@ public class RankingAdminService {
     private final ContestRubricRepository contestRubricRepository;
     private final AuditLogService auditLogService;
     private final TeamRepository teamRepository;
+    private final TeamMentorRepository teamMentorRepository;
+
+    private List<Team> getParticipatingTeams(Round round) {
+        if (round.getCategory() == null) {
+            return new ArrayList<>();
+        }
+        Long categoryId = round.getCategory().getId();
+        List<Round> categoryRounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(categoryId);
+
+        int idx = -1;
+        for (int i = 0; i < categoryRounds.size(); i++) {
+            if (categoryRounds.get(i).getId().equals(round.getId())) {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx <= 0) {
+            return teamMentorRepository.findByCategoryId(categoryId).stream()
+                    .map(TeamMentor::getTeam)
+                    .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
+                    .toList();
+        } else {
+            Round previousRound = categoryRounds.get(idx - 1);
+            return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
+                    .map(RankingResult::getTeam)
+                    .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
+                    .toList();
+        }
+    }
 
     public RankingReadinessResponse getReadiness(Long contestId, Long roundId) {
         Round round = roundRepository.findById(roundId)
@@ -84,17 +114,23 @@ public class RankingAdminService {
                     .build());
         }
 
+        List<Team> participatingTeams = getParticipatingTeams(round);
         Map<Team, Double> teamScores = new HashMap<>();
+        for (Team team : participatingTeams) {
+            teamScores.put(team, 0.0);
+        }
         for (Submission s : allSubmissions) {
-            List<Score> scores = scoreRepository.findAll().stream()
-                    .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
-                    .toList();
+            if (teamScores.containsKey(s.getTeam())) {
+                List<Score> scores = scoreRepository.findAll().stream()
+                        .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
+                        .toList();
 
-            double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
-            long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
-            double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
+                double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
+                long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
+                double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
 
-            teamScores.put(s.getTeam(), avgScore);
+                teamScores.put(s.getTeam(), avgScore);
+            }
         }
 
         double totalAvg = teamScores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -158,17 +194,23 @@ public class RankingAdminService {
         }
         List<Submission> allSubmissions = new ArrayList<>(latestSubmissions.values());
 
+        List<Team> participatingTeams = getParticipatingTeams(round);
         Map<Team, Double> teamScores = new HashMap<>();
+        for (Team team : participatingTeams) {
+            teamScores.put(team, 0.0);
+        }
         for (Submission s : allSubmissions) {
-            List<Score> scores = scoreRepository.findAll().stream()
-                    .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
-                    .toList();
+            if (teamScores.containsKey(s.getTeam())) {
+                List<Score> scores = scoreRepository.findAll().stream()
+                        .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
+                        .toList();
 
-            double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
-            long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
-            double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
+                double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
+                long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
+                double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
 
-            teamScores.put(s.getTeam(), avgScore);
+                teamScores.put(s.getTeam(), avgScore);
+            }
         }
 
         List<Map.Entry<Team, Double>> sortedTeams = new ArrayList<>(teamScores.entrySet());
@@ -191,11 +233,7 @@ public class RankingAdminService {
         rankingResultRepository.deleteByRoundId(round.getId());
 
         for (ProcessRankingsResponse.TeamRankingEntry entry : results) {
-            Team team = submissionRepository.findAll().stream()
-                    .map(Submission::getTeam)
-                    .filter(t -> t != null && t.getId().equals(entry.getTeamId()))
-                    .findFirst()
-                    .orElse(null);
+            Team team = teamRepository.findById(entry.getTeamId()).orElse(null);
             if (team == null) continue;
 
             rankingResultRepository.save(RankingResult.builder()
