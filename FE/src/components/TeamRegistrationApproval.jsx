@@ -383,27 +383,6 @@ const TeamRegistrationApproval = () => {
                     </div>
                 )}
 
-                <div className="bottom-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px' }}>
-                    <div className="capacity-section">
-                        <h2 className="capacity-title">Category Capacity</h2>
-                        <p className="capacity-subtitle">Real-time category allocation tracking</p>
-
-                        {selectedContest && selectedContest.capacities && selectedContest.capacities.map((cap, idx) => (
-                            <div className="capacity-item" key={idx}>
-                                <div className="cap-header">
-                                    <span>{cap.categoryName}</span>
-                                    <span>{cap.percentage}%</span>
-                                </div>
-                                <div className="cap-bar-bg">
-                                    <div className="cap-bar-fill" style={{ width: `${cap.percentage}%` }}></div>
-                                </div>
-                            </div>
-                        ))}
-                        {(!selectedContest || !selectedContest.capacities || selectedContest.capacities.length === 0) && (
-                            <div style={{ color: '#64748b', fontSize: '14px', marginTop: '16px' }}>No categories configured.</div>
-                        )}
-                    </div>
-                </div>
             </div>
         </div>
     );
