@@ -31,7 +31,17 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
 
     const fetchAnnouncements = async () => {
         try {
-            const response = await fetch(API_URL);
+            const token = localStorage.getItem('shms_token');
+            const headers = {};
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(API_URL, {
+                method: 'GET',
+                headers: headers
+            });
 
             if (!response.ok) {
                 throw new Error('API unavailable');

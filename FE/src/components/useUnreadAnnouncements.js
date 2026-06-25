@@ -6,9 +6,20 @@ export function useUnreadAnnouncements() {
     useEffect(() => {
         const fetchUnreadCount = async () => {
             try {
-                const res = await fetch('http://localhost:8080/api/v1/public/announcements');
+                const token = localStorage.getItem('shms_token');
+                const headers = {};
+
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const res = await fetch('http://localhost:8080/api/v1/public/announcements', {
+                    method: 'GET',
+                    headers: headers
+                });
                 if (res.ok) {
-                    const announcements = await res.json();
+                    const data = await res.json();
+                    const announcements = Array.isArray(data) ? data : data.data || [];
                     const userEmail = localStorage.getItem('shms_user') || 'guest';
                     const storageKey = `shms_read_announcements_${userEmail}`;
                     let readIds = [];
