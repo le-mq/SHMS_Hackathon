@@ -43,4 +43,12 @@ public class RubricTemplate {
     @OneToMany(mappedBy = "rubricTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<RubricTemplateCriteria> criteria = new ArrayList<>();
+
+    @Transient
+    public Long getCategoryId(){
+        if (this.category != null) {
+            return this.category.getId();
+        }
+        return null;
+    }
 }

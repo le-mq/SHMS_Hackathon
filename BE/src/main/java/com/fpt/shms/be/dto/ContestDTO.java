@@ -29,7 +29,7 @@ public record ContestDTO(
             java.time.LocalDateTime publishResultAt
     ) {}
 
-    public record CategoryDTO(Long id, String name, java.util.List<RoundDTO> rounds) {}
+    public record CategoryDTO(Long id, String name, String description, String guidelineUrl, java.util.List<RoundDTO> rounds) {}
 
     public static ContestDTO from(Contest c) {
         return from(c, null, null);

@@ -51,7 +51,7 @@ public class PublicHomeService {
                                         r.getPublishResultAt()
                                 ))
                                 .toList();
-                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), catRounds);
+                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), cat.getDescription(), cat.getGuidelineUrl(), catRounds);
                     }).toList();
                     List<ContestDTO.RoundDTO> dtoRounds = contestRounds.stream()
                             .map(r -> new ContestDTO.RoundDTO(
