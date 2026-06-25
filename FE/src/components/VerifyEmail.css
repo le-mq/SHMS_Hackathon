@@ -50,6 +50,28 @@
     margin-bottom: 32px;
 }
 
+.verify-alert {
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.verify-alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.verify-alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
 .otp-inputs {
     display: flex;
     justify-content: center;
@@ -73,6 +95,16 @@
 .otp-input:focus {
     border-color: #0d1b2a;
     box-shadow: 0 0 0 2px rgba(13, 27, 42, 0.1);
+}
+
+.otp-input.otp-input-error {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+}
+
+.otp-input.otp-input-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.16);
 }
 
 .verify-btn {

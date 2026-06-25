@@ -51,13 +51,16 @@ const VerifyEmail = () => {
             const data = await response.json();
 
             if (!response.ok) {
+                setSuccess('');
                 setError(data.error || 'Failed to send automatic verification code.');
             } else {
+                setError('');
                 setTimeLeft(180);
                 setSuccess(data.message || 'An activation code has been automatically sent to your email.');
                 inputRefs.current[0]?.focus();
             }
         } catch (err) {
+            setSuccess('');
             setError('Failed to auto-send verification code. Connection to server lost.');
         } finally {
             setIsResending(false);
@@ -74,6 +77,7 @@ const VerifyEmail = () => {
         const value = e.target.value;
         if (isNaN(value)) return;
 
+        if (error) setError('');
         const newOtp = [...otp];
         newOtp[index] = value.substring(value.length - 1);
         setOtp(newOtp);
@@ -93,6 +97,7 @@ const VerifyEmail = () => {
         const pastedData = e.clipboardData.getData('text').slice(0, 6).split('');
         if (pastedData.some(char => isNaN(char))) return;
 
+        if (error) setError('');
         const newOtp = [...otp];
         pastedData.forEach((char, index) => {
             if (index < 6) newOtp[index] = char;
@@ -119,9 +124,11 @@ const VerifyEmail = () => {
             const data = await response.json();
 
             if (!response.ok) {
+                setSuccess('');
                 setError(data.error || 'Failed to resend OTP');
             } else {
                 setOtp(['', '', '', '', '', '']);
+                setError('');
                 setTimeLeft(180);
                 setSuccess(data.message || 'A new OTP has been sent to your email.');
                 inputRefs.current[0]?.focus();
@@ -137,11 +144,13 @@ const VerifyEmail = () => {
         e.preventDefault();
         const otpValue = otp.join('');
         if (otpValue.length < 6) {
+            setSuccess('');
             setError('Please enter the full 6-digit OTP');
             return;
         }
 
         setError('');
+        setSuccess('');
         setIsLoading(true);
 
         try {
@@ -154,14 +163,16 @@ const VerifyEmail = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || 'Verification failed');
+                setError(data.error || data.message || 'Verification failed');
             } else {
+                setError('');
                 setSuccess(data.message || 'Account activated successfully!');
                 setTimeout(() => {
                     navigate('/login');
                 }, 2000);
             }
         } catch (err) {
+            setSuccess('');
             setError('Failed to connect to the server.');
         } finally {
             setIsLoading(false);
@@ -186,8 +197,8 @@ const VerifyEmail = () => {
                         token {timeLeft > 0 ? <>within <strong>{formatTime(timeLeft)}</strong> minutes</> : 'or request a new code'} to activate your profile
                     </p>
 
-                    {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
-                    {success && <div className="alert alert-success" style={{ marginBottom: '20px' }}>{success}</div>}
+                    {error && <div className="verify-alert verify-alert-error" role="alert">{error}</div>}
+                    {success && <div className="verify-alert verify-alert-success" role="status">{success}</div>}
 
                     <form onSubmit={handleSubmit}>
                         <div className="otp-inputs" onPaste={handlePaste}>
@@ -196,11 +207,12 @@ const VerifyEmail = () => {
                                     key={index}
                                     type="text"
                                     maxLength="1"
-                                    className="otp-input"
+                                    className={`otp-input ${error ? 'otp-input-error' : ''}`}
                                     value={digit}
                                     onChange={(e) => handleChange(index, e)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     ref={(el) => (inputRefs.current[index] = el)}
+                                    aria-invalid={Boolean(error)}
                                 />
                             ))}
                         </div>
