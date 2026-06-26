@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -314,7 +315,7 @@ public class SubmissionService {
         }
         Team team = memberships.get(0).getTeam();
 
-        String trackName = "N/A";
+        String trackName = team.getContest() != null ? team.getContest().getName() : "N/A";
         Double overallTotalScore = 0.0;
         Integer overallRank = null;
 
@@ -332,27 +333,58 @@ public class SubmissionService {
             List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
             if (scores.isEmpty()) continue;
 
-            double totalRoundScore = 0;
+            double avgRoundScore = scores.stream()
+                    .map(Score::getTotalScore)
+                    .filter(java.util.Objects::nonNull)
+                    .mapToDouble(Double::doubleValue)
+                    .average()
+                    .orElse(0.0);
+
+            overallTotalScore += avgRoundScore;
+
+            List<ScoreDetail> allDetails = scores.stream()
+                    .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
+                    .toList();
+
+            java.util.Map<Long, List<ScoreDetail>> groupedByRubric = allDetails.stream()
+                    .filter(d -> d.getContestRubricDetail() != null)
+                    .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
+
             List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto> detailedScores = new ArrayList<>();
 
-            for (Score score : scores) {
-                totalRoundScore += score.getTotalScore().doubleValue();
+            for (List<ScoreDetail> detailList : groupedByRubric.values()) {
+                if (detailList.isEmpty()) continue;
+
+                ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
+
+                double avgPoints = detailList.stream()
+                        .map(ScoreDetail::getRawScore)
+                        .filter(java.util.Objects::nonNull)
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
+
+                String combinedFeedback = detailList.stream()
+                        .map(ScoreDetail::getFeedback)
+                        .filter(f -> f != null && !f.trim().isEmpty())
+                        .collect(Collectors.joining("\n- "));
+
+                if (!combinedFeedback.isEmpty()) {
+                    combinedFeedback = "- " + combinedFeedback;
+                }
 
                 detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                        .criteriaName("Feedback Summary from the Judges" + (score.getJudge() != null ? score.getJudge().getUser().getFullName() : "N/A"))
-                        .weight(1.0)
-                        .pointsAwarded(score.getTotalScore().doubleValue())
-                        .feedback(score.getFeedback())
+                        .criteriaName(rubricInfo.getCriteriaName())
+                        .weight(rubricInfo.getPercentageWeight())
+                        .pointsAwarded(Math.round(avgPoints * 100.0) / 100.0)
+                        .feedback(combinedFeedback)
                         .build());
             }
-
-            double avgScore = totalRoundScore / scores.size();
-            overallTotalScore += avgScore;
 
             roundScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto.builder()
                     .roundId(sub.getRound().getId())
                     .roundName(sub.getRound().getPhaseName())
-                    .totalScore(Math.round(avgScore * 100.0) / 100.0)
+                    .totalScore(Math.round(avgRoundScore * 100.0) / 100.0)
                     .detailedScores(detailedScores)
                     .build());
         }
