@@ -58,6 +58,21 @@ public class Contest {
     @Column(name = "max_teams")
     private Integer maximumAllowedTeams;
 
+    @Column(name = "min_team_members")
+    private Integer minTeamMembers;
+
+    @Column(name = "max_team_members")
+    private Integer maxTeamMembers;
+
+    @Column(name = "location")
+    private String location;
+
+    @Column(name = "published_at")
+    private java.time.LocalDateTime publishedAt;
+
+    @Column(name = "contest_start_at")
+    private java.time.LocalDateTime contestStartAt;
+
     @Column(name = "compliance_rules")
     private String complianceRules;
 
@@ -81,7 +96,7 @@ public class Contest {
     }
 
     public enum ContestStatus {
-        ACTIVE, UPCOMING, CLOSED
+        ACTIVE, ACTIVED, UPCOMING, CLOSED
     }
 
     public Season getSeason() {

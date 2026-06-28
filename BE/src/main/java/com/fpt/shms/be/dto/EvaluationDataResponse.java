@@ -15,6 +15,8 @@ public class EvaluationDataResponse {
     private String slideUrl;
     private String projectId;
     private String teamName;
+    private String status;
+    private String submissionRequirements;
     private List<CriteriaDto> criteria;
 
     @Data

@@ -25,7 +25,7 @@ public class Team {
     private String name;
 
     @Column(name = "team_code", nullable = false, unique = true, length = 50)
-    private String invitationCode;
+    private String teamCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contest_id", referencedColumnName = "contest_id")
@@ -40,12 +40,16 @@ public class Team {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @PrePersist
-    public void generateInvitationCode() {
-        if (this.invitationCode == null) {
-            this.invitationCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    public void generateTeamCode() {
+        if (this.teamCode == null) {
+            this.teamCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         }
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
+    }
+
+    public String getStatus() {
+        return this.status != null ? this.status.toUpperCase() : null;
     }
 }

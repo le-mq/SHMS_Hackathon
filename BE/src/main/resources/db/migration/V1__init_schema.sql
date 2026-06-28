@@ -1,18 +1,18 @@
 CREATE TABLE [User] (
-    user_id BIGINT IDENTITY(1,1) NOT NULL,
-    username VARCHAR(50) NULL,
-    email VARCHAR(50) NULL,
-    password VARCHAR(100) NULL,
-    full_name NVARCHAR(100) NULL,
-    phone VARCHAR(15) NULL,
-    avatar_url VARCHAR(255) NULL,
-    email_verified BIT NULL,
-    status VARCHAR(50) NULL,
-    created_at DATETIME NULL CONSTRAINT df_user_created_at DEFAULT GETDATE(),
-    CONSTRAINT pk_user PRIMARY KEY (user_id),
-    CONSTRAINT uq_user_username UNIQUE (username),
-    CONSTRAINT uq_user_email UNIQUE (email)
-    );
+                                    user_id BIGINT IDENTITY(1,1) NOT NULL,
+                                    username VARCHAR(50) NULL,
+                                    email VARCHAR(50) NULL,
+                                    password VARCHAR(100) NULL,
+                                    full_name NVARCHAR(100) NULL,
+                                    phone VARCHAR(15) NULL,
+                                    avatar_url VARCHAR(255) NULL,
+                                    email_verified BIT NULL,
+                                    status VARCHAR(50) NULL,
+                                    created_at DATETIME NULL CONSTRAINT df_user_created_at DEFAULT GETDATE(),
+                                    CONSTRAINT pk_user PRIMARY KEY (user_id),
+                                    CONSTRAINT uq_user_username UNIQUE (username),
+                                    CONSTRAINT uq_user_email UNIQUE (email)
+);
 GO
 
 CREATE TABLE VerificationToken (
@@ -33,7 +33,7 @@ CREATE TABLE [Role] (
     description NVARCHAR(255) NULL,
     CONSTRAINT pk_role PRIMARY KEY (role_id),
     CONSTRAINT uq_role_name UNIQUE (role_name)
-    );
+);
 GO
 
 CREATE TABLE UserRole (
@@ -127,11 +127,16 @@ CREATE TABLE Contest (
                          theme NVARCHAR(100) NULL,
                          region NVARCHAR(50) NULL,
                          max_teams INT NULL,
+                         min_team_members INT NULL,
+                         max_team_members INT NULL,
                          status VARCHAR(50) NOT NULL,
                          registration_start DATE NULL,
                          registration_end DATE NULL,
                          compliance_rules NVARCHAR(MAX) NULL,
                          tiered_prize_structures NVARCHAR(MAX) NULL,
+                         location NVARCHAR(255) NULL,
+                         published_at DATETIME2 NULL,
+                         contest_start_at DATETIME2 NULL,
                          created_at DATETIME NULL CONSTRAINT df_contest_created_at DEFAULT GETDATE(),
                          contest_end_at DATETIME NULL,
                          CONSTRAINT pk_contest PRIMARY KEY (contest_id),
@@ -150,10 +155,10 @@ CREATE TABLE ContestUniversity (
 GO
 
 CREATE TABLE Admin (
-                             user_id BIGINT NOT NULL,
-                             status VARCHAR(50) NULL,
-                             CONSTRAINT pk_admin PRIMARY KEY (user_id),
-                             CONSTRAINT fk_admin_user FOREIGN KEY (user_id) REFERENCES [User](user_id)
+                       user_id BIGINT NOT NULL,
+                       status VARCHAR(50) NULL,
+                       CONSTRAINT pk_admin PRIMARY KEY (user_id),
+                       CONSTRAINT fk_admin_user FOREIGN KEY (user_id) REFERENCES [User](user_id)
 );
 GO
 
@@ -214,11 +219,11 @@ GO
 
 CREATE TABLE Team (
                       team_id BIGINT IDENTITY(1,1) NOT NULL,
-                      contest_id BIGINT NULL,
                       team_code VARCHAR(50) NOT NULL,
                       team_name NVARCHAR(100) NOT NULL,
-                      status VARCHAR(50) NOT NULL,
                       created_at DATETIME NULL CONSTRAINT df_team_created_at DEFAULT GETDATE(),
+                      contest_id BIGINT NULL,
+                      status VARCHAR(50) NULL,
                       CONSTRAINT pk_team PRIMARY KEY (team_id),
                       CONSTRAINT uq_team_code UNIQUE (team_code),
                       CONSTRAINT fk_team_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
@@ -226,16 +231,16 @@ CREATE TABLE Team (
 GO
 
 CREATE TABLE TeamMentor (
-                                team_mentor_id BIGINT IDENTITY(1,1) NOT NULL,
-                                team_id BIGINT NOT NULL,
-                                user_id BIGINT NOT NULL,
-                                category_id BIGINT NOT NULL,
-                                status VARCHAR(50) NULL,
-                                CONSTRAINT pk_team_mentor PRIMARY KEY (team_mentor_id),
-                                CONSTRAINT fk_tmt_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
-                                CONSTRAINT fk_tmt_mentor FOREIGN KEY (user_id) REFERENCES Mentor(user_id),
-                                CONSTRAINT fk_tmt_category FOREIGN KEY (category_id) REFERENCES Category(category_id),
-                                CONSTRAINT uq_team_mentor_category UNIQUE (team_id, user_id, category_id)
+                            team_mentor_id BIGINT IDENTITY(1,1) NOT NULL,
+                            team_id BIGINT NOT NULL,
+                            user_id BIGINT NOT NULL,
+                            category_id BIGINT NOT NULL,
+                            status VARCHAR(50) NULL,
+                            CONSTRAINT pk_team_mentor PRIMARY KEY (team_mentor_id),
+                            CONSTRAINT fk_tmt_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
+                            CONSTRAINT fk_tmt_mentor FOREIGN KEY (user_id) REFERENCES Mentor(user_id),
+                            CONSTRAINT fk_tmt_category FOREIGN KEY (category_id) REFERENCES Category(category_id),
+                            CONSTRAINT uq_team_mentor_category UNIQUE (team_id, user_id, category_id)
 );
 GO
 
@@ -247,29 +252,32 @@ CREATE TABLE TeamMembership (
                                 member_role NVARCHAR(50) NOT NULL,
                                 status VARCHAR(50) NOT NULL,
                                 joined_at DATETIME NULL,
+                                invitation_token VARCHAR(255) NULL,
+                                inviter_user_id BIGINT NULL,
                                 CONSTRAINT pk_team_membership PRIMARY KEY (team_membership_id),
-                                CONSTRAINT uq_team_membership_user UNIQUE (user_id),
                                 CONSTRAINT fk_tm_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
                                 CONSTRAINT fk_tm_student FOREIGN KEY (user_id) REFERENCES Student(user_id)
 );
 GO
 
 CREATE TABLE [Round] (
-                            round_id BIGINT IDENTITY(1,1) NOT NULL,
-                            contest_id BIGINT NULL,
-                            category_id BIGINT NULL,
-                            round_name NVARCHAR(100) NOT NULL,
-                            round_order INT NULL,
-                            submission_open_at DATETIME NOT NULL,
-                            submission_deadline_at DATETIME NOT NULL,
-                            grading_open_at DATETIME NULL,
-                            grading_deadline_at DATETIME NULL,
-                            publish_result_at DATETIME NULL,
-                            status VARCHAR(50) NOT NULL,
-                            CONSTRAINT pk_round PRIMARY KEY (round_id),
-                            CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
-                            CONSTRAINT fk_round_category FOREIGN KEY (category_id) REFERENCES Category(category_id) -- THÊM KHÓA NGOẠI NÀY
-                            );
+                         round_id BIGINT IDENTITY(1,1) NOT NULL,
+    contest_id BIGINT NULL,
+    category_id BIGINT NULL,
+    round_name NVARCHAR(100) NOT NULL,
+    round_order INT NULL,
+    submission_open_at DATETIME NOT NULL,
+    submission_deadline_at DATETIME NOT NULL,
+    grading_open_at DATETIME NULL,
+    grading_deadline_at DATETIME NULL,
+    publish_result_at DATETIME NULL,
+    status VARCHAR(50) NOT NULL,
+    submission_requirements NVARCHAR(MAX) NULL,
+    round_format NVARCHAR(100) NULL,
+    CONSTRAINT pk_round PRIMARY KEY (round_id),
+    CONSTRAINT fk_round_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
+    CONSTRAINT fk_round_category FOREIGN KEY (category_id) REFERENCES Category(category_id) -- THÊM KHÓA NGOẠI NÀY
+    );
 GO
 
 CREATE TABLE Submission (
@@ -284,9 +292,12 @@ CREATE TABLE Submission (
                             history_log NVARCHAR(MAX) NULL,
                             submitted_at DATETIME NULL,
                             status VARCHAR(50) NULL,
+                            mentor_feedback NVARCHAR(MAX) NULL,
+                            mentor_id BIGINT NULL,
                             CONSTRAINT pk_submission PRIMARY KEY (submission_id),
                             CONSTRAINT fk_submission_team FOREIGN KEY (team_id) REFERENCES Team(team_id),
-                            CONSTRAINT fk_submission_round FOREIGN KEY (round_id) REFERENCES [Round](round_id)
+                            CONSTRAINT fk_submission_round FOREIGN KEY (round_id) REFERENCES [Round](round_id),
+                            CONSTRAINT fk_submission_mentor FOREIGN KEY (mentor_id) REFERENCES Mentor(user_id)
 );
 GO
 
@@ -353,11 +364,11 @@ CREATE TABLE ContestRubricDetails (
                                       contest_rubric_id BIGINT NOT NULL,
                                       criteria_name NVARCHAR(100) NOT NULL,
                                       description NVARCHAR(255) NULL,
-                                        [weight] DECIMAL(18,2) NOT NULL,
-                                        max_score DECIMAL(18,2) NOT NULL,
-                                        CONSTRAINT pk_contest_rubric_details PRIMARY KEY (contest_rubric_detail_id),
-                                        CONSTRAINT fk_crd_contest_rubric FOREIGN KEY (contest_rubric_id) REFERENCES ContestRubric(contest_rubric_id)
-                                        );
+    [weight] DECIMAL(18,2) NOT NULL,
+    max_score DECIMAL(18,2) NOT NULL,
+    CONSTRAINT pk_contest_rubric_details PRIMARY KEY (contest_rubric_detail_id),
+    CONSTRAINT fk_crd_contest_rubric FOREIGN KEY (contest_rubric_id) REFERENCES ContestRubric(contest_rubric_id)
+    );
 GO
 
 CREATE TABLE Score (
@@ -365,7 +376,7 @@ CREATE TABLE Score (
                        submission_id BIGINT NOT NULL,
                        user_id BIGINT NOT NULL,
                        total_score DECIMAL(18,2) NULL,
-                       general_feedback NVARCHAR(255) NULL,
+                       general_feedback NVARCHAR(MAX) NULL,
                        status VARCHAR(50) NULL,
                        CONSTRAINT pk_score PRIMARY KEY (score_id),
                        CONSTRAINT fk_score_submission FOREIGN KEY (submission_id) REFERENCES Submission(submission_id),
@@ -467,7 +478,7 @@ SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
 WHERE u.username IN (
     'nhatmy12', 'tuanhne', 'haiyen90', 'xuanbach2', 'quangne', 'tuan789', 'hien23', 'phuonguyen45', 'trinhnguyen1', 'nhanha12',
     'baobao11', 'letoan34', 'phucduy78', 'hanphạm00', 'quantran90', 'tunhien11', 'hieuminh1', 'datle2004')
-AND r.role_name = 'STUDENT';
+  AND r.role_name = 'STUDENT';
 
 INSERT INTO UserRole (user_id, role_id, is_active)
 SELECT u.user_id, r.role_id, 1 FROM [User] u, [Role] r
@@ -609,13 +620,13 @@ SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
 GO
 
 INSERT INTO Semester (term, [year], semester_code)
-VALUES 
+VALUES
 ('Spring', 2026, 'SP26'),
 ('Fall', 2025, 'FA25');
 GO
 
 INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, contest_end_at)
-VALUES 
+VALUES
 (1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10', '2026-03-30 23:59:59'),
 (2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59');
 GO
