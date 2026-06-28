@@ -12,4 +12,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByTeamId(Long teamId);
     Optional<Submission> findByTeamIdAndRoundId(Long teamId, Long roundId);
     List<Submission> findByTeamIdIn(List<Long> teamIds);
+
+    List<Submission> findByRoundId(Long roundId);
+
+    java.util.Optional<Submission> findByTeamIdAndRoundIdAndStatus(Long teamId, Long roundId, String status);
 }
