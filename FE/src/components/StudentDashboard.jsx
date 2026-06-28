@@ -207,6 +207,29 @@ const StudentDashboard = () => {
         try {
             const token = localStorage.getItem('shms_token');
 
+            let hasTeam = false;
+            try {
+                hasTeam = await hasExistingTeam(token);
+            } catch (e) {
+                // If API is down, fallback to mock check
+                try {
+                    const localRes = await fetch('/testFE.json');
+                    if (localRes.ok) {
+                        const localJson = await localRes.json();
+                        if (localJson.teamStatus?.data?.status && localJson.teamStatus.data.status !== 'NO TEAM') {
+                            hasTeam = true;
+                        }
+                    }
+                } catch (mockErr) {
+                    console.warn('Mock check failed', mockErr);
+                }
+            }
+
+            if (hasTeam) {
+                alert('You are already in a team!');
+                return;
+            }
+
             await axios.post(
                 API_STUDENT + '/teams/join',
                 { invitationCode: code },
@@ -216,6 +239,15 @@ const StudentDashboard = () => {
             alert('Successfully joined the team!');
             navigate('/student/team/status');
         } catch (error) {
+            if (error.response) {
+                const serverMessage = error.response.data?.error || error.response.data?.message || '';
+                const normalizedMessage = serverMessage.toLowerCase();
+                const alreadyHasTeam = normalizedMessage.includes('already') && normalizedMessage.includes('team');
+                
+                alert(alreadyHasTeam ? 'You are already in a team!' : (serverMessage || 'Invalid invitation code or unable to join!'));
+                return;
+            }
+
             console.warn('Join team API unavailable, use mock:', error.message);
 
             try {
@@ -230,7 +262,7 @@ const StudentDashboard = () => {
                 const matchedTeam = inviteCodes.find(item => item.invitationCode === code);
 
                 if (!matchedTeam) {
-                    throw new Error('Invalid invitation code', { cause: error });
+                    throw new Error('Invalid invitation code');
                 }
 
                 alert('Mock: joined team ' + matchedTeam.teamName);
