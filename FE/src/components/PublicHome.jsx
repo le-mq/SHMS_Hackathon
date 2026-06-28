@@ -7,6 +7,11 @@ const formatJsDate = (str, options) =>
 
 const fmtDate = (str) => formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric' });
 const fmtShortDate = (str) => formatJsDate(str, { month: 'short', day: '2-digit' });
+const fmtDateTime = (str) => {
+    if (!str) return '—';
+    if (str.length <= 10) return fmtDate(str);
+    return formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 function progress(start, end) {
     if (!start || !end) return 0;
@@ -40,7 +45,6 @@ function ContestCard({ contest, onSelectContest }) {
                     <span>{fmtShortDate(compStart)} – {fmtShortDate(compEnd)}</span>
                 </div>
             </div>
-
             {status !== 'UPCOMING' && (
                 <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}>
                     <div className="ph-progress-bar" style={{ width: `${pct}%` }} />
@@ -56,11 +60,57 @@ function ContestCard({ contest, onSelectContest }) {
     );
 }
 
+function renderComplianceRules(rulesStr) {
+    if (!rulesStr) return 'No rules specified.';
+    try {
+        const rules = JSON.parse(rulesStr);
+        if (!Array.isArray(rules) || rules.length === 0) return 'No rules specified.';
+        return (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {rules.map((rule, idx) => (
+                    <li key={idx} style={{ marginBottom: '8px' }}>{rule}</li>
+                ))}
+            </ul>
+        );
+    } catch (e) {
+        return rulesStr;
+    }
+}
+
+function renderPrizeStructures(prizeStr) {
+    if (!prizeStr) return 'No prize structures specified.';
+    try {
+        const prizes = JSON.parse(prizeStr);
+        if (!Array.isArray(prizes) || prizes.length === 0) return 'No prize structures specified.';
+        return (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {prizes.map((prize, idx) => (
+                    <li key={idx} style={{ marginBottom: '8px' }}>
+                        <strong>{prize.rank}:</strong> {prize.amount}
+                    </li>
+                ))}
+            </ul>
+        );
+    } catch (e) {
+        return prizeStr;
+    }
+}
+
+function renderRequirements(reqsStr) {
+    if (!reqsStr) return 'None';
+    try {
+        const reqs = JSON.parse(reqsStr);
+        if (Array.isArray(reqs)) return reqs.join(', ');
+        return reqsStr;
+    } catch(e) {
+        return reqsStr;
+    }
+}
+
 export default function PublicHome() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedContest, setSelectedContest] = useState(null);
-
     useEffect(() => {
         let cancelled = false;
         async function fetchHome() {
@@ -103,10 +153,6 @@ export default function PublicHome() {
         );
     }
 
-    const allCatNames = selectedContest && Array.isArray(selectedContest.categories)
-        ? selectedContest.categories.map(c => c.name || c).join(', ') : '';
-    const currentRounds = selectedContest?.rounds || [];
-
     return (
         <div className="ph-page">
             <NavbarHome />
@@ -132,12 +178,10 @@ export default function PublicHome() {
                     {contests.length === 0 ? (
                         <div className="ph-no-data">No active contests at this time.</div>
                     ) : (<div className="ph-contests-grid">
-                            {contests.map(c => (
-                                <ContestCard key={c.id} contest={c}
-                                             onSelectContest={() => { setSelectedContest(c);
-                                                 document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                                             }}
-                                />
+                            {contests.map(c => (<ContestCard key={c.id} contest={c}
+                                onSelectContest={() => { setSelectedContest(c);
+                                document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                }}/>
                             ))}
                         </div>
                     )}
@@ -159,25 +203,58 @@ export default function PublicHome() {
                                         <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.theme || selectedContest.description || '—'}</div>
                                     </div>
                                     <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Term</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.term || selectedContest.season || '—'} {selectedContest.year || ''}</div>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Location</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.location || '—'}</div>
+                                    </div>
+                                    <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Region Scope</h4>
                                         <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.regionScope || '—'}</div>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Team Size</h4>
+                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.minTeamMembers && selectedContest.maxTeamMembers ? `${selectedContest.minTeamMembers} - ${selectedContest.maxTeamMembers} members` : '—'}</div>
                                     </div>
                                     <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Max Teams</h4>
                                         <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.maximumAllowedTeams || '—'}</div>
                                     </div>
                                 </div>
+                                <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
+                                    <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '12px' }}>Contest Milestones</h4>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Registration Open</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDate(selectedContest.registrationStart)}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Registration Deadline</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDate(selectedContest.registrationEnd)}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Contest Start</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDateTime(selectedContest.contestStartAt || selectedContest.startDate)}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Contest End</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDateTime(selectedContest.contestEndAt || selectedContest.endDate)}</div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                                     <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Compliance Rules</h4>
-                                        <div style={{ fontSize: '14px', color: '#374151', whiteSpace: 'pre-line', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                                            {selectedContest.complianceRules || 'No rules specified.'}
+                                        <div style={{ fontSize: '14px', color: '#374151', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                                            {renderComplianceRules(selectedContest.complianceRules)}
                                         </div>
                                     </div>
                                     <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Prize Structures</h4>
-                                        <div style={{ fontSize: '14px', color: '#374151', whiteSpace: 'pre-line', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                                            {selectedContest.tieredPrizeStructures || 'No prize structures specified.'}
+                                        <div style={{ fontSize: '14px', color: '#374151', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                                            {renderPrizeStructures(selectedContest.tieredPrizeStructures)}
                                         </div>
                                     </div>
                                 </div>
@@ -201,12 +278,10 @@ export default function PublicHome() {
                                     const rounds = cat.rounds || selectedContest.rounds || [];
                                     const description = typeof cat === 'object' ? cat.description : null;
                                     const guidelineUrl = typeof cat === 'object' ? cat.guidelineUrl : null;
-
                                     return (
                                         <div key={`cat-${idx}`} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                                <div>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
+                                                <div><h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
                                                     {description && <p style={{ fontSize: '14px', color: '#4b5563', margin: '0 0 8px 0' }}>{description}</p>}
                                                 </div>
                                                 {guidelineUrl && (
@@ -219,6 +294,8 @@ export default function PublicHome() {
                                                         <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                                                         <tr>
                                                             <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Round</th>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Format</th>
+                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Requirements</th>
                                                             <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Open</th>
                                                             <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Deadline</th>
                                                             <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Result Announcement</th>
@@ -228,9 +305,11 @@ export default function PublicHome() {
                                                         {rounds.map((r, rId) => (
                                                             <tr key={`r-${rId}`} style={{ borderBottom: rId < rounds.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
                                                                 <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}>{r.phaseName}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.submissionOpen)}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.submissionDeadline)}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDate(r.publishResultAt)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{r.roundFormat || '—'}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{renderRequirements(r.submissionRequirements)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionOpen)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionDeadline)}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.publishResultAt)}</td>
                                                             </tr>
                                                         ))}
                                                         </tbody>
@@ -247,14 +326,12 @@ export default function PublicHome() {
                     </div>
                 </div>
             </section>
-
             <section className="ph-section">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ textAlign: 'center' }}>
                         <h2>Partner Universities</h2>
                     </div>
-                    <div className="ph-partners-grid">
-                        {universities.map(name => (
+                    <div className="ph-partners-grid">{universities.map(name => (
                             <div className="ph-partner-card" key={name} style={{ justifyContent: 'center' }}>
                                 <div className="ph-partner-name" style={{ margin: 0 }}>{name}</div>
                             </div>
@@ -263,7 +340,6 @@ export default function PublicHome() {
                     </div>
                 </div>
             </section>
-
             <section className="ph-section ph-section-alt">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ textAlign: 'center' }}>

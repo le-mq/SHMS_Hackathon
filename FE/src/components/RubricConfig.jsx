@@ -4,7 +4,6 @@ import NavbarAdmin from './NavbarAdmin';
 
 const CONTEST_API = 'http://localhost:8080/api/v1/admin/contests';
 const CATEGORY_API = 'http://localhost:8080/api/v1/student/categories';
-
 const newCriterion = () => ({
     _localId: Date.now() + Math.random(),
     criteriaName: '', maxScore: 100, description: '', percentageWeight: ''
@@ -20,7 +19,6 @@ const RubricConfig = () => {
     const [templates, setTemplates] = useState([]);
     const [contestRubrics, setContestRubrics] = useState([]);
     const [allGlobalCategories, setAllGlobalCategories] = useState([]);
-
     const [editorMode, setEditorMode] = useState(null);
     const [editingTemplate, setEditingTemplate] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -42,10 +40,8 @@ const RubricConfig = () => {
     useEffect(() => {
         requestData(CONTEST_API, '', (json) => json.contests?.data || [])
             .then(data => setContests(Array.isArray(data) ? data : data.data || []));
-
         requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []).then(setTemplates);
         requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []).then(setContestRubrics);
-
         fetch(CATEGORY_API, { headers })
             .then(res => res.ok ? res.json() : [])
             .then(data => {
@@ -80,12 +76,10 @@ const RubricConfig = () => {
     const selectedCategory = useMemo(() =>
         categories.find(c => c.id == selectedCategoryId) || null, [categories, selectedCategoryId]
     );
-
     const officialTemplates = useMemo(() => {
         let bindings = contestRubrics;
         if (selectedContestId) bindings = bindings.filter(cr => cr.contestId == selectedContestId);
         if (selectedCategoryId) bindings = bindings.filter(cr => cr.categoryId == selectedCategoryId);
-
         const uniqueIds = Array.from(new Set(bindings.map(b => b.templateId)));
         return uniqueIds.map(id => templates.find(t => t.id == id)).filter(Boolean);
     }, [contestRubrics, templates, selectedContestId, selectedCategoryId]);
@@ -94,9 +88,7 @@ const RubricConfig = () => {
             editingTemplate?.criteria?.reduce((sum, c) => sum + Number(c.percentageWeight || 0), 0) || 0,
         [editingTemplate]
     );
-
     const isBalanced = totalWeight === 100;
-
     const startNew = () => {
         setEditingTemplate({
             id: null, name: selectedCategory ? `${selectedCategory.categoryName} Rubric` : '', description: '',
@@ -127,8 +119,7 @@ const RubricConfig = () => {
             finalValue = value.replace(/[^0-9]/g, '');
         }
         setEditingTemplate(prev => ({
-            ...prev,
-            criteria: prev.criteria.map(c => c._localId === localId ? { ...c, [field]: finalValue } : c)
+            ...prev, criteria: prev.criteria.map(c => c._localId === localId ? { ...c, [field]: finalValue } : c)
         }));
         setError('');
     };
@@ -141,7 +132,6 @@ const RubricConfig = () => {
         if (!isBalanced) return setError('Total weight must equal exactly 100%.');
         if (!editingTemplate.bindCategoryId) return setError('Category is required to save the template.');
         if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return setError('All criteria must have a name.');
-
         if (editingTemplate.bindContestId && editingTemplate.bindCategoryId) {
             const isDuplicateOfficial = contestRubrics.some(cr =>
                 cr.contestId == editingTemplate.bindContestId &&
@@ -174,7 +164,6 @@ const RubricConfig = () => {
                 const isOfficialBinding = payload.contestId;
                 res = await fetch(`${CONTEST_API}${isOfficialBinding ? '/rubrics' : '/rubric-templates'}`, { method: 'POST', headers, body: JSON.stringify(payload) });
             }
-
             if (res.ok) {
                 setSuccess(editorMode === 'edit' ? 'Template updated successfully!' : 'Template saved successfully!');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -229,26 +218,20 @@ const RubricConfig = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this template?')) return;
-
         setIsLoading(true);
         setError('');
         setSuccess('');
-
         try {
             const res = await fetch(`${CONTEST_API}/rubric-templates/${id}`, {
                 method: 'DELETE',
                 headers,
             });
-
             const data = await res.json().catch(() => ({}));
-
             if (!res.ok) {
                 throw new Error(data.error || data.message || `Delete failed (${res.status})`);
             }
-
             setTemplates(prev => prev.filter(t => String(t.id) !== String(id)));
             setContestRubrics(prev => prev.filter(cr => String(cr.templateId) !== String(id)));
-
             setSuccess(data.message || 'Template deleted successfully!');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e) {
@@ -319,7 +302,7 @@ const RubricConfig = () => {
                         );
                     };
 
-                    const bankTemplates = templates.filter(t => !contestRubrics.some(cr => String(cr.templateId) === String(t.id)));
+                    const bankTemplates = templates;
                     return (
                         <>
                             {officialTemplates.length > 0 && editorMode === null && (
@@ -402,7 +385,6 @@ const RubricConfig = () => {
                                     </div>
                                 </div>
                             ))}
-
                             <button className="add-criterion-btn" onClick={handleAddCriterion}>
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                 ADD NEW CRITERION
@@ -446,23 +428,35 @@ const RubricConfig = () => {
                                 </div>
                                 <p className="rt-card-desc" style={{ marginBottom: 12, fontSize: 12 }}>
                                     Category is mandatory for template base definition. Select a contest only when establishing an official live rubric binding.</p>
-
                                 <div className="form-group">
                                     <label className="form-label">Category <span style={{ color: 'red' }}>*</span></label>
                                     <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
                                         <option value="">— Choose category —</option>
-                                        {allGlobalCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.categoryName}</option>)}
+                                        {allGlobalCategories.map(cat => {
+                                            const isDuplicate = editingTemplate.bindContestId && contestRubrics.some(cr =>
+                                                String(cr.contestId) === String(editingTemplate.bindContestId) &&
+                                                String(cr.categoryId) === String(cat.id) &&
+                                                String(cr.templateId) !== String(editingTemplate.id)
+                                            );
+                                            return <option key={cat.id} value={cat.id} disabled={isDuplicate}>{cat.categoryName} {isDuplicate ? '(Already Assigned)' : ''}</option>
+                                        })}
                                         {editingTemplate.bindCategoryId && !allGlobalCategories.some(c => String(c.id) === String(editingTemplate.bindCategoryId)) && (
                                             <option value={editingTemplate.bindCategoryId}>Category #{editingTemplate.bindCategoryId}</option>
                                         )}
                                     </select>
                                 </div>
-
                                 <div className="form-group">
                                     <label className="form-label">Contest</label>
                                     <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
                                         <option value="">— Optional (Bank Draft Template) —</option>
-                                        {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {contests.map(c => {
+                                            const isDuplicate = editingTemplate.bindCategoryId && contestRubrics.some(cr =>
+                                                String(cr.contestId) === String(c.id) &&
+                                                String(cr.categoryId) === String(editingTemplate.bindCategoryId) &&
+                                                String(cr.templateId) !== String(editingTemplate.id)
+                                            );
+                                            return <option key={c.id} value={c.id} disabled={isDuplicate}>{c.name} {isDuplicate ? '(Has Official Rubric)' : ''}</option>
+                                        })}
                                     </select>
                                 </div>
                             </div>
