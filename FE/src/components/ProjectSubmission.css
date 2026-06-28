@@ -30,6 +30,12 @@
     color: #15803d;
 }
 
+.submission-message.warning {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
 /* ===== Header + status + deadline ===== */
 
 .submission-header {
@@ -314,9 +320,21 @@
     opacity: 0.9;
 }
 
-.submit-btn:disabled {
-    background: #94a3b8;
-    cursor: not-allowed;
+.submit-btn.submit-btn-draft {
+    background: #f59e0b;
+}
+
+.submit-btn.submit-btn-official {
+    background: #0f172a;
+}
+
+.submit-btn:disabled,
+.submit-btn.submit-btn-draft:disabled,
+.submit-btn.submit-btn-official:disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 1 !important;
 }
 
 /* ===== Submission history ===== */
@@ -336,12 +354,12 @@
     border-bottom: 1px solid #cbd5e1;
 }
 
-.history-table {
+.sub-history-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.history-table th {
+.sub-history-table th {
     text-align: left;
     padding: 12px 24px;
     font-size: 11px;
@@ -352,14 +370,14 @@
     border-bottom: 1px solid #cbd5e1;
 }
 
-.history-table td {
+.sub-history-table td {
     padding: 16px 24px;
     font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #e2e8f0;
 }
 
-.history-table tr:last-child td {
+.sub-history-table tr:last-child td {
     border-bottom: none;
 }
 
@@ -405,6 +423,11 @@
 .status-official {
     background: #e0e7ff;
     color: #3730a3;
+}
+
+.status-draft {
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .status-archived {

@@ -353,19 +353,11 @@
     overflow-wrap: normal;
 }
 
-.announcement-action-cell button {
-    display: block;
-    margin: 0 auto 5px auto;
-}
-
-.announcement-action-cell button:last-child {
-    margin-bottom: 0;
-}
-
 .announcement-action-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 6px;
 }
 
@@ -374,28 +366,26 @@
     border-radius: 7px;
     font-weight: 800;
     cursor: pointer;
-    text-align: center;
-    white-space: nowrap;
-    word-break: normal;
-    overflow-wrap: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 /* Button ở dashboard nhỏ hơn */
 .latest-announcements-container:not(.is-modal) .announcement-action-btn {
-    width: 86px;
-    min-width: 86px;
-    height: 28px;
-    padding: 5px 7px;
-    font-size: 11px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
 }
 
 /* Button ở modal to hơn */
 .latest-announcements-container.is-modal .announcement-action-btn {
-    width: 100px;
-    min-width: 100px;
-    height: 34px;
-    padding: 7px 8px;
-    font-size: 12px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
 }
 
 .read-btn {
