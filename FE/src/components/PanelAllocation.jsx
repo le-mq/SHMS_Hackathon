@@ -31,7 +31,10 @@ const PanelAllocation = () => {
                 if (contestsRes.ok) {
                     const cData = await contestsRes.json();
                     setContests(cData);
-                    if (cData.length > 0) setSelectedContestId(String(cData[0].id));
+                    if (cData.length > 0) {
+                        const activeContest = cData.find(c => c.status === 'ACTIVED');
+                        setSelectedContestId(String(activeContest ? activeContest.id : cData[0].id));
+                    }
                 }
                 if (expertsRes.ok) {
                     const eData = await expertsRes.json();
@@ -126,6 +129,27 @@ const PanelAllocation = () => {
         });
         return assigned;
     }, [allocations, selectedExpertId]);
+
+    const overviewJudges = useMemo(() => {
+        if (!allocations || !roundCategoryId) return [];
+        return Object.entries(allocations).filter(([expId, expertAlloc]) => {
+            return expertAlloc[roundCategoryId]?.isJudge === true;
+        }).map(([expId]) => {
+            return experts.find(e => String(e.userId) === String(expId));
+        }).filter(Boolean);
+    }, [allocations, roundCategoryId, experts]);
+
+    const overviewMentors = useMemo(() => {
+        if (!allocations || !roundCategoryId) return [];
+        return Object.entries(allocations).filter(([expId, expertAlloc]) => {
+            return expertAlloc[roundCategoryId]?.mentoredTeamIds?.length > 0;
+        }).map(([expId, expertAlloc]) => {
+            const expert = experts.find(e => String(e.userId) === String(expId));
+            const teamIds = expertAlloc[roundCategoryId].mentoredTeamIds;
+            const teams = teamIds.map(tId => allTeams.find(t => String(t.id) === String(tId))?.name || `Team ${tId}`);
+            return { expert, teams };
+        }).filter(item => item.expert);
+    }, [allocations, roundCategoryId, experts, allTeams]);
 
     const handleGlobalTeamToggle = (teamId) => {
         if (!selectedExpertId || !hasMentorRole || isActingAsJudgeAnywhere || !roundCategoryId) return;
@@ -294,7 +318,7 @@ const PanelAllocation = () => {
                         </div>
                     </div>
 
-                    <div className="right-panel" style={{ padding: '24px' }}>
+                    <div className="middle-panel" style={{ padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
                         {!selectedRoundId ? (
                             <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
                                 <p>Please select Contest and Round to begin the allocation process..</p>
@@ -372,6 +396,43 @@ const PanelAllocation = () => {
                                 </div>
                             </>
                         )}
+                    </div>
+
+                    <div className="right-panel" style={{ padding: '24px' }}>
+                        <div className="management-block" style={{ border: 'none', padding: 0, margin: 0 }}>
+                            <h3 style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '16px' }}>Overview: Assigned Experts</h3>
+                            {!selectedRoundId ? (
+                                <p style={{ color: '#64748b', textAlign: 'center', marginTop: '20px' }}>No round selected.</p>
+                            ) : overviewJudges.length === 0 && overviewMentors.length === 0 ? (
+                                <p style={{ color: '#64748b', textAlign: 'center', marginTop: '20px' }}>No experts have been assigned to this round yet.</p>
+                            ) : (
+                                <table className="judge-pure-table" style={{ width: '100%' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{width: '20%'}}>Role</th>
+                                            <th style={{width: '35%'}}>Name</th>
+                                            <th>Assigned Teams (Mentors only)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {overviewJudges.map((judge, idx) => (
+                                            <tr key={`judge-${judge.userId}-${idx}`}>
+                                                <td><span style={{background: '#e0e7ff', color: '#3730a3', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Judge</span></td>
+                                                <td>{judge.fullName || judge.username}</td>
+                                                <td style={{color: '#94a3b8'}}>-</td>
+                                            </tr>
+                                        ))}
+                                        {overviewMentors.map((mentorData, idx) => (
+                                            <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
+                                                <td><span style={{background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Mentor</span></td>
+                                                <td>{mentorData.expert.fullName || mentorData.expert.username}</td>
+                                                <td>{mentorData.teams.join(', ')}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
