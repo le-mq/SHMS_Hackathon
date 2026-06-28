@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -38,7 +38,7 @@ public class AuthService {
     private final UniversityRepository universityRepository;
     private final EmailService emailService;
     private final JwtUtils jwtUtils;
-    private final PasswordEncoder passwordEncoder;
+    // private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public java.util.Map<String, Object> login(LoginRequest request) {
@@ -308,10 +308,5 @@ public class AuthService {
         return "A new OTP has been sent to your email.";
     }
 
-    private String extractDomain(String email) {
-        if (email == null || !email.contains("@")) {
-            return null;
-        }
-        return email.substring(email.indexOf('@') + 1);
-    }
+
 }
