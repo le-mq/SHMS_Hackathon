@@ -7,10 +7,12 @@ import java.util.List;
 @Data
 @Builder
 public class TeamStatusResponse {
+    private Long teamId;
     private String teamName;
     private String categoryName;
-    private String invitationCode;
     private String status;
+    private Integer maxMembers;
+    private Long currentTotalMembers;
     private List<MemberDto> roster;
 
     @Data
@@ -20,5 +22,7 @@ public class TeamStatusResponse {
         private String studentId;
         private String email;
         private String internalRole; // "LEADER", "MEMBER"
+        private String status;
+        private String universityName;
     }
 }

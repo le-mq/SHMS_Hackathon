@@ -59,6 +59,20 @@ public class TeamRegistrationDashboardResponse {
         private String trackClass;
         private String date;
         private String status;
+        private List<MemberData> members;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberData {
+        private String name;
+        private String studentId;
+        private String university;
+        private String email;
+        private String role;
+        private String status;
     }
 
 }

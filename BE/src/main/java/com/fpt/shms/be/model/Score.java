@@ -25,18 +25,18 @@ public class Score {
     private Submission submission;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
-    private Judge judge;
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = true)
+    private User judge;
 
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.DECIMAL)
     @Column(name = "total_score")
     private Double totalScore;
 
-    @Column(name = "general_feedback", columnDefinition = "TEXT")
+    @Column(name = "general_feedback", columnDefinition = "NVARCHAR(MAX)")
     private String generalFeedback;
 
     @Column(name = "status", length = 50)
-    private String status;
+    private String status; // "FINALIZED", "MENTOR_FEEDBACK", "AUTO_ZERO"
 
     @Builder.Default
     @OneToMany(mappedBy = "score", cascade = CascadeType.ALL, orphanRemoval = true)

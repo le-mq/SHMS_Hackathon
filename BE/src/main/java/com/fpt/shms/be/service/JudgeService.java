@@ -8,10 +8,12 @@ import com.fpt.shms.be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import jakarta.annotation.PostConstruct;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,17 @@ public class JudgeService {
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
+    private final EntityManager entityManager;
+
+    @PostConstruct
+    @Transactional
+    public void dropScoreJudgeConstraint() {
+        try {
+            entityManager.createNativeQuery("ALTER TABLE Score DROP CONSTRAINT fk_score_judge").executeUpdate();
+        } catch (Exception e) {
+            // ignore if not exists
+        }
+    }
 
     @Transactional(readOnly = true)
     public EvaluatorDashboardResponse getDashboardData(String username, Long contestId) {
@@ -64,12 +77,7 @@ public class JudgeService {
 
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
         List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
-        Map<Long, Submission> latestSubmissions = submissions.stream()
-                .collect(Collectors.toMap(
-                        sub -> sub.getTeam().getId(),
-                        sub -> sub,
-                        (s1, s2) -> s1.getVersion() > s2.getVersion() ? s1 : s2
-                ));
+
 
         int evaluatedCount = 0;
 
@@ -146,6 +154,7 @@ public class JudgeService {
                         .themeClass("ai")
                         .gradingOpenAt(round.getGradingOpenAt())
                         .gradingDeadlineAt(round.getGradingDeadlineAt())
+                        .roundFormat(round.getRoundFormat() != null ? round.getRoundFormat() : "Not Specified")
                         .build());
             }
         }
@@ -176,20 +185,43 @@ public class JudgeService {
         }
 
         List<Submission> teamSubmissions = submissionRepository.findByTeamId(team.getId());
-        if (teamSubmissions.isEmpty()) {
-            throw new IllegalArgumentException("Team has no submissions");
+
+        Submission latestSubmission = null;
+        if (!teamSubmissions.isEmpty()) {
+            if (roundId != null) {
+                latestSubmission = teamSubmissions.stream()
+                        .filter(s -> s.getRound() != null && s.getRound().getId().equals(roundId))
+                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .orElse(null);
+            } else {
+                latestSubmission = teamSubmissions.stream()
+                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .orElse(null);
+            }
         }
 
-        Submission latestSubmission;
-        if (roundId != null) {
-            latestSubmission = teamSubmissions.stream()
-                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(roundId))
-                    .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
-                    .orElseThrow(() -> new IllegalArgumentException("Team has no submissions for this round"));
-        } else {
-            latestSubmission = teamSubmissions.stream()
-                    .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
-                    .orElseThrow(() -> new IllegalArgumentException("Team has no submissions"));
+        if (latestSubmission == null) {
+            Round currentRound = null;
+            if (roundId != null) {
+                currentRound = roundRepository.findById(roundId).orElse(null);
+            }
+            if (currentRound == null) {
+                 currentRound = roundRepository.findByContestIdOrderBySubmissionOpenAsc(team.getContest().getId()).stream().findFirst().orElse(null);
+            }
+            if (currentRound == null) {
+                throw new IllegalArgumentException("Cannot create a dummy submission without a valid round");
+            }
+            
+            latestSubmission = Submission.builder()
+                .team(team)
+                .round(currentRound)
+                .status("AUTO_ZERO")
+                .version(1)
+                .submittedAt(java.time.LocalDateTime.now())
+                .build();
+            latestSubmission = submissionRepository.save(latestSubmission);
+            
+            auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getId(), null, "CREATED", "Judge opened evaluation for non-submitted team");
         }
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
@@ -237,8 +269,10 @@ public class JudgeService {
                 .liveDemoUrl(latestSubmission.getDemoVideoUrl())
                 .docsUrl(latestSubmission.getDocumentationUrl())
                 .slideUrl(latestSubmission.getPresentationSlideUrl())
-                .projectId("#" + team.getInvitationCode())
+                .projectId("#" + team.getTeamCode())
                 .teamName(team.getName())
+                .status(latestSubmission.getStatus())
+                .submissionRequirements(latestSubmission.getRound() != null ? latestSubmission.getRound().getSubmissionRequirements() : null)
                 .criteria(criteriaDtos)
                 .build();
     }
@@ -271,7 +305,7 @@ public class JudgeService {
 
         Score score = Score.builder()
                 .submission(submission)
-                .judge(judge)
+                .judge(judge.getUser())
                 .status("FINALIZED")
                 .details(new ArrayList<>())
                 .build();
@@ -337,15 +371,31 @@ public class JudgeService {
                     .map(d -> com.fpt.shms.be.dto.JudgeHistoricalLogResponse.ScoreDetail.builder()
                             .criteriaName(d.getContestRubricDetail() != null ? d.getContestRubricDetail().getCriteriaName() : "Unknown")
                             .pointsAwarded(d.getRawScore())
+                            .weight(d.getContestRubricDetail() != null ? d.getContestRubricDetail().getPercentageWeight() : null)
                             .feedback(d.getFeedback())
                             .build())
                     .toList();
+
+            String roundStatus = "UNKNOWN";
+            String contestName = "Unknown Contest";
+            Long contestId = null;
+            if (submission.getRound() != null) {
+                if (submission.getRound().getPhaseName() != null) {
+                    roundStatus = submission.getRound().getPhaseName();
+                }
+                if (submission.getRound().getContest() != null) {
+                    contestName = submission.getRound().getContest().getName();
+                    contestId = submission.getRound().getContest().getId();
+                }
+            }
 
             records.add(com.fpt.shms.be.dto.JudgeHistoricalLogResponse.Record.builder()
                     .teamName(team != null ? team.getName() : "Unknown Team")
                     .teamId(team != null ? "TEAM-" + team.getId() : "TEAM-0")
                     .timestamp(timestampStr)
-                    .roundStatus("LOCKED")
+                    .roundStatus(roundStatus)
+                    .contestName(contestName)
+                    .contestId(contestId)
                     .totalScore(totalScore)
                     .details(detailDtos)
                     .build());
@@ -356,7 +406,7 @@ public class JudgeService {
                 .build();
     }
     private ContestRubricDetails resolveContestRubricDetail(Submission submission, RubricTemplateCriteria criteria) {
-        Team team = submission.getTeam();
+
         Category category = submission.getRound() != null ? submission.getRound().getCategory() : null;
         ContestRubric rubric = null;
 

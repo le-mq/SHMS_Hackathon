@@ -23,7 +23,7 @@ public class TeamMembership {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
-    private Student student;
+    private User user;
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "member_role", nullable = false, length = 50)
@@ -31,25 +31,36 @@ public class TeamMembership {
 
     @Builder.Default
     @Column(name = "status", nullable = false, length = 50)
-    private String status = "APPROVED"; // "PENDING", "APPROVED"
+    private String status = "APPROVED"; // "PENDING", "APPROVED", "REJECTED"
+
+    @Column(name = "invitation_token", length = 255)
+    private String invitationToken;
+
+    @Column(name = "inviter_user_id")
+    private Long inviterUserId;
 
     @Builder.Default
     @Column(name = "joined_at")
     private java.time.LocalDateTime joinedAt = java.time.LocalDateTime.now();
 
     @Transient
-    public User getUser() {
-        return student != null ? student.getUser() : null;
+    public Student getStudent() {
+        if (this.user == null) return null;
+        Student s = new Student();
+        s.setId(this.user.getId());
+        s.setUser(this.user);
+        return s;
     }
 
-    public void setUser(User user) {
-        if (user == null) {
-            this.student = null;
+    public void setStudent(Student student) {
+        if (student == null) {
+            this.user = null;
         } else {
-            Student s = new Student();
-            s.setId(user.getId());
-            s.setUser(user);
-            this.student = s;
+            this.user = student.getUser();
         }
+    }
+
+    public String getStatus() {
+        return this.status != null ? this.status.toUpperCase() : null;
     }
 }

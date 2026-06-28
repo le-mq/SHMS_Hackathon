@@ -35,6 +35,7 @@ public class StudentController {
     private final SubmissionService submissionService;
     private final com.fpt.shms.be.repository.UserRepository userRepository;
     private final com.fpt.shms.be.repository.StudentRepository studentRepository;
+    private final com.fpt.shms.be.repository.ContestUniversityRepository contestUniversityRepository;
 
     @GetMapping("/profile")
     @Operation(summary = "Get Student Profile", description = "Retrieves the profile of the currently authenticated student.")
@@ -87,19 +88,26 @@ public class StudentController {
             com.fpt.shms.be.model.User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            com.fpt.shms.be.model.Student student = studentRepository.findByUser(user)
+            studentRepository.findByUser(user)
                     .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-            Long universityId = student.getUniversity().getId();
-
-            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findContestsByUniversityId(universityId);
+            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findAll().stream()
+                    .filter(c -> c.getStatus() == com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED)
+                    .toList();
 
             return org.springframework.http.ResponseEntity.ok(allowedContests.stream()
-                    .map(c -> java.util.Map.of(
-                            "id", c.getId(),
-                            "name", c.getName(),
-                            "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED"
-                    ))
+                    .map(c -> {
+                        java.util.List<String> allowedUnis = contestUniversityRepository.findByContestId(c.getId())
+                                .stream()
+                                .map(cu -> cu.getUniversity().getName())
+                                .toList();
+                        return java.util.Map.of(
+                                "id", c.getId(),
+                                "name", c.getName(),
+                                "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED",
+                                "allowedUniversities", allowedUnis
+                        );
+                    })
                     .toList());
 
         } catch (IllegalArgumentException e) {
@@ -173,8 +181,7 @@ public class StudentController {
 
             return ResponseEntity.ok(Map.of(
                     "message", "Team initialized successfully",
-                    "teamId", team.getId(),
-                    "invitationCode", team.getInvitationCode()
+                    "teamId", team.getId()
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -198,20 +205,6 @@ public class StudentController {
         }
     }
 
-    @PostMapping("/teams/join")
-    @Operation(summary = "Join Team via Code", description = "Validates code and assigns user to a team.")
-    public ResponseEntity<?> joinTeam(HttpServletRequest request, @Valid @RequestBody JoinTeamRequest joinRequest) {
-        try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            teamService.joinTeam(joinRequest.getInvitationCode(), username);
-
-            return ResponseEntity.ok(Map.of("message", "Successfully joined the team"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
-        }
-    }
 
     @GetMapping("/teams/status")
     @Operation(summary = "Get Team Status", description = "Returns team metadata, roster, and status.")
@@ -273,6 +266,63 @@ public class StudentController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Internal Server Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'LEADER')")
+    @Operation(summary = "Search Students", description = "Search for students by student code or email.")
+    public ResponseEntity<?> searchStudents(@RequestParam String keyword) {
+        try {
+            var results = teamService.searchStudents(keyword);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/teams/invitations")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'LEADER')")
+    @Operation(summary = "Send Team Invitation", description = "Any approved team member can invite a student to join their team.")
+    public ResponseEntity<?> sendInvitation(@RequestBody com.fpt.shms.be.dto.InvitationRequest invitationRequest) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var result = teamService.sendInvitation(invitationRequest, username);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/teams/invitations/respond")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'LEADER')")
+    @Operation(summary = "Respond to Invitation", description = "Accept or reject a team invitation using the invitation token.")
+    public ResponseEntity<?> respondToInvitation(@RequestBody com.fpt.shms.be.dto.InvitationRespondRequest respondRequest) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var result = teamService.respondToInvitation(respondRequest, username);
+            return ResponseEntity.ok(result);
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/teams/invitations/pending")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'LEADER')")
+    @Operation(summary = "Get Pending Invitations", description = "Returns a list of pending team invitations for the current user.")
+    public ResponseEntity<?> getPendingInvitations() {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var invitations = teamService.getPendingInvitations(username);
+            return ResponseEntity.ok(invitations);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 }

@@ -16,7 +16,9 @@ public class JudgeHistoricalLogResponse {
         private String teamName;
         private String teamId;
         private String timestamp;
-        private String roundStatus;
+        private String roundStatus; // Used as round name now
+        private String contestName;
+        private Long contestId;
         private Double totalScore;
         private List<ScoreDetail> details;
     }
@@ -26,6 +28,7 @@ public class JudgeHistoricalLogResponse {
     public static class ScoreDetail {
         private String criteriaName;
         private Double pointsAwarded;
+        private Double weight;
         private String feedback;
     }
 }

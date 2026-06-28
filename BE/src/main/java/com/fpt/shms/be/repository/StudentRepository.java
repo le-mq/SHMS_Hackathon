@@ -14,4 +14,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByUser(User user);
     Optional<Student> findByStudentCode(String studentCode);
     boolean existsByUniversity(com.fpt.shms.be.model.University university);
+
+    @org.springframework.data.jpa.repository.Query("select s from Student s where s.studentCode = :keyword or s.corporateEmail = :keyword")
+    java.util.List<Student> searchByCodeOrEmail(@org.springframework.data.repository.query.Param("keyword") String keyword);
 }

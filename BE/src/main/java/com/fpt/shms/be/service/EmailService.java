@@ -56,4 +56,25 @@ public class EmailService {
             log.error("Failed to send welcome email to {}", toEmail, e);
         }
     }
+    @Async
+    public void sendTeamInvitationEmailAsync(String toEmail, String invitedName, String inviterName, String teamName, String token) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("SEAL Hackathon - Team Invitation");
+
+            String textContent = "Hi " + invitedName + ",\n\n" +
+                    inviterName + " has invited you to join the team " + teamName + ".\n\n" +
+                    "Your personalized Invite code is: " + token + "\n\n" +
+                    "You can enter this code in the Join Team section to accept the invitation.";
+
+            message.setText(textContent);
+
+            mailSender.send(message);
+            log.info("Sent team invitation email to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send team invitation email to {}", toEmail, e);
+        }
+    }
 }
