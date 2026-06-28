@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 public class RankingAdminService {
 
     private final ContestRepository contestRepository;
-    private final CategoryRepository categoryRepository;
     private final RoundRepository roundRepository;
     private final SubmissionRepository submissionRepository;
     private final ScoreRepository scoreRepository;
@@ -45,10 +44,28 @@ public class RankingAdminService {
         }
 
         if (idx <= 0) {
-            return teamMentorRepository.findByCategoryId(categoryId).stream()
+            List<Team> teams = new ArrayList<>(teamMentorRepository.findByCategoryId(categoryId).stream()
                     .map(TeamMentor::getTeam)
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
-                    .toList();
+                    .toList());
+
+            List<com.fpt.shms.be.model.Submission> submissions = submissionRepository.findByRoundId(round.getId());
+            for (com.fpt.shms.be.model.Submission sub : submissions) {
+                Team t = sub.getTeam();
+                if (t != null && "APPROVED".equals(t.getStatus())) {
+                    boolean exists = false;
+                    for (Team existing : teams) {
+                        if (existing.getId().equals(t.getId())) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        teams.add(t);
+                    }
+                }
+            }
+            return teams;
         } else {
             Round previousRound = categoryRounds.get(idx - 1);
             return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
@@ -62,7 +79,10 @@ public class RankingAdminService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+        List<ContestRubric> rubricsForRound = new ArrayList<>();
+        if (round.getCategory() != null) {
+            rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+        }
         List<Long> roundCategoryIds = rubricsForRound.stream().map(cr -> cr.getCategory().getId()).distinct().toList();
 
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
@@ -75,7 +95,8 @@ public class RankingAdminService {
         Map<Long, Submission> latestSubmissions = new HashMap<>();
         for (Submission s : allSubmissionsRaw) {
             Submission existing = latestSubmissions.get(s.getTeam().getId());
-            if (existing == null || (s.getVersion() != null && existing.getVersion() != null && s.getVersion() > existing.getVersion())) {
+            if (existing == null || (s.getVersion() != null && existing.getVersion() != null
+                    && s.getVersion() > existing.getVersion())) {
                 latestSubmissions.put(s.getTeam().getId(), s);
             }
         }
@@ -95,6 +116,9 @@ public class RankingAdminService {
 
             boolean judgeReady = true;
             for (Submission s : assignedSubmissions) {
+                if ("AUTO_ZERO".equals(s.getStatus()) || "DRAFT".equals(s.getStatus())) {
+                    continue;
+                }
                 if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {
                     judgeReady = false;
                     break;
@@ -125,9 +149,11 @@ public class RankingAdminService {
                         .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
                         .toList();
 
-                double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
-                long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
-                double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
+                double totalScore = scores.stream()
+                        .mapToDouble(sc -> sc.getTotalScore() != null ? sc.getTotalScore() : 0.0).sum();
+                long judgeCount = scores.stream().filter(sc -> sc.getJudge() != null).map(sc -> sc.getJudge().getId())
+                        .distinct().count();
+                double avgScore = judgeCount > 0 ? totalScore / judgeCount : (scores.isEmpty() ? 0.0 : totalScore);
 
                 teamScores.put(s.getTeam(), avgScore);
             }
@@ -140,7 +166,8 @@ public class RankingAdminService {
         int[] bins = new int[10];
         for (Double score : teamScores.values()) {
             int binIndex = (int) (score / 10.0);
-            if (binIndex >= 10) binIndex = 9;
+            if (binIndex >= 10)
+                binIndex = 9;
             bins[binIndex]++;
         }
         List<Integer> bars = java.util.Arrays.stream(bins).boxed().toList();
@@ -165,14 +192,18 @@ public class RankingAdminService {
         if (!readiness.isAllReady()) {
             throw new IllegalArgumentException("Not all evaluators have finalized scores");
         }
-        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+        Contest contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
         String contestName = contest.getName();
 
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
         String roundName = round.getPhaseName();
 
-        List<ContestRubric> rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+        List<ContestRubric> rubricsForRound = new ArrayList<>();
+        if (round.getCategory() != null) {
+            rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+        }
         String actualCategoryName = "Unknown";
         if (!rubricsForRound.isEmpty() && rubricsForRound.get(0).getCategory() != null) {
             actualCategoryName = rubricsForRound.get(0).getCategory().getName();
@@ -188,7 +219,8 @@ public class RankingAdminService {
         Map<Long, Submission> latestSubmissions = new HashMap<>();
         for (Submission s : allSubmissionsRaw) {
             Submission existing = latestSubmissions.get(s.getTeam().getId());
-            if (existing == null || (s.getVersion() != null && existing.getVersion() != null && s.getVersion() > existing.getVersion())) {
+            if (existing == null || (s.getVersion() != null && existing.getVersion() != null
+                    && s.getVersion() > existing.getVersion())) {
                 latestSubmissions.put(s.getTeam().getId(), s);
             }
         }
@@ -205,9 +237,11 @@ public class RankingAdminService {
                         .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
                         .toList();
 
-                double totalScore = scores.stream().mapToDouble(Score::getTotalScore).sum();
-                long judgeCount = scores.stream().map(sc -> sc.getJudge().getId()).distinct().count();
-                double avgScore = judgeCount > 0 ? totalScore / judgeCount : 0.0;
+                double totalScore = scores.stream()
+                        .mapToDouble(sc -> sc.getTotalScore() != null ? sc.getTotalScore() : 0.0).sum();
+                long judgeCount = scores.stream().filter(sc -> sc.getJudge() != null).map(sc -> sc.getJudge().getId())
+                        .distinct().count();
+                double avgScore = judgeCount > 0 ? totalScore / judgeCount : (scores.isEmpty() ? 0.0 : totalScore);
 
                 teamScores.put(s.getTeam(), avgScore);
             }
@@ -234,7 +268,8 @@ public class RankingAdminService {
 
         for (ProcessRankingsResponse.TeamRankingEntry entry : results) {
             Team team = teamRepository.findById(entry.getTeamId()).orElse(null);
-            if (team == null) continue;
+            if (team == null)
+                continue;
 
             rankingResultRepository.save(RankingResult.builder()
                     .round(round)
@@ -273,7 +308,8 @@ public class RankingAdminService {
             rr.setDatePublishedAt(LocalDateTime.now());
             rankingResultRepository.save(rr);
 
-            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getId(), "PENDING", rr.getQualificationStatus(), "Published Leaderboard");
+            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getId(), "PENDING",
+                    rr.getQualificationStatus(), "Published Leaderboard");
         }
     }
 }
