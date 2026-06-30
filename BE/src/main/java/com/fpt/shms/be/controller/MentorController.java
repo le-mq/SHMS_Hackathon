@@ -30,7 +30,7 @@ public class MentorController {
     public ResponseEntity<?> getAssignedTeams(HttpServletRequest request) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            MentorTrackResponse response = mentorService.getAssignedTeams(username);
+            java.util.List<MentorTrackResponse> response = mentorService.getAssignedTeams(username);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -63,6 +63,21 @@ public class MentorController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/feedbacks")
+    @Operation(summary = "Submit Mentor Feedback", description = "Mentor submits feedback on a DRAFT submission for their assigned team.")
+    public ResponseEntity<?> submitFeedback(HttpServletRequest request,
+                                            @RequestBody com.fpt.shms.be.dto.MentorFeedbackRequest feedbackRequest) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var result = mentorService.submitFeedback(feedbackRequest, username);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
     }
 }

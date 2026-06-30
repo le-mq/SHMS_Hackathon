@@ -266,7 +266,7 @@ public class ContestAdminService {
                     state = Round.RoundState.valueOf(roundDto.getState().toUpperCase());
                 } catch (IllegalArgumentException e) {
                     if (now.isAfter(roundDto.getSubmissionOpen()) && now.isBefore(roundDto.getSubmissionDeadline())) {
-                        state = Round.RoundState.ACTIVE;
+                        state = Round.RoundState.ACTIVED;
                     } else if (now.isAfter(roundDto.getSubmissionDeadline())) {
                         state = Round.RoundState.CLOSED;
                     }
