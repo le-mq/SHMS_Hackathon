@@ -15,8 +15,13 @@ public record ContestDTO(
         String description,
         String regionScope,
         Integer maximumAllowedTeams,
+        Integer minTeamMembers,
+        Integer maxTeamMembers,
         String complianceRules,
         String tieredPrizeStructures,
+        String location,
+        java.time.LocalDateTime publishedAt,
+        java.time.LocalDateTime contestStartAt,
         java.util.List<CategoryDTO> categories,
         java.util.List<RoundDTO> rounds
 ) {
@@ -26,7 +31,9 @@ public record ContestDTO(
             java.time.LocalDateTime submissionDeadline,
             java.time.LocalDateTime gradingOpenAt,
             java.time.LocalDateTime gradingDeadlineAt,
-            java.time.LocalDateTime publishResultAt
+            java.time.LocalDateTime publishResultAt,
+            String submissionRequirements,
+            String roundFormat
     ) {}
 
     public record CategoryDTO(Long id, String name, String description, String guidelineUrl, java.util.List<RoundDTO> rounds) {}
@@ -43,13 +50,18 @@ public record ContestDTO(
                 c.getYear(),
                 c.getRegistrationStart(),
                 c.getRegistrationEnd(),
-                c.getContestEndAt(), // MỚI THÊM
+                c.getContestEndAt(),
                 c.getStatus() != null ? c.getStatus().name() : null,
                 c.getDescription(),
                 c.getRegionScope(),
                 c.getMaximumAllowedTeams(),
+                c.getMinTeamMembers(),
+                c.getMaxTeamMembers(),
                 c.getComplianceRules(),
                 c.getTieredPrizeStructures(),
+                c.getLocation(),
+                c.getPublishedAt(),
+                c.getContestStartAt(),
                 categories != null ? categories : java.util.List.of(),
                 rounds != null ? rounds : java.util.List.of()
         );

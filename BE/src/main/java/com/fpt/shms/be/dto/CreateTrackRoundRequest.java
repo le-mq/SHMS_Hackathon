@@ -52,5 +52,8 @@ public class CreateTrackRoundRequest {
         private LocalDateTime publishResultAt;
 
         private String state = "UPCOMING";
+
+        private String submissionRequirements; // JSON: ["github_url", "document_url"]
+        private String roundFormat; // e.g. "Online", "Offline", "Hybrid"
     }
 }
