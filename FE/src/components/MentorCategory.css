@@ -375,3 +375,6 @@
 .page-btn:hover {
     background: #f8fafc;
 }
+
+.asset-link-icon:hover { color: #0f172a !important; background: #e2e8f0; }
+

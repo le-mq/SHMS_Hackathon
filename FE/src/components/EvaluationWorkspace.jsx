@@ -14,22 +14,18 @@ const EvaluationWorkspace = () => {
         const fetchEvalData = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-
-                // Get roundId from query params safely
                 const urlParams = new URLSearchParams(window.location.search);
                 const roundId = urlParams.get('roundId');
                 let fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`;
                 if (roundId) {
                     fetchUrl += `?roundId=${roundId}`;
                 }
-
                 const response = await fetch(fetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('API request failed');
                 const result = await response.json();
                 setEvalData(result);
-
                 if (result && result.criteria) {
                     setScores(result.criteria.map(c => {
                         const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
@@ -68,12 +64,10 @@ const EvaluationWorkspace = () => {
         };
         if (teamId) fetchEvalData();
     }, [teamId]);
-
     const handleScoreChange = (id, field, value) => {
         const targetId = Number(id);
         setScores(prev => prev.map(s => Number(s.criteriaId) === targetId ? { ...s, [field]: value } : s));
     };
-
     const calculateWeightedTotal = () => {
         const total = scores.reduce((sum, criteria) => {
             const pts = parseFloat(criteria.pointsAwarded);
@@ -81,15 +75,12 @@ const EvaluationWorkspace = () => {
         }, 0);
         return total.toFixed(2);
     };
-
     const isComplete = scores.length > 0 && scores.every(s =>
         s.pointsAwarded !== '' && !isNaN(s.pointsAwarded) && s.pointsAwarded >= 0 && s.pointsAwarded <= 100
     );
-
     const handleSubmit = async () => {
         if (!isComplete) return;
         setIsSubmitting(true);
-
         const payload = {
             submissionId: Number(evalData?.submissionId || evalData?.id || teamId),
             scores: scores.map(s => ({
@@ -98,7 +89,6 @@ const EvaluationWorkspace = () => {
                 feedback: s.feedback || ""
             }))
         };
-
         try {
             const token = localStorage.getItem('shms_token');
             const response = await fetch('http://localhost:8080/api/v1/judge/submit-score', {
@@ -122,7 +112,6 @@ const EvaluationWorkspace = () => {
             setIsSubmitting(false);
         }
     };
-
     const renderAssetLink = (url, label, iconPath) => {
         const isValid = !!url;
         return (
@@ -140,6 +129,11 @@ const EvaluationWorkspace = () => {
             </a>
         );
     };
+
+    const isAutoZero = String(evalData?.status || evalData?.submissionStatus
+        || evalData?.scoreStatus).toUpperCase() === 'AUTO_ZERO';
+    const reqsStr = evalData?.submissionRequirements;
+    const isRequired = (key) => !reqsStr || reqsStr === '[]' || reqsStr.includes(key);
 
     return (
         <div className="eval-workspace-container">
@@ -159,10 +153,15 @@ const EvaluationWorkspace = () => {
                 <div className="eval-grid">
                     <div className="deliverables-panel">
                         <h2 className="panel-title">Project Deliverables</h2>
-                        {renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
-                        {renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
-                        {renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
-                        {renderAssetLink(evalData?.slideUrl || evalData?.presentationSlideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                        {evalData?.roundFormat && (
+                            <div style={{ marginBottom: '16px', padding: '8px 12px', background: '#eff6ff', color: '#1e40af', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
+                                📋 Round Format: {evalData.roundFormat}
+                            </div>
+                        )}
+                        {isRequired('githubUrl') && renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
+                        {isRequired('demoUrl') && renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
+                        {isRequired('documentUrl') && renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
+                        {isRequired('slideUrl') && renderAssetLink(evalData?.slideUrl || evalData?.presentationSlideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
                         <div className="project-id-box">
                             <div className="pid-label">PROJECT ID</div>
                             <div className="pid-val">{evalData?.projectId || 'N/A'} - {evalData?.teamName}</div>
@@ -175,6 +174,11 @@ const EvaluationWorkspace = () => {
                                 Evaluation Rubric
                             </h2>
                         </div>
+                        {isAutoZero && (
+                            <div style={{ background: '#fee2e2', color: '#991b1b', padding: '16px', margin: '16px', borderRadius: '8px', border: '1px solid #f87171', fontWeight: 600 }}>
+                                ⚠️ System Note: This team failed to submit the official project before the deadline. The system has automatically assigned a score of 0. However, you can still evaluate and override this score if needed (this action will be logged).
+                            </div>
+                        )}
                         <div className="criteria-list">
                             {(evalData?.criteria || []).map((crit, idx) => {
                                 const rawId = crit.id?.criteriaId || crit.id?.rubricId || crit.criterionId || crit.id;
