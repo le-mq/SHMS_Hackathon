@@ -47,7 +47,14 @@ public class Submission {
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
-    
+
     @Column(name = "status", length = 50)
-    private String status; // "DRAFT", "SUBMITTED", "EVALUATED"
+    private String status; // "DRAFT", "OFFICIAL", "SUBMITTED", "EVALUATED"
+
+    @Column(name = "mentor_feedback", columnDefinition = "NVARCHAR(MAX)")
+    private String mentorFeedback;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentor_id", referencedColumnName = "user_id")
+    private User mentor;
 }

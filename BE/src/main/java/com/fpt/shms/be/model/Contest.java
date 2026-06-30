@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Contest")
@@ -64,20 +65,21 @@ public class Contest {
     @Column(name = "max_team_members")
     private Integer maxTeamMembers;
 
-    @Column(name = "location")
+    @Column(name = "compliance_rules", columnDefinition = "TEXT")
+    private String complianceRules;
+
+    @Column(name = "tiered_prize_structures", columnDefinition = "TEXT")
+    private String tieredPrizeStructures;
+
+    @org.hibernate.annotations.Nationalized
+    @Column(name = "location", length = 255)
     private String location;
 
     @Column(name = "published_at")
-    private java.time.LocalDateTime publishedAt;
+    private LocalDateTime publishedAt;
 
     @Column(name = "contest_start_at")
-    private java.time.LocalDateTime contestStartAt;
-
-    @Column(name = "compliance_rules")
-    private String complianceRules;
-
-    @Column(name = "tiered_prize_structures")
-    private String tieredPrizeStructures;
+    private LocalDateTime contestStartAt;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -96,7 +98,7 @@ public class Contest {
     }
 
     public enum ContestStatus {
-        ACTIVE, ACTIVED, UPCOMING, CLOSED
+        ACTIVE, ACTIVED, UPCOMING, CLOSED, CANCELLED
     }
 
     public Season getSeason() {
@@ -132,6 +134,6 @@ public class Contest {
             return ContestStatus.UPCOMING;
         }
 
-        return ContestStatus.ACTIVE;
+        return ContestStatus.ACTIVED;
     }
 }

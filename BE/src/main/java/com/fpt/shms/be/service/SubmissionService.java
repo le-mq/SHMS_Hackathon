@@ -38,7 +38,7 @@ public class SubmissionService {
         TeamMembership membership = memberships.get(0);
 
         if (!"LEADER".equals(membership.getRole())) {
-            throw new IllegalArgumentException("Only Team Leaders can submit the project");
+            throw new IllegalArgumentException("Only the Team Leader can submit work.");
         }
 
         Team team = membership.getTeam();
@@ -58,6 +58,22 @@ public class SubmissionService {
         }
 
         validateRoundSubmissionAccess(team, round);
+
+        if (round != null && round.getSubmissionRequirements() != null && !round.getSubmissionRequirements().trim().isEmpty() && !round.getSubmissionRequirements().trim().equals("[]")) {
+            String reqs = round.getSubmissionRequirements();
+            if (reqs.contains("githubUrl") && (request.getGithubRepoUrl() == null || request.getGithubRepoUrl().trim().isEmpty())) {
+                throw new IllegalArgumentException("GitHub Repository URL is required for this round.");
+            }
+            if (reqs.contains("demoUrl") && (request.getLiveDemoUrl() == null || request.getLiveDemoUrl().trim().isEmpty())) {
+                throw new IllegalArgumentException("Live Demo/Video URL is required for this round.");
+            }
+            if (reqs.contains("documentUrl") && (request.getDocsUrl() == null || request.getDocsUrl().trim().isEmpty())) {
+                throw new IllegalArgumentException("Documentation URL is required for this round.");
+            }
+            if (reqs.contains("slideUrl") && (request.getSlideUrl() == null || request.getSlideUrl().trim().isEmpty())) {
+                throw new IllegalArgumentException("Presentation Slide URL is required for this round.");
+            }
+        }
 
         List<Submission> oldSubmissions = submissionRepository.findByTeamId(team.getId());
         Submission existingSub = null;
@@ -138,6 +154,8 @@ public class SubmissionService {
                         .lockedReason(eligibility.lockedReason)
                         .evaluated(scoreSummary.evaluated)
                         .totalScore(scoreSummary.totalScore)
+                        .submissionRequirements(r.getSubmissionRequirements())
+                        .roundFormat(r.getRoundFormat())
                         .build());
             }
         }
@@ -165,6 +183,22 @@ public class SubmissionService {
             }
 
             ScoreSummary scoreSummary = getScoreSummary(s);
+
+            String mentorFeedback = s.getMentorFeedback();
+            String mentorName = s.getMentor() != null ? s.getMentor().getFullName() : null;
+            String judgeFeedback = null;
+            if (s.getId() != null) {
+                List<Score> scores = scoreRepository.findBySubmissionId(s.getId());
+
+                List<Score> judgeScores = scores.stream()
+                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()) && !"AUTO_ZERO".equals(sc.getStatus()) && sc.getGeneralFeedback() != null && !sc.getGeneralFeedback().isEmpty())
+                        .toList();
+
+                if (!judgeScores.isEmpty()) {
+                    judgeFeedback = judgeScores.stream().map(Score::getGeneralFeedback).collect(Collectors.joining("\n\n"));
+                }
+            }
+
             historyDtos.add(SubmissionPageResponse.HistoryDto.builder()
                     .roundId(s.getRound() != null ? s.getRound().getId() : null)
                     .version(s.getVersion() != null ? s.getVersion() : 1)
@@ -176,6 +210,9 @@ public class SubmissionService {
                     .slideUrl(s.getPresentationSlideUrl())
                     .evaluated(scoreSummary.evaluated)
                     .totalScore(scoreSummary.totalScore)
+                    .mentorFeedback(mentorFeedback)
+                    .mentorName(mentorName)
+                    .judgeFeedback(judgeFeedback)
                     .build());
         }
 
@@ -213,7 +250,7 @@ public class SubmissionService {
             throw new IllegalArgumentException("The submission deadline has passed. The submission portal is closed!");
         }
 
-        if (!Round.RoundState.ACTIVE.equals(round.getState())) {
+        if (!Round.RoundState.ACTIVED.equals(round.getState())) {
             throw new IllegalArgumentException("This round is not active yet. You cannot submit.");
         }
 
@@ -271,11 +308,15 @@ public class SubmissionService {
         }
 
         List<Score> scores = scoreRepository.findBySubmissionId(submission.getId());
-        if (scores.isEmpty()) {
+        List<Score> gradingScores = scores.stream()
+                .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
+                .toList();
+
+        if (gradingScores.isEmpty()) {
             return new ScoreSummary(false, null);
         }
 
-        double averageScore = scores.stream()
+        double averageScore = gradingScores.stream()
                 .map(score -> score.getTotalScore() != null ? score.getTotalScore() : score.getPointsAwarded())
                 .filter(score -> score != null)
                 .mapToDouble(Double::doubleValue)
@@ -331,18 +372,33 @@ public class SubmissionService {
             }
 
             List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
-            if (scores.isEmpty()) continue;
 
-            double avgRoundScore = scores.stream()
-                    .map(Score::getTotalScore)
-                    .filter(java.util.Objects::nonNull)
-                    .mapToDouble(Double::doubleValue)
-                    .average()
-                    .orElse(0.0);
+            List<Score> judgeScores = scores.stream()
+                    .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
+                    .toList();
 
-            overallTotalScore += avgRoundScore;
+            boolean isAutoZero = "AUTO_ZERO".equals(sub.getStatus()) || judgeScores.stream().anyMatch(sc -> "AUTO_ZERO".equals(sc.getStatus()));
+            List<Score> validJudgeScores = judgeScores.stream()
+                    .filter(sc -> !"AUTO_ZERO".equals(sc.getStatus()))
+                    .toList();
 
-            List<ScoreDetail> allDetails = scores.stream()
+            boolean isGraded = !validJudgeScores.isEmpty();
+            Double avgRoundScore = null;
+
+            if (isGraded) {
+                avgRoundScore = validJudgeScores.stream()
+                        .map(Score::getTotalScore)
+                        .filter(java.util.Objects::nonNull)
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
+                overallTotalScore += avgRoundScore;
+            } else if (isAutoZero) {
+                avgRoundScore = 0.0;
+                isGraded = true;
+            }
+
+            List<ScoreDetail> allDetails = judgeScores.stream()
                     .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
                     .toList();
 
@@ -384,7 +440,9 @@ public class SubmissionService {
             roundScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto.builder()
                     .roundId(sub.getRound().getId())
                     .roundName(sub.getRound().getPhaseName())
-                    .totalScore(Math.round(avgRoundScore * 100.0) / 100.0)
+                    .totalScore(avgRoundScore != null ? Math.round(avgRoundScore * 100.0) / 100.0 : null)
+                    .hasSubmission(true)
+                    .isGraded(isGraded)
                     .detailedScores(detailedScores)
                     .build());
         }
