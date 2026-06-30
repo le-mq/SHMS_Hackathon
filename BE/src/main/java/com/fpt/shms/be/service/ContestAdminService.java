@@ -60,8 +60,10 @@ public class ContestAdminService {
                         roundMap.put("gradingDeadlineAt", r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
                         roundMap.put("publishResultAt", r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
+                        roundMap.put("submissionRequirements", r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
+                        roundMap.put("roundFormat", r.getRoundFormat() != null ? r.getRoundFormat() : "");
                         return roundMap;
-            }).toList();
+                    }).toList();
 
             List<Team> catTeams = teamMentorRepository.findByCategoryId(c.getId())
                     .stream()
@@ -99,8 +101,13 @@ public class ContestAdminService {
         response.put("status", contest.getStatus() != null ? contest.getStatus().name() : "UPCOMING");
         response.put("regionScope", contest.getRegionScope() != null ? contest.getRegionScope() : "");
         response.put("maximumAllowedTeams", contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
+        response.put("minTeamMembers", contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3);
+        response.put("maxTeamMembers", contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5);
         response.put("complianceRules", contest.getComplianceRules() != null ? contest.getComplianceRules() : "");
         response.put("tieredPrizeStructures", contest.getTieredPrizeStructures() != null ? contest.getTieredPrizeStructures() : "");
+        response.put("location", contest.getLocation() != null ? contest.getLocation() : "");
+        response.put("publishedAt", contest.getPublishedAt() != null ? contest.getPublishedAt().toString() : "");
+        response.put("contestStartAt", contest.getContestStartAt() != null ? contest.getContestStartAt().toString() : "");
 
         response.put("universities", domains);
         response.put("tracks", tracks);
@@ -148,11 +155,16 @@ public class ContestAdminService {
         contest.setYear(request.getYear());
         contest.setRegionScope(request.getRegionScope());
         contest.setMaximumAllowedTeams(request.getMaximumAllowedTeams());
+        contest.setMinTeamMembers(request.getMinTeamMembers() != null ? request.getMinTeamMembers() : 3);
+        contest.setMaxTeamMembers(request.getMaxTeamMembers() != null ? request.getMaxTeamMembers() : 5);
         contest.setComplianceRules(request.getComplianceRules());
         contest.setTieredPrizeStructures(request.getTieredPrizeStructures());
         contest.setRegistrationStart(request.getRegistrationStart());
         contest.setRegistrationEnd(request.getRegistrationEnd());
         contest.setContestEndAt(request.getContestEndAt());
+        contest.setLocation(request.getLocation());
+        contest.setPublishedAt(request.getPublishedAt());
+        contest.setContestStartAt(request.getContestStartAt());
         contest.setSemester(semester);
 
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
@@ -186,7 +198,7 @@ public class ContestAdminService {
                                     if (u != null && u.getRoles().contains(teamLeaderRole)) {
                                         u.getRoles().remove(teamLeaderRole);
                                         if (!u.getRoles().contains(studentRole)) {
-                                            u.getRoles().add(studentRole);   
+                                            u.getRoles().add(studentRole);
                                         }
                                         userRepository.save(u);
                                     }
@@ -201,7 +213,7 @@ public class ContestAdminService {
         }
 
         contest = contestRepository.save(contest);
-        
+
         String action = (request.getId() != null) ? "UPDATE_CONTEST" : "CREATE_CONTEST";
         auditLogService.log(action, "Contest", contest.getId(), null, contest.getStatus().name(), contest.getName());
 
@@ -305,6 +317,8 @@ public class ContestAdminService {
             round.setState(state);
             round.setContest(contest);
             round.setCategory(category);
+            round.setSubmissionRequirements(roundDto.getSubmissionRequirements());
+            round.setRoundFormat(roundDto.getRoundFormat());
             roundRepository.save(round);
         }
 

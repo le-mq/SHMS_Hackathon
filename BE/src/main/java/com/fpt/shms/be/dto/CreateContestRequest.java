@@ -37,9 +37,25 @@ public class CreateContestRequest {
     @Min(value = 1, message = "Maximum teams must be at least 1")
     private Integer maximumAllowedTeams;
 
+    @NotNull(message = "Minimum team members is required")
+    @Min(value = 1, message = "Minimum team members must be at least 1")
+    private Integer minTeamMembers;
+
+    @NotNull(message = "Maximum team members is required")
+    @Min(value = 1, message = "Maximum team members must be at least 1")
+    private Integer maxTeamMembers;
+
     @NotBlank(message = "Allowed corporate domains is required")
     private String allowedCorporateDomains;
 
     private String complianceRules;
     private String tieredPrizeStructures;
+
+    private String location;
+
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private java.time.LocalDateTime publishedAt;
+
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private java.time.LocalDateTime contestStartAt;
 }
