@@ -9,12 +9,10 @@ const formatScheduleDate = (dateValue, emptyText, invalidText) => {
     if (!dateValue) {
         return emptyText;
     }
-
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) {
         return invalidText;
     }
-
     return date.toLocaleString('en-US', {
         month: 'short',
         day: '2-digit',
@@ -23,7 +21,6 @@ const formatScheduleDate = (dateValue, emptyText, invalidText) => {
         minute: '2-digit',
     }).replace(',', ' \u2022');
 };
-
 const EvaluatorDashboard = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
@@ -55,8 +52,7 @@ const EvaluatorDashboard = () => {
                     let dashboardMock = mockData.evaluatorDashboard.data;
                     if (selectedContest) {
                         const filteredQueue = dashboardMock.queue.filter(team => team.contestId === parseInt(selectedContest));
-                        dashboardMock = {
-                            ...dashboardMock, queue: filteredQueue,
+                        dashboardMock = { ...dashboardMock, queue: filteredQueue,
                             assignedCategoryCount: Array.from(new Set(filteredQueue.map(t => t.categoryName || t.trackName || t.category))).length,
                             totalAllocatedTeams: filteredQueue.length,
                             evaluatedCount: filteredQueue.filter(t => t.submissionState === 'EVALUATED').length
@@ -70,12 +66,10 @@ const EvaluatorDashboard = () => {
         };
         fetchDashboard();
     }, [selectedContest]);
-
     const dashboardData = data || {
         assignedCategoryCount: 0, totalAllocatedTeams: 0,
         evaluatedCount: 0, contests: [], queue: []
     };
-
     const roundMap = {};
     (dashboardData.queue || []).forEach(t => {
         const rName = t.roundName || t.phaseName || t.round?.roundName;
@@ -84,13 +78,13 @@ const EvaluatorDashboard = () => {
                 name: rName,
                 gradingOpenAt: t.gradingOpenAt,
                 gradingDeadlineAt: t.gradingDeadlineAt,
+                roundFormat: t.roundFormat || t.round?.roundFormat || ''
             };
         }
     });
     const allRounds = Object.values(roundMap).sort((a, b) => {
         return new Date(a.gradingOpenAt || 0) - new Date(b.gradingOpenAt || 0);
     });
-
     useEffect(() => {
         if (allRounds.length > 0 && !roundMap[selectedRound]) {
             const saved = sessionStorage.getItem('judgeSelectedRound');
@@ -109,12 +103,10 @@ const EvaluatorDashboard = () => {
             setTimeStatus('');
             return;
         }
-
         const updateCountdown = () => {
             const now = new Date();
             const openTime = currentRoundObj.gradingOpenAt ? new Date(currentRoundObj.gradingOpenAt) : null;
             const closeTime = currentRoundObj.gradingDeadlineAt ? new Date(currentRoundObj.gradingDeadlineAt) : null;
-
             if (openTime && now < openTime) {
                 setTimeStatus('UPCOMING');
                 const diff = openTime - now;
@@ -139,18 +131,15 @@ const EvaluatorDashboard = () => {
                 setTimeLeft('No Deadline');
             }
         };
-
         updateCountdown();
         const timer = setInterval(updateCountdown, 1000);
         return () => clearInterval(timer);
     }, [selectedRound, JSON.stringify(roundMap)]);
-
     const filteredQueue = dashboardData.queue?.filter(t => {
         const rName = t.roundName || t.phaseName || t.round?.roundName;
         return rName === selectedRound;
     }) || [];
-
-    const notSubmittedCount = filteredQueue.filter(t => t.submissionState === 'Not Submitted').length || 0;
+    const notSubmittedCount = filteredQueue.filter(t => t.submissionState === 'Not Submitted' || t.submissionState === 'AUTO_ZERO').length || 0;
     const effectiveTotalTeams = Math.max(0, filteredQueue.length - notSubmittedCount);
     const evaluatedCount = filteredQueue.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length || 0;
     const remainingToGrade = Math.max(0, effectiveTotalTeams - evaluatedCount);
@@ -219,6 +208,12 @@ const EvaluatorDashboard = () => {
                                     <span>Closes:</span>
                                     <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingDeadlineAt, 'No Date Set', 'Invalid Date')}</span>
                                 </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Format:</span>
+                                    <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                        {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -265,8 +260,7 @@ const EvaluatorDashboard = () => {
                         <tbody>
                         {filteredQueue.map((team, idx) => (
                             <tr key={team.teamId || team.id || idx}>
-                                <td>
-                                    <div className="team-info">
+                                <td><div className="team-info">
                                         <span className="team-name-txt">{team.teamName || team.name}</span>
                                     </div>
                                 </td>
@@ -276,19 +270,14 @@ const EvaluatorDashboard = () => {
                                 <td><span
                                     className="round-txt">{team.roundName || team.phaseName || team.round?.roundName}</span>
                                 </td>
-                                <td>
-                                        <span
-                                            className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : 'pill-pending'}`}>
-                                            {team.submissionState === 'SUBMITTED' ? 'Submitted' : team.submissionState}
-                                        </span>
+                                <td><span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : 'pill-pending'}`}>
+                                     {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'AUTO_ZERO' ? 'Not Submitted' : team.submissionState)}
+                                     </span>
                                 </td>
-                                <td>
-                                    {team.submissionState?.toUpperCase() === 'EVALUATED' ? (
+                                <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
                                         <button className="evaluate-btn" style={{ background: '#e2e8f0',
                                             color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
-                                        }} disabled>
-                                            Already Evaluated
-                                        </button>
+                                        }} disabled>Already Evaluated</button>
                                     ) : (
                                         (() => {const now = new Date().getTime();
                                             const openTime = team.gradingOpenAt ? new Date(team.gradingOpenAt).getTime() : 0;
@@ -301,18 +290,18 @@ const EvaluatorDashboard = () => {
                                                 );
                                             }
 
-                                            if (team.submissionState === 'Not Submitted') {
+                                            if (team.submissionState === 'Not Submitted' || team.submissionState === 'AUTO_ZERO') {
                                                 return (
                                                     <button className="evaluate-btn" style={{ background: '#fee2e2',
-                                                        color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
-                                                    }} disabled>Not Submitted (0 pts)</button>
+                                                        color: '#ef4444', borderColor: '#fca5a5'
+                                                    }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
+                                                        Evaluate (0 pts)</button>
                                                 );
                                             }
                                             return (
                                                 <button className="evaluate-btn"
                                                         onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                    Evaluate Team Product
-                                                </button>
+                                                    Evaluate Team Product</button>
                                             );
                                         })()
                                     )}
