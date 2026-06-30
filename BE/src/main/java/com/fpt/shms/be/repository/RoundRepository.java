@@ -13,4 +13,7 @@ public interface RoundRepository extends JpaRepository<Round, Long> {
     List<Round> findByContestIdOrderBySubmissionOpenAsc(Long contestId);
     List<Round> findByCategoryIdOrderBySubmissionOpenAsc(Long categoryId);
 
+    @org.springframework.data.jpa.repository.Query("select r from Round r where r.submissionDeadline < :now")
+    List<Round> findBySubmissionDeadlineBefore(@org.springframework.data.repository.query.Param("now") java.time.LocalDateTime now);
+
 }
