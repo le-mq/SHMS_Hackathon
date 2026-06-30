@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 @Builder
 public class MentorTrackResponse {
+    private Long contestId;
     private String contestName;
     private List<TrackOverviewDto> trackOverviews;
     private List<AssignedTeamDto> allocatedTeams;
@@ -19,6 +20,8 @@ public class MentorTrackResponse {
         private int assignedTeams;
         private int activeSessions;
         private int completionPercentage;
+        private String feedbackDeadline;
+        private String targetRoundState;
     }
 
     @Data
@@ -34,5 +37,11 @@ public class MentorTrackResponse {
         private String liveDemoUrl;
         private String docsUrl;
         private String slideUrl;
+        private Long roundId;
+        private String roundName;
+        private Long submissionId;
+        private boolean canGiveFeedback;
+        private boolean hasGivenFeedback;
+        private String mentorFeedback;
     }
 }

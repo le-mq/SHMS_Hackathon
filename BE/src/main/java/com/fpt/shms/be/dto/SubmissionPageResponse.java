@@ -31,6 +31,8 @@ public class SubmissionPageResponse {
         private String lockedReason;
         private Boolean evaluated;
         private Double totalScore;
+        private String submissionRequirements;
+        private String roundFormat;
     }
 
     @Data
@@ -46,5 +48,8 @@ public class SubmissionPageResponse {
         private String slideUrl;
         private Boolean evaluated;
         private Double totalScore;
+        private String mentorFeedback;
+        private String mentorName;
+        private String judgeFeedback;
     }
 }

@@ -8,7 +8,7 @@ import com.fpt.shms.be.repository.StudentRepository;
 import com.fpt.shms.be.repository.UserRepository;
 import com.fpt.shms.be.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+// import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,6 @@ public class StudentService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final VerificationTokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public ProfileResponse getProfile(String username, String role) {
         User user = userRepository.findByUsername(username)
@@ -56,11 +55,13 @@ public class StudentService {
         }
         // Update User Password if requested
         if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
-            // if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            //     throw new IllegalArgumentException("Current password is incorrect");
+            // if (!passwordEncoder.matches(request.getCurrentPassword(),
+            // user.getPassword())) {
+            // throw new IllegalArgumentException("Current password is incorrect");
             // }
             // if (request.getNewPassword().length() < 8) {
-            //     throw new IllegalArgumentException("New password must be at least 8 characters");
+            // throw new IllegalArgumentException("New password must be at least 8
+            // characters");
             // }
             // user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 

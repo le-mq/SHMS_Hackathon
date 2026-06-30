@@ -21,6 +21,8 @@ public class TeamScoreDetailsResponse {
         private Long roundId;
         private String roundName;
         private Double totalScore;
+        private Boolean hasSubmission;
+        private Boolean isGraded;
         private List<RubricScoreDto> detailedScores;
     }
 

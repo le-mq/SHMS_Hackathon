@@ -23,6 +23,5 @@ public interface RankingResultRepository extends JpaRepository<RankingResult, Lo
     boolean existsByTeamIdAndRoundIdAndQualificationStatus(Long teamId, Long roundId, String qualificationStatus);
 
     @Query("SELECT r FROM RankingResult r WHERE r.datePublishedAt IS NOT NULL AND r.round.publishResultAt IS NOT NULL AND r.round.publishResultAt <= CURRENT_TIMESTAMP AND r.qualificationStatus = 'QUALIFIED'")
-
     List<RankingResult> findPublishedLeaderboards();
 }

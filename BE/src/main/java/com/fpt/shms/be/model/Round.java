@@ -61,7 +61,7 @@ public class Round {
     private String roundFormat;
 
     public enum RoundState {
-        UPCOMING, ACTIVE, ACTIVED, CLOSED
+        UPCOMING, ACTIVED, CLOSED
     }
 
     public RoundState getState() {
