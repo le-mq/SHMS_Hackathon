@@ -19,4 +19,6 @@ public class SubmitProjectRequest {
 
     @Pattern(regexp = "^$|^(https?://).*$", message = "Must be a valid URL starting with http/https")
     private String slideUrl;
+
+    private String submissionType; // "DRAFT" or "OFFICIAL", defaults to "OFFICIAL"
 }
