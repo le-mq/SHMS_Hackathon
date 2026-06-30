@@ -53,8 +53,15 @@ public class Round {
     @Column(name = "publish_result_at")
     private java.time.LocalDateTime publishResultAt;
 
+    @Column(name = "submission_requirements", columnDefinition = "TEXT")
+    private String submissionRequirements;
+
+    @org.hibernate.annotations.Nationalized
+    @Column(name = "round_format", length = 100)
+    private String roundFormat;
+
     public enum RoundState {
-        UPCOMING, ACTIVE, CLOSED
+        UPCOMING, ACTIVED, CLOSED
     }
 
     public RoundState getState() {
@@ -66,7 +73,7 @@ public class Round {
             return RoundState.UPCOMING;
         }
         if (this.submissionOpen != null && this.submissionDeadline != null) {
-            return RoundState.ACTIVE;
+            return RoundState.ACTIVED;
         }
         return this.state != null ? this.state : RoundState.UPCOMING;
     }
