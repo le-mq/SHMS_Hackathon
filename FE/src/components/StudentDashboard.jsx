@@ -36,25 +36,34 @@ function mergeAllowedContestDetails(allowedContests, detailedContests) {
 }
 
 function pickActiveContest(contests) {
-    return contests.find(c => c.status === 'ACTIVE')
+    return contests.find(c => c.status === 'ACTIVED')
         || contests.find(c => c.status === 'UPCOMING')
         || contests[0]
         || null;
 }
 
-function formatDate(dateStr) {
+function formatDateOnly(dateStr) {
     if (!dateStr) return 'N/A';
-
     const date = new Date(dateStr);
-
-    if (Number.isNaN(date.getTime())) {
-        return dateStr;
-    }
-
+    if (Number.isNaN(date.getTime())) return dateStr;
     return date.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+    });
+}
+
+function formatDateTime(dateStr) {
+    if (!dateStr) return 'N/A';
+    if (dateStr.length <= 10) return formatDateOnly(dateStr);
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
+    return date.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     });
 }
 
@@ -122,8 +131,9 @@ const StudentDashboard = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
     const [createError, setCreateError] = useState('');
-    const [invitationCode, setInvitationCode] = useState('');
+
     const [isCreating, setIsCreating] = useState(false);
+    const [pendingInvitations, setPendingInvitations] = useState([]);
 
     const selectedContestId = activeContest?.id != null ? String(activeContest.id) : '';
 
@@ -151,7 +161,7 @@ const StudentDashboard = () => {
                     allowedContests,
                     detailedContests
                 );
-                const activeList = contests.filter(c => c.status === 'ACTIVE');
+                const activeList = contests.filter(c => c.status === 'ACTIVED');
                 const active = pickActiveContest(contests);
 
                 if (!cancelled) {
@@ -171,7 +181,7 @@ const StudentDashboard = () => {
 
                     const localJson = await localRes.json();
                     const contests = getContestList(localJson);
-                    const activeList = contests.filter(c => c.status === 'ACTIVE');
+                    const activeList = contests.filter(c => c.status === 'ACTIVED');
                     const active = pickActiveContest(contests);
 
                     if (!cancelled) {
@@ -194,6 +204,21 @@ const StudentDashboard = () => {
 
         fetchHomeData();
 
+        const fetchPendingInvitations = async () => {
+            try {
+                const token = localStorage.getItem('shms_token');
+                const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/pending`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (!cancelled) setPendingInvitations(Array.isArray(json) ? json : []);
+                }
+            } catch { }
+        };
+
+        fetchPendingInvitations();
+
         return () => {
             cancelled = true;
         };
@@ -201,76 +226,26 @@ const StudentDashboard = () => {
 
     const handleJoinTeam = async () => {
         const code = joinCode.trim();
-
         if (!code) return;
+        await handleRespondInvitation(code, 'ACCEPT');
+    };
 
+    const handleRespondInvitation = async (invitationToken, action) => {
         try {
             const token = localStorage.getItem('shms_token');
-
-            let hasTeam = false;
-            try {
-                hasTeam = await hasExistingTeam(token);
-            } catch (e) {
-                // If API is down, fallback to mock check
-                try {
-                    const localRes = await fetch('/testFE.json');
-                    if (localRes.ok) {
-                        const localJson = await localRes.json();
-                        if (localJson.teamStatus?.data?.status && localJson.teamStatus.data.status !== 'NO TEAM') {
-                            hasTeam = true;
-                        }
-                    }
-                } catch (mockErr) {
-                    console.warn('Mock check failed', mockErr);
-                }
+            const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ invitationToken, action })
+            });
+            const json = await res.json();
+            if (res.ok) {
+                alert(json.message || `Invitation ${action.toLowerCase()}ed.`);
+                window.location.reload();
+            } else {
+                alert(json.error || 'Failed to respond to invitation');
             }
-
-            if (hasTeam) {
-                alert('You are already in a team!');
-                return;
-            }
-
-            await axios.post(
-                API_STUDENT + '/teams/join',
-                { invitationCode: code },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            alert('Successfully joined the team!');
-            navigate('/student/team/status');
-        } catch (error) {
-            if (error.response) {
-                const serverMessage = error.response.data?.error || error.response.data?.message || '';
-                const normalizedMessage = serverMessage.toLowerCase();
-                const alreadyHasTeam = normalizedMessage.includes('already') && normalizedMessage.includes('team');
-                
-                alert(alreadyHasTeam ? 'You are already in a team!' : (serverMessage || 'Invalid invitation code or unable to join!'));
-                return;
-            }
-
-            console.warn('Join team API unavailable, use mock:', error.message);
-
-            try {
-                const localRes = await fetch('/testFE.json');
-
-                if (!localRes.ok) {
-                    throw new Error('Not found testFE.json', { cause: error });
-                }
-
-                const localJson = await localRes.json();
-                const inviteCodes = localJson.studentDashboard?.data?.validInviteCodes || [];
-                const matchedTeam = inviteCodes.find(item => item.invitationCode === code);
-
-                if (!matchedTeam) {
-                    throw new Error('Invalid invitation code');
-                }
-
-                alert('Mock: joined team ' + matchedTeam.teamName);
-                navigate('/student/team/status');
-            } catch (mockError) {
-                alert(mockError.message || 'Failed to join team');
-            }
-        }
+        } catch { alert('Could not connect to server.'); }
     };
 
     const handleCreateTeam = async () => {
@@ -298,38 +273,12 @@ const StudentDashboard = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setInvitationCode(res.data.invitationCode);
-        } catch (error) {
-            const serverMessage = error.response?.data?.error || error.response?.data?.message || '';
-
-            if (error.response) {
-                const normalizedMessage = serverMessage.toLowerCase();
-                const alreadyHasTeam = normalizedMessage.includes('already') && normalizedMessage.includes('team');
-
-                setCreateError(alreadyHasTeam ? 'You have already created a team!' : serverMessage || 'Unable to create a team!');
-                return;
-            }
-
-            console.warn('Create team API unavailable, use mock:', error.message);
-
-            const mockCode = 'MOCK-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-            setInvitationCode(mockCode);
+            alert('Team created successfully!');
+            setShowCreateModal(false);
+            navigate('/student/team/status');
         } finally {
             setIsCreating(false);
         }
-    };
-
-    const handleCopyCodeAndGoToMyTeam = async () => {
-        setCreateError('');
-
-        const copied = await copyToClipboard(invitationCode);
-
-        if (!copied) {
-            setCreateError('The invitation code cannot be copied. Please copy it manually!');
-            return;
-        }
-
-        navigate('/student/team/status');
     };
 
     return (
@@ -346,7 +295,7 @@ const StudentDashboard = () => {
                     <div className="dash-cards-row">
                         {loadingContest ? (
                             <div className="info-card">
-                                <div className="ic-header">ACTIVE CONTEST</div>
+                                <div className="ic-header">ACTIVED CONTEST</div>
                                 <div className="ic-title">Loading...</div>
                             </div>
                         ) : activeContests.length > 0 ? (
@@ -366,7 +315,7 @@ const StudentDashboard = () => {
                                     }}
                                 >
                                     <div className="ic-header">
-                                        ACTIVE CONTEST
+                                        ACTIVED CONTEST
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 strokeLinecap="round"
@@ -393,10 +342,10 @@ const StudentDashboard = () => {
                             ))
                         ) : (
                             <div className="info-card">
-                                <div className="ic-header">ACTIVE CONTEST</div>
-                                <div className="ic-title">No active contest</div>
+                                <div className="ic-header">ACTIVED CONTEST</div>
+                                <div className="ic-title">No actived contest</div>
                                 <div className="ic-subtitle">
-                                    No active contests found.
+                                    No actived contests found.
                                 </div>
                             </div>
                         )}
@@ -418,48 +367,75 @@ const StudentDashboard = () => {
                             <tbody>
                                 <tr>
                                     <td><strong>Registration Open</strong></td>
-                                    <td>{formatDate(activeContest?.registrationStart)}</td>
-                                    <td>
-                                        {getMilestoneStatus(activeContest?.registrationStart)}
-
-                                    </td>
+                                    <td>{formatDateOnly(activeContest?.registrationStart)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Registration Deadline</strong></td>
-                                    <td>{formatDate(activeContest?.registrationEnd)}</td>
-                                    <td>
-                                        {getMilestoneStatus(activeContest?.registrationEnd)}
-
-                                    </td>
+                                    <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Contest Start</strong></td>
+                                    <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
                                 </tr>
                                 {activeContest?.rounds?.map((round, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr>
-                                            <td><strong>{round.phaseName} - Open</strong></td>
-                                            <td>{formatDate(round.submissionOpen)}</td>
-                                            <td>
-
-                                                {getMilestoneStatus(round.submissionOpen)}
-
-                                            </td>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
+                                            <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
+                                            <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>{round.phaseName} - Deadline</strong></td>
-                                            <td>{formatDate(round.submissionDeadline)}</td>
-                                            <td>
-
-                                                {getMilestoneStatus(round.submissionDeadline)}
-
-                                            </td>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
+                                            <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
+                                            <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
+                                            <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
+                                            <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
                                         </tr>
                                     </React.Fragment>
                                 ))}
+                                <tr>
+                                    <td><strong>Contest End</strong></td>
+                                    <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div className="dash-right">
+                    {/* Pending Invitations Inbox */}
+                    {pendingInvitations.length > 0 && (
+                        <div style={{ background: '#FFFFFF', border: '1px solid #fbbf24', borderRadius: '12px', padding: '20px' }}>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#92400e', marginBottom: '12px' }}>
+                                Pending Team Invitations ({pendingInvitations.length})
+                            </h2>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {pendingInvitations.map((inv, idx) => (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 16px' }}>
+                                        <div>
+                                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                                {inv.inviterName || 'A team member'} has invited you to join the team {inv.teamName}.
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                                Check your email for the Invite code.
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button onClick={() => handleRespondInvitation(inv.invitationToken, 'REJECT')} style={{ padding: '6px 12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px' }}>Reject</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="create-team-card">
                         <svg className="action-icon-bg" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" /></svg>
                         <div style={{ marginBottom: 24 }}>
@@ -467,7 +443,7 @@ const StudentDashboard = () => {
                         </div>
                         <h3>Create a New Team</h3>
 
-                        <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setInvitationCode(''); setNewTeamName(''); setCreateError(''); }}>
+                        <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setNewTeamName(''); setCreateError(''); }}>
                             Start Building
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                         </a>
@@ -497,62 +473,37 @@ const StudentDashboard = () => {
             {showCreateModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: '#fff', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                        {!invitationCode ? (
-                            <>
-                                <h2 style={{ marginTop: 0, marginBottom: '8px', color: '#0f172a' }}>Initialize New Team</h2>
-                                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '24px' }}>Set up your collective identity for the competition.</p>
+                        <h2 style={{ marginTop: 0, marginBottom: '8px', color: '#0f172a' }}>Initialize New Team</h2>
+                        <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '24px' }}>Set up your collective identity for the competition.</p>
 
-                                {createError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '0.875rem', fontWeight: 'bold' }}>{createError}</div>}
+                        {createError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '0.875rem', fontWeight: 'bold' }}>{createError}</div>}
 
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>Team Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter your creative team name"
-                                        value={newTeamName}
-                                        onChange={(e) => setNewTeamName(e.target.value)}
-                                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none' }}
-                                    />
-                                </div>
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>Team Name</label>
+                            <input
+                                type="text"
+                                placeholder="Enter your creative team name"
+                                value={newTeamName}
+                                onChange={(e) => setNewTeamName(e.target.value)}
+                                style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none' }}
+                            />
+                        </div>
 
-                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                    <button
-                                        onClick={() => setShowCreateModal(false)}
-                                        style={{ padding: '10px 16px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleCreateTeam}
-                                        disabled={isCreating}
-                                        style={{ padding: '10px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-                                    >
-                                        {isCreating ? 'Creating...' : 'Create Team'}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ width: '48px', height: '48px', background: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                                <h2 style={{ marginTop: 0, marginBottom: '8px', color: '#0f172a' }}>Team Initialized!</h2>
-                                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '24px' }}>Share this invitation code with your members so they can join.</p>
-
-                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '4px', color: '#0f172a', marginBottom: '24px' }}>
-                                    {invitationCode}
-                                </div>
-
-                                {createError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '0.875rem', fontWeight: 'bold' }}>{createError}</div>}
-
-                                <button
-                                    onClick={handleCopyCodeAndGoToMyTeam}
-                                    style={{ width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-                                >
-                                    Copy Code & Go to My Team
-                                </button>
-                            </div>
-                        )}
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowCreateModal(false)}
+                                style={{ padding: '10px 16px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateTeam}
+                                disabled={isCreating}
+                                style={{ padding: '10px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                {isCreating ? 'Creating...' : 'Create Team'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
