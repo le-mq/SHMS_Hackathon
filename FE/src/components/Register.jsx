@@ -206,7 +206,7 @@ const Register = () => {
                                         )}
                                     </button>
                                 </div>
-                                {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+                                {errors.password && <div className="invalid-feedback" style={{ display: 'block' }}>{errors.password}</div>}
                             </div>
 
                             <div className="form-group">
