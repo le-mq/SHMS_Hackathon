@@ -420,10 +420,10 @@ const ExpertProvisioning = () => {
                                                     </div>
                                                 ) : <div />}
                                                 <div style={{ display: 'flex', gap: '12px' }}>
-                                                    <button className="generate-btn" style={{ background: '#10b981', height: '36px', padding: '0 16px', margin: 0, width: 'auto', fontSize: '14px' }} onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={extendLoading}>
+                                                    <button className="generate-btn-save" onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={extendLoading}>
                                                         {extendLoading ? 'Wait...' : 'Save Roles'}
                                                     </button>
-                                                    <button className="ph-btn-ghost" style={{ border: '1px solid #ef4444', color: '#ef4444', height: '36px', padding: '0 16px', margin: 0, borderRadius: '6px', fontSize: '14px', cursor: 'pointer', background: 'transparent' }} onClick={() => handleDeleteSubmit(exp.userId)} disabled={extendLoading}>
+                                                    <button className="ph-btn-delete" onClick={() => handleDeleteSubmit(exp.userId)} disabled={extendLoading}>
                                                         {extendLoading ? 'Wait...' : 'Delete'}
                                                     </button>
                                                 </div>

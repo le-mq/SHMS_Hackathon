@@ -5,7 +5,6 @@
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Page Header */
 .publication-content {
     max-width: 1000px;
     margin: 0 auto;
@@ -29,7 +28,6 @@
     margin: 0;
 }
 
-/* Announcement Form */
 .announcement-card {
     background: white;
     border: 1px solid #e2e8f0;
@@ -120,7 +118,7 @@
     cursor: pointer;
 }
 
-.publish-btn {
+.announcement-btn {
     background: #0f172a;
     color: white;
     border: none;
@@ -134,22 +132,21 @@
     justify-content: center;
     gap: 8px;
     transition: all 0.2s;
-    width: 200px;
+    width: 250px;
     align-self: flex-end;
 }
 
-.publish-btn:hover {
+.announcement-btn:hover {
     background: #1e293b;
     transform: translateY(-1px);
 }
 
-.publish-btn:disabled {
+.announcement-btn:disabled {
     background: #94a3b8;
     cursor: not-allowed;
     transform: none;
 }
 
-/* Export Section */
 .export-card {
     background: #f1f5f9;
     border-radius: 12px;
