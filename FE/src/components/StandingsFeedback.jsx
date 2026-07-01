@@ -125,6 +125,8 @@ const normalizeScoreData = (payload) => {
             publishResultAt: round.publishResultAt || round.resultPublishAt || round.publishAt || null,
             resultPublished: typeof round.resultPublished === 'boolean' ? round.resultPublished : undefined,
             totalScore: round.totalScore == null && round.score == null ? null : toScoreNumber(round.totalScore ?? round.score),
+            hasSubmission: round.hasSubmission,
+            isGraded: round.isGraded,
             detailedScores: Array.isArray(round.detailedScores) ? round.detailedScores : [],
             criteria:
                 round.criteria ||
@@ -140,7 +142,6 @@ const normalizeScoreData = (payload) => {
         ...rawData,
         teamName: rawData.teamName || 'Unknown Team',
         projectName: rawData.projectName || 'Untitled Project',
-        contestName: rawData.contestName || rawData.competitionName || rawData.hackathonName || 'SEAL Hackathon',
         totalScore: toScoreNumber(rawData.totalScore ?? rounds[0]?.totalScore),
         rounds,
     };
@@ -275,7 +276,7 @@ const StandingsFeedback = () => {
                                     <h3>My Team Result Summary</h3>
                                     <p>
                                         {scoreData
-                                            ? `${scoreData.teamName} | Competition: ${scoreData.contestName}`
+                                            ? `${scoreData.teamName} | Project: "${scoreData.projectName}"`
                                             : 'Loading result summary...'}
                                     </p>
                                 </div>
@@ -357,7 +358,22 @@ const StandingsFeedback = () => {
                                             <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                                                 <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
                                                 <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>
-                                                    {r.totalScore == null ? 'Not public' : `${r.totalScore.toFixed(2)} / 100`}
+                                                    {r.totalScore == null ? (
+                                                        r.hasSubmission && r.isGraded === false ? (
+                                                            <span style={{ color: '#f59e0b', fontSize: '13px' }}>Pending Evaluation</span>
+                                                        ) : (
+                                                            'Not public'
+                                                        )
+                                                    ) : (
+                                                        <>
+                                                            <div>{`${r.totalScore.toFixed(2)} / 100`}</div>
+                                                            {r.totalScore === 0 && (
+                                                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: 'normal' }}>
+                                                                    {r.hasSubmission === false ? 'Eliminated (0 points) - No submission' : 'Eliminated (0 points)'}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </td>
                                                 <td style={{ padding: '16px', textAlign: 'right' }}>
                                                     <button
@@ -401,10 +417,11 @@ const StandingsFeedback = () => {
                             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                                 <thead>
                                 <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
-                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '25%' }}>Criteria</th>
-                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '25%' }}>Weight</th>
-                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '25%' }}>Points</th>
-                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '25%' }}>Feedback</th>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Criteria</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '16%' }}>Category</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Weight</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '14%' }}>Points</th>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '28%' }}>Feedback</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -412,6 +429,10 @@ const StandingsFeedback = () => {
                                     <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                         <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b', wordBreak: 'break-word' }}>
                                             {cleanCriteriaName(score.criteriaName || score.criterionName)}
+                                        </td>
+
+                                        <td style={{ padding: '12px', textAlign: 'center', color: '#475569', fontWeight: '600' }}>
+                                            {score.categoryName || score.trackName || selectedDetail?.categoryName || 'Category'}
                                         </td>
 
                                         <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>
