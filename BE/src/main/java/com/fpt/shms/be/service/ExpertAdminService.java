@@ -12,7 +12,7 @@ import com.fpt.shms.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +32,7 @@ public class ExpertAdminService {
     private final MentorRepository mentorRepository;
     private final com.fpt.shms.be.repository.JudgeAssignmentRepository judgeAssignmentRepository;
     private final com.fpt.shms.be.repository.MentorAssignmentRepository mentorAssignmentRepository;
-    private final PasswordEncoder passwordEncoder;
+
     private final EmailService emailService;
 
     @Transactional

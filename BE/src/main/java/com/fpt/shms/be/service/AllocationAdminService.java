@@ -222,6 +222,7 @@ public class AllocationAdminService {
             allocations.get(expertId).putIfAbsent(trackId, new HashMap<>());
 
             Map<String, Object> trackAlloc = allocations.get(expertId).get(trackId);
+            @SuppressWarnings("unchecked")
             List<Long> teams = (List<Long>) trackAlloc.getOrDefault("mentoredTeamIds", new java.util.ArrayList<Long>());
             if (!teams.contains(teamId)) {
                 teams.add(teamId);

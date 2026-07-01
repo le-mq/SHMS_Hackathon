@@ -34,8 +34,10 @@ public class PublicHomeService {
 
     public PublicHomeResponse getHomeData() {
 
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
         List<Contest> activeContests = contestRepository.findAll().stream()
                 .filter(c -> c.getStatus() == Contest.ContestStatus.ACTIVED || c.getStatus() == Contest.ContestStatus.UPCOMING)
+                .filter(c -> c.getPublishedAt() == null || !now.isBefore(c.getPublishedAt()))
                 .toList();
 
         List<ContestDTO> contests = activeContests.stream()
@@ -51,7 +53,9 @@ public class PublicHomeService {
                                         r.getSubmissionDeadline(),
                                         r.getGradingOpenAt(),
                                         r.getGradingDeadlineAt(),
-                                        r.getPublishResultAt()
+                                        r.getPublishResultAt(),
+                                        r.getSubmissionRequirements(),
+                                        r.getRoundFormat()
                                 ))
                                 .toList();
                         return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), cat.getDescription(), cat.getGuidelineUrl(), catRounds);
@@ -63,7 +67,9 @@ public class PublicHomeService {
                                     r.getSubmissionDeadline(),
                                     r.getGradingOpenAt(),
                                     r.getGradingDeadlineAt(),
-                                    r.getPublishResultAt()
+                                    r.getPublishResultAt(),
+                                    r.getSubmissionRequirements(),
+                                    r.getRoundFormat()
                             ))
                             .toList();
                     return ContestDTO.from(c, categories, dtoRounds);
@@ -146,6 +152,7 @@ public class PublicHomeService {
     public List<Map<String, Object>> getLeaderboards() {
         List<RankingResult> results = rankingResultRepository.findPublishedLeaderboards();
         return results.stream().map(r -> {
+            boolean isCancelled = !"APPROVED".equals(r.getTeam().getStatus());
             Map<String, Object> map = new HashMap<>();
             map.put("contestId", r.getRound().getContest() != null ? r.getRound().getContest().getId() : null);
             map.put("contestName", r.getRound().getContest() != null ? r.getRound().getContest().getName() : "");
@@ -154,8 +161,8 @@ public class PublicHomeService {
             map.put("teamName", r.getTeam().getName());
             map.put("rank", r.getRankNo());
             map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
-            map.put("status", r.getQualificationStatus());
-            map.put("finalScore", r.getFinalScore());
+            map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
+            map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
             return map;
         }).toList();
     }
