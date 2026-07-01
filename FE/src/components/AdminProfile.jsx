@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OperatorProfile.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
-
 const AdminProfile = () => {
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
@@ -160,8 +158,6 @@ const AdminProfile = () => {
 
     return (
         <div className="op-profile-container">
-            <NavbarAdmin />
-
             <div className="op-profile-content">
                 <div className="op-profile-header">
                     <button onClick={() => navigate(-1)} className="back-btn" style={{ marginBottom: '15px', padding: '8px 16px', background: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontWeight: 500 }}>

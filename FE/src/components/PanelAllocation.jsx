@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './PanelAllocation.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
 
@@ -232,7 +231,6 @@ const PanelAllocation = () => {
 
     return (
         <div className="admin-container">
-            <NavbarAdmin />
             <div className="config-wrapper">
                 <div className="header-flex">
                     <div>

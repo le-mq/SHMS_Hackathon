@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import './RubricConfig.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const CONTEST_API = 'http://localhost:8080/api/v1/admin/contests';
 const CATEGORY_API = 'http://localhost:8080/api/v1/student/categories';
@@ -244,7 +243,6 @@ const RubricConfig = () => {
 
     return (
         <div className="admin-container">
-            <NavbarAdmin />
             <div className="config-wrapper">
                 <div className="rubric-page-header">
                     <div>

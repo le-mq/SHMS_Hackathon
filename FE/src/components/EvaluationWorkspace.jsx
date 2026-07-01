@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './EvaluationWorkspace.css';
-import NavbarJudge from './NavbarJudge';
 
 const EvaluationWorkspace = () => {
     const { teamId } = useParams();
@@ -137,7 +136,6 @@ const EvaluationWorkspace = () => {
 
     return (
         <div className="eval-workspace-container">
-            <NavbarJudge />
             <div className="eval-content">
                 <div className="eval-header" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <button onClick={() => navigate(-1)} className="rt-btn-ghost" style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff' }}>

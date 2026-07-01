@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './MentorCategory.css';
-import NavbarMentor from './NavbarMentor';
 import LatestAnnouncements from './LatestAnnouncements';
 
 const FeedbackCountdown = ({ deadline, roundState }) => {
@@ -177,7 +176,6 @@ const MentorCategory = () => {
 
     return (
         <div className="mentor-container">
-            <NavbarMentor />
             <div className="mentor-content">
                 <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
                 <div className="mentor-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

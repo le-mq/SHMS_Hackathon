@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import './RankingsConsole.css';
-import NavbarAdmin from './NavbarAdmin';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const API_BASE = "http://localhost:8080/api/v1/admin";
@@ -249,8 +248,6 @@ const RankingsConsole = () => {
 
     return (
         <div className="rankings-container">
-            <NavbarAdmin />
-
             <div className="rankings-content">
                 <div className="rankings-page-header">
                     <div>

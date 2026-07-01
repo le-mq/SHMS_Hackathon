@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 import './LeaderWorkspace.css';
-import NavbarStudent from './NavbarStudent';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
 
@@ -109,7 +108,6 @@ const LeaderWorkspace = () => {
 
     return (
         <div className="workspace-container">
-            <NavbarStudent/>
             <div className="workspace-content">
                 <div className="workspace-header">
                     <h1 className="workspace-title">Team Workspace</h1>

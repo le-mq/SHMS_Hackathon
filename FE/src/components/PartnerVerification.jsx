@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import './PartnerVerification.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
 const PartnerVerification = () => {
@@ -209,8 +208,6 @@ const PartnerVerification = () => {
 
     return (
         <div className="admin-container">
-            <NavbarAdmin />
-
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Partner Verification Settings</h1>

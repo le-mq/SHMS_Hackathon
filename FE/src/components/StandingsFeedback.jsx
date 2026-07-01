@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './StandingsFeedback.css';
-import NavbarStudent from './NavbarStudent';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
 const MOCK_DATA_URL = '/testFE.json';
@@ -246,8 +245,6 @@ const StandingsFeedback = () => {
 
     return (
         <div className="standings-container">
-            <NavbarStudent />
-
             <div className="standings-content">
                 {shouldShowPrivateResults ? (
                     <div className="results-empty-state">

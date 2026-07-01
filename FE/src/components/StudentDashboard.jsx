@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './StudentDashboard.css';
-import NavbarStudent from './NavbarStudent';
 import LatestAnnouncements from './LatestAnnouncements';
 
 const API_PUBLIC = 'http://localhost:8080/api/v1/public';
@@ -12,15 +11,12 @@ function getContestList(json) {
     if (Array.isArray(json)) {
         return json;
     }
-
     if (Array.isArray(json?.contests)) {
         return json.contests;
     }
-
     if (Array.isArray(json?.contests?.data)) {
         return json.contests.data;
     }
-
     return [];
 }
 
@@ -283,8 +279,6 @@ const StudentDashboard = () => {
 
     return (
         <div className="student-dash-container">
-            <NavbarStudent />
-
             <div className="dashboard-announcements-row">
                 <LatestAnnouncements />
             </div>
