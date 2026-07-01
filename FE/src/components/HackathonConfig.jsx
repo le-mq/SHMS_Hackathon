@@ -3,7 +3,6 @@ import {useFormik, FieldArray, FormikProvider} from 'formik';
 import * as Yup from 'yup';
 import {Form, Button} from 'react-bootstrap';
 import './HackathonConfig.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
 
@@ -389,7 +388,6 @@ function HackathonConfig() {
 
     return (
         <div className="admin-container">
-            <NavbarAdmin/>
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Hackathon Event Configuration</h1>

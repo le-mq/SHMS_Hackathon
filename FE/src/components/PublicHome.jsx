@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import './PublicHome.css';
 import NavbarHome from './NavbarHome.jsx';
+import NavbarStudent from './NavbarStudent';
+import NavbarMentor from './NavbarMentor';
+import NavbarJudge from './NavbarJudge';
+import NavbarAdmin from './NavbarAdmin';
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
@@ -45,6 +49,7 @@ function ContestCard({ contest, onSelectContest }) {
                     <span>{fmtShortDate(compStart)} – {fmtShortDate(compEnd)}</span>
                 </div>
             </div>
+
             {status !== 'UPCOMING' && (
                 <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}>
                     <div className="ph-progress-bar" style={{ width: `${pct}%` }} />
@@ -111,6 +116,7 @@ export default function PublicHome() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedContest, setSelectedContest] = useState(null);
+
     useEffect(() => {
         let cancelled = false;
         async function fetchHome() {
@@ -153,9 +159,16 @@ export default function PublicHome() {
         );
     }
 
+    const role = localStorage.getItem('shms_role');
+    const renderNavbar = () => {
+        const navbars = { ADMIN: <NavbarAdmin />,
+            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent /> };
+        return navbars[role] || <NavbarHome />;
+    };
+
     return (
         <div className="ph-page">
-            <NavbarHome />
+            {renderNavbar()}
             <section className="ph-hero">
                 <div className="ph-hero-inner">
                     <div>
@@ -178,16 +191,14 @@ export default function PublicHome() {
                     {contests.length === 0 ? (
                         <div className="ph-no-data">No active contests at this time.</div>
                     ) : (<div className="ph-contests-grid">
-                            {contests.map(c => (<ContestCard key={c.id} contest={c}
+                            {contests.map(c => ( <ContestCard key={c.id} contest={c}
                                 onSelectContest={() => { setSelectedContest(c);
                                 document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                                }}/>
-                            ))}
+                            }}/>))}
                         </div>
                     )}
                 </div>
             </section>
-
             <section className="ph-section" id="categories-section">
                 <div className="ph-container">
                     {selectedContest && (
@@ -278,10 +289,12 @@ export default function PublicHome() {
                                     const rounds = cat.rounds || selectedContest.rounds || [];
                                     const description = typeof cat === 'object' ? cat.description : null;
                                     const guidelineUrl = typeof cat === 'object' ? cat.guidelineUrl : null;
+
                                     return (
                                         <div key={`cat-${idx}`} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                                <div><h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
+                                                <div>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
                                                     {description && <p style={{ fontSize: '14px', color: '#4b5563', margin: '0 0 8px 0' }}>{description}</p>}
                                                 </div>
                                                 {guidelineUrl && (
@@ -326,12 +339,14 @@ export default function PublicHome() {
                     </div>
                 </div>
             </section>
+
             <section className="ph-section">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ textAlign: 'center' }}>
                         <h2>Partner Universities</h2>
                     </div>
-                    <div className="ph-partners-grid">{universities.map(name => (
+                    <div className="ph-partners-grid">
+                        {universities.map(name => (
                             <div className="ph-partner-card" key={name} style={{ justifyContent: 'center' }}>
                                 <div className="ph-partner-name" style={{ margin: 0 }}>{name}</div>
                             </div>
@@ -340,6 +355,7 @@ export default function PublicHome() {
                     </div>
                 </div>
             </section>
+
             <section className="ph-section ph-section-alt">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ textAlign: 'center' }}>

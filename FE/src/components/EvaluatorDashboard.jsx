@@ -2,7 +2,6 @@ import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import './EvaluatorDashboard.css';
 import './LeaderWorkspace.css';
-import NavbarJudge from './NavbarJudge';
 import LatestAnnouncements from './LatestAnnouncements';
 
 const formatScheduleDate = (dateValue, emptyText, invalidText) => {
@@ -146,7 +145,6 @@ const EvaluatorDashboard = () => {
 
     return (
         <div className="evaluator-container">
-            <NavbarJudge/>
             <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
             <div className="evaluator-content">
                 <div className="evaluator-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

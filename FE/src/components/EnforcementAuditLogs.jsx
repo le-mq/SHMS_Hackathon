@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import './EnforcementAuditLogs.css';
-import NavbarAdmin from './NavbarAdmin';
-
 
 const ACTION_TYPE_STYLES = {
     DISQUALIFICATION: 'at-disqualify',
@@ -117,8 +115,6 @@ const EnforcementAuditLogs = () => {
 
     return (
         <div className="audit-container">
-            <NavbarAdmin />
-
             <div className="audit-content">
                 <div className="audit-page-header">
                     <h1 className="audit-title">Compliance Enforcement & Audit Logs</h1>

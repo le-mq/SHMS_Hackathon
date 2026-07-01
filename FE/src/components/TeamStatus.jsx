@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import './TeamStatus.css';
-import NavbarStudent from './NavbarStudent';
 
 const API_BASE = 'http://localhost:8080/api/v1/student';
 const UNAVAILABLE_CONTEST_STATUSES = new Set(['CLOSED', 'ENDED', 'INACTIVE']);
@@ -619,8 +618,6 @@ const TeamStatus = () => {
 
     return (
         <div className="status-container">
-            <NavbarStudent />
-
             <div className="status-layout-wrapper">
                 <div className="status-sidebar">
                     <div className="sidebar-title">My Joined Teams</div>

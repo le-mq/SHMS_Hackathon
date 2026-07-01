@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './ExpertProvision.css';
-import NavbarAdmin from './NavbarAdmin';
 
 const API_BASE = "http://localhost:8080/api/v1";
 const todayStr = new Date().toISOString().split('T')[0];
@@ -242,8 +241,6 @@ const ExpertProvisioning = () => {
 
     return (
         <div className="admin-container">
-            <NavbarAdmin />
-
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Expert Credentials Provisioning</h1>

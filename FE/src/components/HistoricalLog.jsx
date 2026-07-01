@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './HistoricalLog.css';
-import NavbarJudge from './NavbarJudge';
 
 const HistoricalLog = () => {
     const [records, setRecords] = useState([]);
@@ -53,7 +52,6 @@ const HistoricalLog = () => {
     return (
         <>
             <div className="historical-container">
-                <NavbarJudge />
                 <div className="historical-content">
                     <div className="historical-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div><h1 className="historical-title">Historical Evaluation Log</h1>

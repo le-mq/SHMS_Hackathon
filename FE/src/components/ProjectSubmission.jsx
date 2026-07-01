@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import './ProjectSubmission.css';
-import NavbarStudent from './NavbarStudent';
 import './LeaderWorkspace.css';
 
 const API_STUDENT = 'http://localhost:8080/api/v1/student';
@@ -680,15 +679,12 @@ const ProjectSubmission = () => {
 
     return (
         <div className="submission-container">
-            <NavbarStudent />
-
             <div className="submission-content">
                 {isLoading && (
                     <p style={{ marginBottom: '16px', color: '#64748b' }}>
                         Loading submission data...
                     </p>
                 )}
-
                 <div className="submission-header">
                     <div className="submission-header-left">
                         <h1 className="submission-title">Project Submission Portal</h1>

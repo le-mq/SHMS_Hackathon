@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './PublicationDataExport.css';
-import NavbarAdmin from './NavbarAdmin';
 
 
 const API_BASE = "http://localhost:8080/api/v1";
@@ -137,8 +136,6 @@ const PublicationDataExport = () => {
 
     return (
         <div className="publication-container">
-            <NavbarAdmin />
-
             <div className="publication-content">
                 <div className="pub-page-header">
                     <h1 className="pub-title">Broadcast & Export Center</h1>
