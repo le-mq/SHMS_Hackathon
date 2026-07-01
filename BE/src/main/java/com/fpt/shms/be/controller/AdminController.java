@@ -412,6 +412,21 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/contests/{contestId}/rounds/{roundId}/progress")
+    @Operation(summary = "Get Round Progress and Submissions", description = "Admin tracking for round progress")
+    public ResponseEntity<?> getRoundProgress(HttpServletRequest request,
+                                              @PathVariable Long contestId,
+                                              @PathVariable Long roundId) {
+        try {
+            return ResponseEntity.ok(teamService.getRoundProgress(contestId, roundId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/profile")
     @Operation(summary = "Get Admin Profile", description = "Requires ADMIN role.")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
