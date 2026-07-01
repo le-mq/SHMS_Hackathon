@@ -309,6 +309,7 @@ public class ContestAdminService {
                 round.setPhaseName(roundDto.getPhaseName());
             }
 
+            java.time.LocalDateTime oldDeadline = round.getSubmissionDeadline();
             round.setSubmissionOpen(roundDto.getSubmissionOpen());
             round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
             round.setGradingOpenAt(roundDto.getGradingOpenAt());
@@ -320,6 +321,10 @@ public class ContestAdminService {
             round.setSubmissionRequirements(roundDto.getSubmissionRequirements());
             round.setRoundFormat(roundDto.getRoundFormat());
             roundRepository.save(round);
+
+            if (oldDeadline != null && roundDto.getSubmissionDeadline() != null && !oldDeadline.equals(roundDto.getSubmissionDeadline())) {
+                auditLogService.logUpdateSubmissionDeadline(round.getId(), oldDeadline.toString(), roundDto.getSubmissionDeadline().toString(), "Admin updated round submission deadline");
+            }
         }
 
         List<String> requestedPhaseNames = request.getRounds().stream()
@@ -369,7 +374,6 @@ public class ContestAdminService {
                 .build();
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
-        auditLogService.log("CREATE_ANNOUNCEMENT", "Announcement", savedAnnouncement.getId(), null, savedAnnouncement.getStatus(), request.getTitle());
         return savedAnnouncement;
     }
 

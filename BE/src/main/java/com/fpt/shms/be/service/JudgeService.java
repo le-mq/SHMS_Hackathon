@@ -342,6 +342,16 @@ public class JudgeService {
         auditLogService.log("SUBMIT_SCORE", "Submission", submission.getId(), null, "FINALIZED", "Total Score: " + total);
     }
 
+    @Transactional
+    public void editSubmittedScore(Long scoreId, Double newTotalScore, String reason) {
+        Score score = scoreRepository.findById(scoreId)
+                .orElseThrow(() -> new IllegalArgumentException("Score record not found"));
+        Double oldTotal = score.getTotalScore();
+        score.setTotalScore(newTotalScore);
+        scoreRepository.save(score);
+        auditLogService.logEditSubmittedScore(scoreId, String.valueOf(oldTotal), String.valueOf(newTotalScore), reason != null ? reason : "Edited by judge/admin");
+    }
+
     @Transactional(readOnly = true)
     public com.fpt.shms.be.dto.JudgeHistoricalLogResponse getHistoricalLog(String username) {
         User judge = userRepository.findByUsername(username)
