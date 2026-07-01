@@ -310,11 +310,11 @@ const StudentProfile = () => {
                         </div>
                     </div>
 
-                    <div style={{ overflow: 'hidden', display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
-                        <button className="save-btn" onClick={handleDeleteAccount} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '6px', fontWeight: '500', cursor: 'pointer' }}>
+                    <div className="profile-actions-container">
+                        <button className="save-delete-btn" onClick={handleDeleteAccount} >
                             Delete Account
                         </button>
-                        <button className="save-btn" onClick={handleSave} disabled={isLoading}>
+                        <button className="save-profile-btn" onClick={handleSave} disabled={isLoading}>
                             {isLoading ? 'Saving...' : 'Save Profile Changes'}
                         </button>
                     </div>
