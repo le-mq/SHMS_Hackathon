@@ -217,7 +217,7 @@ const PublicationDataExport = () => {
                         </div>
 
                         <button
-                            className="publish-btn"
+                            className="announcement-btn"
                             onClick={handlePublishAnnouncement}
                             disabled={isPublishing}
                         >

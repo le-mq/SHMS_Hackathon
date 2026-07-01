@@ -281,7 +281,7 @@ const MentorCategory = () => {
                                                 setFeedbackSubmissionId(team.submissionId || team.teamId);
                                                 setFeedbackContent(team.mentorFeedback || '');
                                                 setFeedbackMessage('');
-                                            }} style={{ padding: '4px 12px', background: team.hasGivenFeedback ? '#f5f3ff' : '#7c3aed', color: team.hasGivenFeedback ? '#6d28d9' : '#fff', border: team.hasGivenFeedback ? '1px solid #c4b5fd' : 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                                            }} style={{ padding: '4px 12px', background: team.hasGivenFeedback ? '#f5f3ff' : '#0f172a', color: team.hasGivenFeedback ? '#0f172a' : '#fff', border: team.hasGivenFeedback ? '1px solid #c4b5fd' : 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
                                                 {team.hasGivenFeedback ? 'Update Feedback' : 'Give Feedback'}
                                             </button>
                                         ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
@@ -312,7 +312,7 @@ const MentorCategory = () => {
                         <textarea value={feedbackContent} onChange={(e) => setFeedbackContent(e.target.value)} rows={6} placeholder="Enter your detailed feedback here..." style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '16px', fontFamily: 'inherit' }} />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                             <button onClick={() => { setFeedbackTeamId(null); setFeedbackMessage(''); setFeedbackContent(''); }} disabled={feedbackLoading} style={{ padding: '8px 16px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-                            <button onClick={handleSendFeedback} disabled={feedbackLoading} style={{ padding: '8px 16px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>{feedbackLoading ? 'Sending...' : 'Send Feedback'}</button>
+                            <button onClick={handleSendFeedback} disabled={feedbackLoading} style={{ padding: '8px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>{feedbackLoading ? 'Sending...' : 'Send Feedback'}</button>
                         </div>
                     </div>
                 </div>
