@@ -247,8 +247,8 @@ const TeamRegistrationApproval = () => {
         }
     };
 
-    if (isLoading) return <div className="approval-container"><NavbarAdmin /><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
-    if (error) return <div className="approval-container"><NavbarAdmin /><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
+    if (isLoading) return <div className="approval-container"><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
+    if (error) return <div className="approval-container"><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
 
     return (
         <div className="approval-container">
@@ -335,7 +335,7 @@ const TeamRegistrationApproval = () => {
                         <tbody>
                             {filteredTeams.map(team => {
                                 const statusText = (team.status || 'Active').toLowerCase();
-                                const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
+                                const isCanceledOrRejected = statusText === 'cancelled' || statusText === 'rejected';
 
                                 let badgeStyle = {padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block'};
                                 if (statusText === 'approved') {
@@ -364,7 +364,7 @@ const TeamRegistrationApproval = () => {
                                                     {team.status || 'Active'}
                                                 </span>
 
-                                                {statusText === 'approved' && (
+                                                {(statusText === 'approved' || isCanceledOrRejected) && (
                                                     <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
                                                         style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
                                                         onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
