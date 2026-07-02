@@ -130,9 +130,11 @@ public class ContestAdminService {
                         .build()));
 
         Contest contest;
+        String oldStatus = null;
         if (request.getId() != null) {
             contest = contestRepository.findById(request.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+            oldStatus = contest.getStatus() != null ? contest.getStatus().name() : null;
             if (!contest.getSemester().getId().equals(semester.getId())) {
                 if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
                     throw new IllegalArgumentException("A contest already exists for the selected season (" + request.getTerm() + " " + request.getYear() + ").");
@@ -215,7 +217,7 @@ public class ContestAdminService {
         contest = contestRepository.save(contest);
 
         String action = (request.getId() != null) ? "UPDATE_CONTEST" : "CREATE_CONTEST";
-        auditLogService.log(action, "Contest", contest.getId(), null, contest.getStatus().name(), contest.getName());
+        auditLogService.log(action, "Contest", contest.getId(), oldStatus, contest.getStatus().name(), contest.getName());
 
         contestUniversityRepository.deleteByContest(contest);
 
@@ -249,6 +251,7 @@ public class ContestAdminService {
                         .contest(contest)
                         .rounds(new ArrayList<>())
                         .build());
+        String oldCatStatus = category.getId() != null ? category.getStatus() : null;
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
         String statusStr = "ACTIVED";
@@ -348,7 +351,7 @@ public class ContestAdminService {
         }
 
         Category savedCategory = categoryRepository.save(category);
-        auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getId(), null, savedCategory.getStatus(), "Update Track and Rounds");
+        auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getId(), oldCatStatus, savedCategory.getStatus(), "Update Track and Rounds");
         return savedCategory;
     }
 
