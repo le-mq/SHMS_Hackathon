@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 
@@ -39,7 +38,6 @@ public class JudgeService {
         try {
             entityManager.createNativeQuery("ALTER TABLE Score DROP CONSTRAINT fk_score_judge").executeUpdate();
         } catch (Exception e) {
-            // ignore if not exists
         }
     }
 
