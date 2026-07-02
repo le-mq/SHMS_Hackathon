@@ -251,16 +251,7 @@ public class JudgeService {
                     .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
-
-        if (criteriaDtos.isEmpty()) {
-            criteriaDtos = List.of(
-                    EvaluationDataResponse.CriteriaDto.builder().id(1L).name("Technical Complexity").description("Architecture, code quality, and technical difficulty.").weight(30).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(2L).name("Innovation").description("Originality of the idea and creative problem-solving.").weight(20).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(3L).name("UI/UX Design").description("Visual aesthetic, accessibility, and user journey flow.").weight(25).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(4L).name("Pitch Quality").description("Clarity of presentation and ability to communicate value.").weight(25).build()
-            );
-        }
-
+        
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
                 .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
