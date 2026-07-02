@@ -98,7 +98,7 @@ public class Contest {
     }
 
     public enum ContestStatus {
-        ACTIVED, UPCOMING, CLOSED, CANCELLED
+        ACTIVED, UPCOMING, CLOSED, CANCELED, CANCELLED
     }
 
     public Season getSeason() {

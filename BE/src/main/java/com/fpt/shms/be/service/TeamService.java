@@ -354,8 +354,8 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         String newStatus = status.toUpperCase();
-        if ("CANCELED".equals(newStatus)) {
-            newStatus = "CANCELLED";
+        if ("CANCELLED".equals(newStatus)) {
+            newStatus = "CANCELED";
         }
         String currentStatus = team.getStatus() != null ? team.getStatus().toUpperCase() : "";
 
@@ -395,7 +395,7 @@ public class TeamService{
                     auditLogService.logChangeUserRole(leader.getUsername(), "STUDENT", "LEADER", "Promoted upon team approval");
                 }
             }
-        } else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+        } else if ("CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
             for (TeamMembership tm : memberships) {
                 if("LEADER".equalsIgnoreCase(tm.getRole())) {

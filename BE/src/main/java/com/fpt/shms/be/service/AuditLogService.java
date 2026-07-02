@@ -77,12 +77,12 @@ public class AuditLogService {
 
     @Transactional
     public void logCancelTeam(String teamName, String oldStatus, String reason) {
-        log(ACTION_CANCEL_TEAM, "Team", teamName, oldStatus, "CANCELLED", reason);
+        log(ACTION_CANCEL_TEAM, "Team", teamName, oldStatus, "CANCELED", reason);
     }
 
     @Transactional
     public void logCancelTeam(Long teamId, String oldStatus, String reason) {
-        log(ACTION_CANCEL_TEAM, "Team", teamId != null ? String.valueOf(teamId) : null, oldStatus, "CANCELLED", reason);
+        log(ACTION_CANCEL_TEAM, "Team", teamId != null ? String.valueOf(teamId) : null, oldStatus, "CANCELED", reason);
     }
 
     @Transactional
