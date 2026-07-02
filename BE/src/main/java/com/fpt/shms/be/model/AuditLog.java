@@ -26,8 +26,8 @@ public class AuditLog {
     @Column(name = "entity_type", length = 50)
     private String entityType;
 
-    @Column(name = "entity_id")
-    private Long entityId;
+    @Column(name = "entity_name", length = 255)
+    private String entityName;
 
     @Column(name = "reason", length = 100)
     private String reason;
