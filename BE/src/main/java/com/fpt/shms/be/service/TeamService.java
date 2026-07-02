@@ -340,6 +340,9 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         String newStatus = status.toUpperCase();
+        if ("CANCELED".equals(newStatus)) {
+            newStatus = "CANCELLED";
+        }
         String currentStatus = team.getStatus() != null ? team.getStatus().toUpperCase() : "";
 
         if ("CANCELED".equals(newStatus) || "CANCELLED".equals(newStatus) || "REJECTED".equals(newStatus)) {
@@ -354,7 +357,7 @@ public class TeamService{
 
         team.setStatus(newStatus);
         teamRepository.save(team);
-        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), null, team.getStatus(), "Updated by admin");
+        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), currentStatus, team.getStatus(), "Updated by admin");
         if ("CANCELLED".equalsIgnoreCase(newStatus) || "CANCELED".equalsIgnoreCase(newStatus)) {
             auditLogService.logCancelTeam(team.getId(), currentStatus, "Team status cancelled by admin");
         }
@@ -441,12 +444,13 @@ public class TeamService{
             }
 
             for (Team team : teams) {
-                if ("PENDING".equals(team.getStatus())) pendingReview++;
-                if ("APPROVED".equals(team.getStatus())) approved++;
-                if ("CANCELLED".equals(team.getStatus()) || "REJECTED".equals(team.getStatus())) rejectedAndCancelled++;
+                String st = team.getStatus();
+                if ("PENDING".equalsIgnoreCase(st)) pendingReview++;
+                if ("APPROVED".equalsIgnoreCase(st)) approved++;
+                if ("CANCELLED".equalsIgnoreCase(st) || "CANCELED".equalsIgnoreCase(st) || "REJECTED".equalsIgnoreCase(st) || "ELIMINATED".equalsIgnoreCase(st)) rejectedAndCancelled++;
 
                 List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
-                if ("APPROVED".equals(team.getStatus())) {
+                if ("APPROVED".equalsIgnoreCase(st)) {
                     totalParticipants += members.size();
                 }
 
@@ -749,6 +753,12 @@ public class TeamService{
         java.util.Map<String, Object> result = new java.util.HashMap<>();
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
+            java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(
+                    user.getId());
+            boolean alreadyInTeam = existing.stream().anyMatch(m -> !m.getId().equals(membership.getId()) && "APPROVED".equalsIgnoreCase(m.getStatus()));
+            if (alreadyInTeam) {
+                throw new IllegalArgumentException("You are in another team. Please leave that team before accepting this invitation.");
+            }
             // Re-check capacity (chỉ đếm APPROVED)
             Team team = membership.getTeam();
             Contest contest = team.getContest();
