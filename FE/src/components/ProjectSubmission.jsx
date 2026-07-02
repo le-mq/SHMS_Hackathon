@@ -468,20 +468,22 @@ const ProjectSubmission = () => {
         return `https://${trimmedUrl}`;
     };
 
-    const renderAssetLink = (url, label, icon) => {
+    const renderAssetLink = (url, label, icon, showLabel = false) => {
         const assetUrl = getAssetUrl(url);
         if (!assetUrl) return null;
 
         return (
             <a
-                className="asset-link-icon"
+                className={`asset-link-icon ${showLabel ? 'with-label' : ''}`}
                 href={assetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`Open ${label}`}
                 aria-label={`Open ${label}`}
+                style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
             >
                 {icon}
+                {showLabel && <span>{label}</span>}
             </a>
         );
     };
@@ -785,80 +787,80 @@ const ProjectSubmission = () => {
                         {isSelectedRoundEligible && (
                             <>
                                 {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('githubUrl')) && (
-                            <div className="form-group">
-                                <label>GitHub Repository URL</label>
-                                <div className="input-with-icon">
-                                    <div className="input-icon">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                    <div className="form-group">
+                                        <label>GitHub Repository URL</label>
+                                        <div className="input-with-icon">
+                                            <div className="input-icon">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="githubRepoUrl"
+                                                value={formData.githubRepoUrl}
+                                                onChange={handleChange}
+                                                placeholder="https://github.com/team/repo"
+                                                disabled={isInputsDisabled}
+                                            />
+                                        </div>
                                     </div>
-                                    <input
-                                        type="text"
-                                        name="githubRepoUrl"
-                                        value={formData.githubRepoUrl}
-                                        onChange={handleChange}
-                                        placeholder="https://github.com/team/repo"
-                                        disabled={isInputsDisabled}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                                )}
 
-                        {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('demoUrl')) && (
-                            <div className="form-group">
-                                <label>Live Demo URL</label>
-                                <div className="input-with-icon">
-                                    <div className="input-icon">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('demoUrl')) && (
+                                    <div className="form-group">
+                                        <label>Live Demo URL</label>
+                                        <div className="input-with-icon">
+                                            <div className="input-icon">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="liveDemoUrl"
+                                                value={formData.liveDemoUrl}
+                                                onChange={handleChange}
+                                                placeholder="https://demo.example.com"
+                                                disabled={isInputsDisabled}
+                                            />
+                                        </div>
                                     </div>
-                                    <input
-                                        type="text"
-                                        name="liveDemoUrl"
-                                        value={formData.liveDemoUrl}
-                                        onChange={handleChange}
-                                        placeholder="https://demo.example.com"
-                                        disabled={isInputsDisabled}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                                )}
 
-                        {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('documentUrl')) && (
-                            <div className="form-group">
-                                <label>Project Documentation URL</label>
-                                <div className="input-with-icon">
-                                    <div className="input-icon">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('documentUrl')) && (
+                                    <div className="form-group">
+                                        <label>Project Documentation URL</label>
+                                        <div className="input-with-icon">
+                                            <div className="input-icon">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="docsUrl"
+                                                value={formData.docsUrl}
+                                                onChange={handleChange}
+                                                placeholder="https://docs.example.com"
+                                                disabled={isInputsDisabled}
+                                            />
+                                        </div>
                                     </div>
-                                    <input
-                                        type="text"
-                                        name="docsUrl"
-                                        value={formData.docsUrl}
-                                        onChange={handleChange}
-                                        placeholder="https://docs.example.com"
-                                        disabled={isInputsDisabled}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                                )}
 
-                        {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('slideUrl')) && (
-                            <div className="form-group">
-                                <label>Presentation Slide URL</label>
-                                <div className="input-with-icon">
-                                    <div className="input-icon">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('slideUrl')) && (
+                                    <div className="form-group">
+                                        <label>Presentation Slide URL</label>
+                                        <div className="input-with-icon">
+                                            <div className="input-icon">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="slideUrl"
+                                                value={formData.slideUrl}
+                                                onChange={handleChange}
+                                                placeholder="https://slides.example.com"
+                                                disabled={isInputsDisabled}
+                                            />
+                                        </div>
                                     </div>
-                                    <input
-                                        type="text"
-                                        name="slideUrl"
-                                        value={formData.slideUrl}
-                                        onChange={handleChange}
-                                        placeholder="https://slides.example.com"
-                                        disabled={isInputsDisabled}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                                )}
                             </>
                         )}
                     </div>
@@ -874,7 +876,7 @@ const ProjectSubmission = () => {
 
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
                             <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmit('SUBMITTED')} disabled={isSubmitting || isSelectedRoundNotOpened || isSelectedRoundClosed || !isTeamLeader || !isSelectedRoundEligible}
-                                style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {isSubmitting ? 'Submitting...' : 'Submit Project'}
                             </button>
                         </div>
@@ -892,74 +894,63 @@ const ProjectSubmission = () => {
                     </div>
                     <table className="sub-history-table">
                         <thead>
-                            <tr>
-                                <th>VERSION</th>
-                                <th>TIMESTAMP</th>
-                                <th>ASSET LINKS</th>
-                                <th>MENTOR FEEDBACK</th>
-                                <th>STATUS</th>
-                            </tr>
+                        <tr>
+                            <th>VERSION</th>
+                            <th>TIMESTAMP</th>
+                            <th>ASSET LINKS</th>
+                            <th>MENTOR FEEDBACK</th>
+                            <th>STATUS</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                        No submissions found for this round.
-                                    </td>
-                                </tr>
-                            ) : (
-                                history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
-                                    const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                                    return (
-                                        <tr key={idx}>
-                                            <td className="version-col">v{item.version}.0</td>
-                                            <td>{formattedTime}</td>
-                                            <td>
-                                                <div className="asset-icons">
-                                                    {renderAssetLink(
-                                                        item.githubRepoUrl,
-                                                        'GitHub repository',
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                                    )}
-                                                    {renderAssetLink(
-                                                        item.liveDemoUrl,
-                                                        'live demo',
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                    )}
-                                                    {renderAssetLink(
-                                                        item.docsUrl,
-                                                        'project documentation',
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                                    )}
-                                                    {renderAssetLink(
-                                                        item.slideUrl,
-                                                        'presentation slides',
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {item.mentorFeedback ? (
-                                                    <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                        View Feedback
-                                                    </button>
-                                                ) : (
-                                                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span>
+                        {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
+                            <tr>
+                                <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                    No submissions found for this round.
+                                </td>
+                            </tr>
+                        ) : (
+                            history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
+                                const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                return (
+                                    <tr key={idx}>
+                                        <td className="version-col">v{item.version}.0</td>
+                                        <td>{formattedTime}</td>
+                                        <td>
+                                            <div className="asset-icons">
+                                                {renderAssetLink( item.githubRepoUrl, 'GitHub repository',
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                                                 )}
-                                            </td>
-                                            <td>
+                                                {renderAssetLink( item.liveDemoUrl, 'live demo',
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                                )}
+                                                {renderAssetLink( item.docsUrl, 'project documentation',
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                )}
+                                                {renderAssetLink( item.slideUrl, 'presentation slides',
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {item.mentorFeedback ? (
+                                                <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                    View Feedback</button>
+                                            ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                        </td>
+                                        <td>
                                                 <span className={`status-badge ${getSubmissionStatusClass(item)}`}>
                                                     {String(item.status).toUpperCase() !== 'ARCHIVED' && (
                                                         <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                                                     )}
                                                     {getSubmissionStatusLabel(item)}
                                                 </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
                         </tbody>
                     </table>
                 </div>
@@ -989,14 +980,14 @@ const ProjectSubmission = () => {
                                     </p>
                                 </div>
                             )}
-                            
+
                             <div>
                                 <h4 style={{ margin: '0 0 8px 0', color: '#334155', fontSize: '15px' }}>Submitted Links</h4>
                                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                    {renderAssetLink(selectedFeedbackRecord.githubRepoUrl, 'GitHub', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.liveDemoUrl, 'Demo', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.docsUrl, 'Docs', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.slideUrl, 'Slides', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>)}
+                                    {renderAssetLink(selectedFeedbackRecord.githubRepoUrl, 'GitHub', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>, true)}
+                                    {renderAssetLink(selectedFeedbackRecord.liveDemoUrl, 'Demo', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>, true)}
+                                    {renderAssetLink(selectedFeedbackRecord.docsUrl, 'Docs', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>, true)}
+                                    {renderAssetLink(selectedFeedbackRecord.slideUrl, 'Slides', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>, true)}
                                 </div>
                             </div>
                         </div>

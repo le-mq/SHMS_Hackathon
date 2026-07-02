@@ -37,28 +37,30 @@ const EvaluationWorkspace = () => {
                     }));
                 }
             } catch (err) {
-                console.warn('API call failed, falling back to mock data...');
-                try {
-                    const mockRes = await fetch('/testFE.json');
-                    const mockData = await mockRes.json();
-                    const result = mockData.evaluationWorkspace?.data;
-                    if (result && result.criteria) {
-                        setEvalData(result);
-                        setScores(result.criteria.map(c => {
-                            const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
-                            return {
-                                criteriaId: rawId ? Number(rawId) : 0,
-                                weight: c.weight || c.percentageWeight || 0,
-                                pointsAwarded: '',
-                                feedback: ''
-                            };
-                        }));
-                    } else {
-                        alert('Failed to load evaluation data (no mock data found)');
-                    }
-                } catch (mockErr) {
-                    alert('Failed to load evaluation data');
-                }
+                // console.warn('API call failed, falling back to mock data...');
+                // try {
+                //     const mockRes = await fetch('/testFE.json');
+                //     const mockData = await mockRes.json();
+                //     const result = mockData.evaluationWorkspace?.data;
+                //     if (result && result.criteria) {
+                //         setEvalData(result);
+                //         setScores(result.criteria.map(c => {
+                //             const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
+                //             return {
+                //                 criteriaId: rawId ? Number(rawId) : 0,
+                //                 weight: c.weight || c.percentageWeight || 0,
+                //                 pointsAwarded: '',
+                //                 feedback: ''
+                //             };
+                //         }));
+                //     } else {
+                //         alert('Failed to load evaluation data (no mock data found)');
+                //     }
+                // } catch (mockErr) {
+                //     alert('Failed to load evaluation data');
+                // }
+                console.error('API call failed:', err);
+                alert('Failed to load evaluation data. Ensure rubric is configured.');
             }
         };
         if (teamId) fetchEvalData();
