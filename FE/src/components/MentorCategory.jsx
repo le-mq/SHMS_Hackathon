@@ -137,7 +137,7 @@ const MentorCategory = () => {
             teamTrack.trim().toLowerCase() === filterCategory.trim().toLowerCase();
         return matchesSearch && matchesFilter;
     });
-    const renderLinks = (team) => {
+    const renderLinks = (team, showLabel = false) => {
         const getAssetUrl = (url) => {
             const trimmedUrl = String(url || '').trim();
             if (!trimmedUrl) return '';
@@ -149,17 +149,18 @@ const MentorCategory = () => {
             if (!assetUrl) return null;
             return (
                 <a className="asset-link-icon" href={assetUrl} target="_blank"
-                    rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
-                    style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                >{icon}</a>
+                   rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
+                   style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : { width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
+                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+                   }}
+                >{icon} {showLabel && <span>{label}</span>}
+                </a>
             );
         };
         const hasAnyLink = team.githubRepoUrl || team.liveDemoUrl || team.docsUrl || team.slideUrl;
         if (!hasAnyLink) return <span style={{ fontSize: '13px', color: '#94a3b8' }}>No links</span>;
         return (
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {renderAssetLink(team.githubRepoUrl, 'GitHub', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>)}
                 {renderAssetLink(team.liveDemoUrl, 'Demo', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>)}
                 {renderAssetLink(team.docsUrl, 'Docs', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>)}
@@ -185,8 +186,8 @@ const MentorCategory = () => {
                     </div>
                     {Array.isArray(data) && data.length > 1 && (
                         <select value={selectedContestId || ''}
-                            onChange={(e) => setSelectedContestId(e.target.value)}
-                            style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', background: 'white', color: '#334155', fontWeight: 600 }}
+                                onChange={(e) => setSelectedContestId(e.target.value)}
+                                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', background: 'white', color: '#334155', fontWeight: 600 }}
                         >{data.map(c => ( <option key={c.contestId} value={c.contestId}>{c.contestName}</option> ))}
                         </select>
                     )}
@@ -302,6 +303,18 @@ const MentorCategory = () => {
                     <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '500px', maxWidth: '90%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
                         <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#0f172a' }}>Mentor Feedback</h2>
                         <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#64748b' }}>Provide feedback for the draft submission of the team.</p>
+                        {(() => {
+                            const selectedTeam = filteredTeams.find(t => t.teamId === feedbackTeamId);
+                            if (!selectedTeam) return null;
+                            const hasAnyLink = selectedTeam.githubRepoUrl || selectedTeam.liveDemoUrl || selectedTeam.docsUrl || selectedTeam.slideUrl;
+                            if (!hasAnyLink) return null;
+                            return (
+                                <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Submitted Assets</div>
+                                    {renderLinks(selectedTeam, true)}
+                                </div>
+                            );
+                        })()}
                         {feedbackMessage && (
                             <div style={{ marginBottom: '16px', padding: '10px 16px', borderRadius: '8px', fontSize: '13px', background: feedbackMessage.includes('sent') || feedbackMessage.includes('success') ? '#dcfce7' : '#fee2e2', color: feedbackMessage.includes('sent') || feedbackMessage.includes('success') ? '#166534' : '#991b1b' }}>
                                 {feedbackMessage}
