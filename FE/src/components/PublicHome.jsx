@@ -103,13 +103,28 @@ function renderPrizeStructures(prizeStr) {
 
 function renderRequirements(reqsStr) {
     if (!reqsStr) return 'None';
+
+    const reqMap = {
+        githubUrl: 'GitHub URL',
+        demoUrl: 'Demo URL',
+        documentUrl: 'Document URL',
+        slidesUrl: 'Slides URL',
+        videoUrl: 'Video URL'
+    };
+
+    let reqsArray = [];
     try {
-        const reqs = JSON.parse(reqsStr);
-        if (Array.isArray(reqs)) return reqs.join(', ');
-        return reqsStr;
+        const parsed = JSON.parse(reqsStr);
+        if (Array.isArray(parsed)) {
+            reqsArray = parsed;
+        } else {
+            reqsArray = String(reqsStr).split(',').map(s => s.trim());
+        }
     } catch(e) {
-        return reqsStr;
+        reqsArray = String(reqsStr).split(',').map(s => s.trim());
     }
+
+    return reqsArray.map(r => reqMap[r] || r).join(', ');
 }
 
 export default function PublicHome() {
@@ -192,9 +207,9 @@ export default function PublicHome() {
                         <div className="ph-no-data">No active contests at this time.</div>
                     ) : (<div className="ph-contests-grid">
                             {contests.map(c => ( <ContestCard key={c.id} contest={c}
-                                onSelectContest={() => { setSelectedContest(c);
-                                document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                            }}/>))}
+                                                              onSelectContest={() => { setSelectedContest(c);
+                                                                  document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                                              }}/>))}
                         </div>
                     )}
                 </div>

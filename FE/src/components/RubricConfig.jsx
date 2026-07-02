@@ -157,7 +157,8 @@ const RubricConfig = () => {
 
         try {
             let res;
-            if (editorMode === 'edit' && editingTemplate.id) {
+            const isMakingOfficial = editorMode === 'edit' && !editingTemplate.isOfficialBinding && payload.contestId;
+            if (editorMode === 'edit' && editingTemplate.id && !isMakingOfficial) {
                 res = await fetch(`${CONTEST_API}/rubric-templates/${editingTemplate.id}`, { method: 'PUT', headers, body: JSON.stringify(payload) });
             } else {
                 const isOfficialBinding = payload.contestId;
@@ -300,7 +301,7 @@ const RubricConfig = () => {
                         );
                     };
 
-                    const bankTemplates = templates;
+                    const bankTemplates = templates.filter(tpl => tpl.status !== 'ACTIVE' && !contestRubrics.some(cr => cr.templateId == tpl.id));
                     return (
                         <>
                             {officialTemplates.length > 0 && editorMode === null && (
