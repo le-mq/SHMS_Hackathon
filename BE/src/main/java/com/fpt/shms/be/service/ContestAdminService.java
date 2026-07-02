@@ -277,12 +277,6 @@ public class ContestAdminService {
         if (category == null) {
             category = categoryRepository.findByNameAndContest(request.getCategoryName(), contest).orElse(null);
         }
-        if (category == null) {
-            List<Category> existingCats = categoryRepository.findByContestId(contest.getId());
-            if (existingCats.size() == 1) {
-                category = existingCats.get(0);
-            }
-        }
         boolean isNewCategory = (category == null || category.getId() == null);
         if (category == null) {
             category = Category.builder()
