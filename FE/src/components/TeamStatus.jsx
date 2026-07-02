@@ -1061,7 +1061,7 @@ const TeamStatus = () => {
                             <button
                                 style={{
                                     padding: '10px 24px',
-                                    background: isSubmitDisabled ? '#94a3b8' : '#2563eb',
+                                    background: isSubmitDisabled ? '#94a3b8' : '#0F172A',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '6px',

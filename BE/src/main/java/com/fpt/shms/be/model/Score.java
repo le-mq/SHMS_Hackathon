@@ -36,7 +36,7 @@ public class Score {
     private String generalFeedback;
 
     @Column(name = "status", length = 50)
-    private String status; // "FINALIZED", "MENTOR_FEEDBACK", "AUTO_ZERO"
+    private String status; // "FINALIZED", "MENTOR_FEEDBACK", "MISSED_DEADLINE"
 
     @Builder.Default
     @OneToMany(mappedBy = "score", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -116,7 +116,7 @@ public class RankingAdminService {
 
             boolean judgeReady = true;
             for (Submission s : assignedSubmissions) {
-                if ("AUTO_ZERO".equals(s.getStatus()) || "DRAFT".equals(s.getStatus())) {
+                if ("MISSED_DEADLINE".equals(s.getStatus()) || "DRAFT".equals(s.getStatus())) {
                     continue;
                 }
                 if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {

@@ -204,21 +204,21 @@ public class JudgeService {
                 currentRound = roundRepository.findById(roundId).orElse(null);
             }
             if (currentRound == null) {
-                 currentRound = roundRepository.findByContestIdOrderBySubmissionOpenAsc(team.getContest().getId()).stream().findFirst().orElse(null);
+                currentRound = roundRepository.findByContestIdOrderBySubmissionOpenAsc(team.getContest().getId()).stream().findFirst().orElse(null);
             }
             if (currentRound == null) {
                 throw new IllegalArgumentException("Cannot create a dummy submission without a valid round");
             }
-            
+
             latestSubmission = Submission.builder()
-                .team(team)
-                .round(currentRound)
-                .status("AUTO_ZERO")
-                .version(1)
-                .submittedAt(java.time.LocalDateTime.now())
-                .build();
+                    .team(team)
+                    .round(currentRound)
+                    .status("MISSED_DEADLINE")
+                    .version(1)
+                    .submittedAt(java.time.LocalDateTime.now())
+                    .build();
             latestSubmission = submissionRepository.save(latestSubmission);
-            
+
             auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Submission", null, "CREATED", "Judge opened evaluation for non-submitted team");
         }
 
@@ -251,16 +251,7 @@ public class JudgeService {
                     .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
-
-        if (criteriaDtos.isEmpty()) {
-            criteriaDtos = List.of(
-                    EvaluationDataResponse.CriteriaDto.builder().id(1L).name("Technical Complexity").description("Architecture, code quality, and technical difficulty.").weight(30).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(2L).name("Innovation").description("Originality of the idea and creative problem-solving.").weight(20).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(3L).name("UI/UX Design").description("Visual aesthetic, accessibility, and user journey flow.").weight(25).build(),
-                    EvaluationDataResponse.CriteriaDto.builder().id(4L).name("Pitch Quality").description("Clarity of presentation and ability to communicate value.").weight(25).build()
-            );
-        }
-
+        
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
                 .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
