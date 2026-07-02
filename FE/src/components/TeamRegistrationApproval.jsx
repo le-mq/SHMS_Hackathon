@@ -247,8 +247,8 @@ const TeamRegistrationApproval = () => {
         }
     };
 
-    if (isLoading) return <div className="approval-container"><NavbarAdmin /><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
-    if (error) return <div className="approval-container"><NavbarAdmin /><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
+    if (isLoading) return <div className="approval-container"><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
+    if (error) return <div className="approval-container"><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
 
     return (
         <div className="approval-container">
@@ -324,30 +324,30 @@ const TeamRegistrationApproval = () => {
                         </div>
 
 
-                        <div className="table-section">
-                            <table className="teams-table">
-                                <thead>
-                                <tr>
-                                    <th>Team Name</th>
-                                    <th style={{ textAlign: 'right', paddingRight: '138px' }}>Status</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {filteredTeams.map(team => {
-                                    const statusText = (team.status || 'Active').toLowerCase();
-                                    const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
+                <div className="table-section">
+                    <table className="teams-table">
+                        <thead>
+                            <tr>
+                                <th>Team Name</th>
+                                <th style={{ textAlign: 'right', paddingRight: '138px' }}>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredTeams.map(team => {
+                                const statusText = (team.status || 'Active').toLowerCase();
+                                const isCanceledOrRejected = statusText === 'cancelled' || statusText === 'rejected';
 
-                                    let badgeStyle = {padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block'};
-                                    if (statusText === 'approved') {
-                                        badgeStyle.backgroundColor = '#dcfce7';
-                                        badgeStyle.color = '#15803d';
-                                    } else if (isCanceledOrRejected) {
-                                        badgeStyle.backgroundColor = '#fee2e2';
-                                        badgeStyle.color = '#b91c1c';
-                                    } else {
-                                        badgeStyle.backgroundColor = '#f1f5f9';
-                                        badgeStyle.color = '#475569';
-                                    }
+                                let badgeStyle = {padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block'};
+                                if (statusText === 'approved') {
+                                    badgeStyle.backgroundColor = '#dcfce7';
+                                    badgeStyle.color = '#15803d';
+                                } else if (isCanceledOrRejected) {
+                                    badgeStyle.backgroundColor = '#fee2e2';
+                                    badgeStyle.color = '#b91c1c';
+                                } else {
+                                    badgeStyle.backgroundColor = '#f1f5f9';
+                                    badgeStyle.color = '#475569';
+                                }
 
                                     return (
                                         <tr key={team.id}>
@@ -364,40 +364,40 @@ const TeamRegistrationApproval = () => {
                                                     {team.status || 'Active'}
                                                 </span>
 
-                                                    {statusText === 'approved' && (
-                                                        <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
-                                                                style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
-                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
-                                                        >
-                                                            View Members
-                                                        </button>
-                                                    )}
+                                                {(statusText === 'approved' || isCanceledOrRejected) && (
+                                                    <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
+                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
+                                                    >
+                                                        View Members
+                                                    </button>
+                                                )}
 
-                                                    {isCanceledOrRejected ? (
+                                                {isCanceledOrRejected ? (
 
-                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
-                                                                style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
-                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
-                                                        >
-                                                            Approve
-                                                        </button>
-                                                    ) : (
+                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                ) : (
 
-                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
-                                                                style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
-                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                        >
-                                                            Cancel Team
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
+                                                    >
+                                                        Cancel Team
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
 
                                 {filteredTeams.length === 0 && (
                                     <tr>
