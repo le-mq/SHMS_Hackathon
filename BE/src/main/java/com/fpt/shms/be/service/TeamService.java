@@ -39,7 +39,7 @@ public class TeamService{
                 .build();
         team.generateTeamCode();
         team = teamRepository.save(team);
-        auditLogService.log("CREATE_TEAM", "Team", team.getId(), null, team.getStatus(), "Created by: " + leaderUsername);
+        auditLogService.log("CREATE_TEAM", "Team", team.getName(), null, team.getStatus(), "Created by: " + leaderUsername);
 
         TeamMembership memberMembership = TeamMembership.builder()
                 .team(team)
@@ -153,7 +153,7 @@ public class TeamService{
         }
 
         teamMembershipRepository.delete(membership);
-        auditLogService.log("LEAVE_TEAM", "Team", team.getId(), null, team.getStatus(), "User: " + username);
+        auditLogService.log("LEAVE_TEAM", "Team", team.getName(), null, team.getStatus(), "User: " + username);
     }
 
     @Transactional
@@ -227,7 +227,7 @@ public class TeamService{
         }
         team = teamRepository.save(team);
         String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty() ? " - Leader assigned: " + request.getLeaderStudentId() : "";
-        auditLogService.log("REGISTER_TEAM", "Team", team.getId(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
+        auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -371,9 +371,9 @@ public class TeamService{
 
         team.setStatus(newStatus);
         teamRepository.save(team);
-        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), currentStatus, team.getStatus(), "Updated by admin");
+        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getName(), currentStatus, team.getStatus(), "Updated by admin");
         if ("CANCELLED".equalsIgnoreCase(newStatus) || "CANCELED".equalsIgnoreCase(newStatus)) {
-            auditLogService.logCancelTeam(team.getId(), currentStatus, "Team status cancelled by admin");
+            auditLogService.logCancelTeam(team.getName(), currentStatus, "Team status cancelled by admin");
         }
 
         if("APPROVED".equalsIgnoreCase(status)) {
@@ -392,7 +392,7 @@ public class TeamService{
                         leader.getRoles().add(leaderRole);
                     }
                     userRepository.save(leader);
-                    auditLogService.logChangeUserRole(leader.getId(), "STUDENT", "LEADER", "Promoted upon team approval");
+                    auditLogService.logChangeUserRole(leader.getUsername(), "STUDENT", "LEADER", "Promoted upon team approval");
                 }
             }
         } else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
@@ -411,7 +411,7 @@ public class TeamService{
                         leader.getRoles().add(studentRole);
                     }
                     userRepository.save(leader);
-                    auditLogService.logChangeUserRole(leader.getId(), "LEADER", "STUDENT", "Reverted role due to team rejection/cancellation");
+                    auditLogService.logChangeUserRole(leader.getUsername(), "LEADER", "STUDENT", "Reverted role due to team rejection/cancellation");
                 }
             }
         }
@@ -724,7 +724,7 @@ public class TeamService{
                 .inviterUserId(inviter.getId())
                 .build();
         teamMembershipRepository.save(membership);
-        auditLogService.log("SEND_INVITATION", "TeamMembership", membership.getId(), null, "PENDING",
+        auditLogService.log("SEND_INVITATION", "TeamMembership", team.getName() + " -> " + invitedStudent.getStudentCode(), null, "PENDING",
                 "Invited user " + request.getStudentUserId() + " to team " + team.getName());
 
         if (invitedStudent.getCorporateEmail() != null) {
@@ -796,7 +796,7 @@ public class TeamService{
         }
 
         teamMembershipRepository.save(membership);
-        auditLogService.log("RESPOND_INVITATION", "TeamMembership", membership.getId(), "PENDING",
+        auditLogService.log("RESPOND_INVITATION", "TeamMembership", membership.getTeam() != null ? membership.getTeam().getName() : "Team", "PENDING",
                 membership.getStatus(), "Action: " + request.getAction());
 
         return result;

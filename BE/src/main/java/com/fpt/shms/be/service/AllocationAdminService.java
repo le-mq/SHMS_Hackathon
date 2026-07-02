@@ -101,7 +101,7 @@ public class AllocationAdminService {
             }
         }
 
-        auditLogService.log("ALLOCATE_EXPERT", "User", user.getId(), null, "ALLOCATED", "Assigned expert to track/team");
+        auditLogService.log("ALLOCATE_EXPERT", "User", user.getUsername(), null, "ALLOCATED", "Assigned expert to track/team");
     }
 
     @Transactional(readOnly = true)

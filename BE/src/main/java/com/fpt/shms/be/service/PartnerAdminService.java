@@ -119,7 +119,7 @@ public class PartnerAdminService {
             sv.setIsCurrentStudent(dto.getIsCurrentStudent() != null ? dto.getIsCurrentStudent() : true);
 
             studentVerificationDataRepository.save(sv);
-            auditLogService.logUpdateStudentVerification(sv.getId() != null ? sv.getId() : 0L, "OLD_DATA", "UPDATED_DATA", "Partner admin updated student verification data for " + sv.getStudentCode());
+            auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "OLD_DATA", "UPDATED_DATA", "Partner admin updated student verification data for " + sv.getStudentCode());
         }
     }
 

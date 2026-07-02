@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 
@@ -39,7 +38,6 @@ public class JudgeService {
         try {
             entityManager.createNativeQuery("ALTER TABLE Score DROP CONSTRAINT fk_score_judge").executeUpdate();
         } catch (Exception e) {
-            // ignore if not exists
         }
     }
 
@@ -221,7 +219,7 @@ public class JudgeService {
                 .build();
             latestSubmission = submissionRepository.save(latestSubmission);
             
-            auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getId(), null, "CREATED", "Judge opened evaluation for non-submitted team");
+            auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Submission", null, "CREATED", "Judge opened evaluation for non-submitted team");
         }
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
@@ -339,7 +337,7 @@ public class JudgeService {
         score.setTotalScore(total);
         score.setGeneralFeedback(String.join("\n", feedback));
         scoreRepository.save(score);
-        auditLogService.log("SUBMIT_SCORE", "Submission", submission.getId(), null, "FINALIZED", "Total Score: " + total);
+        auditLogService.log("SUBMIT_SCORE", "Submission", submission.getTeam() != null ? submission.getTeam().getName() : "Submission", null, "FINALIZED", "Total Score: " + total);
     }
 
     @Transactional
@@ -349,7 +347,8 @@ public class JudgeService {
         Double oldTotal = score.getTotalScore();
         score.setTotalScore(newTotalScore);
         scoreRepository.save(score);
-        auditLogService.logEditSubmittedScore(scoreId, String.valueOf(oldTotal), String.valueOf(newTotalScore), reason != null ? reason : "Edited by judge/admin");
+        String targetName = score.getSubmission() != null && score.getSubmission().getTeam() != null ? score.getSubmission().getTeam().getName() : "Score";
+        auditLogService.logEditSubmittedScore(targetName, String.valueOf(oldTotal), String.valueOf(newTotalScore), reason != null ? reason : "Edited by judge/admin");
     }
 
     @Transactional(readOnly = true)

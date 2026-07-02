@@ -308,7 +308,7 @@ public class RankingAdminService {
             rr.setDatePublishedAt(LocalDateTime.now());
             rankingResultRepository.save(rr);
 
-            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getId(), "PENDING",
+            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getTeam() != null ? rr.getTeam().getName() : "Leaderboard", "PENDING",
                     rr.getQualificationStatus(), "Published Leaderboard");
         }
     }

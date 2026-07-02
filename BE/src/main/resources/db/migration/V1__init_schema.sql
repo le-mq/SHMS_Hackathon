@@ -53,7 +53,7 @@ CREATE TABLE AuditLog (
                           user_id BIGINT NULL,
                           action NVARCHAR(100) NULL,
                           entity_type VARCHAR(50) NULL,
-                          entity_id BIGINT NULL,
+                          entity_name NVARCHAR(255) NULL,
                           reason NVARCHAR(100) NULL,
                           old_value NVARCHAR(100) NULL,
                           new_value NVARCHAR(100) NULL,

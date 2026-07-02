@@ -131,10 +131,17 @@ public class ContestAdminService {
 
         Contest contest;
         String oldStatus = null;
-        if (request.getId() != null) {
+        boolean isNewContest = (request.getId() == null);
+        String oldName = null, oldTheme = null, oldScope = null;
+        Integer oldYear = null;
+        if (!isNewContest) {
             contest = contestRepository.findById(request.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
             oldStatus = contest.getStatus() != null ? contest.getStatus().name() : null;
+            oldName = contest.getName();
+            oldTheme = contest.getDescription();
+            oldYear = contest.getYear();
+            oldScope = contest.getRegionScope();
             if (!contest.getSemester().getId().equals(semester.getId())) {
                 if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
                     throw new IllegalArgumentException("A contest already exists for the selected season (" + request.getTerm() + " " + request.getYear() + ").");
@@ -216,8 +223,17 @@ public class ContestAdminService {
 
         contest = contestRepository.save(contest);
 
-        String action = (request.getId() != null) ? "UPDATE_CONTEST" : "CREATE_CONTEST";
-        auditLogService.log(action, "Contest", contest.getId(), oldStatus, contest.getStatus().name(), contest.getName());
+        boolean contestModified = isNewContest ||
+                !java.util.Objects.equals(oldName, contest.getName()) ||
+                !java.util.Objects.equals(oldTheme, contest.getDescription()) ||
+                !java.util.Objects.equals(oldYear, contest.getYear()) ||
+                !java.util.Objects.equals(oldScope, contest.getRegionScope()) ||
+                !java.util.Objects.equals(oldStatus, contest.getStatus() != null ? contest.getStatus().name() : null);
+
+        if (contestModified) {
+            String action = isNewContest ? "CREATE_CONTEST" : "UPDATE_CONTEST";
+            auditLogService.log(action, "Contest", contest.getName(), oldStatus, contest.getStatus().name(), contest.getName());
+        }
 
         contestUniversityRepository.deleteByContest(contest);
 
@@ -245,13 +261,42 @@ public class ContestAdminService {
         Contest contest = contestRepository.findById(request.getContestId())
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
 
-        Category category = categoryRepository.findByNameAndContest(request.getCategoryName(), contest)
-                .orElseGet(() -> Category.builder()
-                        .name(request.getCategoryName())
-                        .contest(contest)
-                        .rounds(new ArrayList<>())
-                        .build());
+        Category category = null;
+        if (request.getRounds() != null) {
+            for (CreateTrackRoundRequest.RoundDto rDto : request.getRounds()) {
+                if (rDto.getId() != null) {
+                    Round existingRound = roundRepository.findById(rDto.getId()).orElse(null);
+                    if (existingRound != null && existingRound.getCategory() != null &&
+                            existingRound.getCategory().getContest().getId().equals(contest.getId())) {
+                        category = existingRound.getCategory();
+                        break;
+                    }
+                }
+            }
+        }
+        if (category == null) {
+            category = categoryRepository.findByNameAndContest(request.getCategoryName(), contest).orElse(null);
+        }
+        if (category == null) {
+            List<Category> existingCats = categoryRepository.findByContestId(contest.getId());
+            if (existingCats.size() == 1) {
+                category = existingCats.get(0);
+            }
+        }
+        boolean isNewCategory = (category == null || category.getId() == null);
+        if (category == null) {
+            category = Category.builder()
+                    .name(request.getCategoryName())
+                    .contest(contest)
+                    .rounds(new ArrayList<>())
+                    .build();
+        }
+
+        String oldName = category.getName();
         String oldCatStatus = category.getId() != null ? category.getStatus() : null;
+        String oldDesc = category.getDescription();
+        String oldUrl = category.getGuidelineUrl();
+        category.setName(request.getCategoryName());
         category.setDescription(request.getTrackDescription());
         category.setGuidelineUrl(request.getGuidelineUrl());
         String statusStr = "ACTIVED";
@@ -263,6 +308,11 @@ public class ContestAdminService {
                 statusStr = "INACTIVED";
             }
         }
+        boolean categoryModified = isNewCategory ||
+                !java.util.Objects.equals(oldName, request.getCategoryName()) ||
+                !java.util.Objects.equals(oldDesc, request.getTrackDescription()) ||
+                !java.util.Objects.equals(oldUrl, request.getGuidelineUrl()) ||
+                !java.util.Objects.equals(oldCatStatus, statusStr);
         category.setStatus(statusStr);
         category = categoryRepository.save(category);
 
@@ -326,7 +376,7 @@ public class ContestAdminService {
             roundRepository.save(round);
 
             if (oldDeadline != null && roundDto.getSubmissionDeadline() != null && !oldDeadline.equals(roundDto.getSubmissionDeadline())) {
-                auditLogService.logUpdateSubmissionDeadline(round.getId(), oldDeadline.toString(), roundDto.getSubmissionDeadline().toString(), "Admin updated round submission deadline");
+                auditLogService.logUpdateSubmissionDeadline(round.getPhaseName(), oldDeadline.toString(), roundDto.getSubmissionDeadline().toString(), "Admin updated round submission deadline");
             }
         }
 
@@ -351,7 +401,15 @@ public class ContestAdminService {
         }
 
         Category savedCategory = categoryRepository.save(category);
-        auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getId(), oldCatStatus, savedCategory.getStatus(), "Update Track and Rounds");
+        if (categoryModified) {
+            if (isNewCategory) {
+                auditLogService.log("CREATE_CATEGORY", "Category", savedCategory.getName(), null, savedCategory.getStatus(), "Created new Category");
+            } else if (!java.util.Objects.equals(oldName, savedCategory.getName())) {
+                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldName, savedCategory.getName(), "Renamed Category");
+            } else {
+                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldCatStatus, savedCategory.getStatus(), "Update Category and Rounds");
+            }
+        }
         return savedCategory;
     }
 
