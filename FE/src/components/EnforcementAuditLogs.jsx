@@ -37,7 +37,7 @@ const EnforcementAuditLogs = () => {
                         setLogs(auditLogs.map(l => ({
                             id: l.id || l.logId,
                             actionType: l.action || l.actionType || 'UNKNOWN',
-                            target: l.entityType ? `${l.entityType} ${l.entityId || ''}` : (l.target || l.targetEntityId || 'N/A'),
+                            target: l.entityName ? `${l.entityType ? l.entityType + ' ' : ''}${l.entityName}` : (l.entityType ? `${l.entityType} ${l.entityId || ''}` : (l.target || l.targetEntityId || 'N/A')),
                             timestamp: l.performedAt || l.timestamp || l.createdAt,
                             performer: (l.user && (l.user.email || l.user.username)) || l.performer || l.performedBy || l.createdBy || 'System',
                             justification: l.reason || l.justification || l.justificationReason || '',
@@ -166,7 +166,7 @@ const EnforcementAuditLogs = () => {
                                 <tr>
                                     <th>Log ID</th>
                                     <th>Action Type</th>
-                                    <th>Target Entity</th>
+                                    <th>Entity Name</th>
                                     <th>Timestamp</th>
                                     <th>Performer</th>
                                     <th>Details</th>
@@ -218,7 +218,7 @@ const EnforcementAuditLogs = () => {
                         </div>
                         <div style={{ marginBottom: '16px' }}>
                             <p><strong>Action Type:</strong> {ACTION_TYPE_LABELS[selectedLog.actionType] || selectedLog.actionType}</p>
-                            <p><strong>Target Entity:</strong> {selectedLog.target}</p>
+                            <p><strong>Entity Name:</strong> {selectedLog.target}</p>
                             <p><strong>Performer:</strong> {selectedLog.performer}</p>
                             <p><strong>Timestamp:</strong> {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString() : '-'}</p>
                             <p><strong>Justification:</strong> {selectedLog.justification}</p>
