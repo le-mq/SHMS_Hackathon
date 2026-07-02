@@ -326,16 +326,6 @@ const ProjectSubmission = () => {
         ? 'Gateway Opens:'
         : 'Registration Opens:';
 
-    const canSubmitProject =
-        isTeamApproved &&
-        isRoundActive &&
-        isSelectedRoundEligible &&
-        !isSelectedRoundEvaluated &&
-        isTeamLeader &&
-        !isSubmitting &&
-        formData.roundId;
-
-
     const selectedRoundSubmitDeadline =
         selectedRound?.submissionDeadline ||
         selectedRound?.deadline ||
@@ -363,7 +353,7 @@ const ProjectSubmission = () => {
     const hasOfficialSubmission = history.some(item => {
         if (item.roundId && formData.roundId && String(item.roundId) !== String(formData.roundId)) return false;
         const status = String(item.status || '').toUpperCase();
-        return ['SUBMITTED', 'OFFICIAL', 'EVALUATED', 'AUTO_ZERO'].includes(status) || item.evaluated;
+        return ['SUBMITTED', 'OFFICIAL', 'EVALUATED', 'MISSED_DEADLINE'].includes(status) || item.evaluated;
     });
 
     const notEligibleMessage = !isSelectedRoundEligible ? selectedRoundLockedReason : '';
@@ -436,15 +426,9 @@ const ProjectSubmission = () => {
     }, [currentDeadline, currentOpen, isTeamApproved]);
 
     const getBackendMessage = (data, fallback) => {
-        const message =
-            data?.message ||
-            data?.error ||
-            data?.detail ||
-            data?.data?.message ||
-            fallback;
-
+        const message = data?.message || data?.error ||
+            data?.detail || data?.data?.message || fallback;
         const fullMessage = JSON.stringify(data || {}).toLowerCase();
-
         if (
             String(message).toLowerCase().includes('validation failed') ||
             fullMessage.includes('submitprojectrequest') ||
@@ -460,11 +444,9 @@ const ProjectSubmission = () => {
     const getAssetUrl = (url) => {
         const trimmedUrl = String(url || '').trim();
         if (!trimmedUrl) return '';
-
         if (/^https?:\/\//i.test(trimmedUrl)) {
             return trimmedUrl;
         }
-
         return `https://${trimmedUrl}`;
     };
 
@@ -473,12 +455,9 @@ const ProjectSubmission = () => {
         if (!assetUrl) return null;
 
         return (
-            <a
-                className={`asset-link-icon ${showLabel ? 'with-label' : ''}`}
-                href={assetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`Open ${label}`}
+            <a className={`asset-link-icon ${showLabel ? 'with-label' : ''}`}
+                href={assetUrl} target="_blank"
+                rel="noopener noreferrer" title={`Open ${label}`}
                 aria-label={`Open ${label}`}
                 style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
             >
@@ -490,23 +469,19 @@ const ProjectSubmission = () => {
 
     const getSubmissionStatusClass = (item) => {
         const status = String(item?.status || '').toUpperCase();
-
         if (item?.evaluated || status === 'EVALUATED') return 'status-evaluated';
         if (status === 'ARCHIVED') return 'status-archived';
         if (status === 'DRAFT') return 'status-draft';
-        if (status === 'AUTO_ZERO') return 'status-auto-zero';
+        if (status === 'MISSED_DEADLINE') return 'status-missed-deadline';
         return 'status-official';
     };
-
     const getSubmissionStatusLabel = (item) => {
         const status = String(item?.status || '').toUpperCase();
-
         if (item?.evaluated || status === 'EVALUATED') {
             return 'Evaluated';
         }
-
         if (status === 'SUBMITTED') return 'Submitted';
-        if (status === 'AUTO_ZERO') return 'Missed Deadline';
+        if (status === 'MISSED_DEADLINE') return 'Missed Deadline';
         return item?.status || 'Submitted';
     };
 
