@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import './PublicHome.css';
 import NavbarHome from './NavbarHome.jsx';
-import NavbarStudent from './NavbarStudent';
-import NavbarMentor from './NavbarMentor';
-import NavbarJudge from './NavbarJudge';
-import NavbarAdmin from './NavbarAdmin';
+
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
@@ -103,13 +100,28 @@ function renderPrizeStructures(prizeStr) {
 
 function renderRequirements(reqsStr) {
     if (!reqsStr) return 'None';
+
+    const reqMap = {
+        githubUrl: 'GitHub URL',
+        demoUrl: 'Demo URL',
+        documentUrl: 'Document URL',
+        slidesUrl: 'Slides URL',
+        videoUrl: 'Video URL'
+    };
+
+    let reqsArray = [];
     try {
-        const reqs = JSON.parse(reqsStr);
-        if (Array.isArray(reqs)) return reqs.join(', ');
-        return reqsStr;
+        const parsed = JSON.parse(reqsStr);
+        if (Array.isArray(parsed)) {
+            reqsArray = parsed;
+        } else {
+            reqsArray = String(reqsStr).split(',').map(s => s.trim());
+        }
     } catch(e) {
-        return reqsStr;
+        reqsArray = String(reqsStr).split(',').map(s => s.trim());
     }
+
+    return reqsArray.map(r => reqMap[r] || r).join(', ');
 }
 
 export default function PublicHome() {
@@ -159,16 +171,9 @@ export default function PublicHome() {
         );
     }
 
-    const role = localStorage.getItem('shms_role');
-    const renderNavbar = () => {
-        const navbars = { ADMIN: <NavbarAdmin />,
-            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent /> };
-        return navbars[role] || <NavbarHome />;
-    };
-
     return (
         <div className="ph-page">
-            {renderNavbar()}
+            <NavbarHome />
             <section className="ph-hero">
                 <div className="ph-hero-inner">
                     <div>
@@ -192,9 +197,9 @@ export default function PublicHome() {
                         <div className="ph-no-data">No active contests at this time.</div>
                     ) : (<div className="ph-contests-grid">
                             {contests.map(c => ( <ContestCard key={c.id} contest={c}
-                                onSelectContest={() => { setSelectedContest(c);
-                                document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                            }}/>))}
+                                                              onSelectContest={() => { setSelectedContest(c);
+                                                                  document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                                              }}/>))}
                         </div>
                     )}
                 </div>

@@ -633,17 +633,17 @@ const TeamStatus = () => {
                                     onClick={() => handleSelectTeam(pt.contest.id)}
                                 >
                                     <div className="sidebar-item-team">{pt.data.teamName}</div>
-                                {pt.contest?.name && pt.contest.name !== 'Not Registered' && (
-                                    <div className="sidebar-item-contest">{pt.contest.name}</div>
-                                )}
+                                    {pt.contest?.name && pt.contest.name !== 'Not Registered' && (
+                                        <div className="sidebar-item-contest">{pt.contest.name}</div>
+                                    )}
 
-                                <div className="sidebar-item-footer">
-                                    {pt.contest?.status && (
-                                        <span className={`contest-status-badge ${sidebarBadge.className}`}>
+                                    <div className="sidebar-item-footer">
+                                        {pt.contest?.status && (
+                                            <span className={`contest-status-badge ${sidebarBadge.className}`}>
                                             {sidebarBadge.label}
                                         </span>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         }) : (
@@ -713,59 +713,59 @@ const TeamStatus = () => {
 
                         <table className="roster-table">
                             <thead>
-                                <tr>
-                                    <th>FULL NAME</th>
-                                    <th>STUDENT ID</th>
-                                    <th>EMAIL</th>
-                                    <th>INTERNAL ROLE</th>
-                                </tr>
+                            <tr>
+                                <th>FULL NAME</th>
+                                <th>STUDENT ID</th>
+                                <th>EMAIL</th>
+                                <th>INTERNAL ROLE</th>
+                            </tr>
                             </thead>
 
                             <tbody>
-                                {roster.length > 0 ? roster.map((member, idx) => {
-                                    const isPending = member.status === 'PENDING';
-                                    const displayRole = isPending ? 'PENDING' : (isSubmitted ? member.internalRole : 'MEMBER');
+                            {roster.length > 0 ? roster.map((member, idx) => {
+                                const isPending = member.status === 'PENDING';
+                                const displayRole = isPending ? 'PENDING' : (isSubmitted ? member.internalRole : 'MEMBER');
 
-                                    return (
-                                        <tr key={idx} style={{ opacity: isPending ? 0.6 : 1 }}>
-                                            <td>
-                                                <div className="member-name-col">
-                                                    <div className="member-avatar">
-                                                        {getInitials(member.fullName)}
-                                                    </div>
-                                                    <span className="member-name">{member.fullName}</span>
+                                return (
+                                    <tr key={idx} style={{ opacity: isPending ? 0.6 : 1 }}>
+                                        <td>
+                                            <div className="member-name-col">
+                                                <div className="member-avatar">
+                                                    {getInitials(member.fullName)}
                                                 </div>
-                                            </td>
+                                                <span className="member-name">{member.fullName}</span>
+                                            </div>
+                                        </td>
 
-                                            <td>
-                                                <span className="member-id">{member.studentId}</span>
-                                            </td>
+                                        <td>
+                                            <span className="member-id">{member.studentId}</span>
+                                        </td>
 
-                                            <td>
-                                                <span className="member-email">{member.email}</span>
-                                            </td>
+                                        <td>
+                                            <span className="member-email">{member.email}</span>
+                                        </td>
 
-                                            <td>
+                                        <td>
                                                 <span className={`role-badge ${displayRole === 'LEADER' ? 'role-leader' : (displayRole === 'PENDING' ? 'role-pending' : 'role-member')}`}>
                                                     {displayRole}
                                                 </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                }) : (
-                                    <tr>
-                                        <td
-                                            colSpan="4"
-                                            style={{
-                                                textAlign: 'center',
-                                                padding: '20px',
-                                                color: '#64748b',
-                                            }}
-                                        >
-                                            No team members available
                                         </td>
                                     </tr>
-                                )}
+                                );
+                            }) : (
+                                <tr>
+                                    <td
+                                        colSpan="4"
+                                        style={{
+                                            textAlign: 'center',
+                                            padding: '20px',
+                                            color: '#64748b',
+                                        }}
+                                    >
+                                        No team members available
+                                    </td>
+                                </tr>
+                            )}
                             </tbody>
                         </table>
                     </div>
@@ -776,7 +776,7 @@ const TeamStatus = () => {
                             <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '12px' }}>
                                 Invite a New Member
                             </h2>
-                            {data.currentTotalMembers >= data.maxMembers ? (
+                            {status !== 'FORMING' && status !== 'NO TEAM' && data.currentTotalMembers >= data.maxMembers ? (
                                 <div style={{ color: '#dc2626', fontWeight: '600', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px' }}>
                                     The team has reached the maximum capacity of members allowed.
                                 </div>
@@ -790,50 +790,50 @@ const TeamStatus = () => {
                                             style={{ flex: 1, padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                                         />
                                         <button onClick={handleSearchStudents} disabled={inviteLoading}
-                                            style={{ padding: '8px 20px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}>
+                                                style={{ padding: '8px 20px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}>
                                             {inviteLoading ? '...' : 'Search'}
                                         </button>
                                     </div>
                                     {inviteMessage && <div style={{ fontSize: '13px', color: '#dc2626', marginBottom: '8px' }}>{inviteMessage}</div>}
-                            {searchResults.length > 0 && (
-                                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', fontSize: '13px' }}>
-                                    <thead style={{ background: '#f1f5f9' }}>
-                                        <tr>
-                                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>Name</th>
-                                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>Code</th>
-                                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>Email</th>
-                                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>University</th>
-                                            <th style={{ padding: '8px 12px', textAlign: 'center', width: '100px' }}>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {searchResults.map((s, idx) => {
-                                            const isAlreadyInTeam = roster.some(m => m.email === s.email);
-                                            return (
-                                                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '8px 12px' }}>{s.fullName}</td>
-                                                    <td style={{ padding: '8px 12px' }}>{s.studentCode}</td>
-                                                    <td style={{ padding: '8px 12px' }}>{s.email}</td>
-                                                    <td style={{ padding: '8px 12px' }}>{s.universityName}</td>
-                                                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                                                        {isAlreadyInTeam ? (
-                                                            <button disabled
-                                                                style={{ padding: '4px 12px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'not-allowed', fontSize: '12px' }}>
-                                                                Invited
-                                                            </button>
-                                                        ) : (
-                                                            <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading}
-                                                                style={{ padding: '4px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                                                                Invite
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            )}
+                                    {searchResults.length > 0 && (
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', fontSize: '13px' }}>
+                                            <thead style={{ background: '#f1f5f9' }}>
+                                            <tr>
+                                                <th style={{ padding: '8px 12px', textAlign: 'left' }}>Name</th>
+                                                <th style={{ padding: '8px 12px', textAlign: 'left' }}>Code</th>
+                                                <th style={{ padding: '8px 12px', textAlign: 'left' }}>Email</th>
+                                                <th style={{ padding: '8px 12px', textAlign: 'left' }}>University</th>
+                                                <th style={{ padding: '8px 12px', textAlign: 'center', width: '100px' }}>Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {searchResults.map((s, idx) => {
+                                                const isAlreadyInTeam = roster.some(m => m.email === s.email);
+                                                return (
+                                                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                        <td style={{ padding: '8px 12px' }}>{s.fullName}</td>
+                                                        <td style={{ padding: '8px 12px' }}>{s.studentCode}</td>
+                                                        <td style={{ padding: '8px 12px' }}>{s.email}</td>
+                                                        <td style={{ padding: '8px 12px' }}>{s.universityName}</td>
+                                                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                                            {isAlreadyInTeam ? (
+                                                                <button disabled
+                                                                        style={{ padding: '4px 12px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'not-allowed', fontSize: '12px' }}>
+                                                                    Invited
+                                                                </button>
+                                                            ) : (
+                                                                <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading}
+                                                                        style={{ padding: '4px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                                                                    Invite
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -932,108 +932,108 @@ const TeamStatus = () => {
                                 }}
                             >
                                 <thead style={{ background: '#f8fafc' }}>
-                                    <tr>
-                                        <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569', width: '80px' }}>
-                                            Leader
-                                        </th>
-                                        <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
-                                            Full Name
-                                        </th>
-                                        <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
-                                            Student ID
-                                        </th>
-                                        <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
-                                            Email
-                                        </th>
-                                    </tr>
+                                <tr>
+                                    <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569', width: '80px' }}>
+                                        Leader
+                                    </th>
+                                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
+                                        Full Name
+                                    </th>
+                                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
+                                        Student ID
+                                    </th>
+                                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#475569' }}>
+                                        Email
+                                    </th>
+                                </tr>
                                 </thead>
 
                                 <tbody>
-                                    {roster.length > 0 ? roster.map((member, idx) => {
-                                        const contestToRegister = contests.find(c => String(c.id) === String(registrationContestId));
-                                        const allowedUniversities = contestToRegister?.allowedUniversities || [];
-                                        const isAllowed = !contestToRegister || allowedUniversities.length === 0 || allowedUniversities.includes(member.universityName);
-                                        const isPending = member.status === 'PENDING';
+                                {roster.length > 0 ? roster.map((member, idx) => {
+                                    const contestToRegister = contests.find(c => String(c.id) === String(registrationContestId));
+                                    const allowedUniversities = contestToRegister?.allowedUniversities || [];
+                                    const isAllowed = !contestToRegister || allowedUniversities.length === 0 || allowedUniversities.includes(member.universityName);
+                                    const isPending = member.status === 'PENDING';
 
-                                        return (
-                                            <tr
-                                                key={idx}
-                                                style={{
-                                                    borderBottom: '1px solid #e2e8f0',
-                                                    background: !isAllowed ? '#fef2f2' : (selectedLeader === member.studentId ? '#eff6ff' : '#fff'),
-                                                    opacity: isPending ? 0.6 : 1,
-                                                }}
-                                            >
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>
+                                    return (
+                                        <tr
+                                            key={idx}
+                                            style={{
+                                                borderBottom: '1px solid #e2e8f0',
+                                                background: !isAllowed ? '#fef2f2' : (selectedLeader === member.studentId ? '#eff6ff' : '#fff'),
+                                                opacity: isPending ? 0.6 : 1,
+                                            }}
+                                        >
+                                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                <input
+                                                    type="radio"
+                                                    name="leaderSelect"
+                                                    checked={selectedLeader === member.studentId}
+                                                    onChange={() => setSelectedLeader(member.studentId)}
+                                                    disabled={isSubmitted || !isAllowed || isPending}
+                                                    style={{
+                                                        width: '18px',
+                                                        height: '18px',
+                                                        cursor: (isSubmitted || !isAllowed || isPending) ? 'not-allowed' : 'pointer',
+                                                        accentColor: '#2563eb',
+                                                    }}
+                                                />
+                                            </td>
+
+                                            <td style={{ padding: '12px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                     <input
-                                                        type="radio"
-                                                        name="leaderSelect"
-                                                        checked={selectedLeader === member.studentId}
-                                                        onChange={() => setSelectedLeader(member.studentId)}
-                                                        disabled={isSubmitted || !isAllowed || isPending}
-                                                        style={{
-                                                            width: '18px',
-                                                            height: '18px',
-                                                            cursor: (isSubmitted || !isAllowed || isPending) ? 'not-allowed' : 'pointer',
-                                                            accentColor: '#2563eb',
-                                                        }}
+                                                        type="text"
+                                                        value={member.fullName}
+                                                        readOnly
+                                                        style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
                                                     />
-                                                </td>
-
-                                                <td style={{ padding: '12px' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <input
-                                                            type="text"
-                                                            value={member.fullName}
-                                                            readOnly
-                                                            style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
-                                                        />
-                                                        {!isAllowed && (
-                                                            <span style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>
+                                                    {!isAllowed && (
+                                                        <span style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>
                                                                 Ineligible: University ({member.universityName || 'N/A'}) is not participating.
                                                             </span>
-                                                        )}
-                                                        {isPending && (
-                                                            <span style={{ fontSize: '11px', color: '#d97706', marginTop: '4px' }}>
+                                                    )}
+                                                    {isPending && (
+                                                        <span style={{ fontSize: '11px', color: '#d97706', marginTop: '4px' }}>
                                                                 Pending Invitation
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                </td>
+                                                    )}
+                                                </div>
+                                            </td>
 
-                                                <td style={{ padding: '12px' }}>
-                                                    <input
-                                                        type="text"
-                                                        value={member.studentId}
-                                                        readOnly
-                                                        style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
-                                                    />
-                                                </td>
+                                            <td style={{ padding: '12px' }}>
+                                                <input
+                                                    type="text"
+                                                    value={member.studentId}
+                                                    readOnly
+                                                    style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
+                                                />
+                                            </td>
 
-                                                <td style={{ padding: '12px' }}>
-                                                    <input
-                                                        type="text"
-                                                        value={member.email}
-                                                        readOnly
-                                                        style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        )
-                                    }) : (
-                                        <tr>
-                                            <td
-                                                colSpan="4"
-                                                style={{
-                                                    textAlign: 'center',
-                                                    padding: '20px',
-                                                    color: '#64748b',
-                                                }}
-                                            >
-                                                No team members available
+                                            <td style={{ padding: '12px' }}>
+                                                <input
+                                                    type="text"
+                                                    value={member.email}
+                                                    readOnly
+                                                    style={{ width: '100%', padding: '8px 12px', border: !isAllowed ? '1px solid #fca5a5' : '1px solid #cbd5e1', borderRadius: '6px', background: !isAllowed ? '#fef2f2' : '#f8fafc', color: !isAllowed ? '#991b1b' : 'inherit' }}
+                                                />
                                             </td>
                                         </tr>
-                                    )}
+                                    )
+                                }) : (
+                                    <tr>
+                                        <td
+                                            colSpan="4"
+                                            style={{
+                                                textAlign: 'center',
+                                                padding: '20px',
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            No team members available
+                                        </td>
+                                    </tr>
+                                )}
                                 </tbody>
                             </table>
                         </div>

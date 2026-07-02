@@ -4,7 +4,6 @@ import NavbarHome from './NavbarHome.jsx';
 import NavbarStudent from './NavbarStudent';
 import NavbarMentor from './NavbarMentor';
 import NavbarJudge from './NavbarJudge';
-import NavbarAdmin from './NavbarAdmin';
 
 export const LeaderboardPresentation = ({ leaderboards }) => {
     const [selectedContestId, setSelectedContestId] = useState(null);
@@ -178,8 +177,10 @@ export const LeaderboardContent = ({ leaderboards }) => {
 const LeaderboardDashboard = () => {
     const role = localStorage.getItem('shms_role');
     const renderNavbar = () => {
-        const navbars = { ADMIN: <NavbarAdmin />,
-            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent /> };
+        if (role === 'ADMIN') return <NavbarHome />;
+        const navbars = {
+            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent />
+        };
         return navbars[role] || <NavbarHome />;
     };
 

@@ -137,7 +137,7 @@ const MentorCategory = () => {
             teamTrack.trim().toLowerCase() === filterCategory.trim().toLowerCase();
         return matchesSearch && matchesFilter;
     });
-    const renderLinks = (team, showLabel = false) => {
+    const renderLinks = (team) => {
         const getAssetUrl = (url) => {
             const trimmedUrl = String(url || '').trim();
             if (!trimmedUrl) return '';
@@ -150,10 +150,10 @@ const MentorCategory = () => {
             return (
                 <a className="asset-link-icon" href={assetUrl} target="_blank"
                    rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
-                   style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : { width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
+                   style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
                    }}
-                >{icon} {showLabel && <span>{label}</span>}
+                >{icon}
                 </a>
             );
         };
@@ -311,7 +311,7 @@ const MentorCategory = () => {
                             return (
                                 <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Submitted Assets</div>
-                                    {renderLinks(selectedTeam, true)}
+                                    {renderLinks(selectedTeam)}
                                 </div>
                             );
                         })()}
