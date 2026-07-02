@@ -132,7 +132,7 @@ const EvaluationWorkspace = () => {
     };
 
     const isAutoZero = String(evalData?.status || evalData?.submissionStatus
-        || evalData?.scoreStatus).toUpperCase() === 'AUTO_ZERO';
+        || evalData?.scoreStatus).toUpperCase() === 'MISSED_DEADLINE';
     const reqsStr = evalData?.submissionRequirements;
     const isRequired = (key) => !reqsStr || reqsStr === '[]' || reqsStr.includes(key);
 

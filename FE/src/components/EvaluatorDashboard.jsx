@@ -138,7 +138,7 @@ const EvaluatorDashboard = () => {
         const rName = t.roundName || t.phaseName || t.round?.roundName;
         return rName === selectedRound;
     }) || [];
-    const notSubmittedCount = filteredQueue.filter(t => t.submissionState === 'Not Submitted' || t.submissionState === 'AUTO_ZERO').length || 0;
+    const notSubmittedCount = filteredQueue.filter(t => t.submissionState === 'Not Submitted' || t.submissionState === 'MISSED_DEADLINE').length || 0;
     const effectiveTotalTeams = Math.max(0, filteredQueue.length - notSubmittedCount);
     const evaluatedCount = filteredQueue.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length || 0;
     const remainingToGrade = Math.max(0, effectiveTotalTeams - evaluatedCount);
@@ -283,7 +283,7 @@ const EvaluatorDashboard = () => {
                                     className="round-txt">{team.roundName || team.phaseName || team.round?.roundName}</span>
                                 </td>
                                 <td><span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : 'pill-pending'}`}>
-                                     {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'AUTO_ZERO' ? 'Not Submitted' : team.submissionState)}
+                                     {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'MISSED_DEADLINE' ? 'Not Submitted' : team.submissionState)}
                                      </span>
                                 </td>
                                 <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
@@ -302,7 +302,7 @@ const EvaluatorDashboard = () => {
                                             );
                                         }
 
-                                        if (team.submissionState === 'Not Submitted' || team.submissionState === 'AUTO_ZERO') {
+                                        if (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE') {
                                             return (
                                                 <button className="evaluate-btn" style={{ background: '#fee2e2',
                                                     color: '#ef4444', borderColor: '#fca5a5'
