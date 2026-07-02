@@ -157,6 +157,7 @@ public class PublicHomeService {
     public List<Map<String, Object>> getLeaderboards() {
         List<RankingResult> results = rankingResultRepository.findPublishedLeaderboards();
         return results.stream().map(r -> {
+            boolean isCancelled = !"APPROVED".equals(r.getTeam().getStatus());
             Map<String, Object> map = new HashMap<>();
             map.put("contestId", r.getRound().getContest() != null ? r.getRound().getContest().getId() : null);
             map.put("contestName", r.getRound().getContest() != null ? r.getRound().getContest().getName() : "");
@@ -165,8 +166,8 @@ public class PublicHomeService {
             map.put("teamName", r.getTeam().getName());
             map.put("rank", r.getRankNo());
             map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
-            map.put("status", r.getQualificationStatus());
-            map.put("finalScore", r.getFinalScore());
+            map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
+            map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
             return map;
         }).toList();
     }
