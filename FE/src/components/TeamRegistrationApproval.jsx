@@ -34,7 +34,7 @@ const TeamRegistrationApproval = () => {
     });
 
     useEffect(() => {
-        let cancelled = false;
+        let canceled = false;
         async function fetchDashboardData() {
             try {
                 const token = localStorage.getItem("shms_token");
@@ -45,7 +45,7 @@ const TeamRegistrationApproval = () => {
                     throw new Error("HTTP " + response.status);
                 const json = await response.json();
                 const contestsData = Array.isArray(json) ? json : (json.contests || json.data || []);
-                if (!cancelled) {
+                if (!canceled) {
                     setDashboardData(contestsData);
                     if (contestsData.length > 0) {
                         setSelectedContestId(contestsData[0].id);
@@ -60,7 +60,7 @@ const TeamRegistrationApproval = () => {
                         throw new Error("Cannot load mock");
                     const localJson = await localRes.json();
                     const contestsData = localJson.teamRegistrationApproval?.contests || [];
-                    if (!cancelled) {
+                    if (!canceled) {
                         setDashboardData(contestsData);
                         if (contestsData.length > 0) {
                             setSelectedContestId(contestsData[0].id);
@@ -73,12 +73,12 @@ const TeamRegistrationApproval = () => {
                 }
             }
             finally {
-                if (!cancelled)
+                if (!canceled)
                     setIsLoading(false);
             }
         }
         fetchDashboardData();
-        return () => { cancelled = true; };
+        return () => { canceled = true; };
     }, []);
 
     const selectedContest = dashboardData.find(c => String(c.id) === String(selectedContestId));
@@ -226,7 +226,7 @@ const TeamRegistrationApproval = () => {
                                 Number(team.id) === Number(cancelModal.teamId)
                                     ? {
                                         ...team,
-                                        status: isCancelAct ? 'Canceled' : 'Approved',
+                                        status: isCancelAct ? 'CANCELED' : 'APPROVED',
                                         track: isCancelAct ? 'Disqualified' : (team.track || 'Active')
                                     }
                                     : team
@@ -335,7 +335,7 @@ const TeamRegistrationApproval = () => {
                         <tbody>
                             {filteredTeams.map(team => {
                                 const statusText = (team.status || 'Active').toLowerCase();
-                                const isCanceledOrRejected = statusText === 'cancelled' || statusText === 'rejected';
+                                const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
 
                                 let badgeStyle = {padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block'};
                                 if (statusText === 'approved') {
