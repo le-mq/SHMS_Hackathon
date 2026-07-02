@@ -142,7 +142,12 @@ public class PublicHomeService {
 
                     java.util.List<String> targetRolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
                     return currentRoles.stream().anyMatch(role ->
-                            targetRolesList.stream().anyMatch(t -> t.equalsIgnoreCase(role))
+                            targetRolesList.stream().anyMatch(t -> {
+                                String targetRole = t.trim();
+                                if (targetRole.equalsIgnoreCase(role)) return true;
+                                if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER")) return true;
+                                return false;
+                            })
                     );
                 })
                 .map(AnnouncementDTO::from)

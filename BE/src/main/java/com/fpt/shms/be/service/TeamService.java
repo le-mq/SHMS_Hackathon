@@ -310,6 +310,20 @@ public class TeamService{
                 .findByIsActiveTrueOrderByPublishedAtDesc()
                 .stream()
                 .filter(a -> a.getContest() == null || a.getContest().getId().equals(team.getContest().getId()))
+                .filter(a -> {
+                    if (a.getTargetRoles() == null || a.getTargetRoles().isBlank()) return true;
+                    if (user.getRoles() == null || user.getRoles().isEmpty()) return false;
+                    java.util.List<String> userRoleNames = user.getRoles().stream().map(com.fpt.shms.be.model.Role::getName).toList();
+                    java.util.List<String> targetRolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
+                    return userRoleNames.stream().anyMatch(role ->
+                            targetRolesList.stream().anyMatch(t -> {
+                                String targetRole = t.trim();
+                                if (targetRole.equalsIgnoreCase(role)) return true;
+                                if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER")) return true;
+                                return false;
+                            })
+                    );
+                })
                 .limit(5)
                 .map(a -> WorkspaceResponse.AnnouncementDto.builder()
                         .id(a.getId())
