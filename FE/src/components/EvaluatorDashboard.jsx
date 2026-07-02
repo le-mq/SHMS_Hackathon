@@ -179,17 +179,9 @@ const EvaluatorDashboard = () => {
 
                 <div className="stats-row">
                     <div className="stat-box">
-                        <div className="stat-left" style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                <div>
-                                    <span className="stat-label">GRADING TIME WINDOW</span>
-                                    <span className="stat-val" style={{ fontSize: '18px', color: timeStatus === 'OPEN' ? '#16a34a' : (timeStatus === 'CLOSED' ? '#ef4444' : '#eab308'), display: 'block', marginTop: '4px' }}>
-                                        {timeStatus === 'UPCOMING' && 'Opens in: '}
-                                        {timeStatus === 'OPEN' && 'Closes in: '}
-                                        {timeStatus === 'CLOSED' && 'Status: '}
-                                        {timeLeft}
-                                    </span>
-                                </div>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <span className="stat-label" style={{ marginBottom: 0 }}>GRADING TIME WINDOW</span>
                                 <div className="stat-icon" style={{ margin: 0 }}>
                                     <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -197,46 +189,68 @@ const EvaluatorDashboard = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>Opens:</span>
-                                    <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingOpenAt, 'No Date Set', 'Invalid Date')}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>Closes:</span>
-                                    <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingDeadlineAt, 'No Date Set', 'Invalid Date')}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>Format:</span>
-                                    <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                                        {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
+                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
+                                {timeStatus && (
+                                    <span className="stat-val" style={{ fontSize: '18px', color: timeStatus === 'OPEN' ? '#16a34a' : (timeStatus === 'CLOSED' ? '#ef4444' : '#eab308'), display: 'block', marginBottom: '12px', textAlign: 'center' }}>
+                                        {timeStatus === 'UPCOMING' && 'Opens in: '}
+                                        {timeStatus === 'OPEN' && 'Closes in: '}
+                                        {timeStatus === 'CLOSED' && 'Status: '}
+                                        {timeLeft}
                                     </span>
+                                )}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', width: '100%' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>Opens:</span>
+                                        <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingOpenAt, 'No Date Set', 'Invalid Date')}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>Closes:</span>
+                                        <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingDeadlineAt, 'No Date Set', 'Invalid Date')}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>Format:</span>
+                                        <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                            {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="stat-box">
-                        <div className="stat-left">
-                            <span className="stat-label">Total Allocated Teams</span>
-                            <span className="stat-val">{filteredQueue.length}</span>
-                            <span className="stat-sub">Teams across all tracks.</span>
-                        </div>
-                        <div className="stat-icon">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <span className="stat-label" style={{ marginBottom: 0 }}>TOTAL ALLOCATED TEAMS</span>
+                                <div className="stat-icon" style={{ margin: 0 }}>
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '8px' }}>
+                                <span className="stat-val" style={{ fontSize: '40px', lineHeight: 1, margin: 0 }}>{filteredQueue.length}</span>
+                                <span className="stat-sub" style={{ margin: 0 }}>Teams across all rounds.</span>
+                            </div>
                         </div>
                     </div>
                     <div className="stat-box">
-                        <div className="progress-box">
-                            <div> <span
-                                className="progress-large">{evaluatedCount}/{effectiveTotalTeams} </span>
-                                <span className="progress-small">EVALUATED</span>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <span className="stat-label" style={{ marginBottom: 0 }}>EVALUATION PROGRESS</span>
+                                <div className="stat-icon" style={{ margin: 0 }}>
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
                             </div>
-                            <span
-                                className="stat-sub">{remainingToGrade} teams remaining to be graded.</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'baseline', margin: 0 }}>
+                                    <span className="stat-val" style={{ fontSize: '40px', lineHeight: 1, margin: 0 }}>{evaluatedCount}/{effectiveTotalTeams}</span>
+                                    <span className="progress-small" style={{ margin: 0, marginLeft: '8px' }}>EVALUATED</span>
+                                </div>
+                                <span className="stat-sub" style={{ margin: 0 }}>{remainingToGrade} teams remaining to be graded.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,8 +273,8 @@ const EvaluatorDashboard = () => {
                         {filteredQueue.map((team, idx) => (
                             <tr key={team.teamId || team.id || idx}>
                                 <td><div className="team-info">
-                                        <span className="team-name-txt">{team.teamName || team.name}</span>
-                                    </div>
+                                    <span className="team-name-txt">{team.teamName || team.name}</span>
+                                </div>
                                 </td>
                                 <td><span
                                     className="category-txt">{team.categoryName || team.trackName || team.category || team.track?.categoryName}</span>
@@ -273,36 +287,36 @@ const EvaluatorDashboard = () => {
                                      </span>
                                 </td>
                                 <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
-                                        <button className="evaluate-btn" style={{ background: '#e2e8f0',
-                                            color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
-                                        }} disabled>Already Evaluated</button>
-                                    ) : (
-                                        (() => {const now = new Date().getTime();
-                                            const openTime = team.gradingOpenAt ? new Date(team.gradingOpenAt).getTime() : 0;
-                                            const closeTime = team.gradingDeadlineAt ? new Date(team.gradingDeadlineAt).getTime() : Infinity;
-                                            if (openTime !== 0 && (now < openTime || now > closeTime)) {
-                                                return (
-                                                    <button className="evaluate-btn" style={{ background: '#fee2e2',
-                                                        color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
-                                                    }} disabled>Not in Grading Time</button>
-                                                );
-                                            }
-
-                                            if (team.submissionState === 'Not Submitted' || team.submissionState === 'AUTO_ZERO') {
-                                                return (
-                                                    <button className="evaluate-btn" style={{ background: '#fee2e2',
-                                                        color: '#ef4444', borderColor: '#fca5a5'
-                                                    }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                        Evaluate (0 pts)</button>
-                                                );
-                                            }
+                                    <button className="evaluate-btn" style={{ background: '#e2e8f0',
+                                        color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
+                                    }} disabled>Already Evaluated</button>
+                                ) : (
+                                    (() => {const now = new Date().getTime();
+                                        const openTime = team.gradingOpenAt ? new Date(team.gradingOpenAt).getTime() : 0;
+                                        const closeTime = team.gradingDeadlineAt ? new Date(team.gradingDeadlineAt).getTime() : Infinity;
+                                        if (openTime !== 0 && (now < openTime || now > closeTime)) {
                                             return (
-                                                <button className="evaluate-btn"
-                                                        onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                    Evaluate Team Product</button>
+                                                <button className="evaluate-btn" style={{ background: '#fee2e2',
+                                                    color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
+                                                }} disabled>Not in Grading Time</button>
                                             );
-                                        })()
-                                    )}
+                                        }
+
+                                        if (team.submissionState === 'Not Submitted' || team.submissionState === 'AUTO_ZERO') {
+                                            return (
+                                                <button className="evaluate-btn" style={{ background: '#fee2e2',
+                                                    color: '#ef4444', borderColor: '#fca5a5'
+                                                }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
+                                                    Evaluate (0 pts)</button>
+                                            );
+                                        }
+                                        return (
+                                            <button className="evaluate-btn"
+                                                    onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
+                                                Evaluate Team Product</button>
+                                        );
+                                    })()
+                                )}
                                 </td>
                             </tr>
                         ))}

@@ -9,14 +9,13 @@ const PanelAllocation = () => {
     const [rounds, setRounds] = useState([]);
     const [selectedRoundId, setSelectedRoundId] = useState('');
     const [selectedRound, setSelectedRound] = useState(null);
-
     const [allTeams, setAllTeams] = useState([]);
     const [experts, setExperts] = useState([]);
     const [selectedExpertId, setSelectedExpertId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [allocations, setAllocations] = useState({});
+    const [savedAllocations, setSavedAllocations] = useState({});
     const [isLoading, setIsLoading] = useState(false);
-
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
@@ -76,7 +75,6 @@ const PanelAllocation = () => {
         }
         const round = rounds.find(r => String(r.roundId) === String(selectedRoundId));
         setSelectedRound(round || null);
-
         const fetchRoundData = async () => {
             try {
                 const [teamsRes, allocationsRes] = await Promise.all([
@@ -84,20 +82,21 @@ const PanelAllocation = () => {
                     fetch(`${API_BASE}/admin/contests/allocations?roundId=${selectedRoundId}`, { headers }),
                 ]);
                 if (teamsRes.ok) setAllTeams(await teamsRes.json());
-                if (allocationsRes.ok) setAllocations(await allocationsRes.json() || {});
+                if (allocationsRes.ok) {
+                    const allocData = await allocationsRes.json() || {};
+                    setAllocations(allocData);
+                    setSavedAllocations(allocData);
+                }
             } catch (err) {
                 console.error(err);
             }
         };
         fetchRoundData();
     }, [selectedContestId, selectedRoundId, rounds, headers]);
-
     const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
     const hasMentorRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('mentor')) ?? false, [activeExpert]);
     const hasJudgeRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('judge')) ?? false, [activeExpert]);
-
     const roundCategoryId = selectedRound?.categoryId ?? null;
-
     const currentMentoredTeamIds = useMemo(() => {
         if (!allocations || !selectedExpertId) return [];
         const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
@@ -109,7 +108,6 @@ const PanelAllocation = () => {
         });
         return Array.from(ids);
     }, [allocations, selectedExpertId]);
-
     const isActingAsJudgeAnywhere = useMemo(() => {
         if (!allocations || !selectedExpertId) return false;
         const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
@@ -130,17 +128,17 @@ const PanelAllocation = () => {
     }, [allocations, selectedExpertId]);
 
     const overviewJudges = useMemo(() => {
-        if (!allocations || !roundCategoryId) return [];
-        return Object.entries(allocations).filter(([expId, expertAlloc]) => {
+        if (!savedAllocations || !roundCategoryId) return [];
+        return Object.entries(savedAllocations).filter(([expId, expertAlloc]) => {
             return expertAlloc[roundCategoryId]?.isJudge === true;
         }).map(([expId]) => {
             return experts.find(e => String(e.userId) === String(expId));
         }).filter(Boolean);
-    }, [allocations, roundCategoryId, experts]);
+    }, [savedAllocations, roundCategoryId, experts]);
 
     const overviewMentors = useMemo(() => {
-        if (!allocations || !roundCategoryId) return [];
-        return Object.entries(allocations).filter(([expId, expertAlloc]) => {
+        if (!savedAllocations || !roundCategoryId) return [];
+        return Object.entries(savedAllocations).filter(([expId, expertAlloc]) => {
             return expertAlloc[roundCategoryId]?.mentoredTeamIds?.length > 0;
         }).map(([expId, expertAlloc]) => {
             const expert = experts.find(e => String(e.userId) === String(expId));
@@ -148,7 +146,7 @@ const PanelAllocation = () => {
             const teams = teamIds.map(tId => allTeams.find(t => String(t.id) === String(tId))?.name || `Team ${tId}`);
             return { expert, teams };
         }).filter(item => item.expert);
-    }, [allocations, roundCategoryId, experts, allTeams]);
+    }, [savedAllocations, roundCategoryId, experts, allTeams]);
 
     const handleGlobalTeamToggle = (teamId) => {
         if (!selectedExpertId || !hasMentorRole || isActingAsJudgeAnywhere || !roundCategoryId) return;
@@ -158,16 +156,12 @@ const PanelAllocation = () => {
             const trackAlloc = expertAlloc[roundCategoryId] || { isJudge: false, mentoredTeamIds: [] };
             let newTeams = (trackAlloc.mentoredTeamIds || []).map(Number);
             const isAssigned = newTeams.map(String).includes(String(teamId));
-
             if (isAssigned) {
                 newTeams = newTeams.filter(id => String(id) !== String(teamId));
             } else {
                 newTeams.push(Number(teamId));
             }
-            return {
-                ...prev,
-                [expertKey]: {
-                    ...expertAlloc,
+            return { ...prev, [expertKey]: { ...expertAlloc,
                     [roundCategoryId]: { ...trackAlloc, mentoredTeamIds: newTeams }
                 }
             };
@@ -180,10 +174,7 @@ const PanelAllocation = () => {
             const expertKey = String(selectedExpertId);
             const expertAlloc = prev[expertKey] || {};
             const trackAlloc = expertAlloc[roundCategoryId] || { isJudge: false, mentoredTeamIds: [] };
-            return {
-                ...prev,
-                [expertKey]: {
-                    ...expertAlloc,
+            return { ...prev, [expertKey]: { ...expertAlloc,
                     [roundCategoryId]: { ...trackAlloc, isJudge: !trackAlloc.isJudge }
                 }
             };
@@ -200,7 +191,6 @@ const PanelAllocation = () => {
                 mentoredTeamIds: expertAlloc[catId].mentoredTeamIds || [],
                 isJudge: expertAlloc[catId].isJudge || false
             }));
-
             const response = await fetch(`${API_BASE}/admin/contests/allocations`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", ...headers },
@@ -210,7 +200,10 @@ const PanelAllocation = () => {
                     assignments: assignmentList
                 })
             });
-            if (response.ok) alert("Save successfully!");
+            if (response.ok) {
+                alert("Save successfully!");
+                setSavedAllocations(allocations);
+            }
             else alert("Save Error");
         } catch {
             alert("Save Fail!");
@@ -241,29 +234,21 @@ const PanelAllocation = () => {
                     <div className="header-selectors">
                         <div className="selector-group">
                             <label className="selector-label">Contest</label>
-                            <select
-                                className="form-select-styled"
-                                value={selectedContestId}
+                            <select className="form-select-styled" value={selectedContestId}
                                 onChange={e => setSelectedContestId(e.target.value)}
-                            >
-                                <option value="">-- Choose Contest --</option>
-                                {contests.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                            ><option value="">-- Choose Contest --</option>
+                                {contests.map(c => ( <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
                         </div>
 
                         <div className="selector-group">
                             <label className="selector-label">Round</label>
-                            <select
-                                className="form-select-styled"
-                                value={selectedRoundId}
+                            <select className="form-select-styled" value={selectedRoundId}
                                 onChange={e => setSelectedRoundId(e.target.value)}
                                 disabled={rounds.length === 0}
-                            >
-                                <option value="">-- Choose Round --</option>
-                                {rounds.map(r => (
-                                    <option key={r.roundId} value={r.roundId}>{r.roundName}</option>
+                            ><option value="">-- Choose Round --</option>
+                                {rounds.map(r => ( <option key={r.roundId} value={r.roundId}>{r.roundName}</option>
                                 ))}
                             </select>
                         </div>
@@ -289,18 +274,14 @@ const PanelAllocation = () => {
                             <span className="panel-badge">{filteredExperts.length} Active</span>
                         </div>
                         <div className="search-inner-wrapper">
-                            <input
-                                type="text"
-                                className="search-input"
-                                placeholder="Find Mentor"
-                                value={searchQuery}
+                            <input type="text" className="search-input"
+                                placeholder="Find Mentor" value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
                         </div>
                         <div className="expert-list">
                             {filteredExperts.map(expert => (
-                                <div
-                                    key={expert.userId}
+                                <div key={expert.userId}
                                     className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
                                     onClick={() => setSelectedExpertId(expert.userId)}
                                 >
@@ -338,9 +319,7 @@ const PanelAllocation = () => {
                                                 const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
                                                 return (
                                                     <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isChecked}
+                                                        <input type="checkbox" checked={isChecked}
                                                             onChange={() => handleGlobalTeamToggle(team.id)}
                                                             disabled={isMentorDisabled}
                                                         />
@@ -360,26 +339,23 @@ const PanelAllocation = () => {
                                     {roundCategoryId ? (
                                         <table className="judge-pure-table">
                                             <thead>
-                                                <tr>
-                                                    <th>Category</th>
-                                                    <th className="center">grading status</th>
-                                                </tr>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th className="center">grading status</th>
+                                            </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td><strong>{selectedRound?.categoryName}</strong></td>
-                                                    <td className="center">
-                                                        <label className="ui-switch-blue">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isJudgeForRound}
-                                                                onChange={handleJudgeToggle}
-                                                                disabled={isJudgeDisabled}
-                                                            />
-                                                            <span className="slider"></span>
-                                                        </label>
-                                                    </td>
-                                                </tr>
+                                            <tr>
+                                                <td><strong>{selectedRound?.categoryName}</strong></td>
+                                                <td className="center">
+                                                    <label className="ui-switch-blue">
+                                                        <input type="checkbox" checked={isJudgeForRound}
+                                                            onChange={handleJudgeToggle} disabled={isJudgeDisabled}
+                                                        />
+                                                        <span className="slider"></span>
+                                                    </label>
+                                                </td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     ) : <p>This round has not been assigned a category yet.</p>}
@@ -406,27 +382,27 @@ const PanelAllocation = () => {
                             ) : (
                                 <table className="judge-pure-table" style={{ width: '100%' }}>
                                     <thead>
-                                        <tr>
-                                            <th style={{width: '20%'}}>Role</th>
-                                            <th style={{width: '35%'}}>Name</th>
-                                            <th>Assigned Teams (Mentors only)</th>
-                                        </tr>
+                                    <tr>
+                                        <th style={{width: '20%'}}>Role</th>
+                                        <th style={{width: '35%'}}>Name</th>
+                                        <th>Assigned Teams (Mentors only)</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {overviewJudges.map((judge, idx) => (
-                                            <tr key={`judge-${judge.userId}-${idx}`}>
-                                                <td><span style={{background: '#e0e7ff', color: '#3730a3', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Judge</span></td>
-                                                <td>{judge.fullName || judge.username}</td>
-                                                <td style={{color: '#94a3b8'}}>-</td>
-                                            </tr>
-                                        ))}
-                                        {overviewMentors.map((mentorData, idx) => (
-                                            <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
-                                                <td><span style={{background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Mentor</span></td>
-                                                <td>{mentorData.expert.fullName || mentorData.expert.username}</td>
-                                                <td>{mentorData.teams.join(', ')}</td>
-                                            </tr>
-                                        ))}
+                                    {overviewJudges.map((judge, idx) => (
+                                        <tr key={`judge-${judge.userId}-${idx}`}>
+                                            <td><span style={{background: '#e0e7ff', color: '#3730a3', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Judge</span></td>
+                                            <td>{judge.fullName || judge.username}</td>
+                                            <td style={{color: '#94a3b8'}}>-</td>
+                                        </tr>
+                                    ))}
+                                    {overviewMentors.map((mentorData, idx) => (
+                                        <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
+                                            <td><span style={{background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Mentor</span></td>
+                                            <td>{mentorData.expert.fullName || mentorData.expert.username}</td>
+                                            <td>{mentorData.teams.join(', ')}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             )}
