@@ -39,7 +39,7 @@ public class TeamService{
                 .build();
         team.generateTeamCode();
         team = teamRepository.save(team);
-        auditLogService.log("CREATE_TEAM", "Team", team.getId(), null, team.getStatus(), "Leader: " + leaderUsername);
+        auditLogService.log("CREATE_TEAM", "Team", team.getId(), null, team.getStatus(), "Created by: " + leaderUsername);
 
         TeamMembership memberMembership = TeamMembership.builder()
                 .team(team)
@@ -121,7 +121,7 @@ public class TeamService{
                     .build();
         }).toList();
 
-        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
+        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 999;
         long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
 
         return TeamStatusResponse.builder()
@@ -226,7 +226,8 @@ public class TeamService{
             team.setStatus("APPROVED");
         }
         team = teamRepository.save(team);
-        auditLogService.log("REGISTER_TEAM", "Team", team.getId(), null, team.getStatus(), "Registered by: " + username);
+        String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty() ? " - Leader assigned: " + request.getLeaderStudentId() : "";
+        auditLogService.log("REGISTER_TEAM", "Team", team.getId(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -303,7 +304,7 @@ public class TeamService{
             deadline = nearestDeadline;
         }
 
-        int maxMembers = 5;
+        int maxMembers = (roundContest != null && roundContest.getMaxTeamMembers() != null) ? roundContest.getMaxTeamMembers() : 999;
 
         List<WorkspaceResponse.AnnouncementDto> realAnnouncements = announcementRepository
                 .findByIsActiveTrueOrderByPublishedAtDesc()
@@ -354,6 +355,9 @@ public class TeamService{
         team.setStatus(newStatus);
         teamRepository.save(team);
         auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getId(), null, team.getStatus(), "Updated by admin");
+        if ("CANCELLED".equalsIgnoreCase(newStatus) || "CANCELED".equalsIgnoreCase(newStatus)) {
+            auditLogService.logCancelTeam(team.getId(), currentStatus, "Team status cancelled by admin");
+        }
 
         if("APPROVED".equalsIgnoreCase(status)) {
             List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
@@ -371,7 +375,7 @@ public class TeamService{
                         leader.getRoles().add(leaderRole);
                     }
                     userRepository.save(leader);
-
+                    auditLogService.logChangeUserRole(leader.getId(), "STUDENT", "LEADER", "Promoted upon team approval");
                 }
             }
         } else if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
@@ -390,6 +394,7 @@ public class TeamService{
                         leader.getRoles().add(studentRole);
                     }
                     userRepository.save(leader);
+                    auditLogService.logChangeUserRole(leader.getId(), "LEADER", "STUDENT", "Reverted role due to team rejection/cancellation");
                 }
             }
         }
@@ -669,7 +674,7 @@ public class TeamService{
         // Validate capacity: đếm APPROVED + PENDING
         Contest contest = team.getContest();
         int maxCapacity = contest != null && contest.getMaxTeamMembers() != null
-                ? contest.getMaxTeamMembers() : 5;
+                ? contest.getMaxTeamMembers() : 999;
         long currentCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                 java.util.List.of("APPROVED", "PENDING"));
         if (currentCount >= maxCapacity) {
@@ -731,6 +736,7 @@ public class TeamService{
         TeamMembership membership = teamMembershipRepository.findByInvitationToken(request.getInvitationToken())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid invitation token."));
 
+        // Validate token thuộc về user đang đăng nhập
         if (!membership.getStudent().getId().equals(user.getId())) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "This invitation token does not belong to your account.");
@@ -747,7 +753,7 @@ public class TeamService{
             Team team = membership.getTeam();
             Contest contest = team.getContest();
             int maxCapacity = contest != null && contest.getMaxTeamMembers() != null
-                    ? contest.getMaxTeamMembers() : 5;
+                    ? contest.getMaxTeamMembers() : 999;
             long approvedCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                     java.util.List.of("APPROVED"));
             if (approvedCount >= maxCapacity) {

@@ -26,6 +26,7 @@ public class PartnerAdminService {
     private final ContestRepository contestRepository;
     private final StudentVerificationDataRepository studentVerificationDataRepository;
     private final com.fpt.shms.be.repository.StudentRepository studentRepository;
+    private final AuditLogService auditLogService;
 
     public List<UniversityDto> getPartnersByContest(Long contestId) {
         List<ContestUniversity> cuList = contestUniversityRepository.findByContestId(contestId);
@@ -118,6 +119,7 @@ public class PartnerAdminService {
             sv.setIsCurrentStudent(dto.getIsCurrentStudent() != null ? dto.getIsCurrentStudent() : true);
 
             studentVerificationDataRepository.save(sv);
+            auditLogService.logUpdateStudentVerification(sv.getId() != null ? sv.getId() : 0L, "OLD_DATA", "UPDATED_DATA", "Partner admin updated student verification data for " + sv.getStudentCode());
         }
     }
 
