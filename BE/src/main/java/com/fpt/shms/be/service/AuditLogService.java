@@ -20,7 +20,6 @@ public class AuditLogService {
 
     public static final String ACTION_CHANGE_USER_ROLE = "CHANGE_USER_ROLE";
     public static final String ACTION_UPDATE_STUDENT_VERIFICATION = "UPDATE_STUDENT_VERIFICATION";
-    public static final String ACTION_FORCE_KICK_MEMBER = "FORCE_KICK_MEMBER";
     public static final String ACTION_CANCEL_TEAM = "CANCEL_TEAM";
     public static final String ACTION_UPDATE_SUBMISSION_DEADLINE = "UPDATE_SUBMISSION_DEADLINE";
     public static final String ACTION_EDIT_SUBMITTED_SCORE = "EDIT_SUBMITTED_SCORE";

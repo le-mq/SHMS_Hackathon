@@ -204,21 +204,21 @@ public class JudgeService {
                 currentRound = roundRepository.findById(roundId).orElse(null);
             }
             if (currentRound == null) {
-                 currentRound = roundRepository.findByContestIdOrderBySubmissionOpenAsc(team.getContest().getId()).stream().findFirst().orElse(null);
+                currentRound = roundRepository.findByContestIdOrderBySubmissionOpenAsc(team.getContest().getId()).stream().findFirst().orElse(null);
             }
             if (currentRound == null) {
                 throw new IllegalArgumentException("Cannot create a dummy submission without a valid round");
             }
-            
+
             latestSubmission = Submission.builder()
-                .team(team)
-                .round(currentRound)
-                .status("AUTO_ZERO")
-                .version(1)
-                .submittedAt(java.time.LocalDateTime.now())
-                .build();
+                    .team(team)
+                    .round(currentRound)
+                    .status("MISSED_DEADLINE")
+                    .version(1)
+                    .submittedAt(java.time.LocalDateTime.now())
+                    .build();
             latestSubmission = submissionRepository.save(latestSubmission);
-            
+
             auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Submission", null, "CREATED", "Judge opened evaluation for non-submitted team");
         }
 

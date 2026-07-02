@@ -583,13 +583,13 @@ public class TeamService{
                     .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                     .orElse(null);
 
-            boolean hasSubmitted = latestSub != null && !"AUTO_ZERO".equals(latestSub.getStatus());
-            String state = hasSubmitted ? latestSub.getStatus() : (roundStatus.equals("CLOSED") ? "AUTO_ZERO" : "Not Submitted");
+            boolean hasSubmitted = latestSub != null && !"MISSED_DEADLINE".equals(latestSub.getStatus());
+            String state = hasSubmitted ? latestSub.getStatus() : (roundStatus.equals("CLOSED") ? "MISSED_DEADLINE" : "Not Submitted");
 
             if (hasSubmitted) {
                 submittedCount++;
             } else {
-                if (state.equals("AUTO_ZERO")) {
+                if (state.equals("MISSED_DEADLINE")) {
                     notSubmittedCount++;
                 } else {
                     awaitingCount++;

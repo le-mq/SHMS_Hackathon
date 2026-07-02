@@ -191,7 +191,7 @@ public class SubmissionService {
                 List<Score> scores = scoreRepository.findBySubmissionId(s.getId());
 
                 List<Score> judgeScores = scores.stream()
-                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()) && !"AUTO_ZERO".equals(sc.getStatus()) && sc.getGeneralFeedback() != null && !sc.getGeneralFeedback().isEmpty())
+                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()) && !"MISSED_DEADLINE".equals(sc.getStatus()) && sc.getGeneralFeedback() != null && !sc.getGeneralFeedback().isEmpty())
                         .toList();
 
                 if (!judgeScores.isEmpty()) {
@@ -377,9 +377,9 @@ public class SubmissionService {
                     .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
                     .toList();
 
-            boolean isAutoZero = "AUTO_ZERO".equals(sub.getStatus()) || judgeScores.stream().anyMatch(sc -> "AUTO_ZERO".equals(sc.getStatus()));
+            boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus()) || judgeScores.stream().anyMatch(sc -> "MISSED_DEADLINE".equals(sc.getStatus()));
             List<Score> validJudgeScores = judgeScores.stream()
-                    .filter(sc -> !"AUTO_ZERO".equals(sc.getStatus()))
+                    .filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus()))
                     .toList();
 
             boolean isGraded = !validJudgeScores.isEmpty();
