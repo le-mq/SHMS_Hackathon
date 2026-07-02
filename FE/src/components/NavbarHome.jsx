@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import './NavbarHome.css';
 
 export default function NavbarHome() {
+    const navigate = useNavigate();
+
     return (
         <nav className="ph-nav">
             <div className="ph-nav-inner">

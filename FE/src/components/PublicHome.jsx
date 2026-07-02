@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import './PublicHome.css';
 import NavbarHome from './NavbarHome.jsx';
-import NavbarStudent from './NavbarStudent';
-import NavbarMentor from './NavbarMentor';
-import NavbarJudge from './NavbarJudge';
-import NavbarAdmin from './NavbarAdmin';
+
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
@@ -174,16 +171,9 @@ export default function PublicHome() {
         );
     }
 
-    const role = localStorage.getItem('shms_role');
-    const renderNavbar = () => {
-        const navbars = { ADMIN: <NavbarAdmin />,
-            JUDGE: <NavbarJudge />, MENTOR: <NavbarMentor />, STUDENT: <NavbarStudent />, LEADER: <NavbarStudent /> };
-        return navbars[role] || <NavbarHome />;
-    };
-
     return (
         <div className="ph-page">
-            {renderNavbar()}
+            <NavbarHome />
             <section className="ph-hero">
                 <div className="ph-hero-inner">
                     <div>
