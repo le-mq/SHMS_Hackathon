@@ -313,7 +313,7 @@ const TeamRegistrationApproval = () => {
                                 <div className="stat-label" >REJECTED & CANCELED</div>
                                 <div className="stat-value">
                                     {filteredTeams.filter(t =>
-                                        t.status === 'Canceled' || t.status === 'Rejected' || (t.status || '').toLowerCase() === 'rejected'
+                                        t.status === 'Canceled' || t.status === 'Rejected' || (t.status || '').toUpperCase() === 'CANCELED'
                                     ).length} Teams
                                 </div>
                             </div>
