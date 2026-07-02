@@ -180,31 +180,38 @@ const EvaluationWorkspace = () => {
                             </div>
                         )}
                         <div className="criteria-list">
-                            {(evalData?.criteria || []).map((crit, idx) => {
-                                const rawId = crit.id?.criteriaId || crit.id?.rubricId || crit.criterionId || crit.id;
-                                const currentId = rawId ? Number(rawId) : 0;
-                                return (
-                                    <div className="criteria-item" key={currentId || idx}>
-                                        <div className="criteria-header">
-                                            <div className="crit-left">
-                                                <span className="crit-name">{crit.criteriaName || crit.name}</span>
-                                                <span className="crit-desc">{crit.description}</span>
+                            {(!evalData?.criteria || evalData.criteria.length === 0) ? (
+                                <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 12px auto', color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>No Evaluation Rubric Configured</p>
+                                </div>
+                            ) : (
+                                evalData.criteria.map((crit, idx) => {
+                                    const rawId = crit.id?.criteriaId || crit.id?.rubricId || crit.criterionId || crit.id;
+                                    const currentId = rawId ? Number(rawId) : 0;
+                                    return (
+                                        <div className="criteria-item" key={currentId || idx}>
+                                            <div className="criteria-header">
+                                                <div className="crit-left">
+                                                    <span className="crit-name">{crit.criteriaName || crit.name}</span>
+                                                    <span className="crit-desc">{crit.description}</span>
+                                                </div>
+                                                <div className="crit-right">
+                                                    <span className="crit-weight">Weight: {crit.weight || crit.percentageWeight}%</span>
+                                                    <input type="number" className="score-input"
+                                                           placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
+                                                           onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="crit-right">
-                                                <span className="crit-weight">Weight: {crit.weight || crit.percentageWeight}%</span>
-                                                <input type="number" className="score-input"
-                                                       placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
-                                                       onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
-                                                />
-                                            </div>
+                                            <textarea className="crit-feedback" placeholder="Feedback Critique..."
+                                                      value={scores[idx]?.feedback || ''}
+                                                      onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
+                                            ></textarea>
                                         </div>
-                                        <textarea className="crit-feedback" placeholder="Feedback Critique..."
-                                                  value={scores[idx]?.feedback || ''}
-                                                  onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
-                                        ></textarea>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })
+                            )}
                         </div>
 
                         <div className="rubric-footer">
