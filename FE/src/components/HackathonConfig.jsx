@@ -46,11 +46,10 @@ function HackathonConfig() {
             max: `${currentYear}-${config.maxTime}`
         };
     };
-
     const getSemesterFromDate = (dateStr) => {
         const month = new Date(dateStr).getMonth() + 1;
-        if (month >= 2 && month <= 5) return 'SPRING';
-        if (month >= 6 && month <= 9) return 'SUMMER';
+        if (month >= 1 && month <= 4) return 'SPRING';
+        if (month >= 5 && month <= 8) return 'SUMMER';
         return 'FALL';
     };
 
@@ -81,8 +80,8 @@ function HackathonConfig() {
             location: '', contestStartAt: '', publishedAt: '', universities: [],
             categories: [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'UNSAVED'}],
             rounds: [{id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '',
-            gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: 'UNSAVED',
-            submissionRequirements: [], roundFormat: ''}]
+                gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: 'UNSAVED',
+                submissionRequirements: [], roundFormat: ''}]
         },
         validationSchema: Yup.object().shape({
             name: Yup.string().required('Event Name is required'),
@@ -220,35 +219,33 @@ function HackathonConfig() {
                 setSelectedContestId(currentContestId);
                 for (const category of values.categories) {
                     const categoryRounds = values.rounds.filter(r => String(r.categoryId) === String(category.id));
-                    if (categoryRounds.length > 0) {
-                        const trackRes = await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                            body: JSON.stringify({
-                                contestId: currentContestId,
-                                categoryName: category.trackName,
-                                trackDescription: category.trackDescription || 'No description',
-                                guidelineUrl: category.guidelineUrl || '',
-                                status: computedContestStatus,
-                                rounds: categoryRounds.map((r, rIndex) => ({
-                                    id: String(r.id).startsWith('-') ? null : r.id,
-                                    phaseName: r.phaseName,
-                                    roundOrder: rIndex + 1,
-                                    submissionOpen: (r.submissionOpen && r.submissionOpen.length === 16) ? r.submissionOpen + ':00' : (r.submissionOpen || null),
-                                    submissionDeadline: (r.submissionDeadline && r.submissionDeadline.length === 16) ? r.submissionDeadline + ':00' : (r.submissionDeadline || null),
-                                    gradingOpenAt: (r.gradingOpenAt && r.gradingOpenAt.length === 16) ? r.gradingOpenAt + ':00' : (r.gradingOpenAt || null),
-                                    gradingDeadlineAt: (r.gradingDeadlineAt && r.gradingDeadlineAt.length === 16) ? r.gradingDeadlineAt + ':00' : (r.gradingDeadlineAt || null),
-                                    publishResultAt: (r.publishResultAt && r.publishResultAt.length === 16) ? r.publishResultAt + ':00' : (r.publishResultAt || null),
-                                    state: computedContestStatus === 'CLOSED' ? 'CLOSED' : determineStatus(r.submissionOpen, r.submissionDeadline),
-                                    submissionRequirements: Array.isArray(r.submissionRequirements) ? r.submissionRequirements.join(',') : r.submissionRequirements || '',
-                                    roundFormat: r.roundFormat || ''
-                                }))
-                            })
-                        });
-                        if (!trackRes.ok) {
-                            const errData = await trackRes.json();
-                            throw new Error(errData.error || `Failed to save rounds for category: ${category.trackName}`);
-                        }
+                    const trackRes = await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                        body: JSON.stringify({
+                            contestId: currentContestId,
+                            categoryName: category.trackName,
+                            trackDescription: category.trackDescription || 'No description',
+                            guidelineUrl: category.guidelineUrl || '',
+                            status: computedContestStatus,
+                            rounds: categoryRounds.map((r, rIndex) => ({
+                                id: String(r.id).startsWith('-') ? null : r.id,
+                                phaseName: r.phaseName,
+                                roundOrder: rIndex + 1,
+                                submissionOpen: (r.submissionOpen && r.submissionOpen.length === 16) ? r.submissionOpen + ':00' : (r.submissionOpen || null),
+                                submissionDeadline: (r.submissionDeadline && r.submissionDeadline.length === 16) ? r.submissionDeadline + ':00' : (r.submissionDeadline || null),
+                                gradingOpenAt: (r.gradingOpenAt && r.gradingOpenAt.length === 16) ? r.gradingOpenAt + ':00' : (r.gradingOpenAt || null),
+                                gradingDeadlineAt: (r.gradingDeadlineAt && r.gradingDeadlineAt.length === 16) ? r.gradingDeadlineAt + ':00' : (r.gradingDeadlineAt || null),
+                                publishResultAt: (r.publishResultAt && r.publishResultAt.length === 16) ? r.publishResultAt + ':00' : (r.publishResultAt || null),
+                                state: computedContestStatus === 'CLOSED' ? 'CLOSED' : determineStatus(r.submissionOpen, r.submissionDeadline),
+                                submissionRequirements: Array.isArray(r.submissionRequirements) ? r.submissionRequirements.join(',') : r.submissionRequirements || '',
+                                roundFormat: r.roundFormat || ''
+                            }))
+                        })
+                    });
+                    if (!trackRes.ok) {
+                        const errData = await trackRes.json();
+                        throw new Error(errData.error || `Failed to save rounds for category: ${category.trackName}`);
                     }
                 }
                 setStatus({success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!'});
@@ -582,7 +579,7 @@ function HackathonConfig() {
                                 <div className="config-card" style={{marginBottom: '24px'}}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[0]?.id || '', submissionOpen: '', submissionDeadline: '', gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: '', roundFormat: '' }])}>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[formik.values.categories.length - 1]?.id || '', submissionOpen: '', submissionDeadline: '', gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: '', roundFormat: '' }])}>
                                             <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Round
                                         </Button>}
                                     </div>
