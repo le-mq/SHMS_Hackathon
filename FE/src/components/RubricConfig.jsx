@@ -100,8 +100,15 @@ const RubricConfig = () => {
     const startEdit = (tpl, isOfficial) => {
         const binding = contestRubrics.find(cr => cr.templateId == tpl.id && (!selectedContestId || cr.contestId == selectedContestId) && (!selectedCategoryId || cr.categoryId == selectedCategoryId))
             || contestRubrics.find(cr => cr.templateId == tpl.id);
+
+        let initialName = tpl.name;
+        if (initialName.includes('(Copy)')) {
+            initialName = initialName.replace(' (Copy)', '').trim();
+        }
+
         setEditingTemplate({
             ...JSON.parse(JSON.stringify(tpl)),
+            name: initialName,
             isOfficialBinding: isOfficial,
             bindContestId: binding ? String(binding.contestId) : '',
             bindCategoryId: binding ? String(binding.categoryId) : (tpl.categoryId ? String(tpl.categoryId) : (tpl.category ? String(tpl.category.id) : '')),
@@ -247,9 +254,15 @@ const RubricConfig = () => {
             <div className="config-wrapper">
                 <div className="rubric-page-header">
                     <div>
-                        <h1 className="config-title">Rubric Bank and Evaluation Templates</h1>
+                        <h1 className="config-title">Rubric Configuration</h1>
                         <p className="config-subtitle">Manage reusable scoring criteria for each contest category.</p>
                     </div>
+                    {editorMode === null && (
+                        <button className="rt-btn-primary" onClick={startNew}>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                            New Template
+                        </button>
+                    )}
                 </div>
                 {!editorMode && error && <div className="alert-main alert-error">{error}</div>}
                 {!editorMode && success && <div className="alert-main alert-success">{success}</div>}
@@ -274,14 +287,27 @@ const RubricConfig = () => {
                 {(() => {
                     const renderCard = (tpl, isOfficial) => {
                         const isActived = contestRubrics.some(cr => cr.templateId === tpl.id);
+                        const isClone = tpl.name.includes('(Copy)');
+
+                        let cardClass = "rt-card";
+                        if (isClone) {
+                            cardClass += " rt-card-clone";
+                        } else if (isOfficial) {
+                            cardClass += " rt-card-official";
+                        } else {
+                            cardClass += " rt-card-draft";
+                        }
+
                         return (
-                            <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className="rt-card">
+                            <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className={cardClass}>
                                 <div className="rt-card-top">
                                     <div className="rt-card-icon">
                                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                     </div>
                                     <div className="rt-card-info">
-                                        <h3 className="rt-card-name">{tpl.name} {isOfficial && <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 6, fontWeight: 500 }}>(Official)</span>}</h3>
+                                        <h3 className="rt-card-name">
+                                            {tpl.name.replace(' (Copy)', '')}
+                                        </h3>
                                         <p className="rt-card-desc">{tpl.description || 'No description'}</p>
                                     </div>
                                 </div>
@@ -302,11 +328,13 @@ const RubricConfig = () => {
                     };
 
                     const bankTemplates = templates.filter(tpl => tpl.status !== 'ACTIVE' && !contestRubrics.some(cr => cr.templateId == tpl.id));
+                    const cloneTemplates = bankTemplates.filter(tpl => tpl.name.includes('(Copy)'));
+                    const draftTemplates = bankTemplates.filter(tpl => !tpl.name.includes('(Copy)'));
                     return (
                         <>
                             {officialTemplates.length > 0 && editorMode === null && (
                                 <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>
+                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#15803d', marginBottom: 16, borderBottom: '2px solid #dcfce7', paddingBottom: 8 }}>
                                         {selectedContestId ? 'Official Contest Rubrics' : 'All Official Contest Rubrics'}
                                     </h2>
                                     <div className="rt-card-grid">{officialTemplates.map(tpl => renderCard(tpl, true))}</div>
@@ -314,24 +342,26 @@ const RubricConfig = () => {
                             )}
                             {editorMode === null && (
                                 <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16, borderBottom: '1px solid #e5e7eb', paddingBottom: 8 }}>Rubric Template Bank</h2>
-                                    {bankTemplates.length > 0 ? (
-                                        <div className="rt-card-grid">{bankTemplates.map(tpl => renderCard(tpl, false))}</div>
-                                    ) : (<div className="rt-empty" style={{ marginBottom: 24 }}>
-                                        <svg width="48" height="48" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                        <p>No rubric templates found in bank.</p>
-                                    </div>)}
+                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#c2410c', marginBottom: 16, borderBottom: '2px solid #ffedd5', paddingBottom: 8 }}>
+                                        Draft Rubrics
+                                    </h2>
+                                    {draftTemplates.length > 0 ? (
+                                        <div className="rt-card-grid">{draftTemplates.map(tpl => renderCard(tpl, false))}</div>
+                                    ) : (<div className="rt-empty" style={{ marginBottom: 24 }}><p>No draft templates found.</p></div>)}
+                                </div>
+                            )}
+                            {editorMode === null && cloneTemplates.length > 0 && (
+                                <div style={{ marginBottom: 32 }}>
+                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#4b5563', marginBottom: 16, borderBottom: '2px solid #e5e7eb', paddingBottom: 8 }}>
+                                        Clone Templates
+                                    </h2>
+                                    <div className="rt-card-grid">{cloneTemplates.map(tpl => renderCard(tpl, false))}</div>
                                 </div>
                             )}
                         </>
                     );
                 })()}
-                {editorMode === null && (
-                    <button className="rt-btn-primary" style={{ marginBottom: 24 }} onClick={startNew}>
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                        New Template
-                    </button>
-                )}
+
 
                 {editorMode && editingTemplate && (
                     <div className="rubric-grid">

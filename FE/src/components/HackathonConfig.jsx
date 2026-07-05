@@ -13,6 +13,17 @@ function HackathonConfig() {
     const [allUniversities, setAllUniversities] = useState([]);
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [availableSubReqs, setAvailableSubReqs] = useState([
+        {value: 'githubUrl', label: 'Source Code / GitHub Repository'},
+        {value: 'demoUrl', label: 'Live Demo / Video Link'},
+        {value: 'documentUrl', label: 'Project Documentation'},
+        {value: 'slideUrl', label: 'Presentation Slides'}
+    ]);
+    const [availableRoundFormats, setAvailableRoundFormats] = useState([
+        'On-site Submission', 'Remote Submission', 'In-booth Presentation', 'Stage Presentation'
+    ]);
+    const [customSubReqInput, setCustomSubReqInput] = useState({});
+    const [customFormatInput, setCustomFormatInput] = useState({});
     const todayStr = new Date().toISOString().slice(0, 10);
     const determineStatus = (startDateStr, endDateStr) => {
         if (!startDateStr || !endDateStr) return 'UPCOMING';
@@ -76,11 +87,11 @@ function HackathonConfig() {
         initialValues: {
             name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(), regionScope: 'Ha Noi',
             maximumAllowedTeams: 100, minTeamMembers: 3, maxTeamMembers: 5, registrationStart: '', registrationEnd: '', contestEndAt: '',
-            complianceRules: [''], tieredPrizeStructures: [{rank: '', amount: ''}], status: 'UNSAVED',
+            complianceRules: [{rule: '', penalty: ''}], tieredPrizeStructures: [{rank: '', amount: ''}], status: 'UNSAVED',
             location: '', contestStartAt: '', publishedAt: '', universities: [],
             categories: [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'UNSAVED'}],
             rounds: [{id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '',
-                gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: 'UNSAVED',
+                gradingDeadlineAt: '', publishResultAt: '', state: 'UNSAVED',
                 submissionRequirements: [], roundFormat: ''}]
         },
         validationSchema: Yup.object().shape({
@@ -143,17 +154,9 @@ function HackathonConfig() {
                             const contestEnd = this.from[1].value.contestEndAt;
                             return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
                         }),
-                    gradingOpenAt: Yup.date().required('Grading Open time is required')
+                    gradingDeadlineAt: Yup.date().required('Grading Deadline is required')
                         .test('is-after-sub-dl', 'Must be after Submission Deadline', function(val) {
                             return (!val || !this.parent.submissionDeadline) || new Date(val) > new Date(this.parent.submissionDeadline);
-                        })
-                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
-                            const contestEnd = this.from[1].value.contestEndAt;
-                            return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
-                        }),
-                    gradingDeadlineAt: Yup.date().required('Grading Deadline is required')
-                        .test('is-after-grad-op', 'Must be after Grading Open time', function(val) {
-                            return (!val || !this.parent.gradingOpenAt) || new Date(val) > new Date(this.parent.gradingOpenAt);
                         })
                         .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
                             const contestEnd = this.from[1].value.contestEndAt;
@@ -206,7 +209,7 @@ function HackathonConfig() {
                     headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                     body: JSON.stringify({ ...values, id: currentContestId || null, status: computedContestStatus,
                         allowedCorporateDomains: values.universities.join(','),
-                        complianceRules: JSON.stringify(values.complianceRules.filter(r => r.trim() !== '')),
+                        complianceRules: JSON.stringify(values.complianceRules.filter(r => r.rule.trim() !== '')),
                         tieredPrizeStructures: JSON.stringify(values.tieredPrizeStructures.filter(p => p.rank.trim() !== '' || p.amount.trim() !== '')),
                         contestEndAt: (values.contestEndAt && values.contestEndAt.length === 16) ? values.contestEndAt + ':00' : (values.contestEndAt || null),
                         contestStartAt: (values.contestStartAt && values.contestStartAt.length === 16) ? values.contestStartAt + ':00' : (values.contestStartAt || null),
@@ -234,7 +237,6 @@ function HackathonConfig() {
                                 roundOrder: rIndex + 1,
                                 submissionOpen: (r.submissionOpen && r.submissionOpen.length === 16) ? r.submissionOpen + ':00' : (r.submissionOpen || null),
                                 submissionDeadline: (r.submissionDeadline && r.submissionDeadline.length === 16) ? r.submissionDeadline + ':00' : (r.submissionDeadline || null),
-                                gradingOpenAt: (r.gradingOpenAt && r.gradingOpenAt.length === 16) ? r.gradingOpenAt + ':00' : (r.gradingOpenAt || null),
                                 gradingDeadlineAt: (r.gradingDeadlineAt && r.gradingDeadlineAt.length === 16) ? r.gradingDeadlineAt + ':00' : (r.gradingDeadlineAt || null),
                                 publishResultAt: (r.publishResultAt && r.publishResultAt.length === 16) ? r.publishResultAt + ':00' : (r.publishResultAt || null),
                                 state: computedContestStatus === 'CLOSED' ? 'CLOSED' : determineStatus(r.submissionOpen, r.submissionDeadline),
@@ -317,13 +319,34 @@ function HackathonConfig() {
                                         categoryId: catId,
                                         submissionOpen: r.submissionOpen ? r.submissionOpen.slice(0, 16) : '',
                                         submissionDeadline: r.submissionDeadline ? r.submissionDeadline.slice(0, 16) : '',
-                                        gradingOpenAt: r.gradingOpenAt ? r.gradingOpenAt.slice(0, 16) : '',
                                         gradingDeadlineAt: r.gradingDeadlineAt ? r.gradingDeadlineAt.slice(0, 16) : '',
                                         publishResultAt: r.publishResultAt ? r.publishResultAt.slice(0, 16) : '',
                                         state: r.status || r.state || 'UPCOMING',
                                         submissionRequirements: r.submissionRequirements ? r.submissionRequirements.split(',') : [],
                                         roundFormat: r.roundFormat || ''
                                     });
+                                    if (r.submissionRequirements) {
+                                        const rReqs = r.submissionRequirements.split(',');
+                                        setAvailableSubReqs(prev => {
+                                            const next = [...prev];
+                                            let changed = false;
+                                            rReqs.forEach(req => {
+                                                if (!next.some(p => p.value === req)) {
+                                                    next.push({value: req, label: req});
+                                                    changed = true;
+                                                }
+                                            });
+                                            return changed ? next : prev;
+                                        });
+                                    }
+                                    if (r.roundFormat) {
+                                        setAvailableRoundFormats(prev => {
+                                            if (!prev.includes(r.roundFormat)) {
+                                                return [...prev, r.roundFormat];
+                                            }
+                                            return prev;
+                                        });
+                                    }
                                 }
                             });
                         }
@@ -334,7 +357,7 @@ function HackathonConfig() {
                     fetchedRounds = fetchedCategories.map((cat, idx) => ({
                         id: -(idx + 1), phaseName: `Round ${idx + 1}`,
                         categoryId: cat.id, submissionOpen: '', submissionDeadline: '',
-                        gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: 'UPCOMING',
+                        gradingDeadlineAt: '', publishResultAt: '', state: 'UPCOMING',
                         submissionRequirements: [], roundFormat: ''
                     }));
                 }
@@ -346,7 +369,7 @@ function HackathonConfig() {
                     registrationStart: data.registrationStart ? data.registrationStart.slice(0, 10) : '',
                     registrationEnd: data.registrationEnd ? data.registrationEnd.slice(0, 10) : '',
                     contestEndAt: data.contestEndAt ? data.contestEndAt.slice(0, 16) : '',
-                    complianceRules: data.complianceRules ? (() => { try { return JSON.parse(data.complianceRules); } catch(e) { return ['']; } })() : [''],
+                    complianceRules: data.complianceRules ? (() => { try { return JSON.parse(data.complianceRules); } catch(e) { return [{rule: '', penalty: ''}]; } })() : [{rule: '', penalty: ''}],
                     tieredPrizeStructures: data.tieredPrizeStructures ? (() => { try { return JSON.parse(data.tieredPrizeStructures); } catch(e) { return [{rank: '', amount: ''}]; } })() : [{rank: '', amount: ''}],
                     location: data.location || '',
                     contestStartAt: data.contestStartAt ? data.contestStartAt.slice(0, 16) : '',
@@ -579,7 +602,7 @@ function HackathonConfig() {
                                 <div className="config-card" style={{marginBottom: '24px'}}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[formik.values.categories.length - 1]?.id || '', submissionOpen: '', submissionDeadline: '', gradingOpenAt: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: '', roundFormat: '' }])}>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[formik.values.categories.length - 1]?.id || '', submissionOpen: '', submissionDeadline: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: '', roundFormat: '' }])}>
                                             <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Round
                                         </Button>}
                                     </div>
@@ -628,13 +651,8 @@ function HackathonConfig() {
                                                                 </Form.Group>
                                                             </div>
                                                             <div className="form-group mt-3">
-                                                                <Form.Label style={{fontSize: '12px'}}>Grading Open Time <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingOpenAt`} className="form-input" value={round.gradingOpenAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingOpenAt && !!roundErrors?.gradingOpenAt} disabled={!round.submissionDeadline || isClosedContest}/>
-                                                                {roundTouched?.gradingOpenAt && roundErrors?.gradingOpenAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.gradingOpenAt}</div>}
-                                                            </div>
-                                                            <div className="form-group mt-3">
                                                                 <Form.Label style={{fontSize: '12px'}}>Grading Deadline <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingOpenAt || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.gradingOpenAt || isClosedContest}/>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.submissionDeadline || isClosedContest}/>
                                                                 {roundTouched?.gradingDeadlineAt && roundErrors?.gradingDeadlineAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.gradingDeadlineAt}</div>}
                                                             </div>
                                                             <div className="form-group mt-3">
@@ -645,23 +663,42 @@ function HackathonConfig() {
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                                                                 <Form.Group>
                                                                     <Form.Label style={{fontSize: '12px'}}>Round Format</Form.Label>
+                                                                    {!isClosedContest && (
+                                                                        <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
+                                                                            <Form.Control type="text" placeholder="Custom format..." value={customFormatInput[index] || ''} onChange={(e) => setCustomFormatInput({...customFormatInput, [index]: e.target.value})} style={{fontSize: '12px'}}/>
+                                                                            <Button variant="secondary" size="sm" onClick={() => {
+                                                                                const val = customFormatInput[index]?.trim();
+                                                                                if (val && !availableRoundFormats.includes(val)) {
+                                                                                    setAvailableRoundFormats([...availableRoundFormats, val]);
+                                                                                    formik.setFieldValue(`rounds[${index}].roundFormat`, val);
+                                                                                }
+                                                                                setCustomFormatInput({...customFormatInput, [index]: ''});
+                                                                            }}>Add</Button>
+                                                                        </div>
+                                                                    )}
                                                                     <Form.Select name={`rounds[${index}].roundFormat`} className="form-select" value={round.roundFormat || ''} onChange={formik.handleChange} disabled={isClosedContest}>
                                                                         <option value="">-- Select Format --</option>
-                                                                        <option value="On-site Submission">On-site Submission</option>
-                                                                        <option value="Remote Submission">Remote Submission</option>
-                                                                        <option value="In-booth Presentation">In-booth Presentation</option>
-                                                                        <option value="Stage Presentation">Stage Presentation</option>
+                                                                        {availableRoundFormats.map((fmt, i) => (
+                                                                            <option key={i} value={fmt}>{fmt}</option>
+                                                                        ))}
                                                                     </Form.Select>
                                                                 </Form.Group>
                                                                 <Form.Group>
                                                                     <Form.Label style={{fontSize: '12px'}}>Submission Requirements</Form.Label>
+                                                                    {!isClosedContest && (
+                                                                        <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
+                                                                            <Form.Control type="text" placeholder="New requirement..." value={customSubReqInput[index] || ''} onChange={(e) => setCustomSubReqInput({...customSubReqInput, [index]: e.target.value})} style={{fontSize: '12px'}}/>
+                                                                            <Button variant="secondary" size="sm" onClick={() => {
+                                                                                const val = customSubReqInput[index]?.trim();
+                                                                                if (val && !availableSubReqs.some(r => r.value === val)) {
+                                                                                    setAvailableSubReqs([...availableSubReqs, {value: val, label: val}]);
+                                                                                }
+                                                                                setCustomSubReqInput({...customSubReqInput, [index]: ''});
+                                                                            }}>Add</Button>
+                                                                        </div>
+                                                                    )}
                                                                     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                                                                        {[
-                                                                            {value: 'githubUrl', label: 'Source Code / GitHub Repository'},
-                                                                            {value: 'demoUrl', label: 'Live Demo / Video Link'},
-                                                                            {value: 'documentUrl', label: 'Project Documentation'},
-                                                                            {value: 'slideUrl', label: 'Presentation Slides'}
-                                                                        ].map(req => (
+                                                                        {availableSubReqs.map(req => (
                                                                             <Form.Check
                                                                                 key={req.value} type="checkbox" label={req.label}
                                                                                 name={`rounds[${index}].submissionRequirements`}
@@ -687,16 +724,17 @@ function HackathonConfig() {
                                 <div className="config-card">
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <div className="section-label" style={{marginBottom: 0}}>Compliance Rules</div>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('complianceRules', [...formik.values.complianceRules, ''])}>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('complianceRules', [...formik.values.complianceRules, {rule: '', penalty: ''}])}>
                                             + Add Rule
                                         </Button>}
                                     </div>
                                     <FieldArray name="complianceRules">
                                         {() => (
                                             <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                                                {formik.values.complianceRules.map((rule, idx) => (
+                                                {formik.values.complianceRules.map((item, idx) => (
                                                     <div key={idx} style={{display: 'flex', gap: '8px'}}>
-                                                        <Form.Control type="text" name={`complianceRules[${idx}]`} className="form-input" value={rule} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Rule ${idx + 1}`}/>
+                                                        <Form.Control type="text" name={`complianceRules[${idx}].rule`} className="form-input" value={item.rule} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Rule Description ${idx + 1}`}/>
+                                                        <Form.Control type="text" name={`complianceRules[${idx}].penalty`} className="form-input" value={item.penalty} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Default Penalty (Optional)`}/>
                                                         {formik.values.complianceRules.length > 1 && !isClosedContest && (
                                                             <button type="button" onClick={() => formik.setFieldValue('complianceRules', formik.values.complianceRules.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, marginTop: '5px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Rule">&#10005;</button>
                                                         )}
