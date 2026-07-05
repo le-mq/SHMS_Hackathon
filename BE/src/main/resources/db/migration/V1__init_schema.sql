@@ -224,6 +224,7 @@ CREATE TABLE Team (
                       created_at DATETIME NULL CONSTRAINT df_team_created_at DEFAULT GETDATE(),
                       contest_id BIGINT NULL,
                       status VARCHAR(50) NULL,
+                      penalty_details NVARCHAR(MAX) NULL,
                       CONSTRAINT pk_team PRIMARY KEY (team_id),
                       CONSTRAINT uq_team_code UNIQUE (team_code),
                       CONSTRAINT fk_team_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id)
@@ -268,7 +269,6 @@ CREATE TABLE [Round] (
     round_order INT NULL,
     submission_open_at DATETIME NOT NULL,
     submission_deadline_at DATETIME NOT NULL,
-    grading_open_at DATETIME NULL,
     grading_deadline_at DATETIME NULL,
     publish_result_at DATETIME NULL,
     status VARCHAR(50) NOT NULL,

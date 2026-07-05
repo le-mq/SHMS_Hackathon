@@ -44,9 +44,6 @@ public class Round {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private Category category;
 
-    @Column(name = "grading_open_at")
-    private java.time.LocalDateTime gradingOpenAt;
-
     @Column(name = "grading_deadline_at")
     private java.time.LocalDateTime gradingDeadlineAt;
 
