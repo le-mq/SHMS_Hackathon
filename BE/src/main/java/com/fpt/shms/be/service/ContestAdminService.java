@@ -56,7 +56,6 @@ public class ContestAdminService {
                         roundMap.put("phaseName", r.getPhaseName());
                         roundMap.put("submissionOpen", r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
                         roundMap.put("submissionDeadline", r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
-                        roundMap.put("gradingOpenAt", r.getGradingOpenAt() != null ? r.getGradingOpenAt().toString() : "");
                         roundMap.put("gradingDeadlineAt", r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
                         roundMap.put("publishResultAt", r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
@@ -359,7 +358,6 @@ public class ContestAdminService {
             java.time.LocalDateTime oldDeadline = round.getSubmissionDeadline();
             round.setSubmissionOpen(roundDto.getSubmissionOpen());
             round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
-            round.setGradingOpenAt(roundDto.getGradingOpenAt());
             round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
             round.setPublishResultAt(roundDto.getPublishResultAt());
             round.setState(state);

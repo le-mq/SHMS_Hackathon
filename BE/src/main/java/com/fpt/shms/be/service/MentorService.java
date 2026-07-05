@@ -72,7 +72,7 @@ public class MentorService {
                     for (Round r : categoryRounds) {
                         java.time.LocalDateTime roundEnd = r.getPublishResultAt() != null ? r.getPublishResultAt() :
                                 (r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt() :
-                                 (r.getGradingOpenAt() != null ? r.getGradingOpenAt() : r.getSubmissionDeadline()));
+                                 (r.getSubmissionDeadline()));
 
                         if (roundEnd != null && now.isBefore(roundEnd)) {
                             targetRound = r;
@@ -85,7 +85,7 @@ public class MentorService {
                 }
 
                 if (targetRound != null) {
-                    java.time.LocalDateTime deadline = targetRound.getGradingOpenAt() != null ? targetRound.getGradingOpenAt() : targetRound.getSubmissionDeadline();
+                    java.time.LocalDateTime deadline = targetRound.getSubmissionDeadline();
                     if (deadline != null) {
                         categoryFeedbackDeadline.put(category.getId(), deadline.toString());
                     }
@@ -129,9 +129,7 @@ public class MentorService {
                     if (targetRound.getState() == Round.RoundState.CLOSED) {
                         canGiveFeedback = false;
                     } else {
-                        java.time.LocalDateTime gradingOpen = targetRound.getGradingOpenAt() != null
-                                ? targetRound.getGradingOpenAt()
-                                : targetRound.getSubmissionDeadline();
+                        java.time.LocalDateTime gradingOpen = targetRound.getSubmissionDeadline();
 
                         if (gradingOpen != null) {
                             canGiveFeedback = now.isBefore(gradingOpen);
@@ -211,8 +209,6 @@ public class MentorService {
 
         Submission submission = submissionRepository.findById(request.getSubmissionId())
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
-
-        // Validate: mentor quản lý team
         Team team = submission.getTeam();
         List<TeamMentor> mentorTeams = teamMentorRepository.findByMentorId(mentor.getId());
         boolean isAssigned = mentorTeams.stream()
@@ -221,11 +217,9 @@ public class MentorService {
             throw new IllegalArgumentException("You are not assigned to mentor this team.");
         }
 
-        // Validate: thời gian trước khi judge chấm
         Round round = submission.getRound();
         if (round != null) {
-            java.time.LocalDateTime gradingOpen = round.getGradingOpenAt() != null ? round.getGradingOpenAt()
-                    : round.getSubmissionDeadline();
+            java.time.LocalDateTime gradingOpen = round.getSubmissionDeadline();
             if (gradingOpen != null && java.time.LocalDateTime.now().isAfter(gradingOpen)) {
                 throw new IllegalArgumentException("Feedback window is closed as official grading has started.");
             }

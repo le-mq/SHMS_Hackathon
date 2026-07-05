@@ -150,7 +150,6 @@ public class JudgeService {
                         .roundName(round.getPhaseName())
                         .submissionState(submissionState)
                         .themeClass("ai")
-                        .gradingOpenAt(round.getGradingOpenAt())
                         .gradingDeadlineAt(round.getGradingDeadlineAt())
                         .roundFormat(round.getRoundFormat() != null ? round.getRoundFormat() : "Not Specified")
                         .build());
@@ -282,11 +281,6 @@ public class JudgeService {
         Round round = submission.getRound();
         if (round != null) {
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
-
-            if (round.getGradingOpenAt() != null && now.isBefore(round.getGradingOpenAt())) {
-                throw new IllegalArgumentException("It is not yet time to grade. Please return later!");
-            }
-
             if (round.getGradingDeadlineAt() != null && now.isAfter(round.getGradingDeadlineAt())) {
                 throw new IllegalArgumentException("The grading deadline has passed. The system is now closed!");
             }

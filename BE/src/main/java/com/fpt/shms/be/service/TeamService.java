@@ -828,5 +828,30 @@ public class TeamService{
             return map;
         }).toList();
     }
+    @Transactional
+    public void applyPenaltyToTeam(com.fpt.shms.be.dto.ApplyPenaltyRequest request) {
+        Team team = teamRepository.findById(request.getTeamId())
+                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.Map<String, String> details = new java.util.HashMap<>();
+            details.put("rule", request.getPenaltyRule());
+            details.put("penalty", request.getPenaltyApplied());
+            details.put("note", request.getPenaltyNote());
+            details.put("appliedAt", java.time.LocalDateTime.now().toString());
+
+            java.util.List<java.util.Map<String, String>> existingList = new java.util.ArrayList<>();
+            if (team.getPenaltyDetails() != null && !team.getPenaltyDetails().isBlank()) {
+                existingList = mapper.readValue(team.getPenaltyDetails(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {});
+            }
+            existingList.add(details);
+            team.setPenaltyDetails(mapper.writeValueAsString(existingList));
+            teamRepository.save(team);
+
+            auditLogService.log("APPLY_PENALTY", "Team", team.getName(), null, request.getPenaltyApplied(), "Penalty applied for rule: " + request.getPenaltyRule());
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing penalty details", e);
+        }
+    }
 }

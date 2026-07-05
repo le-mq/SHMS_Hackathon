@@ -39,6 +39,9 @@ public class Team {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "penalty_details", columnDefinition = "JSON")
+    private String penaltyDetails;
+
     @PrePersist
     public void generateTeamCode() {
         if (this.teamCode == null) {
