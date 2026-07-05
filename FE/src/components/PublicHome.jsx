@@ -54,9 +54,11 @@ function ContestCard({ contest, onSelectContest }) {
             )}
 
             <div className="ph-contest-action">
-                {status === 'CLOSED' ? (
-                    <button className="ph-btn-card ph-btn-card-closed" disabled>Contest Closed</button>
-                ) : (<button className="ph-btn-card" onClick={() => onSelectContest(contest)}>Details</button>)}
+                <button
+                    className={`ph-btn-card ${status === 'CLOSED' ? 'ph-btn-card-closed' : ''}`}
+                    onClick={() => onSelectContest(contest)}
+                >View Details
+                </button>
             </div>
         </div>
     );
@@ -69,9 +71,20 @@ function renderComplianceRules(rulesStr) {
         if (!Array.isArray(rules) || rules.length === 0) return 'No rules specified.';
         return (
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {rules.map((rule, idx) => (
-                    <li key={idx} style={{ marginBottom: '8px' }}>{rule}</li>
-                ))}
+                {rules.map((r, idx) => {
+                    if (typeof r === 'string') {
+                        return <li key={idx} style={{ marginBottom: '8px' }}>{r}</li>;
+                    } else if (typeof r === 'object' && r !== null) {
+                        const penaltyText = r.penalty ? ` (Penalty: ${r.penalty})` : "";
+                        return (
+                            <li key={idx} style={{ marginBottom: '8px' }}>
+                                <strong>{r.rule}</strong>
+                                <span>{penaltyText}</span>
+                            </li>
+                        );
+                    }
+                    return null;
+                })}
             </ul>
         );
     } catch (e) {
@@ -117,7 +130,7 @@ function renderRequirements(reqsStr) {
         } else {
             reqsArray = String(reqsStr).split(',').map(s => s.trim());
         }
-    } catch(e) {
+    } catch (e) {
         reqsArray = String(reqsStr).split(',').map(s => s.trim());
     }
 
@@ -220,10 +233,11 @@ export default function PublicHome() {
                     {filteredContests.length === 0 ? (
                         <div className="ph-no-data">No contests found matching your search.</div>
                     ) : (<div className="ph-contests-grid">
-                            {filteredContests.map(c => ( <ContestCard key={c.id} contest={c}
-                                                                      onSelectContest={() => { setSelectedContest(c);
-                                                                          document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                                                                      }}/>))}
+                            {filteredContests.map(c => (<ContestCard key={c.id} contest={c}
+                                                                     onSelectContest={() => {
+                                                                         setSelectedContest(c);
+                                                                         document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                                                     }} />))}
                         </div>
                     )}
                 </div>

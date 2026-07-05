@@ -3,55 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './MentorCategory.css';
 import LatestAnnouncements from './LatestAnnouncements';
 
-const FeedbackCountdown = ({ deadline, roundState }) => {
-    const [timeLeft, setTimeLeft] = useState('');
-    const [status, setStatus] = useState('');
-    useEffect(() => {
-        if (roundState === 'CLOSED') {
-            setStatus('ROUND CLOSED');
-            setTimeLeft('Grading Finished');
-            return;
-        }
-        if (!deadline) {
-            setStatus('NO DEADLINE');
-            setTimeLeft('');
-            return;
-        }
-        const target = new Date(deadline).getTime();
-        const update = () => {
-            const now = new Date().getTime();
-            const diff = target - now;
-            if (diff > 0) {
-                setStatus('FEEDBACK OPEN');
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const m = Math.floor((diff / 1000 / 60) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                setTimeLeft(`${d}d ${h}h ${m}m ${s}s`);
-            } else {
-                setStatus('FEEDBACK CLOSED');
-                setTimeLeft('Grading in progress');
-            }
-        };
-        update();
-        const interval = setInterval(update, 1000);
-        return () => clearInterval(interval);
-    }, [deadline]);
-    if (!deadline) return null;
-    const isClosed = status === 'FEEDBACK CLOSED' || status === 'ROUND CLOSED';
-    return (
-        <div style={{ marginTop: '16px', background: isClosed ? '#fee2e2' : '#f0fdf4', border: `1px solid ${isClosed ? '#fca5a5' : '#bbf7d0'}`, borderRadius: '8px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: isClosed ? '#991b1b' : '#166534', letterSpacing: '0.05em' }}>{status}</div>
-                {!isClosed && <div style={{ fontSize: '12px', color: '#166534', marginTop: '2px' }}>Until Grading Starts</div>}
-            </div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: isClosed ? '#7f1d1d' : '#15803d', fontVariantNumeric: 'tabular-nums' }}>
-                {timeLeft}
-            </div>
-        </div>
-    );
-};
-
 const MentorCategory = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
@@ -212,14 +163,12 @@ const MentorCategory = () => {
                                 <div className="progress-bar-fill" style={{ width: `${track.completionPercentage}%` }}></div>
                             </div>
                             <div className="progress-label">{track.completionPercentage}% teams submitted</div>
-                            <FeedbackCountdown deadline={track.feedbackDeadline} roundState={track.targetRoundState} />
                             {track.targetRoundId && (
                                 <button
                                     className="mentor-view-round-btn"
-                                    onClick={() => navigate(`/evaluator/evaluate/preview?roundId=${track.targetRoundId}&readonly=true`)}
+                                    onClick={() => navigate(`/judge/evaluate/preview?roundId=${track.targetRoundId}&readonly=true`)}
                                     style={{ marginTop: '12px', width: '100%', padding: '10px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                                >View Round Details
-                                </button>
+                                >View Round Details</button>
                             )}
                         </div>
                     ))}
@@ -254,7 +203,8 @@ const MentorCategory = () => {
                             <th>LEADER NAME</th>
                             <th>PROGRESS</th>
                             <th>PRODUCT</th>
-                            <th>FEEDBACK</th>
+                            <th>FEEDBACK STATUS</th>
+                            <th>ACTION</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -285,19 +235,21 @@ const MentorCategory = () => {
                                     </td>
                                     <td>
                                         {canGiveFeedback ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                    {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
-                                                </span>
-                                                <button onClick={() => {
-                                                    setFeedbackTeamId(team.teamId);
-                                                    setFeedbackSubmissionId(team.submissionId || team.teamId);
-                                                    setFeedbackContent(team.mentorFeedback || '');
-                                                    setFeedbackMessage('');
-                                                }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                    {team.hasGivenFeedback ? 'Edit' : 'Review'}
-                                                </button>
-                                            </div>
+                                            <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
+                                            </span>
+                                        ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                    </td>
+                                    <td>
+                                        {canGiveFeedback ? (
+                                            <button onClick={() => {
+                                                setFeedbackTeamId(team.teamId);
+                                                setFeedbackSubmissionId(team.submissionId || team.teamId);
+                                                setFeedbackContent(team.mentorFeedback || '');
+                                                setFeedbackMessage('');
+                                            }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
+                                            </button>
                                         ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
                                     </td>
                                 </tr>
@@ -305,7 +257,7 @@ const MentorCategory = () => {
                         })}
                         {filteredTeams.length === 0 && (
                             <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
                             </tr>
                         )}
                         </tbody>
