@@ -35,12 +35,11 @@ public class PublicHomeService {
     public PublicHomeResponse getHomeData() {
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        List<Contest> activeContests = contestRepository.findAll().stream()
-                .filter(c -> c.getStatus() == Contest.ContestStatus.ACTIVED || c.getStatus() == Contest.ContestStatus.UPCOMING)
+        List<Contest> allPublishedContests = contestRepository.findAll().stream()
                 .filter(c -> c.getPublishedAt() == null || !now.isBefore(c.getPublishedAt()))
                 .toList();
 
-        List<ContestDTO> contests = activeContests.stream()
+        List<ContestDTO> contests = allPublishedContests.stream()
                 .map(c -> {
                     List<com.fpt.shms.be.model.Category> categoriesModel = categoryRepository.findByContestId(c.getId());
                     List<com.fpt.shms.be.model.Round> contestRounds = roundRepository.findByContestId(c.getId());
@@ -51,7 +50,6 @@ public class PublicHomeService {
                                         r.getPhaseName(),
                                         r.getSubmissionOpen(),
                                         r.getSubmissionDeadline(),
-                                        null,
                                         r.getGradingDeadlineAt(),
                                         r.getPublishResultAt(),
                                         r.getSubmissionRequirements(),
@@ -65,7 +63,6 @@ public class PublicHomeService {
                                     r.getPhaseName(),
                                     r.getSubmissionOpen(),
                                     r.getSubmissionDeadline(),
-                                    null,
                                     r.getGradingDeadlineAt(),
                                     r.getPublishResultAt(),
                                     r.getSubmissionRequirements(),
@@ -76,7 +73,7 @@ public class PublicHomeService {
                 })
                 .toList();
 
-        List<String> scopes = activeContests.stream()
+        List<String> scopes = allPublishedContests.stream()
                 .map(Contest::getRegionScope)
                 .filter(java.util.Objects::nonNull)
                 .map(String::trim)

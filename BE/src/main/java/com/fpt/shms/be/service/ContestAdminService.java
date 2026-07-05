@@ -107,7 +107,6 @@ public class ContestAdminService {
         response.put("location", contest.getLocation() != null ? contest.getLocation() : "");
         response.put("publishedAt", contest.getPublishedAt() != null ? contest.getPublishedAt().toString() : "");
         response.put("contestStartAt", contest.getContestStartAt() != null ? contest.getContestStartAt().toString() : "");
-
         response.put("universities", domains);
         response.put("tracks", tracks);
 

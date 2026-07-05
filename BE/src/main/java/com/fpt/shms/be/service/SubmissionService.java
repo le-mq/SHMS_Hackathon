@@ -366,8 +366,10 @@ public class SubmissionService {
         for (Submission sub : submissions) {
             if (sub.getRound() == null) continue;
 
-            LocalDateTime now = LocalDateTime.now();
-            if (sub.getRound().getPublishResultAt() == null || now.isBefore(sub.getRound().getPublishResultAt())) {
+            boolean isPublished = rankingResultRepository.findByRoundId(sub.getRound().getId()).stream()
+                    .anyMatch(rr -> rr.getDatePublishedAt() != null);
+
+            if (!isPublished) {
                 continue;
             }
 

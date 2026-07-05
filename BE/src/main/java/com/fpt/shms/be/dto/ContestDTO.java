@@ -29,7 +29,6 @@ public record ContestDTO(
             String phaseName,
             java.time.LocalDateTime submissionOpen,
             java.time.LocalDateTime submissionDeadline,
-            java.time.LocalDateTime gradingOpenAt,
             java.time.LocalDateTime gradingDeadlineAt,
             java.time.LocalDateTime publishResultAt,
             String submissionRequirements,
