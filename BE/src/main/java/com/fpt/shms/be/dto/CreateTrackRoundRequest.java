@@ -43,9 +43,6 @@ public class CreateTrackRoundRequest {
         private LocalDateTime submissionDeadline;
 
         @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-        private LocalDateTime gradingOpenAt;
-
-        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime gradingDeadlineAt;
 
         @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -53,7 +50,7 @@ public class CreateTrackRoundRequest {
 
         private String state = "UPCOMING";
 
-        private String submissionRequirements; // JSON: ["github_url", "document_url"]
-        private String roundFormat; // e.g. "Online", "Offline", "Hybrid"
+        private String submissionRequirements;
+        private String roundFormat;
     }
 }

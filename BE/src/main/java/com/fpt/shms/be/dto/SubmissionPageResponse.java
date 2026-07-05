@@ -22,11 +22,8 @@ public class SubmissionPageResponse {
         private String status;
         private LocalDateTime submissionOpen;
         private LocalDateTime submissionDeadline;
-
-        private LocalDateTime gradingOpenAt;
         private LocalDateTime gradingDeadlineAt;
         private LocalDateTime publishResultAt;
-
         private Boolean eligible;
         private String lockedReason;
         private Boolean evaluated;

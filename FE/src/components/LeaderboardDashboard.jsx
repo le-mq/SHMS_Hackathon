@@ -36,6 +36,17 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
     const rawResults = currentBoard?.data?.results || [];
     const top3 = rawResults.slice(0, 3);
     const others = rawResults.slice(3);
+
+    // Check if the selected round is the final round
+    const isFinalRound = rounds.length > 0 && rounds[rounds.length - 1] === selectedRound;
+
+    const getPrizeName = (rank) => {
+        if (!isFinalRound) return null;
+        if (rank === 1) return "First Prize (Nhất)";
+        if (rank === 2) return "Second Prize (Nhì)";
+        if (rank === 3) return "Third Prize (Ba)";
+        return "Consolation Prize (Khuyến khích)";
+    };
     return (
         <div className="leader-content">
             <div style={{ marginBottom: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -66,6 +77,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                         <div className="pod-name">{top3[1].teamName}</div>
                         <div className="pod-score">{top3[1].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
+                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#0ea5e9'}}>{getPrizeName(top3[1].rank)}</div>}
                     </div>
                 )}
                 {top3[0] && (
@@ -74,6 +86,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                         <div className="pod-name">{top3[0].teamName}</div>
                         <div className="pod-score">{top3[0].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
+                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#eab308'}}>{getPrizeName(top3[0].rank)}</div>}
                     </div>
                 )}
                 {top3[2] && (
@@ -82,6 +95,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                         <div className="pod-name">{top3[2].teamName}</div>
                         <div className="pod-score">{top3[2].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
+                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#f97316'}}>{getPrizeName(top3[2].rank)}</div>}
                     </div>
                 )}
             </div>
@@ -93,6 +107,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                     <thead>
                     <tr>
                         <th>Rank</th>
+                        {isFinalRound && <th>Prize</th>}
                         <th>Team Name</th>
                         <th>Category</th>
                         <th>Status</th>
@@ -103,6 +118,7 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
                     {others.map((team, idx) => (
                         <tr key={idx}>
                             <td><div className="rank-box">{team.rank}</div></td>
+                            {isFinalRound && <td style={{fontWeight: 'bold', color: '#64748b'}}>{getPrizeName(team.rank)}</td>}
                             <td><div className="team-main"><div className="team-name-str"><strong>{team.teamName}</strong></div></div></td>
                             <td style={{ fontSize: '13px', color: '#475569' }}>{team.categoryName}</td>
                             <td><span className={`tbl-status ${team.status === 'QUALIFIED' ? 'st-stable' : 'st-steady'}`}>{team.status}</span>
