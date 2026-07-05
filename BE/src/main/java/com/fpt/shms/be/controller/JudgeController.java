@@ -41,6 +41,7 @@ public class JudgeController {
     }
 
     @GetMapping("/evaluation-data/{teamId}")
+    @PreAuthorize("hasAnyAuthority('JUDGE', 'MENTOR')")
     @Operation(summary = "Get Evaluation Data", description = "Returns team submission and rubric.")
     public ResponseEntity<?> getEvaluationData(HttpServletRequest request,
                                                @org.springframework.web.bind.annotation.PathVariable Long teamId,

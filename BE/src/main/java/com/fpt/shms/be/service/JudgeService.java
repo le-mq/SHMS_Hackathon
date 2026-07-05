@@ -30,6 +30,7 @@ public class JudgeService {
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
+    private final TeamMentorRepository teamMentorRepository;
     private final EntityManager entityManager;
 
     @PostConstruct
@@ -206,6 +207,16 @@ public class JudgeService {
                         .orElse(null);
                 if (fallbackCategory != null) {
                     rubric = contestRubricRepository.findFirstByCategoryId(fallbackCategory.getId()).orElse(null);
+                } else {
+                    List<TeamMentor> mentorAssignments = teamMentorRepository.findByMentorId(user.getId());
+                    Category fallbackMentorCat = mentorAssignments.stream()
+                            .map(TeamMentor::getCategory)
+                            .filter(c -> c.getContest() != null && c.getContest().getId().equals(round.getContest().getId()))
+                            .findFirst()
+                            .orElse(null);
+                    if (fallbackMentorCat != null) {
+                        rubric = contestRubricRepository.findFirstByCategoryId(fallbackMentorCat.getId()).orElse(null);
+                    }
                 }
             }
 
