@@ -18,8 +18,13 @@ export default function PrivateRoute({ Component }) {
         if (activeRole !== 'ADMIN') return <Navigate to="/404" replace />;
         NavbarToRender = NavbarAdmin;
     } else if (path.startsWith('/judge')) {
-        if (activeRole !== 'JUDGE') return <Navigate to="/404" replace />;
-        NavbarToRender = NavbarJudge;
+        if (activeRole === 'JUDGE') {
+            NavbarToRender = NavbarJudge;
+        } else if (activeRole === 'MENTOR' && path.startsWith('/judge/evaluate')) {
+            NavbarToRender = NavbarMentor;
+        } else {
+            return <Navigate to="/404" replace />;
+        }
     } else if (path.startsWith('/mentor')) {
         if (activeRole !== 'MENTOR') return <Navigate to="/404" replace />;
         NavbarToRender = NavbarMentor;

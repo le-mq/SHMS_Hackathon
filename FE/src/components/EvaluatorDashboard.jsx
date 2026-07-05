@@ -147,7 +147,7 @@ const EvaluatorDashboard = () => {
 
     return (
         <div className="evaluator-container">
-            <div style={{paddingTop: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
+            <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
             <div className="evaluator-content">
                 <div className="evaluator-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div className="evaluator-header-left" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -216,9 +216,11 @@ const EvaluatorDashboard = () => {
                                     </div>
                                     {roundMap[selectedRound]?.id && (
                                         <button
-                                            onClick={() => navigate(`/evaluator/evaluate/preview?roundId=${roundMap[selectedRound].id}&readonly=true`)}
+                                            onClick={() => navigate(`/judge/evaluate/preview?roundId=${roundMap[selectedRound].id}&readonly=true`)}
                                             style={{ marginTop: '8px', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
-                                        >View Round Details</button>
+                                        >
+                                            View Details
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -323,7 +325,7 @@ const EvaluatorDashboard = () => {
                                         return (
                                             <button className="evaluate-btn"
                                                     onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                Evaluate Team</button>
+                                                Evaluate</button>
                                         );
                                     })()
                                 )}
