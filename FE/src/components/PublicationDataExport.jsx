@@ -111,6 +111,7 @@ const PublicationDataExport = () => {
 
             if (res.ok) {
                 alert('Announcement broadcasted successfully!');
+                window.dispatchEvent(new Event('shms_announcements_updated'));
                 setFormData({
                     ...formData,
                     title: '',
