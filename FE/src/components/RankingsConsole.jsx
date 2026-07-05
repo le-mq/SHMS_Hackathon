@@ -318,7 +318,7 @@ const RankingsConsole = () => {
                         />
                         <button
                             id="btn-generate-ranking"
-                            className={`generate-btn ${isProcessing ? 'processing' : ''}`}
+                            className={`execute-btn ${isProcessing ? 'processing' : ''}`}
                             disabled={!readinessData.allReady || isProcessing || !isTopNValid}
                             onClick={handleGenerate}
                         >
