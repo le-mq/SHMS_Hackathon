@@ -30,6 +30,7 @@ public class JudgeService {
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
+    private final TeamMentorRepository teamMentorRepository;
     private final EntityManager entityManager;
 
     @PostConstruct
@@ -156,12 +157,30 @@ public class JudgeService {
             }
         }
 
+        List<EvaluatorDashboardResponse.RoundDto> roundDtos = new ArrayList<>();
+        List<Long> contestIdsForRounds = finalCategories.stream().map(c -> c.getContest().getId()).distinct().toList();
+        for (Long cId : contestIdsForRounds) {
+            List<Round> cRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(cId);
+            for (Round r : cRounds) {
+                if (r.getCategory() == null || finalCategories.stream().anyMatch(c -> c.getId().equals(r.getCategory().getId()))) {
+                    roundDtos.add(EvaluatorDashboardResponse.RoundDto.builder()
+                            .id(r.getId())
+                            .name(r.getPhaseName())
+                            .format(r.getRoundFormat())
+                            .gradingDeadlineAt(r.getSubmissionDeadline())
+                            .build());
+                }
+            }
+        }
+        roundDtos = roundDtos.stream().distinct().toList();
+
         return EvaluatorDashboardResponse.builder()
                 .assignedTrackCount(categories.size())
                 .totalAllocatedTeams(queue.size())
                 .evaluatedCount(evaluatedCount)
                 .contests(contestDtos)
                 .queue(queue)
+                .rounds(roundDtos)
                 .build();
     }
 
@@ -169,6 +188,56 @@ public class JudgeService {
     public EvaluationDataResponse getEvaluationData(String username, Long teamId, Long roundId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (teamId == 0L) {
+            Round round = roundRepository.findById(roundId)
+                    .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+            List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
+            ContestRubric rubric = null;
+
+            if (round.getCategory() != null) {
+                List<ContestRubric> rubrics = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+                rubric = rubrics.isEmpty() ? null : rubrics.get(0);
+            } else {
+                List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
+                Category fallbackCategory = assignments.stream()
+                        .map(JudgeAssignment::getCategory)
+                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(round.getContest().getId()))
+                        .findFirst()
+                        .orElse(null);
+                if (fallbackCategory != null) {
+                    rubric = contestRubricRepository.findFirstByCategoryId(fallbackCategory.getId()).orElse(null);
+                } else {
+                    List<TeamMentor> mentorAssignments = teamMentorRepository.findByMentorId(user.getId());
+                    Category fallbackMentorCat = mentorAssignments.stream()
+                            .map(TeamMentor::getCategory)
+                            .filter(c -> c.getContest() != null && c.getContest().getId().equals(round.getContest().getId()))
+                            .findFirst()
+                            .orElse(null);
+                    if (fallbackMentorCat != null) {
+                        rubric = contestRubricRepository.findFirstByCategoryId(fallbackMentorCat.getId()).orElse(null);
+                    }
+                }
+            }
+
+            if (rubric != null) {
+                List<ContestRubricDetails> details = contestRubricDetailsRepository.findByContestRubricId(rubric.getId());
+                criteriaDtos = details.stream().map(d -> EvaluationDataResponse.CriteriaDto.builder()
+                        .id(d.getId())
+                        .name(d.getCriteriaName())
+                        .description(d.getDescription())
+                        .weight((int) Math.round(d.getPercentageWeight()))
+                        .build()).collect(Collectors.toList());
+            }
+
+            return EvaluationDataResponse.builder()
+                    .submissionId(null)
+                    .teamName("Rubric Preview")
+                    .status("PREVIEW")
+                    .submissionRequirements(round.getSubmissionRequirements())
+                    .criteria(criteriaDtos)
+                    .build();
+        }
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
@@ -250,7 +319,7 @@ public class JudgeService {
                     .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
-        
+
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
                 .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
@@ -264,6 +333,7 @@ public class JudgeService {
                 .criteria(criteriaDtos)
                 .build();
     }
+
 
     @Transactional
     public void submitScore(String username, SubmitScoreRequest request) {

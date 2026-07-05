@@ -41,6 +41,7 @@ public class JudgeController {
     }
 
     @GetMapping("/evaluation-data/{teamId}")
+    @PreAuthorize("hasAnyAuthority('JUDGE', 'MENTOR')")
     @Operation(summary = "Get Evaluation Data", description = "Returns team submission and rubric.")
     public ResponseEntity<?> getEvaluationData(HttpServletRequest request,
                                                @org.springframework.web.bind.annotation.PathVariable Long teamId,
@@ -54,6 +55,7 @@ public class JudgeController {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
+
 
     @GetMapping("/profile")
     @Operation(summary = "Get Judge Profile", description = "Retrieves the profile of the currently authenticated judge.")

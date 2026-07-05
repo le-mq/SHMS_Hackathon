@@ -50,6 +50,7 @@ public class MentorService {
             java.util.Map<Long, Integer> categorySubmittedCount = new java.util.HashMap<>();
             java.util.Map<Long, String> categoryFeedbackDeadline = new java.util.HashMap<>();
             java.util.Map<Long, String> categoryRoundState = new java.util.HashMap<>();
+            java.util.Map<Long, Long> categoryRoundId = new java.util.HashMap<>();
 
             for (TeamMentor tmAlloc : contestTMs) {
                 Team team = tmAlloc.getTeam();
@@ -92,6 +93,7 @@ public class MentorService {
                 }
                 if (targetRound != null && targetRound.getState() != null) {
                     categoryRoundState.put(category.getId(), targetRound.getState().name());
+                    categoryRoundId.put(category.getId(), targetRound.getId());
                 }
 
                 List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
@@ -182,6 +184,7 @@ public class MentorService {
                         .completionPercentage(completionPercentage)
                         .feedbackDeadline(categoryFeedbackDeadline.get(category.getId()))
                         .targetRoundState(categoryRoundState.get(category.getId()))
+                        .targetRoundId(categoryRoundId.get(category.getId()))
                         .build());
             }
 
