@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './EvaluationWorkspace.css';
 
 const EvaluationWorkspace = () => {
@@ -8,6 +8,8 @@ const EvaluationWorkspace = () => {
     const [evalData, setEvalData] = useState(null);
     const [scores, setScores] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const location = useLocation();
+    const isReadonly = new URLSearchParams(location.search).get('readonly') === 'true';
 
     useEffect(() => {
         const fetchEvalData = async () => {
@@ -15,9 +17,14 @@ const EvaluationWorkspace = () => {
                 const token = localStorage.getItem('shms_token');
                 const urlParams = new URLSearchParams(window.location.search);
                 const roundId = urlParams.get('roundId');
-                let fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`;
-                if (roundId) {
-                    fetchUrl += `?roundId=${roundId}`;
+                let fetchUrl = '';
+                if (teamId === 'preview' && roundId) {
+                    fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/0?roundId=${roundId}`;
+                } else {
+                    fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`;
+                    if (roundId) {
+                        fetchUrl += `?roundId=${roundId}`;
+                    }
                 }
                 const response = await fetch(fetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -201,12 +208,14 @@ const EvaluationWorkspace = () => {
                                                     <input type="number" className="score-input"
                                                            placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
                                                            onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
+                                                           disabled={isReadonly}
                                                     />
                                                 </div>
                                             </div>
                                             <textarea className="crit-feedback" placeholder="Feedback Critique..."
                                                       value={scores[idx]?.feedback || ''}
                                                       onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
+                                                      disabled={isReadonly}
                                             ></textarea>
                                         </div>
                                     );
@@ -221,10 +230,17 @@ const EvaluationWorkspace = () => {
                                     {calculateWeightedTotal()} <span>/ 100</span>
                                 </div>
                             </div>
-                            <button className="save-btn" disabled={!isComplete || isSubmitting} onClick={handleSubmit}>
-                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                {isSubmitting ? 'Saving...' : 'Save and Lock Scores'}
-                            </button>
+                            {isReadonly ? (
+                                <button className="save-btn" disabled style={{ background: '#e2e8f0', color: '#64748b' }}>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    Read Only View
+                                </button>
+                            ) : (
+                                <button className="save-btn" disabled={!isComplete || isSubmitting} onClick={handleSubmit}>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    {isSubmitting ? 'Saving...' : 'Save and Lock Scores'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

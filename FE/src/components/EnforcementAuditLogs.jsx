@@ -2,10 +2,31 @@ import { useState, useEffect } from 'react';
 import './EnforcementAuditLogs.css';
 
 const ACTION_TYPE_STYLES = {
+    CREATE: 'at-create',
+    UPDATE: 'at-update',
+    UPDATE_CATEGORY: 'at-update',
+    UPDATE_CONTEST: 'at-update',
+    DELETE: 'at-delete',
     DISQUALIFICATION: 'at-disqualify',
+    PENALTY: 'at-penalty',
+    BAN: 'at-ban',
     SCORE_REVOCATION: 'at-revoke',
-    SYSTEM_CONFIG: 'at-config',
+    SYSTEM_CONFIG: 'at-default',
     ACCESS_GRANT: 'at-access',
+    PUBLISH_LEADERBOARD: 'at-publish',
+    ALLOCATE_EXPERT: 'at-allocate',
+    DEFAULT: 'at-default'
+};
+
+const getActionStyle = (type) => {
+    if (!type) return ACTION_TYPE_STYLES.DEFAULT;
+    const t = type.toUpperCase();
+    if (ACTION_TYPE_STYLES[t]) return ACTION_TYPE_STYLES[t];
+    if (t.includes('CREATE') || t.includes('ADD')) return ACTION_TYPE_STYLES.CREATE;
+    if (t.includes('UPDATE') || t.includes('EDIT')) return ACTION_TYPE_STYLES.UPDATE;
+    if (t.includes('DELETE') || t.includes('REMOVE')) return ACTION_TYPE_STYLES.DELETE;
+    if (t.includes('PENALTY') || t.includes('BAN')) return ACTION_TYPE_STYLES.BAN;
+    return ACTION_TYPE_STYLES.DEFAULT;
 };
 
 const ACTION_TYPE_LABELS = {
@@ -177,7 +198,7 @@ const EnforcementAuditLogs = () => {
                                     <tr key={idx}>
                                         <td className="log-id">{log.id}</td>
                                         <td>
-                                                <span className={`action-type-badge ${ACTION_TYPE_STYLES[log.actionType] || 'at-config'}`}>
+                                                <span className={`action-type-badge ${getActionStyle(log.actionType)}`}>
                                                     {ACTION_TYPE_LABELS[log.actionType] || log.actionType}
                                                 </span>
                                         </td>
