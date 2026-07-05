@@ -26,6 +26,7 @@ import ProjectSubmission from "../components/ProjectSubmission.jsx";
 import EnforcementAuditLogs from "../components/EnforcementAuditLogs.jsx";
 import NotFound from "../components/NotFound.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
+import CompetitionRegistration from "../components/CompetitionRegistration.jsx";
 
 function AppRouters() {
     const routers = createBrowserRouter([
@@ -61,7 +62,8 @@ function AppRouters() {
                 { path: "student/results", element: <PrivateRoute Component={StandingsFeedback} /> },
                 { path: "student/dashboard", element: <PrivateRoute Component={StudentDashboard} /> },
                 { path: "student/profile", element: <PrivateRoute Component={StudentProfile} /> },
-                { path: "student/submission", element: <PrivateRoute Component={ProjectSubmission} /> }
+                { path: "student/submission", element: <PrivateRoute Component={ProjectSubmission} /> },
+                { path: "student/competitions", element: <PrivateRoute Component={CompetitionRegistration} /> }
             ]
         },
         { path: "404", Component: NotFound },
