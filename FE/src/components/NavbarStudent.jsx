@@ -6,6 +6,7 @@ import LatestAnnouncements from './LatestAnnouncements';
 
 const STUDENT_LINKS = [
     { label: 'Dashboard', path: '/student/dashboard' },
+    { label: 'Competitions', path: '/student/competitions' },
     { label: 'My Team', path: '/student/team/status' },
     { label: 'Submission', path: '/student/submission' },
     { label: 'Results', path: '/student/results' },
