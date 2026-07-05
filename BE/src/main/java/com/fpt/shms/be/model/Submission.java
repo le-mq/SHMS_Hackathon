@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Entity
 @Table(name = "Submission")
@@ -27,17 +31,8 @@ public class Submission {
     @JoinColumn(name = "round_id", referencedColumnName = "round_id", nullable = true)
     private Round round;
 
-    @Column(name = "github_url")
-    private String projectRepositoryUrl;
-
-    @Column(name = "demo_url")
-    private String demoVideoUrl;
-
-    @Column(name = "document_url")
-    private String documentationUrl;
-
-    @Column(name = "slide_url")
-    private String presentationSlideUrl;
+    @Column(name = "submission_data", columnDefinition = "NVARCHAR(MAX)")
+    private String submissionData;
 
     @Column(name = "version")
     private Integer version;
@@ -57,4 +52,52 @@ public class Submission {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", referencedColumnName = "user_id")
     private User mentor;
+
+    @Transient
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    @Transient
+    private String getFieldValue(String key) {
+        if (submissionData == null || submissionData.isEmpty()) return null;
+        try {
+            Map<String, String> map = mapper.readValue(submissionData, new TypeReference<Map<String, String>>() {});
+            return map.get(key);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Transient
+    private void setFieldValue(String key, String value) {
+        try {
+            Map<String, String> map = new HashMap<>();
+            if (submissionData != null && !submissionData.isEmpty()) {
+                map = mapper.readValue(submissionData, new TypeReference<Map<String, String>>() {});
+            }
+            map.put(key, value);
+            submissionData = mapper.writeValueAsString(map);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    @Transient
+    public String getProjectRepositoryUrl() { return getFieldValue("githubRepoUrl"); }
+    @Transient
+    public void setProjectRepositoryUrl(String url) { setFieldValue("githubRepoUrl", url); }
+
+    @Transient
+    public String getDemoVideoUrl() { return getFieldValue("liveDemoUrl"); }
+    @Transient
+    public void setDemoVideoUrl(String url) { setFieldValue("liveDemoUrl", url); }
+
+    @Transient
+    public String getDocumentationUrl() { return getFieldValue("docsUrl"); }
+    @Transient
+    public void setDocumentationUrl(String url) { setFieldValue("docsUrl", url); }
+
+    @Transient
+    public String getPresentationSlideUrl() { return getFieldValue("slideUrl"); }
+    @Transient
+    public void setPresentationSlideUrl(String url) { setFieldValue("slideUrl", url); }
 }

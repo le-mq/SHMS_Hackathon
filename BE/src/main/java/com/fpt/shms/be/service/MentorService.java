@@ -131,13 +131,7 @@ public class MentorService {
                     if (targetRound.getState() == Round.RoundState.CLOSED) {
                         canGiveFeedback = false;
                     } else {
-                        java.time.LocalDateTime gradingOpen = targetRound.getSubmissionDeadline();
-
-                        if (gradingOpen != null) {
-                            canGiveFeedback = now.isBefore(gradingOpen);
-                        } else {
-                            canGiveFeedback = true;
-                        }
+                        canGiveFeedback = true;
                     }
                 }
 
@@ -191,6 +185,7 @@ public class MentorService {
             responses.add(MentorTrackResponse.builder()
                     .contestId(contest.getId())
                     .contestName(contest.getName())
+                    .contestStatus(contest.getStatus() != null ? contest.getStatus().name() : null)
                     .trackOverviews(trackOverviews)
                     .allocatedTeams(allocatedTeams)
                     .build());

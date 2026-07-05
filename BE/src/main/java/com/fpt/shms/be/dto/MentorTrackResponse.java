@@ -9,6 +9,7 @@ import java.util.List;
 public class MentorTrackResponse {
     private Long contestId;
     private String contestName;
+    private String contestStatus;
     private List<TrackOverviewDto> trackOverviews;
     private List<AssignedTeamDto> allocatedTeams;
 
