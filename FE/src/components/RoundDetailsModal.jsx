@@ -1,0 +1,120 @@
+import React, { useState, useEffect } from 'react';
+
+const RoundDetailsModal = ({ roundId, onClose }) => {
+    const [evalData, setEvalData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    const formatRequirements = (reqs) => {
+        if (!reqs) return 'No specific requirements documented.';
+        return reqs.split(',').map(r => {
+            const t = r.trim();
+            if (t === 'githubRepoUrl') return 'GitHub Repository';
+            if (t === 'liveDemoUrl') return 'Live Demo URL';
+            if (t === 'slideUrl') return 'Presentation Slides';
+            if (t === 'docsUrl') return 'Documentation';
+            if (t === 'videoUrl') return 'Video URL';
+            return t;
+        }).join(' • ');
+    };
+
+    useEffect(() => {
+        if (!roundId) return;
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('shms_token');
+                const fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/0?roundId=${roundId}`;
+                const response = await fetch(fetchUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to fetch details');
+                const result = await response.json();
+                setEvalData(result);
+            } catch (err) {
+                console.error(err);
+                setError('Failed to load round details.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [roundId]);
+
+    return (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+            <div style={{ background: '#fff', borderRadius: '12px', width: '700px', maxWidth: '90%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+                <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+                    <h2 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700 }}>Round Details & Rubric</h2>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b', lineHeight: 1 }}>&times;</button>
+                </div>
+
+                <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', color: '#64748b', padding: '40px 0' }}>Loading details...</div>
+                    ) : error ? (
+                        <div style={{ textAlign: 'center', color: '#ef4444', padding: '40px 0' }}>{error}</div>
+                    ) : evalData ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {evalData.contestName && (
+                                <div>
+                                    <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contest Information</h3>
+                                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                        <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#0f172a' }}>{evalData.contestName}</h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#475569' }}>
+                                            {evalData.contestTheme && <div><strong>Theme:</strong> {evalData.contestTheme}</div>}
+                                            {evalData.contestLocation && <div><strong>Location:</strong> {evalData.contestLocation}</div>}
+                                            {evalData.contestRules && <div><strong>Rules:</strong> {evalData.contestRules}</div>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div>
+                                <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submission Requirements</h3>
+                                <div style={{ background: '#f1f5f9', padding: '16px', borderRadius: '8px', color: '#0f172a', fontSize: '14px', whiteSpace: 'pre-wrap', fontWeight: 500 }}>
+                                    {formatRequirements(evalData.submissionRequirements)}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Evaluation Rubric</h3>
+                                {evalData.criteria && evalData.criteria.length > 0 ? (
+                                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                                            <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                            <tr>
+                                                <th style={{ padding: '12px 16px', color: '#475569', fontWeight: 600 }}>Criteria</th>
+                                                <th style={{ padding: '12px 16px', color: '#475569', fontWeight: 600 }}>Description</th>
+                                                <th style={{ padding: '12px 16px', color: '#475569', fontWeight: 600, width: '100px', textAlign: 'center' }}>Weight</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {evalData.criteria.map((c, idx) => (
+                                                <tr key={idx} style={{ borderBottom: idx < evalData.criteria.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                                                    <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 500, verticalAlign: 'top' }}>{c.name}</td>
+                                                    <td style={{ padding: '12px 16px', color: '#475569', verticalAlign: 'top' }}>{c.description}</td>
+                                                    <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 600, textAlign: 'center', verticalAlign: 'top' }}>{c.weight}%</td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#64748b', textAlign: 'center' }}>
+                                        No rubric criteria defined for this round.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+
+                <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', background: '#f8fafc' }}>
+                    <button onClick={onClose} style={{ padding: '8px 24px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default RoundDetailsModal;

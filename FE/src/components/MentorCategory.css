@@ -95,12 +95,45 @@
 
 .track-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 12px;
     padding: 24px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.contest-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 8px;
+    overflow-x: auto;
+}
+
+.contest-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.contest-tab:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.contest-tab.active {
+    background: #0f172a;
+    color: white;
+    border-color: #0f172a;
 }
 
 .track-icon-bg {

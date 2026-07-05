@@ -37,15 +37,25 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
     const top3 = rawResults.slice(0, 3);
     const others = rawResults.slice(3);
 
-    // Check if the selected round is the final round
-    const isFinalRound = rounds.length > 0 && rounds[rounds.length - 1] === selectedRound;
+    // Check if the selected round is the final round (latest published)
+    const isFinalRound = rounds.length > 0 && rounds[0] === selectedRound;
 
     const getPrizeName = (rank) => {
         if (!isFinalRound) return null;
-        if (rank === 1) return "First Prize (Nhất)";
-        if (rank === 2) return "Second Prize (Nhì)";
-        if (rank === 3) return "Third Prize (Ba)";
-        return "Consolation Prize (Khuyến khích)";
+        let amount = "";
+        const prizeStructs = currentBoard?.data?.prizeStructures;
+        if (prizeStructs && Array.isArray(prizeStructs)) {
+            // Usually the array is sorted (0: First Prize, 1: Second Prize)
+            const found = prizeStructs[rank - 1];
+            if (found && found.amount) {
+                amount = ` - ${found.amount}`;
+            }
+        }
+
+        if (rank === 1) return `First Prize${amount}`;
+        if (rank === 2) return `Second Prize${amount}`;
+        if (rank === 3) return `Third Prize${amount}`;
+        return `Consolation Prize${amount}`;
     };
     return (
         <div className="leader-content">
@@ -143,9 +153,15 @@ function processLeaderboardData(rawData) {
         if (item.status !== 'QUALIFIED') return;
         const key = `${item.contestId}-${item.roundName}`;
         if (!boardsMap[key]) {
+            let parsedPrize = null;
+            if (item.prizeStructures) {
+                try {
+                    parsedPrize = JSON.parse(item.prizeStructures);
+                } catch(e) {}
+            }
             boardsMap[key] = {
                 contestId: item.contestId, roundName: item.roundName, publishedAt: item.publishedAt,
-                data: { contestName: item.contestName || `Contest #${item.contestId}`, results: [] }
+                data: { contestName: item.contestName || `Contest #${item.contestId}`, results: [], prizeStructures: parsedPrize }
             };
         }
         boardsMap[key].data.results.push({

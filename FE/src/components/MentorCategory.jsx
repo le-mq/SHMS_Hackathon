@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MentorCategory.css';
 import LatestAnnouncements from './LatestAnnouncements';
+import RoundDetailsModal from './RoundDetailsModal';
 
 const MentorCategory = () => {
     const navigate = useNavigate();
@@ -9,13 +10,14 @@ const MentorCategory = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterCategory, setFilterCategory] = useState('All');
+    const [filterRound, setFilterRound] = useState('All');
     const [feedbackTeamId, setFeedbackTeamId] = useState(null);
     const [feedbackContent, setFeedbackContent] = useState('');
     const [feedbackSubmissionId, setFeedbackSubmissionId] = useState(null);
     const [feedbackMessage, setFeedbackMessage] = useState('');
     const [feedbackLoading, setFeedbackLoading] = useState(false);
     const [selectedContestId, setSelectedContestId] = useState(null);
+    const [previewRoundId, setPreviewRoundId] = useState(null);
     useEffect(() => {
         const fetchMentorData = async () => {
             try {
@@ -80,16 +82,20 @@ const MentorCategory = () => {
     } else {
         activeContestData = data;
     }
-    const { contestName = "N/A", trackOverviews = [], allocatedTeams = [] } = activeContestData || {};
+    const { contestName = "N/A", contestStatus, trackOverviews = [], allocatedTeams = [] } = activeContestData || {};
     const filteredTeams = allocatedTeams.filter(team => {
         const query = searchQuery.toLowerCase();
         const matchesSearch = !query || team.teamName?.toLowerCase().includes(query) ||
             team.leaderName?.toLowerCase().includes(query);
-        const teamTrack = team.trackName || team.categoryName || '';
-        const matchesFilter = filterCategory === 'All' ||
-            teamTrack.trim().toLowerCase() === filterCategory.trim().toLowerCase();
-        return matchesSearch && matchesFilter;
+
+        const matchesRound = filterRound === 'All' ||
+            (team.roundName && team.roundName.trim().toLowerCase() === filterRound.trim().toLowerCase());
+
+        return matchesSearch && matchesRound;
     });
+
+    const uniqueRounds = Array.from(new Set(allocatedTeams.map(t => t.roundName).filter(Boolean)));
+
     const renderLinks = (team) => {
         const getAssetUrl = (url) => {
             const trimmedUrl = String(url || '').trim();
@@ -134,15 +140,27 @@ const MentorCategory = () => {
                 <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
                 <div className="mentor-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                        <h1 className="mentor-title">Contest: {contestName}</h1>
+                        <h1 className="mentor-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Contest: {contestName}
+                            {contestStatus === 'CLOSED' && (
+                                <span style={{ fontSize: '12px', background: '#fee2e2', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Closed</span>
+                            )}
+                        </h1>
                         <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
                     </div>
-                    {Array.isArray(data) && data.length > 1 && (
-                        <select value={selectedContestId || ''}
-                                onChange={(e) => setSelectedContestId(e.target.value)}
-                                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', background: 'white', color: '#334155', fontWeight: 600 }}
-                        >{data.map(c => ( <option key={c.contestId} value={c.contestId}>{c.contestName}</option> ))}
-                        </select>
+                    {Array.isArray(data) && data.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-end' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest:</span>
+                            <select value={selectedContestId || ''}
+                                    onChange={(e) => setSelectedContestId(e.target.value)}
+                                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', background: 'white', color: '#0f172a', fontWeight: 600, fontSize: '14px' }}
+                            >{data.map(c => (
+                                <option key={c.contestId} value={c.contestId}>
+                                    {c.contestName} {c.contestStatus === 'CLOSED' ? '(Closed)' : ''}
+                                </option>
+                            ))}
+                            </select>
+                        </div>
                     )}
                 </div>
                 <div className="track-cards">
@@ -166,7 +184,7 @@ const MentorCategory = () => {
                             {track.targetRoundId && (
                                 <button
                                     className="mentor-view-round-btn"
-                                    onClick={() => navigate(`/judge/evaluate/preview?roundId=${track.targetRoundId}&readonly=true`)}
+                                    onClick={() => setPreviewRoundId(track.targetRoundId)}
                                     style={{ marginTop: '12px', width: '100%', padding: '10px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
                                 >View Round Details</button>
                             )}
@@ -183,13 +201,12 @@ const MentorCategory = () => {
                                 </svg>
                                 <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                             </div>
-                            <select className="filter-btn" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
+                            <select className="filter-btn" value={filterRound} onChange={(e) => setFilterRound(e.target.value)}
                                     style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
-                                <option value="All">All Categories</option>
-                                {trackOverviews.map((track, idx) => {
-                                    const tName = track.trackName || track.categoryName;
-                                    return <option key={idx} value={tName}>{tName}</option>;
-                                })}
+                                <option value="All">All Rounds</option>
+                                {uniqueRounds.map((r, idx) => (
+                                    <option key={idx} value={r}>{r}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -294,6 +311,10 @@ const MentorCategory = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {previewRoundId && (
+                <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
             )}
         </div>
     );
