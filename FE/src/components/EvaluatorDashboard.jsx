@@ -70,19 +70,30 @@ const EvaluatorDashboard = () => {
         evaluatedCount: 0, contests: [], queue: []
     };
     const roundMap = {};
-    (dashboardData.queue || []).forEach(t => {
-        const rName = t.roundName || t.phaseName || t.round?.roundName;
-        if (rName && !roundMap[rName]) {
-            roundMap[rName] = {
-                name: rName,
-                gradingOpenAt: t.gradingOpenAt,
-                gradingDeadlineAt: t.gradingDeadlineAt,
-                roundFormat: t.roundFormat || t.round?.roundFormat || ''
+    if (dashboardData.rounds && dashboardData.rounds.length > 0) {
+        dashboardData.rounds.forEach(r => {
+            roundMap[r.name] = {
+                id: r.id,
+                name: r.name,
+                gradingDeadlineAt: r.gradingDeadlineAt,
+                roundFormat: r.format || 'Not Specified'
             };
-        }
-    });
+        });
+    } else {
+        (dashboardData.queue || []).forEach(t => {
+            const rName = t.roundName || t.phaseName || t.round?.roundName;
+            if (rName && !roundMap[rName]) {
+                roundMap[rName] = {
+                    id: t.roundId,
+                    name: rName,
+                    gradingDeadlineAt: t.gradingDeadlineAt,
+                    roundFormat: t.roundFormat || t.round?.roundFormat || 'Not Specified'
+                };
+            }
+        });
+    }
     const allRounds = Object.values(roundMap).sort((a, b) => {
-        return new Date(a.gradingOpenAt || 0) - new Date(b.gradingOpenAt || 0);
+        return new Date(a.gradingDeadlineAt || 0) - new Date(b.gradingDeadlineAt || 0);
     });
     useEffect(() => {
         if (allRounds.length > 0 && !roundMap[selectedRound]) {
@@ -104,17 +115,8 @@ const EvaluatorDashboard = () => {
         }
         const updateCountdown = () => {
             const now = new Date();
-            const openTime = currentRoundObj.gradingOpenAt ? new Date(currentRoundObj.gradingOpenAt) : null;
             const closeTime = currentRoundObj.gradingDeadlineAt ? new Date(currentRoundObj.gradingDeadlineAt) : null;
-            if (openTime && now < openTime) {
-                setTimeStatus('UPCOMING');
-                const diff = openTime - now;
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const m = Math.floor((diff / 1000 / 60) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                setTimeLeft(`${d}d ${h}h ${m}m ${s}s`);
-            } else if (closeTime && now <= closeTime) {
+            if (closeTime && now <= closeTime) {
                 setTimeStatus('OPEN');
                 const diff = closeTime - now;
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -145,7 +147,7 @@ const EvaluatorDashboard = () => {
 
     return (
         <div className="evaluator-container">
-            <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
+            <div style={{paddingTop: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
             <div className="evaluator-content">
                 <div className="evaluator-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div className="evaluator-header-left" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -192,7 +194,6 @@ const EvaluatorDashboard = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
                                 {timeStatus && (
                                     <span className="stat-val" style={{ fontSize: '18px', color: timeStatus === 'OPEN' ? '#16a34a' : (timeStatus === 'CLOSED' ? '#ef4444' : '#eab308'), display: 'block', marginBottom: '12px', textAlign: 'center' }}>
-                                        {timeStatus === 'UPCOMING' && 'Opens in: '}
                                         {timeStatus === 'OPEN' && 'Closes in: '}
                                         {timeStatus === 'CLOSED' && 'Status: '}
                                         {timeLeft}
@@ -200,8 +201,8 @@ const EvaluatorDashboard = () => {
                                 )}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', width: '100%' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>Opens:</span>
-                                        <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingOpenAt, 'No Date Set', 'Invalid Date')}</span>
+                                        <span>Status:</span>
+                                        <span style={{ fontWeight: 600, color: '#334155' }}>Available for Grading</span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span>Closes:</span>
@@ -213,6 +214,12 @@ const EvaluatorDashboard = () => {
                                             {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
                                         </span>
                                     </div>
+                                    {roundMap[selectedRound]?.id && (
+                                        <button
+                                            onClick={() => navigate(`/evaluator/evaluate/preview?roundId=${roundMap[selectedRound].id}&readonly=true`)}
+                                            style={{ marginTop: '8px', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                                        >View Round Details</button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -266,6 +273,7 @@ const EvaluatorDashboard = () => {
                             <th>Assigned Category</th>
                             <th>Round</th>
                             <th>Submission State</th>
+                            <th>Score</th>
                             <th>Action</th>
                         </tr>
                         </thead>
@@ -286,19 +294,21 @@ const EvaluatorDashboard = () => {
                                      {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'MISSED_DEADLINE' ? 'Not Submitted' : team.submissionState)}
                                      </span>
                                 </td>
+                                <td className="score-cell">
+                                    {team.score !== undefined && team.score !== null ? team.score : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
+                                </td>
                                 <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
                                     <button className="evaluate-btn" style={{ background: '#e2e8f0',
                                         color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
                                     }} disabled>Already Evaluated</button>
                                 ) : (
-                                    (() => {const now = new Date().getTime();
-                                        const openTime = team.gradingOpenAt ? new Date(team.gradingOpenAt).getTime() : 0;
-                                        const closeTime = team.gradingDeadlineAt ? new Date(team.gradingDeadlineAt).getTime() : Infinity;
-                                        if (openTime !== 0 && (now < openTime || now > closeTime)) {
+                                    (() => {
+                                        if (team.submissionState?.toUpperCase() === 'PENDING') {
                                             return (
-                                                <button className="evaluate-btn" style={{ background: '#fee2e2',
-                                                    color: '#ef4444', cursor: 'not-allowed', borderColor: '#fca5a5'
-                                                }} disabled>Not in Grading Time</button>
+                                                <button className="evaluate-btn" style={{ background: '#e0f2fe',
+                                                    color: '#0284c7', borderColor: '#7dd3fc'
+                                                }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}&readonly=true`)}>
+                                                    View Details</button>
                                             );
                                         }
 
@@ -307,13 +317,13 @@ const EvaluatorDashboard = () => {
                                                 <button className="evaluate-btn" style={{ background: '#fee2e2',
                                                     color: '#ef4444', borderColor: '#fca5a5'
                                                 }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                    Evaluate (0 pts)</button>
+                                                    Evaluate</button>
                                             );
                                         }
                                         return (
                                             <button className="evaluate-btn"
                                                     onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                Evaluate Team Product</button>
+                                                Evaluate Team</button>
                                         );
                                     })()
                                 )}

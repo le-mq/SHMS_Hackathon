@@ -206,11 +206,11 @@
 .audit-table th {
     text-align: left;
     padding: 12px 16px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    color: #64748b;
-    border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
+    color: #334155;
+    border-bottom: 2px solid #cbd5e1;
+    background: #f1f5f9;
     white-space: nowrap;
 }
 
@@ -234,18 +234,25 @@
 }
 
 .action-type-badge {
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 12px;
+    font-weight: 600;
     white-space: nowrap;
+    display: inline-block;
 }
 
-.at-disqualify { background: #fee2e2; color: #dc2626; }
-.at-revoke { background: #f1f5f9; color: #475569; }
-.at-config { background: #f1f5f9; color: #475569; }
-.at-access { background: #dcfce7; color: #16a34a; }
+.at-create { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.at-update { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.at-delete { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.at-disqualify { background: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
+.at-penalty { background: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
+.at-ban { background: #000000; color: #ffffff; border: 1px solid #333333; }
+.at-revoke { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+.at-access { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+.at-publish { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.at-allocate { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; }
+.at-default { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
 .target-entity {
     font-family: monospace;
@@ -265,9 +272,6 @@
     color: #475569;
     line-height: 1.5;
 }
-
-
-
 .audit-table-footer {
     padding: 14px 20px;
     background: #f8fafc;

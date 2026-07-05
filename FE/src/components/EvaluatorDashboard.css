@@ -227,13 +227,18 @@
 }
 
 .queue-table th {
-    background: #f8fafc;
+    background: #f1f5f9;
     padding: 12px 24px;
     text-align: left;
     font-size: 12px;
     font-weight: 700;
-    color: #64748b;
-    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.queue-table td.score-cell {
+    font-weight: 600;
+    color: #1e293b;
 }
 
 .queue-table td {
