@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import './PublicHome.css';
 import NavbarHome from './NavbarHome.jsx';
 
@@ -128,6 +128,7 @@ export default function PublicHome() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedContest, setSelectedContest] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         let cancelled = false;
@@ -154,11 +155,23 @@ export default function PublicHome() {
     }, []);
 
     const { contests = [], universities = [], geographicScopes = [] } = data || {};
-    useEffect(() => {
-        if (contests.length > 0 && !selectedContest) {
-            setSelectedContest(contests[0]);
+
+    const filteredContests = useMemo(() => {
+        if (!searchTerm.trim()) {
+            return contests.filter(c => c.status === 'ACTIVED' || c.status === 'UPCOMING');
         }
-    }, [contests, selectedContest]);
+        const term = searchTerm.toLowerCase();
+        return contests.filter(c =>
+            (c.name && c.name.toLowerCase().includes(term)) ||
+            (c.theme && c.theme.toLowerCase().includes(term))
+        );
+    }, [contests, searchTerm]);
+
+    useEffect(() => {
+        if (filteredContests.length > 0 && !selectedContest) {
+            setSelectedContest(filteredContests[0]);
+        }
+    }, [filteredContests, selectedContest]);
 
     if (loading) {
         return (
@@ -189,17 +202,28 @@ export default function PublicHome() {
 
             <section className="ph-section ph-section-alt">
                 <div className="ph-container">
-                    <div className="ph-section-header">
-                        <h2>Active Seanonal Hackathon</h2>
-                        <p>Ongoing and upcoming major seasonal cycles.</p>
+                    <div className="ph-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                        <div>
+                            <h2>{searchTerm.trim() ? 'Search Results' : 'Active Seasonal Hackathon'}</h2>
+                            <p>{searchTerm.trim() ? 'All matching contests including closed ones.' : 'Ongoing and upcoming major seasonal cycles.'}</p>
+                        </div>
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Search contests..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #d1d5db', width: '300px', maxWidth: '100%', fontSize: '14px' }}
+                            />
+                        </div>
                     </div>
-                    {contests.length === 0 ? (
-                        <div className="ph-no-data">No active contests at this time.</div>
+                    {filteredContests.length === 0 ? (
+                        <div className="ph-no-data">No contests found matching your search.</div>
                     ) : (<div className="ph-contests-grid">
-                            {contests.map(c => ( <ContestCard key={c.id} contest={c}
-                                                              onSelectContest={() => { setSelectedContest(c);
-                                                                  document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
-                                                              }}/>))}
+                            {filteredContests.map(c => ( <ContestCard key={c.id} contest={c}
+                                                                      onSelectContest={() => { setSelectedContest(c);
+                                                                          document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                                                      }}/>))}
                         </div>
                     )}
                 </div>
