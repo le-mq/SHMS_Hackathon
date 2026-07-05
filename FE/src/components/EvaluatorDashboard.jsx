@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import './EvaluatorDashboard.css';
 import './LeaderWorkspace.css';
 import LatestAnnouncements from './LatestAnnouncements';
+import RoundDetailsModal from './RoundDetailsModal';
 
 const formatScheduleDate = (dateValue, emptyText, invalidText) => {
     if (!dateValue) {
@@ -27,6 +28,7 @@ const EvaluatorDashboard = () => {
     const [selectedRound, setSelectedRound] = useState('');
     const [timeLeft, setTimeLeft] = useState('');
     const [timeStatus, setTimeStatus] = useState('');
+    const [previewRoundId, setPreviewRoundId] = useState(null);
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -155,26 +157,34 @@ const EvaluatorDashboard = () => {
                             <h1 className="evaluator-title">Evaluator Panel Dashboard</h1>
                             <p className="evaluator-subtitle">Welcome back. Here is the real-time progress of your assigned teams.</p>
                         </div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <select className="eval-contest-select" value={selectedContest}
-                                    onChange={(e) => setSelectedContest(e.target.value)}
-                                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', outline: 'none' }}>
-                                <option value="">All Assigned Contests</option>
-                                {dashboardData.contests?.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                            <select className="eval-contest-select" value={selectedRound}
-                                    onChange={(e) => {
-                                        setSelectedRound(e.target.value);
-                                        sessionStorage.setItem('judgeSelectedRound', e.target.value);
-                                    }}
-                                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', outline: 'none' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest:</span>
+                                <select className="eval-contest-select" value={selectedContest}
+                                        onChange={(e) => setSelectedContest(e.target.value)}
+                                        style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'white', color: '#0f172a', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
+                                    <option value="">All Assigned Contests</option>
+                                    {dashboardData?.contests?.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="contest-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', minHeight: '36px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>Active Round:</span>
                                 {allRounds.map((r, idx) => (
-                                    <option key={idx} value={r.name}>{r.name}</option>
+                                    <button
+                                        key={idx}
+                                        className={`contest-tab ${selectedRound === r.name ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setSelectedRound(r.name);
+                                            sessionStorage.setItem('judgeSelectedRound', r.name);
+                                        }}
+                                        style={{ padding: '6px 12px', background: selectedRound === r.name ? '#0f172a' : '#f1f5f9', color: selectedRound === r.name ? 'white' : '#475569', border: 'none', borderRadius: '16px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                    >{r.name}</button>
                                 ))}
-                                {allRounds.length === 0 && <option value="">No Rounds Found</option>}
-                            </select>
+                                {allRounds.length === 0 && <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', padding: '6px 12px' }}>No Rounds Found</span>}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -216,7 +226,7 @@ const EvaluatorDashboard = () => {
                                     </div>
                                     {roundMap[selectedRound]?.id && (
                                         <button
-                                            onClick={() => navigate(`/judge/evaluate/preview?roundId=${roundMap[selectedRound].id}&readonly=true`)}
+                                            onClick={() => setPreviewRoundId(roundMap[selectedRound].id)}
                                             style={{ marginTop: '8px', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                                         >
                                             View Details
@@ -292,7 +302,7 @@ const EvaluatorDashboard = () => {
                                 <td><span
                                     className="round-txt">{team.roundName || team.phaseName || team.round?.roundName}</span>
                                 </td>
-                                <td><span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : 'pill-pending'}`}>
+                                <td><span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? 'pill-not-submitted' : 'pill-pending')}`}>
                                      {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'MISSED_DEADLINE' ? 'Not Submitted' : team.submissionState)}
                                      </span>
                                 </td>
@@ -300,15 +310,15 @@ const EvaluatorDashboard = () => {
                                     {team.score !== undefined && team.score !== null ? team.score : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
                                 </td>
                                 <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
-                                    <button className="evaluate-btn" style={{ background: '#e2e8f0',
-                                        color: '#64748b', cursor: 'not-allowed', borderColor: '#cbd5e1'
+                                    <button className="evaluate-btn" style={{ background: '#f1f5f9',
+                                        color: '#334155', cursor: 'not-allowed', border: '1px solid #cbd5e1'
                                     }} disabled>Already Evaluated</button>
                                 ) : (
                                     (() => {
                                         if (team.submissionState?.toUpperCase() === 'PENDING') {
                                             return (
-                                                <button className="evaluate-btn" style={{ background: '#e0f2fe',
-                                                    color: '#0284c7', borderColor: '#7dd3fc'
+                                                <button className="evaluate-btn" style={{ background: '#0284c7',
+                                                    color: 'white', border: 'none'
                                                 }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}&readonly=true`)}>
                                                     View Details</button>
                                             );
@@ -316,8 +326,8 @@ const EvaluatorDashboard = () => {
 
                                         if (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE') {
                                             return (
-                                                <button className="evaluate-btn" style={{ background: '#fee2e2',
-                                                    color: '#ef4444', borderColor: '#fca5a5'
+                                                <button className="evaluate-btn" style={{ background: '#ef4444',
+                                                    color: 'white', border: 'none'
                                                 }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
                                                     Evaluate</button>
                                             );
@@ -336,6 +346,10 @@ const EvaluatorDashboard = () => {
                     </table>
                 </div>
             </div>
+
+            {previewRoundId && (
+                <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
+            )}
         </div>
     );
 };
