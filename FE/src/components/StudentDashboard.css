@@ -78,9 +78,12 @@
 }
 .info-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #d1d5db;
     border-radius: 12px;
     padding: 24px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
 }
 
 .contest-card {
@@ -111,7 +114,7 @@
     align-items: center;
     font-size: 12px;
     font-weight: 700;
-    color: #64748b;
+    color: #475569;
     letter-spacing: 1px;
     margin-bottom: 20px;
 }
@@ -154,6 +157,7 @@
     background: #e2e8f0;
     border-radius: 3px;
     overflow: hidden;
+    margin-top: auto;
 }
 
 .progress-bar-fill {
@@ -164,18 +168,19 @@
 
 .milestones-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #d1d5db;
     border-radius: 12px;
     overflow: hidden;
-    margin: 24px 20px 40px;
+    margin: 0 20px 40px;
 }
 
 .mc-header {
     padding: 20px 24px;
     font-size: 14px;
-    font-weight: 600;
-    color: #334155;
-    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+    color: #111827;
+    border-bottom: 1px solid #d1d5db;
+    background-color: #f9fafb;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -198,8 +203,9 @@
     padding: 12px 24px;
     font-size: 12px;
     font-weight: 700;
-    color: #0f172a;
-    border-bottom: 1px solid #e2e8f0;
+    color: #111827;
+    border-bottom: 1px solid #d1d5db;
+    background-color: #f3f4f6;
 }
 
 .mc-table td {
@@ -280,9 +286,39 @@
 
 .join-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #d1d5db;
     border-radius: 12px;
-    padding: 32px;
+    padding: 24px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+}
+
+.join-card-highlighted {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+}
+
+.section-header {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #111827;
+}
+
+.join-btn {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+
+.join-btn:hover {
+    background: #1d4ed8;
 }
 
 .join-card h3 {
@@ -294,7 +330,7 @@
 
 .join-card p {
     font-size: 14px;
-    color: #64748b;
+    color: #475569;
     line-height: 1.5;
     margin: 0 0 24px 0;
 }
@@ -303,6 +339,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    margin-top: auto;
 }
 
 .join-input-wrap input {

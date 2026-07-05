@@ -325,8 +325,10 @@ const StudentDashboard = () => {
                                     </div>
 
                                     <div className="ic-subtitle">
-                                        <span style={{ width: 6, height: 6, background: '#dc2626', borderRadius: '50%' }}></span>
-                                        {contest.status}
+                                        <span style={{ width: 8, height: 8, background: contest.status === 'ACTIVED' ? '#16a34a' : '#94a3b8', borderRadius: '50%' }}></span>
+                                        <span style={{ color: contest.status === 'ACTIVED' ? '#16a34a' : '#475569', fontWeight: '700' }}>
+                                            {contest.status}
+                                        </span>
                                     </div>
 
                                     <div className="progress-bar-bg">
@@ -404,25 +406,43 @@ const StudentDashboard = () => {
                 </div>
 
                 <div className="dash-right">
+                    <div className="join-card join-card-highlighted">
+                        <div style={{ marginBottom: 24 }}>
+                            <svg width="24" height="24" fill="none" stroke="#2563eb" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                        </div>
+                        <h3 className="section-header">Join via Code</h3>
+
+                        <div className="join-input-wrap">
+                            <input
+                                type="text"
+                                placeholder="Enter Invite Code ->"
+                                value={joinCode}
+                                onChange={(e) => setJoinCode(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleJoinTeam()}
+                            />
+                            <button onClick={handleJoinTeam} className="join-btn">Join</button>
+                        </div>
+                    </div>
+
                     {/* Pending Invitations Inbox */}
                     {pendingInvitations.length > 0 && (
-                        <div style={{ background: '#FFFFFF', border: '1px solid #fbbf24', borderRadius: '12px', padding: '20px' }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#92400e', marginBottom: '12px' }}>
+                        <div style={{ background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '12px', padding: '20px' }}>
+                            <h2 className="section-header" style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '12px' }}>
                                 Pending Team Invitations ({pendingInvitations.length})
                             </h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {pendingInvitations.map((inv, idx) => (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 16px' }}>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '12px 16px' }}>
                                         <div>
-                                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                            <div style={{ fontWeight: '700', color: '#111827' }}>
                                                 {inv.inviterName || 'A team member'} has invited you to join the team {inv.teamName}.
                                             </div>
-                                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                            <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px', fontWeight: '500' }}>
                                                 Check your email for the Invite code.
                                             </div>
                                         </div>
                                         <div>
-                                            <button onClick={() => handleRespondInvitation(inv.invitationToken, 'REJECT')} style={{ padding: '6px 12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px' }}>Reject</button>
+                                            <button onClick={() => handleRespondInvitation(inv.invitationToken, 'REJECT')} style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}>Reject</button>
                                         </div>
                                     </div>
                                 ))}
@@ -435,30 +455,12 @@ const StudentDashboard = () => {
                         <div style={{ marginBottom: 24 }}>
                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                         </div>
-                        <h3>Create a New Team</h3>
+                        <h3 className="section-header" style={{ color: 'white' }}>Create a New Team</h3>
 
                         <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setNewTeamName(''); setCreateError(''); }}>
                             Start Building
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                         </a>
-                    </div>
-
-                    <div className="join-card">
-                        <div style={{ marginBottom: 24 }}>
-                            <svg width="24" height="24" fill="none" stroke="#0f172a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                        </div>
-                        <h3>Join via Code</h3>
-
-                        <div className="join-input-wrap">
-                            <input
-                                type="text"
-                                placeholder="Enter Invite Code ->"
-                                value={joinCode}
-                                onChange={(e) => setJoinCode(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleJoinTeam()}
-                            />
-                            <button onClick={handleJoinTeam} style={{ marginLeft: '10px', padding: '8px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Join</button>
-                        </div>
                     </div>
                 </div>
             </div>
