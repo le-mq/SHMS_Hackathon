@@ -10,7 +10,7 @@ public class EvaluatorDashboardResponse {
     private int assignedTrackCount;
     private int totalAllocatedTeams;
     private int evaluatedCount;
-
+    
     private List<ContestDto> contests;
     private List<AssignedTeamQueueDto> queue;
     private List<RoundDto> rounds;
@@ -46,5 +46,6 @@ public class EvaluatorDashboardResponse {
         private String themeClass;
         private java.time.LocalDateTime gradingDeadlineAt;
         private String roundFormat;
+        private Integer score;
     }
 }

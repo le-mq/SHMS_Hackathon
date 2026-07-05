@@ -104,15 +104,15 @@ public class SubmissionService {
             Submission submission = Submission.builder()
                     .team(team)
                     .round(round)
-                    .projectRepositoryUrl(request.getGithubRepoUrl())
-                    .demoVideoUrl(request.getLiveDemoUrl())
-                    .documentationUrl(request.getDocsUrl())
-                    .presentationSlideUrl(request.getSlideUrl())
                     .version(1)
                     .historyLog("")
                     .submittedAt(LocalDateTime.now())
                     .status("SUBMITTED")
                     .build();
+            submission.setProjectRepositoryUrl(request.getGithubRepoUrl());
+            submission.setDemoVideoUrl(request.getLiveDemoUrl());
+            submission.setDocumentationUrl(request.getDocsUrl());
+            submission.setPresentationSlideUrl(request.getSlideUrl());
             submissionRepository.save(submission);
         }
 

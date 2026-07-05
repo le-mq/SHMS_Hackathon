@@ -165,6 +165,7 @@ public class PublicHomeService {
             map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
             map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
             map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
+            map.put("prizeStructures", r.getRound().getContest() != null ? r.getRound().getContest().getTieredPrizeStructures() : null);
             return map;
         }).toList();
     }

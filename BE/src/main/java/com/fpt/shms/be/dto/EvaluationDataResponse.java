@@ -17,6 +17,10 @@ public class EvaluationDataResponse {
     private String teamName;
     private String status;
     private String submissionRequirements;
+    private String contestName;
+    private String contestTheme;
+    private String contestLocation;
+    private String contestRules;
     private List<CriteriaDto> criteria;
 
     @Data

@@ -109,8 +109,13 @@ public class JudgeService {
                         .orElse(null);
 
                 boolean isEvaluated = false;
+                Integer totalScore = null;
                 if (latestSub != null) {
-                    isEvaluated = scoreRepository.existsByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
+                    List<Score> scores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
+                    if (scores != null && !scores.isEmpty()) {
+                        isEvaluated = true;
+                        totalScore = scores.stream().mapToInt(sc -> sc.getPointsAwarded() != null ? sc.getPointsAwarded().intValue() : 0).sum();
+                    }
                 }
                 if (isEvaluated) {
                     evaluatedCount++;
@@ -136,10 +141,12 @@ public class JudgeService {
                         ? team.getName().substring(0, 2).toUpperCase()
                         : "TM";
 
-                String trackName = categories.stream()
-                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+                String trackName = round.getCategory() != null 
+                        ? round.getCategory().getName() 
+                        : categories.stream()
+                                .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                                .map(Category::getName)
+                                .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -153,6 +160,7 @@ public class JudgeService {
                         .themeClass("ai")
                         .gradingDeadlineAt(round.getGradingDeadlineAt())
                         .roundFormat(round.getRoundFormat() != null ? round.getRoundFormat() : "Not Specified")
+                        .score(totalScore)
                         .build());
             }
         }
@@ -230,11 +238,17 @@ public class JudgeService {
                         .build()).collect(Collectors.toList());
             }
 
+            Contest contest = round.getContest();
+            
             return EvaluationDataResponse.builder()
                     .submissionId(null)
                     .teamName("Rubric Preview")
                     .status("PREVIEW")
                     .submissionRequirements(round.getSubmissionRequirements())
+                    .contestName(contest != null ? contest.getName() : null)
+                    .contestTheme(contest != null ? contest.getDescription() : null)
+                    .contestLocation(contest != null ? contest.getLocation() : null)
+                    .contestRules(contest != null ? contest.getComplianceRules() : null)
                     .criteria(criteriaDtos)
                     .build();
         }
@@ -319,7 +333,7 @@ public class JudgeService {
                     .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
-
+        
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
                 .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
