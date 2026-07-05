@@ -472,4 +472,19 @@ public class AdminController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/contests/teams/penalty")
+    @Operation(summary = "Apply Penalty to Team", description = "Admin applies a disciplinary penalty to a team.")
+    public ResponseEntity<?> applyPenaltyToTeam(HttpServletRequest request,
+                                                @Valid @RequestBody com.fpt.shms.be.dto.ApplyPenaltyRequest penaltyRequest) {
+        try {
+            teamService.applyPenaltyToTeam(penaltyRequest);
+            return ResponseEntity.ok(Map.of("message", "Penalty applied successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
 }
