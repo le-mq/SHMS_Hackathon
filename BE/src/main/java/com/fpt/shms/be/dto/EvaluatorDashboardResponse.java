@@ -10,9 +10,20 @@ public class EvaluatorDashboardResponse {
     private int assignedTrackCount;
     private int totalAllocatedTeams;
     private int evaluatedCount;
-    
+
     private List<ContestDto> contests;
     private List<AssignedTeamQueueDto> queue;
+    private List<RoundDto> rounds;
+
+    @Data
+    @Builder
+    public static class RoundDto {
+        private Long id;
+        private String name;
+        private String format;
+        private java.time.LocalDateTime gradingOpenAt;
+        private java.time.LocalDateTime gradingDeadlineAt;
+    }
 
     @Data
     @Builder

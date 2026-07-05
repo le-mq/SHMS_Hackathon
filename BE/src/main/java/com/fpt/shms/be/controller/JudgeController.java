@@ -55,6 +55,7 @@ public class JudgeController {
         }
     }
 
+
     @GetMapping("/profile")
     @Operation(summary = "Get Judge Profile", description = "Retrieves the profile of the currently authenticated judge.")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
