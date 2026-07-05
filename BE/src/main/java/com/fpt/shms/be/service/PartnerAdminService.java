@@ -103,6 +103,7 @@ public class PartnerAdminService {
         for (StudentVerificationData sv : existingList) {
             if (!incomingStudentCodes.contains(sv.getStudentCode())) {
                 studentVerificationDataRepository.delete(sv);
+                auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "ACTIVED", "DELETED", "Partner admin deleted student verification record for " + sv.getStudentCode());
             }
         }
 
@@ -110,16 +111,39 @@ public class PartnerAdminService {
             if (dto.getStudentCode() == null || dto.getStudentCode().isEmpty()) continue;
 
             StudentVerificationData sv = studentVerificationDataRepository.findByStudentCode(dto.getStudentCode())
-                    .orElseGet(() -> StudentVerificationData.builder().studentCode(dto.getStudentCode()).build());
+                    .orElse(null);
 
-            sv.setFullName(dto.getFullName());
-            sv.setCorporateEmail(dto.getCorporateEmail());
-            sv.setUniversity(university);
-            sv.setMajor(dto.getMajor() != null && !dto.getMajor().isEmpty() ? dto.getMajor() : "Not Specified");
-            sv.setIsCurrentStudent(dto.getIsCurrentStudent() != null ? dto.getIsCurrentStudent() : true);
+            boolean isNew = (sv == null || sv.getId() == null);
+            if (isNew) {
+                sv = StudentVerificationData.builder()
+                        .studentCode(dto.getStudentCode())
+                        .build();
+            }
 
-            studentVerificationDataRepository.save(sv);
-            auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "OLD_DATA", "UPDATED_DATA", "Partner admin updated student verification data for " + sv.getStudentCode());
+            String newMajor = dto.getMajor() != null && !dto.getMajor().isEmpty() ? dto.getMajor() : "Not Specified";
+            Boolean newIsCurrentStudent = dto.getIsCurrentStudent() != null ? dto.getIsCurrentStudent() : true;
+
+            boolean modified = isNew ||
+                    !java.util.Objects.equals(sv.getFullName(), dto.getFullName()) ||
+                    !java.util.Objects.equals(sv.getCorporateEmail(), dto.getCorporateEmail()) ||
+                    !java.util.Objects.equals(sv.getMajor(), newMajor) ||
+                    !java.util.Objects.equals(sv.getIsCurrentStudent(), newIsCurrentStudent);
+
+            if (modified) {
+                sv.setFullName(dto.getFullName());
+                sv.setCorporateEmail(dto.getCorporateEmail());
+                sv.setUniversity(university);
+                sv.setMajor(newMajor);
+                sv.setIsCurrentStudent(newIsCurrentStudent);
+
+                studentVerificationDataRepository.save(sv);
+
+                if (isNew) {
+                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "NONE", "CREATED", "Partner admin added student verification record for " + sv.getStudentCode());
+                } else {
+                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "OLD_DATA", "UPDATED", "Partner admin updated student verification record for " + sv.getStudentCode());
+                }
+            }
         }
     }
 
