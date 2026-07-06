@@ -1,4 +1,5 @@
 .status-container {
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
@@ -109,6 +110,15 @@
     background: #64748b;
 }
 
+.team-badge.closed {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.team-badge.closed .team-badge-dot {
+    background: #64748b;
+}
+
 .success-banner,
 .error-banner {
     padding: 12px 16px;
@@ -132,8 +142,20 @@
 /* List View */
 .teams-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .teams-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .teams-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .team-card {
@@ -203,9 +225,9 @@
 .view-details-btn {
     width: 100%;
     padding: 10px;
-    background: #f1f5f9;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
+    background: #2563eb;
+    color: white;
+    border: 1px solid #2563eb;
     border-radius: 6px;
     font-weight: 600;
     font-size: 14px;
@@ -218,7 +240,7 @@
 }
 
 .view-details-btn:hover {
-    background: #0f172a;
+    background: #1d4ed8;
     color: white;
 }
 
@@ -466,4 +488,45 @@
 .empty-teams-state p {
     margin: 0;
     font-size: 15px;
+}
+
+/* Card Status Styles */
+.team-card-closed {
+    opacity: 0.6;
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.team-card-closed:hover {
+    transform: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.team-card-closed .tc-header {
+    background: #f1f5f9;
+}
+
+.team-card-closed .tc-footer {
+    background: #f8fafc;
+}
+
+.team-card-approved,
+.team-card-pending,
+.team-card-forming {
+    background: #f0fdfa;
+    border-color: #5eead4;
+}
+
+.team-card-approved .tc-header,
+.team-card-pending .tc-header,
+.team-card-forming .tc-header {
+    background: #ccfbf1;
+    border-bottom-color: #99f6e4;
+}
+
+.team-card-approved .tc-footer,
+.team-card-pending .tc-footer,
+.team-card-forming .tc-footer {
+    background: #f0fdfa;
+    border-top-color: #99f6e4;
 }

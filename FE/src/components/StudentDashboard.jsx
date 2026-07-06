@@ -107,7 +107,8 @@ async function hasExistingTeam(token) {
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        return response.data && !response.data.error && response.data.status !== 'NO TEAM';
+        const status = String(response.data?.status || '').toUpperCase();
+        return response.data && !response.data.error && ['FORMING', 'PENDING', 'APPROVED'].includes(status);
     } catch (error) {
         if (error.response?.status === 400) {
             return false;
