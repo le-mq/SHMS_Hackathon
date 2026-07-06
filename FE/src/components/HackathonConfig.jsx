@@ -569,7 +569,7 @@ function HackathonConfig() {
                                         {() => (
                                             <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
                                                 {formik.values.categories.map((t, index) => (
-                                                    <div key={t.id} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
+                                                    <div key={t.id} style={{ background: '#f9fafb', border: '1.5px solid #9ca3af', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                                         {formik.values.categories.length > 1 && !isClosedContest && (
                                                             <button type="button" onClick={() => formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== index))} style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Category">&#10005;</button>
                                                         )}
@@ -613,7 +613,7 @@ function HackathonConfig() {
                                                     const roundTouched = formik.touched.rounds?.[index];
                                                     const roundErrors = formik.errors.rounds?.[index];
                                                     return (
-                                                        <div key={round.id} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', position: 'relative' }}>
+                                                        <div key={round.id} style={{ background: '#f9fafb', border: '1.5px solid #9ca3af', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                                                 <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} disabled={isClosedContest}/>
                                                                 {index !== 0 && !isClosedContest && (

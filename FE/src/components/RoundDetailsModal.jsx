@@ -7,15 +7,15 @@ const RoundDetailsModal = ({ roundId, onClose }) => {
 
     const formatRequirements = (reqs) => {
         if (!reqs) return 'No specific requirements documented.';
-        return reqs.split(',').map(r => {
-            const t = r.trim();
-            if (t === 'githubRepoUrl') return 'GitHub Repository';
-            if (t === 'liveDemoUrl') return 'Live Demo URL';
-            if (t === 'slideUrl') return 'Presentation Slides';
-            if (t === 'docsUrl') return 'Documentation';
-            if (t === 'videoUrl') return 'Video URL';
-            return t;
-        }).join(' • ');
+        try {
+            const parsed = JSON.parse(reqs);
+            if (Array.isArray(parsed)) {
+                return parsed.map(r => String(r).trim()).filter(Boolean).join(' • ');
+            }
+        } catch (e) {
+            // Ignore JSON parse error, treat as comma-separated
+        }
+        return reqs.split(',').map(r => r.trim()).filter(Boolean).join(' • ');
     };
 
     useEffect(() => {
@@ -64,8 +64,27 @@ const RoundDetailsModal = ({ roundId, onClose }) => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#475569' }}>
                                             {evalData.contestTheme && <div><strong>Theme:</strong> {evalData.contestTheme}</div>}
                                             {evalData.contestLocation && <div><strong>Location:</strong> {evalData.contestLocation}</div>}
+                                            {(evalData.contestStart || evalData.contestEnd) && (
+                                                <div style={{ display: 'flex', gap: '24px' }}>
+                                                    {evalData.contestStart && <div><strong>Start Date:</strong> {new Date(evalData.contestStart).toLocaleDateString()}</div>}
+                                                    {evalData.contestEnd && <div><strong>End Date:</strong> {new Date(evalData.contestEnd).toLocaleDateString()}</div>}
+                                                </div>
+                                            )}
+                                            {evalData.rounds && evalData.rounds.length > 0 && (
+                                                <div style={{ marginTop: '8px' }}>
+                                                    <strong style={{ display: 'block', marginBottom: '8px' }}>Assigned Rounds:</strong>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {evalData.rounds.map((r, i) => (
+                                                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px' }}>
+                                                                <span style={{ fontWeight: 600, color: '#334155' }}>{r.name}</span>
+                                                                <span style={{ color: '#64748b' }}>{r.format || 'Standard'}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                             {evalData.contestRules && (
-                                                <div>
+                                                <div style={{ marginTop: '8px' }}>
                                                     <strong>Rules:</strong>
                                                     <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
                                                         {(() => {

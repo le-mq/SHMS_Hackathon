@@ -75,7 +75,8 @@ const HistoricalLog = () => {
                             <tr>
                                 <th>TEAM NAME</th>
                                 <th>EVALUATION TIMESTAMP</th>
-                                <th>CONTEST / ROUND</th>
+                                <th>CONTEST</th>
+                                <th>ROUND</th>
                                 <th>TOTAL SCORE</th>
                                 <th>ACTIONS</th>
                             </tr>
@@ -96,9 +97,11 @@ const HistoricalLog = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '8px', fontSize: '13px' }}>
+                                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '13px' }}>
                                             {rec.contestName || 'Unknown Contest'}
                                         </div>
+                                    </td>
+                                    <td>
                                         <span className="round-status-pill" style={{ background: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe' }}>
                                                 {rec.roundStatus || 'UNKNOWN ROUND'}
                                             </span>

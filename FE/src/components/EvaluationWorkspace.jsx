@@ -41,10 +41,7 @@ const EvaluationWorkspace = () => {
                 const mappedResult = {
                     ...result,
                     ...parsedSubData,
-                    githubRepoUrl: parsedSubData.githubUrl || result?.githubRepoUrl || '',
-                    liveDemoUrl: parsedSubData.demoUrl || result?.liveDemoUrl || '',
-                    docsUrl: parsedSubData.documentUrl || result?.docsUrl || '',
-                    slideUrl: parsedSubData.slidesUrl || result?.slideUrl || ''
+                    parsedSubData
                 };
 
                 setEvalData(mappedResult);
@@ -156,8 +153,6 @@ const EvaluationWorkspace = () => {
 
     const isAutoZero = String(evalData?.status || evalData?.submissionStatus
         || evalData?.scoreStatus).toUpperCase() === 'MISSED_DEADLINE';
-    const reqsStr = evalData?.submissionRequirements;
-    const isRequired = (key) => !reqsStr || reqsStr === '[]' || reqsStr.includes(key);
 
     return (
         <div className="eval-workspace-container">
@@ -181,10 +176,25 @@ const EvaluationWorkspace = () => {
                                 📋 Round Format: {evalData.roundFormat}
                             </div>
                         )}
-                        {isRequired('githubUrl') && renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
-                        {isRequired('demoUrl') && renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
-                        {isRequired('documentUrl') && renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
-                        {isRequired('slideUrl') && renderAssetLink(evalData?.slideUrl || evalData?.presentationSlideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                        {evalData?.parsedSubData && Object.keys(evalData.parsedSubData).length > 0 ? (
+                            Object.entries(evalData.parsedSubData).filter(([k, v]) => typeof v === 'string' && v.trim() !== '').map(([key, val]) => {
+                                const defaultIcon = 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1';
+                                const iconMap = {
+                                    'Source Code URL': 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+                                    'Live Demo URL': 'M13 10V3L4 14h7v7l9-11h-7z',
+                                    'Documentation URL': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                                    'Presentation Slide URL': 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'
+                                };
+                                return <div key={key}>{renderAssetLink(val, key, iconMap[key] || defaultIcon)}</div>;
+                            })
+                        ) : (
+                            <>
+                                {evalData?.githubRepoUrl && renderAssetLink(evalData?.githubRepoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
+                                {evalData?.liveDemoUrl && renderAssetLink(evalData?.liveDemoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
+                                {evalData?.docsUrl && renderAssetLink(evalData?.docsUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
+                                {evalData?.slideUrl && renderAssetLink(evalData?.slideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                            </>
+                        )}
                         <div className="project-id-box">
                             <div className="pid-label">PROJECT ID</div>
                             <div className="pid-val">{evalData?.projectId || 'N/A'} - {evalData?.teamName}</div>

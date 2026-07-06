@@ -5,7 +5,6 @@ import NavbarHome from './NavbarHome.jsx';
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
-
 const fmtDate = (str) => formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric' });
 const fmtShortDate = (str) => formatJsDate(str, { month: 'short', day: '2-digit' });
 const fmtDateTime = (str) => {
@@ -54,11 +53,9 @@ function ContestCard({ contest, onSelectContest }) {
             )}
 
             <div className="ph-contest-action">
-                <button
-                    className={`ph-btn-card ${status === 'CLOSED' ? 'ph-btn-card-closed' : ''}`}
-                    onClick={() => onSelectContest(contest)}
-                >View Details
-                </button>
+                <button className={`ph-btn-card ${status === 'CLOSED' ? 'ph-btn-card-closed' : ''}`}
+                        onClick={() => onSelectContest(contest)}
+                >View Details</button>
             </div>
         </div>
     );
@@ -113,28 +110,15 @@ function renderPrizeStructures(prizeStr) {
 
 function renderRequirements(reqsStr) {
     if (!reqsStr) return 'None';
-
-    const reqMap = {
-        githubUrl: 'GitHub URL',
-        demoUrl: 'Demo URL',
-        documentUrl: 'Document URL',
-        slidesUrl: 'Slides URL',
-        videoUrl: 'Video URL'
-    };
-
-    let reqsArray = [];
     try {
         const parsed = JSON.parse(reqsStr);
         if (Array.isArray(parsed)) {
-            reqsArray = parsed;
-        } else {
-            reqsArray = String(reqsStr).split(',').map(s => s.trim());
+            return parsed.map(r => String(r).trim()).filter(Boolean).join(', ');
         }
     } catch (e) {
-        reqsArray = String(reqsStr).split(',').map(s => s.trim());
+        // Ignore JSON parse error, treat as comma-separated
     }
-
-    return reqsArray.map(r => reqMap[r] || r).join(', ');
+    return reqsStr.split(',').map(r => r.trim()).filter(Boolean).join(', ');
 }
 
 export default function PublicHome() {
@@ -168,7 +152,6 @@ export default function PublicHome() {
     }, []);
 
     const { contests = [], universities = [], geographicScopes = [] } = data || {};
-
     const filteredContests = useMemo(() => {
         if (!searchTerm.trim()) {
             return contests.filter(c => c.status === 'ACTIVED' || c.status === 'UPCOMING');
@@ -234,8 +217,7 @@ export default function PublicHome() {
                         <div className="ph-no-data">No contests found matching your search.</div>
                     ) : (<div className="ph-contests-grid">
                             {filteredContests.map(c => (<ContestCard key={c.id} contest={c}
-                                                                     onSelectContest={() => {
-                                                                         setSelectedContest(c);
+                                                                     onSelectContest={() => {setSelectedContest(c);
                                                                          document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
                                                                      }} />))}
                         </div>
