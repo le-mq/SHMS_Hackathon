@@ -324,86 +324,85 @@ const TeamRegistrationApproval = () => {
                         </div>
 
 
-                <div className="table-section">
-                    <table className="teams-table">
-                        <thead>
-                            <tr>
-                                <th>Team Name</th>
-                                <th style={{ textAlign: 'right', paddingRight: '138px' }}>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredTeams.map(team => {
-                                const statusText = (team.status || 'Active').toLowerCase();
-                                const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
-
-                                let badgeStyle = {padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block'};
-                                if (statusText === 'approved') {
-                                    badgeStyle.backgroundColor = '#dcfce7';
-                                    badgeStyle.color = '#15803d';
-                                } else if (isCanceledOrRejected) {
-                                    badgeStyle.backgroundColor = '#fee2e2';
-                                    badgeStyle.color = '#b91c1c';
-                                } else {
-                                    badgeStyle.backgroundColor = '#f1f5f9';
-                                    badgeStyle.color = '#475569';
-                                }
-
-                                    return (
-                                        <tr key={team.id}>
-                                            <td>
-                                                <div className="team-name-col">
-                                                    <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
-                                                    <span className="team-name">{team.name}</span>
-                                                </div>
-                                            </td>
-                                            <td style={{ textAlign: 'right' }}>
-                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
-
-                                                <span style={badgeStyle}>
-                                                    {team.status || 'Active'}
-                                                </span>
-
-                                                {(statusText === 'approved' || isCanceledOrRejected) && (
-                                                    <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
-                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
-                                                    >
-                                                        View Members
-                                                    </button>
-                                                )}
-
-                                                {isCanceledOrRejected ? (
-
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
-                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                ) : (
-
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
-                                                        style={{padding: '4px 10px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'}}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                    >
-                                                        Cancel Team
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-
-                                {filteredTeams.length === 0 && (
+                        <div className="table-section">
+                            <table className="teams-table">
+                                <thead>
                                     <tr>
-                                        <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
+                                        <th style={{ textAlign: 'left' }}>Team Name</th>
+                                        <th style={{ textAlign: 'center', width: '20%' }}>Status</th>
+                                        <th style={{ textAlign: 'center', width: '30%' }}>Action</th>
                                     </tr>
-                                )}
+                                </thead>
+                                <tbody>
+                                    {filteredTeams.map(team => {
+                                        const statusText = (team.status || 'Active').toLowerCase();
+                                        const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
+
+                                        let badgeStyle = { padding: '4px 8px', with: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
+                                        if (statusText === 'approved') {
+                                            badgeStyle.backgroundColor = '#dcfce7';
+                                            badgeStyle.color = '#15803d';
+                                        } else if (isCanceledOrRejected) {
+                                            badgeStyle.backgroundColor = '#fee2e2';
+                                            badgeStyle.color = '#b91c1c';
+                                        } else {
+                                            badgeStyle.backgroundColor = '#f1f5f9';
+                                            badgeStyle.color = '#475569';
+                                        }
+
+                                        return (
+                                            <tr key={team.id}>
+                                                <td style={{ textAlign: 'left' }}>
+                                                    <div className="team-name-col">
+                                                        <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
+                                                        <span className="team-name">{team.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span style={badgeStyle}>
+                                                        {team.status || 'Active'}
+                                                    </span>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+                                                        {(statusText === 'approved' || isCanceledOrRejected) && (
+                                                            <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
+                                                                style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
+                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
+                                                            >
+                                                                View Members
+                                                            </button>
+                                                        )}
+
+                                                        {isCanceledOrRejected ? (
+                                                            <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                                style={{ padding: '4px 10px', width: '88px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
+                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                        ) : (
+                                                            <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                                style={{ padding: '4px 10px', width: '88px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
+                                                                onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
+                                                            >
+                                                                Cancel Team
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+
+                                    {filteredTeams.length === 0 && (
+                                        <tr>
+                                            <td colSpan="3" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                             <div style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>
@@ -455,73 +454,73 @@ const TeamRegistrationApproval = () => {
                         <div className="table-section">
                             <table className="teams-table">
                                 <thead>
-                                <tr>
-                                    <th>Team Name</th>
-                                    <th>Status</th>
-                                    <th>Submitted At</th>
-                                    <th style={{ textAlign: 'right', paddingRight: '24px' }}>Action</th>
-                                </tr>
+                                    <tr>
+                                        <th>Team Name</th>
+                                        <th>Status</th>
+                                        <th>Submitted At</th>
+                                        <th style={{ textAlign: 'right', paddingRight: '24px' }}>Action</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {filteredSubmissions.map(team => {
-                                    const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
-                                    const isNotSubmitted = team.submissionState === 'Not Submitted';
-                                    const isMissing = isAutoZero || isNotSubmitted;
+                                    {filteredSubmissions.map(team => {
+                                        const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
+                                        const isNotSubmitted = team.submissionState === 'Not Submitted';
+                                        const isMissing = isAutoZero || isNotSubmitted;
 
-                                    let displayText = team.submissionState;
-                                    let bgColor = '#dcfce7';
-                                    let textColor = '#15803d';
+                                        let displayText = team.submissionState;
+                                        let bgColor = '#dcfce7';
+                                        let textColor = '#15803d';
 
-                                    if (isMissing) {
-                                        if (roundProgress.roundStatus === 'CLOSED') {
-                                            displayText = 'Not Submitted (0 pts)';
-                                            bgColor = '#fee2e2';
-                                            textColor = '#b91c1c';
-                                        } else {
-                                            displayText = 'Awaiting Submission';
-                                            bgColor = '#fef3c7';
-                                            textColor = '#b45309';
+                                        if (isMissing) {
+                                            if (roundProgress.roundStatus === 'CLOSED') {
+                                                displayText = 'Not Submitted (0 pts)';
+                                                bgColor = '#fee2e2';
+                                                textColor = '#b91c1c';
+                                            } else {
+                                                displayText = 'Awaiting Submission';
+                                                bgColor = '#fef3c7';
+                                                textColor = '#b45309';
+                                            }
+                                        } else if (team.submissionState === 'OFFICIAL') {
+                                            displayText = 'Submitted';
+                                        } else if (team.submissionState === 'DRAFT') {
+                                            displayText = 'Draft';
+                                            bgColor = '#f1f5f9';
+                                            textColor = '#475569';
                                         }
-                                    } else if (team.submissionState === 'OFFICIAL') {
-                                        displayText = 'Submitted';
-                                    } else if (team.submissionState === 'DRAFT') {
-                                        displayText = 'Draft';
-                                        bgColor = '#f1f5f9';
-                                        textColor = '#475569';
-                                    }
 
-                                    return (
-                                        <tr key={team.teamId}>
-                                            <td>
-                                                <div className="team-name-col">
-                                                    <div className="team-avatar">{team.teamName.substring(0, 2).toUpperCase()}</div>
-                                                    <span className="team-name">{team.teamName}</span>
-                                                </div>
-                                            </td>
-                                            <td>
+                                        return (
+                                            <tr key={team.teamId}>
+                                                <td>
+                                                    <div className="team-name-col">
+                                                        <div className="team-avatar">{team.teamName.substring(0, 2).toUpperCase()}</div>
+                                                        <span className="team-name">{team.teamName}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
                                                     <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, background: bgColor, color: textColor }}>
                                                         {displayText}
                                                     </span>
-                                            </td>
-                                            <td style={{ color: '#64748b', fontSize: '13px' }}>
-                                                {team.submittedAt || '--'}
-                                            </td>
-                                            <td style={{ textAlign: 'right', paddingRight: '24px' }}>
-                                                <button
-                                                    style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
-                                                    onClick={() => setViewSubmissionModal({ isOpen: true, team })}
-                                                >
-                                                    View Submission Form
-                                                </button>
-                                            </td>
+                                                </td>
+                                                <td style={{ color: '#64748b', fontSize: '13px' }}>
+                                                    {team.submittedAt || '--'}
+                                                </td>
+                                                <td style={{ textAlign: 'right', paddingRight: '24px' }}>
+                                                    <button
+                                                        style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                                                        onClick={() => setViewSubmissionModal({ isOpen: true, team })}
+                                                    >
+                                                        View Submission Form
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {filteredSubmissions.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No submissions found</td>
                                         </tr>
-                                    );
-                                })}
-                                {filteredSubmissions.length === 0 && (
-                                    <tr>
-                                        <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No submissions found</td>
-                                    </tr>
-                                )}
+                                    )}
                                 </tbody>
                             </table>
                             <div style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>
@@ -552,19 +551,21 @@ const TeamRegistrationApproval = () => {
                             </p>
 
                             <textarea rows="4" value={cancelModal.reason}
-                                      onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
-                                      placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
-                                      style={{width: '100%', padding: '10px', borderRadius: '6px',
-                                          border: '1px solid #cbd5e1', fontSize: '14px',
-                                          boxSizing: 'border-box', resize: 'none', marginBottom: '20px'}}/>
+                                onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
+                                placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
+                                style={{
+                                    width: '100%', padding: '10px', borderRadius: '6px',
+                                    border: '1px solid #cbd5e1', fontSize: '14px',
+                                    boxSizing: 'border-box', resize: 'none', marginBottom: '20px'
+                                }} />
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                 <button onClick={handleCloseCancelModal}
-                                        style={{padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer'}}>
+                                    style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer' }}>
                                     Cancel
                                 </button>
                                 <button onClick={handleConfirmCancelStatus}
-                                        style={{padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer'}}>
+                                    style={{ padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>
                                     Confirmation
                                 </button>
                             </div>
@@ -582,32 +583,32 @@ const TeamRegistrationApproval = () => {
                         {membersModal.members && membersModal.members.length > 0 ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
-                                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>NAME</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STUDENT ID</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>UNIVERSITY</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>ROLE</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STATUS</th>
-                                </tr>
+                                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>NAME</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STUDENT ID</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>UNIVERSITY</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>ROLE</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STATUS</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {membersModal.members.map((m, idx) => (
-                                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
-                                        <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
-                                        <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
-                                        <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.role || 'Member'}</td>
-                                        <td style={{ padding: '12px', fontSize: '13px' }}>
-                                            {m.status === 'APPROVED' ? (
-                                                <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
-                                            ) : m.status === 'REJECTED' || m.status === 'CANCELED' ? (
-                                                <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
-                                            ) : (
-                                                <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                                    {membersModal.members.map((m, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.role || 'Member'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px' }}>
+                                                {m.status === 'APPROVED' ? (
+                                                    <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
+                                                ) : m.status === 'REJECTED' || m.status === 'CANCELED' ? (
+                                                    <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
+                                                ) : (
+                                                    <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         ) : (
@@ -642,9 +643,9 @@ const TeamRegistrationApproval = () => {
                     const isValid = !!url;
                     return (
                         <a href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
-                           target="_blank" rel="noreferrer"
-                           onClick={e => !isValid && e.preventDefault()}
-                           style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#94a3b8', marginBottom: '8px', alignItems: 'center' }}
+                            target="_blank" rel="noreferrer"
+                            onClick={e => !isValid && e.preventDefault()}
+                            style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#94a3b8', marginBottom: '8px', alignItems: 'center' }}
                         >
                             <div className="asset-left" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
                                 <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
