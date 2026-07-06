@@ -1,16 +1,21 @@
 package com.fpt.shms.be.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fpt.shms.be.model.Contest;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record ContestDTO(
         Long id,
         String name,
         String season,
         Integer year,
+        @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate registrationStart,
+        @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate registrationEnd,
-        java.time.LocalDateTime contestEndAt,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        LocalDateTime contestEndAt,
         String status,
         String description,
         String regionScope,
@@ -20,17 +25,23 @@ public record ContestDTO(
         String complianceRules,
         String tieredPrizeStructures,
         String location,
-        java.time.LocalDateTime publishedAt,
-        java.time.LocalDateTime contestStartAt,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        LocalDateTime publishedAt,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        LocalDateTime contestStartAt,
         java.util.List<CategoryDTO> categories,
         java.util.List<RoundDTO> rounds
 ) {
     public record RoundDTO(
             String phaseName,
-            java.time.LocalDateTime submissionOpen,
-            java.time.LocalDateTime submissionDeadline,
-            java.time.LocalDateTime gradingDeadlineAt,
-            java.time.LocalDateTime publishResultAt,
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            LocalDateTime submissionOpen,
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            LocalDateTime submissionDeadline,
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            LocalDateTime gradingDeadlineAt,
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            LocalDateTime publishResultAt,
             String submissionRequirements,
             String roundFormat
     ) {}

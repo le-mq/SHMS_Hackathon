@@ -336,10 +336,7 @@ public class JudgeService {
         
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
-                .githubRepoUrl(latestSubmission.getProjectRepositoryUrl())
-                .liveDemoUrl(latestSubmission.getDemoVideoUrl())
-                .docsUrl(latestSubmission.getDocumentationUrl())
-                .slideUrl(latestSubmission.getPresentationSlideUrl())
+                .submissionData(latestSubmission.getSubmissionData())
                 .projectId("#" + team.getTeamCode())
                 .teamName(team.getName())
                 .status(latestSubmission.getStatus())

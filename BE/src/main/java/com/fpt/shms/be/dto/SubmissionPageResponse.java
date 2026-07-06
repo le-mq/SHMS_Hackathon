@@ -1,5 +1,6 @@
 package com.fpt.shms.be.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -20,9 +21,13 @@ public class SubmissionPageResponse {
         private Long id;
         private String name;
         private String status;
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime submissionOpen;
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime submissionDeadline;
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime gradingDeadlineAt;
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime publishResultAt;
         private Boolean eligible;
         private String lockedReason;
@@ -37,12 +42,10 @@ public class SubmissionPageResponse {
     public static class HistoryDto {
         private Long roundId;
         private Integer version;
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime timestamp;
         private String status;
-        private String githubRepoUrl;
-        private String liveDemoUrl;
-        private String docsUrl;
-        private String slideUrl;
+        private String submissionData;
         private Boolean evaluated;
         private Double totalScore;
         private String mentorFeedback;

@@ -600,10 +600,7 @@ public class TeamService{
                     .teamId(team.getId())
                     .teamName(team.getName())
                     .submissionState(state)
-                    .repoUrl(latestSub != null ? latestSub.getProjectRepositoryUrl() : null)
-                    .demoUrl(latestSub != null ? latestSub.getDemoVideoUrl() : null)
-                    .docUrl(latestSub != null ? latestSub.getDocumentationUrl() : null)
-                    .slideUrl(latestSub != null ? latestSub.getPresentationSlideUrl() : null)
+                    .submissionData(latestSub != null ? latestSub.getSubmissionData() : null)
                     .submittedAt(latestSub != null && latestSub.getSubmittedAt() != null ? latestSub.getSubmittedAt().format(fmt) : null)
                     .build());
         }

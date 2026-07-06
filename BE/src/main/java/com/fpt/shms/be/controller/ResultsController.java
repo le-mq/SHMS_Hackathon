@@ -71,13 +71,14 @@ public class ResultsController {
                     writer.println(String.format("\"%s\",\"%s\"", team.getName(), "All Categories"));
                 }
             } else if ("scores".equalsIgnoreCase(type)) {
-                writer.println("Team Name,Category,Project Repo,Judge,Criteria,Points,Feedback");
+                writer.println("Team Name,Category,Submission Data,Judge,Criteria,Points,Feedback");
                 for (Team team : teams) {
                     List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
                     for (Submission sub : submissions) {
                         List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
                         for (Score sc : scores) {
                             String judgeName = sc.getJudge() != null ? "Judge ID " + sc.getJudge().getId() : "Unknown";
+                            String subDataCsv = sub.getSubmissionData() != null ? sub.getSubmissionData().replace("\"", "\"\"").replace("\n", " ") : "";
 
                             if (sc.getDetails() != null && !sc.getDetails().isEmpty()) {
                                 for (ScoreDetail sd : sc.getDetails()) {
@@ -93,13 +94,13 @@ public class ResultsController {
                                     String feedback = sd.getFeedback() != null ? sd.getFeedback().replace("\"", "\"\"").replace("\n", " ") : "";
 
                                     writer.println(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%f,\"%s\"",
-                                            team.getName(), judgedCategoryName, sub.getProjectRepositoryUrl(), judgeName, critName, sd.getRawScore(), feedback));
+                                            team.getName(), judgedCategoryName, subDataCsv, judgeName, critName, sd.getRawScore(), feedback));
                                 }
                             } else {
 
                                 String feedback = sc.getGeneralFeedback() != null ? sc.getGeneralFeedback().replace("\"", "\"\"").replace("\n", " ") : "";
                                 writer.println(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%f,\"%s\"",
-                                        team.getName(), "Unknown", sub.getProjectRepositoryUrl(), judgeName, "Overall Score", sc.getTotalScore(), feedback));
+                                        team.getName(), "Unknown", subDataCsv, judgeName, "Overall Score", sc.getTotalScore(), feedback));
                             }
                         }
                     }

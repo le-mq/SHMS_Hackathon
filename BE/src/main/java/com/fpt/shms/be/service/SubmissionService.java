@@ -60,18 +60,8 @@ public class SubmissionService {
         validateRoundSubmissionAccess(team, round);
 
         if (round != null && round.getSubmissionRequirements() != null && !round.getSubmissionRequirements().trim().isEmpty() && !round.getSubmissionRequirements().trim().equals("[]")) {
-            String reqs = round.getSubmissionRequirements();
-            if (reqs.contains("githubUrl") && (request.getGithubRepoUrl() == null || request.getGithubRepoUrl().trim().isEmpty())) {
-                throw new IllegalArgumentException("GitHub Repository URL is required for this round.");
-            }
-            if (reqs.contains("demoUrl") && (request.getLiveDemoUrl() == null || request.getLiveDemoUrl().trim().isEmpty())) {
-                throw new IllegalArgumentException("Live Demo/Video URL is required for this round.");
-            }
-            if (reqs.contains("documentUrl") && (request.getDocsUrl() == null || request.getDocsUrl().trim().isEmpty())) {
-                throw new IllegalArgumentException("Documentation URL is required for this round.");
-            }
-            if (reqs.contains("slideUrl") && (request.getSlideUrl() == null || request.getSlideUrl().trim().isEmpty())) {
-                throw new IllegalArgumentException("Presentation Slide URL is required for this round.");
+            if (request.getSubmissionData() == null || request.getSubmissionData().trim().isEmpty() || request.getSubmissionData().trim().equals("{}") || request.getSubmissionData().trim().equals("[]")) {
+                throw new IllegalArgumentException("Submission data is required for this round.");
             }
         }
 
@@ -93,10 +83,7 @@ public class SubmissionService {
 
             existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + ";");
             existingSub.setVersion(oldVersion + 1);
-            existingSub.setProjectRepositoryUrl(request.getGithubRepoUrl());
-            existingSub.setDemoVideoUrl(request.getLiveDemoUrl());
-            existingSub.setDocumentationUrl(request.getDocsUrl());
-            existingSub.setPresentationSlideUrl(request.getSlideUrl());
+            existingSub.setSubmissionData(request.getSubmissionData());
             existingSub.setSubmittedAt(LocalDateTime.now());
             existingSub.setStatus("SUBMITTED");
             submissionRepository.save(existingSub);
@@ -109,10 +96,7 @@ public class SubmissionService {
                     .submittedAt(LocalDateTime.now())
                     .status("SUBMITTED")
                     .build();
-            submission.setProjectRepositoryUrl(request.getGithubRepoUrl());
-            submission.setDemoVideoUrl(request.getLiveDemoUrl());
-            submission.setDocumentationUrl(request.getDocsUrl());
-            submission.setPresentationSlideUrl(request.getSlideUrl());
+            submission.setSubmissionData(request.getSubmissionData());
             submissionRepository.save(submission);
         }
 
@@ -204,10 +188,7 @@ public class SubmissionService {
                     .version(s.getVersion() != null ? s.getVersion() : 1)
                     .timestamp(s.getSubmittedAt())
                     .status(scoreSummary.evaluated ? "EVALUATED" : s.getStatus())
-                    .githubRepoUrl(s.getProjectRepositoryUrl())
-                    .liveDemoUrl(s.getDemoVideoUrl())
-                    .docsUrl(s.getDocumentationUrl())
-                    .slideUrl(s.getPresentationSlideUrl())
+                    .submissionData(s.getSubmissionData())
                     .evaluated(scoreSummary.evaluated)
                     .totalScore(scoreSummary.totalScore)
                     .mentorFeedback(mentorFeedback)
