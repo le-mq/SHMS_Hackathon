@@ -19,26 +19,38 @@ const PanelAllocation = () => {
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
+    const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
+    const hasMentorRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('mentor')) ?? false, [activeExpert]);
+    const hasJudgeRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('judge')) ?? false, [activeExpert]);
+    const roundCategoryId = selectedRound?.categoryId ?? null;
+
     useEffect(() => {
         const fetchInitial = async () => {
             try {
-                const [contestsRes, expertsRes] = await Promise.all([
-                    fetch(`${API_BASE}/admin/contests`, { headers }),
-                    fetch(`${API_BASE}/admin/contests/experts`, { headers }),
-                ]);
-                if (contestsRes.ok) {
-                    const cData = await contestsRes.json();
-                    setContests(cData);
-                    if (cData.length > 0) {
-                        const activeContest = cData.find(c => c.status === 'ACTIVED');
-                        setSelectedContestId(String(activeContest ? activeContest.id : cData[0].id));
-                    }
+                let cData = [], eData = [];
+                try {
+                    const [contestsRes, expertsRes] = await Promise.all([
+                        fetch(`${API_BASE}/admin/contests`, { headers }),
+                        fetch(`${API_BASE}/admin/contests/experts`, { headers }),
+                    ]);
+                    if (!contestsRes.ok || !expertsRes.ok) throw new Error("API error");
+                    cData = await contestsRes.json();
+                    eData = await expertsRes.json();
+                } catch (apiErr) {
+                    console.warn("Using mock data for initial load in PanelAllocation:", apiErr);
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    cData = localJson.panelAllocation?.contests || [];
+                    eData = localJson.panelAllocation?.experts || [];
                 }
-                if (expertsRes.ok) {
-                    const eData = await expertsRes.json();
-                    setExperts(eData);
-                    if (eData.length > 0) setSelectedExpertId(String(eData[0].userId));
+
+                setContests(cData);
+                if (cData.length > 0) {
+                    const activeContest = cData.find(c => c.status === 'ACTIVED');
+                    setSelectedContestId(String(activeContest ? activeContest.id : cData[0].id));
                 }
+                setExperts(eData);
+                if (eData.length > 0) setSelectedExpertId(String(eData[0].userId));
             } catch (err) {
                 console.error(err);
             }
@@ -53,9 +65,11 @@ const PanelAllocation = () => {
             setSelectedRound(null);
             return;
         }
-        fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds`, { headers })
-            .then(res => res.ok ? res.json() : [])
-            .then(data => {
+        const getRounds = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds`, { headers });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
                 setRounds(data);
                 if (data.length > 0) {
                     setSelectedRoundId(String(data[0].roundId));
@@ -64,7 +78,28 @@ const PanelAllocation = () => {
                     setSelectedRoundId('');
                     setSelectedRound(null);
                 }
-            });
+            } catch {
+                console.warn("Using mock data for rounds in PanelAllocation");
+                const mockRounds = [
+                    {
+                        roundId: 1,
+                        roundName: "Phase 01: Screening",
+                        categoryId: 1,
+                        categoryName: "Artificial Intelligence"
+                    },
+                    {
+                        roundId: 2,
+                        roundName: "Phase 02: Final",
+                        categoryId: 2,
+                        categoryName: "Cyber Security"
+                    }
+                ];
+                setRounds(mockRounds);
+                setSelectedRoundId(String(mockRounds[0].roundId));
+                setSelectedRound(mockRounds[0]);
+            }
+        };
+        getRounds();
     }, [selectedContestId, headers]);
 
     useEffect(() => {
@@ -77,26 +112,43 @@ const PanelAllocation = () => {
         setSelectedRound(round || null);
         const fetchRoundData = async () => {
             try {
-                const [teamsRes, allocationsRes] = await Promise.all([
-                    fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds/${selectedRoundId}/teams`, { headers }),
-                    fetch(`${API_BASE}/admin/contests/allocations?roundId=${selectedRoundId}`, { headers }),
-                ]);
-                if (teamsRes.ok) setAllTeams(await teamsRes.json());
-                if (allocationsRes.ok) {
-                    const allocData = await allocationsRes.json() || {};
-                    setAllocations(allocData);
-                    setSavedAllocations(allocData);
+                let teamsData = [], allocationsData = {};
+                try {
+                    const [teamsRes, allocationsRes] = await Promise.all([
+                        fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds/${selectedRoundId}/teams`, { headers }),
+                        fetch(`${API_BASE}/admin/contests/allocations?roundId=${selectedRoundId}`, { headers }),
+                    ]);
+                    if (!teamsRes.ok || !allocationsRes.ok) throw new Error("API error");
+                    teamsData = await teamsRes.json();
+                    allocationsData = await allocationsRes.json() || {};
+                } catch (apiErr) {
+                    console.warn("Using mock data for round data in PanelAllocation:", apiErr);
+                    if (Number(roundCategoryId) === 2) {
+                        teamsData = [
+                            { id: 3, name: "HackStorm" },
+                            { id: 4, name: "NextGen" }
+                        ];
+                    } else {
+                        teamsData = [
+                            { id: 1, name: "AI Warriors" },
+                            { id: 2, name: "Code Titans" },
+                            { id: 3, name: "Data Miners" },
+                            { id: 4, name: "NextGen" }
+                        ];
+                    }
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    allocationsData = localJson.panelAllocation?.allocations || {};
                 }
+                setAllTeams(teamsData);
+                setAllocations(allocationsData);
+                setSavedAllocations(allocationsData);
             } catch (err) {
                 console.error(err);
             }
         };
         fetchRoundData();
-    }, [selectedContestId, selectedRoundId, rounds, headers]);
-    const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
-    const hasMentorRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('mentor')) ?? false, [activeExpert]);
-    const hasJudgeRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('judge')) ?? false, [activeExpert]);
-    const roundCategoryId = selectedRound?.categoryId ?? null;
+    }, [selectedContestId, selectedRoundId, rounds, headers, roundCategoryId]);
     const currentMentoredTeamIds = useMemo(() => {
         if (!allocations || !selectedExpertId) return [];
         const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
@@ -129,7 +181,7 @@ const PanelAllocation = () => {
 
     const overviewJudges = useMemo(() => {
         if (!savedAllocations || !roundCategoryId) return [];
-        return Object.entries(savedAllocations).filter(([expId, expertAlloc]) => {
+        return Object.entries(savedAllocations).filter(([_, expertAlloc]) => {
             return expertAlloc[roundCategoryId]?.isJudge === true;
         }).map(([expId]) => {
             return experts.find(e => String(e.userId) === String(expId));
@@ -138,7 +190,7 @@ const PanelAllocation = () => {
 
     const overviewMentors = useMemo(() => {
         if (!savedAllocations || !roundCategoryId) return [];
-        return Object.entries(savedAllocations).filter(([expId, expertAlloc]) => {
+        return Object.entries(savedAllocations).filter(([_, expertAlloc]) => {
             return expertAlloc[roundCategoryId]?.mentoredTeamIds?.length > 0;
         }).map(([expId, expertAlloc]) => {
             const expert = experts.find(e => String(e.userId) === String(expId));
@@ -224,11 +276,11 @@ const PanelAllocation = () => {
 
     return (
         <div className="admin-container">
-            <div className="config-wrapper">
+            <div className="allocation-wrapper">
                 <div className="header-flex">
                     <div>
-                        <h1 className="config-title">Panel Allocation</h1>
-                        <p className="config-subtitle">Assign judges and allocate mentors to teams per round.</p>
+                        <h1 className="config-title">Panel Allocation Desk</h1>
+                        <p className="config-subtitle">Assign judges and allocate mentors to teams per competition round.</p>
                     </div>
 
                     <div className="header-selectors">
@@ -236,9 +288,9 @@ const PanelAllocation = () => {
                             <label className="selector-label">Contest</label>
                             <select className="form-select-styled" value={selectedContestId}
                                 onChange={e => setSelectedContestId(e.target.value)}
-                            ><option value="">-- Choose Contest --</option>
-                                {contests.map(c => ( <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
+                            >
+                                <option value="">-- Choose Contest --</option>
+                                {contests.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                             </select>
                         </div>
 
@@ -247,19 +299,19 @@ const PanelAllocation = () => {
                             <select className="form-select-styled" value={selectedRoundId}
                                 onChange={e => setSelectedRoundId(e.target.value)}
                                 disabled={rounds.length === 0}
-                            ><option value="">-- Choose Round --</option>
-                                {rounds.map(r => ( <option key={r.roundId} value={r.roundId}>{r.roundName}</option>
-                                ))}
+                            >
+                                <option value="">-- Choose Round --</option>
+                                {rounds.map(r => (<option key={r.roundId} value={r.roundId}>{r.roundName}</option>))}
                             </select>
                         </div>
 
                         {selectedRound && (
                             <div className="selector-group">
-                                <label className="selector-label">Category</label>
+                                <label className="selector-label">Category Focus</label>
                                 <div className="category-badge-readonly">
                                     {selectedRound.categoryName
-                                        ? <><span className="cat-icon">🏷</span> {selectedRound.categoryName}</>
-                                        : <span style={{ color: '#94a3b8' }}>Category not available yet</span>
+                                        ? <><span className="cat-icon">🏷️</span> {selectedRound.categoryName}</>
+                                        : <span>Category not assigned</span>
                                     }
                                 </div>
                             </div>
@@ -267,84 +319,89 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
-                <div className="allocation-grid">
-                    <div className="left-panel">
-                        <div className="panel-header">
-                            <h2 className="panel-title">Expert Registry</h2>
-                            <span className="panel-badge">{filteredExperts.length} Active</span>
-                        </div>
-                        <div className="search-inner-wrapper">
-                            <input type="text" className="search-input"
-                                placeholder="Find Mentor" value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <div className="expert-list">
-                            {filteredExperts.map(expert => (
-                                <div key={expert.userId}
-                                    className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
-                                    onClick={() => setSelectedExpertId(expert.userId)}
-                                >
-                                    <div className="expert-info">
-                                        <div className="expert-avatar">{expert.fullName?.charAt(0).toUpperCase()}</div>
-                                        <div className="expert-details">
-                                            <span className="expert-name">{expert.fullName}</span>
-                                            <span className="expert-title">{(expert.roles || []).join(', ')}</span>
-                                        </div>
+                <div className="left-panel">
+                    <div className="panel-header">
+                        <h2 className="panel-title">Expert Registry</h2>
+                        <span className="panel-badge">{filteredExperts.length} Total</span>
+                    </div>
+                    <div className="search-inner-wrapper">
+                        <input type="text" className="search-input"
+                            placeholder="Search experts..." value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <div className="expert-list">
+                        {filteredExperts.map(expert => (
+                            <div key={expert.userId}
+                                className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
+                                onClick={() => setSelectedExpertId(expert.userId)}
+                            >
+                                <div className="expert-info">
+                                    <div className="expert-avatar">{expert.fullName?.charAt(0).toUpperCase()}</div>
+                                    <div className="expert-details">
+                                        <span className="expert-name">{expert.fullName}</span>
+                                        <span className="expert-title">{(expert.roles || []).join(', ')}</span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="right-assignment-panel">
+                    <div className="panel-header-custom">
+                        <h2>Allocation Management Board</h2>
+                        <p>Configure dynamic role and assignments for the selected specialist.</p>
                     </div>
 
-                    <div className="middle-panel" style={{ padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                        {!selectedRoundId ? (
-                            <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
-                                <p>Please select Contest and Round to begin the allocation process..</p>
+                    {!selectedRoundId ? (
+                        <div className="panel-empty-text">
+                            <p>Please define active Contest and Round targets to initiate allocation.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="management-block">
+                                <h3>Team Mentor Allocation</h3>
+                                <p className="block-hint">Select teams to assign this expert as a dedicated mentor.</p>
+                                {allTeams.length === 0 ? (
+                                    <div className="team-empty-box">
+                                        <p>No active teams captured within this scope.</p>
+                                    </div>
+                                ) : (
+                                    <div className="global-teams-grid">
+                                        {allTeams.map(team => {
+                                            const isChecked = currentMentoredTeamIds.includes(String(team.id));
+                                            const isTakenByAnother = allAssignedTeamIds.has(String(team.id));
+                                            const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
+                                            return (
+                                                <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
+                                                    <input type="checkbox" checked={isChecked}
+                                                        onChange={() => handleGlobalTeamToggle(team.id)}
+                                                        disabled={isMentorDisabled}
+                                                    />
+                                                    <div className="team-name-text">
+                                                        {team.name}
+                                                        {isTakenByAnother && <span className="team-assigned-tag"> (Assigned)</span>}
+                                                    </div>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
-                        ) : (
-                            <>
-                                <div className="management-block">
-                                    <h3>Mentor</h3>
-                                    {allTeams.length === 0 ? (
-                                        <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
-                                            <p>There are no results from the previous round, or no teams have qualified.</p>
-                                            <p style={{ fontSize: '12px' }}>Only judges can be assigned.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="global-teams-grid">
-                                            {allTeams.map(team => {
-                                                const isChecked = currentMentoredTeamIds.includes(String(team.id));
-                                                const isTakenByAnother = allAssignedTeamIds.has(String(team.id));
-                                                const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
-                                                return (
-                                                    <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
-                                                        <input type="checkbox" checked={isChecked}
-                                                            onChange={() => handleGlobalTeamToggle(team.id)}
-                                                            disabled={isMentorDisabled}
-                                                        />
-                                                        <div className="team-name-text">
-                                                            {team.name}
-                                                            {isTakenByAnother && <span style={{ color: '#94a3b8', fontSize: '11px' }}> (already have a mentor.)</span>}
-                                                        </div>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
 
-                                <div className="management-block" style={{ marginTop: '24px' }}>
-                                    <h3>Judge</h3>
-                                    {roundCategoryId ? (
-                                        <table className="judge-pure-table">
-                                            <thead>
+                            <div className="management-block">
+                                <h3>Committee Judge Panel</h3>
+                                <p className="block-hint">Toggle evaluation status for cross-team grading compliance.</p>
+                                {roundCategoryId ? (
+                                    <table className="judge-pure-table judge-table-width">
+                                        <thead>
                                             <tr>
-                                                <th>Category</th>
-                                                <th className="center">grading status</th>
+                                                <th>Target Track Category</th>
+                                                <th className="center judge-table-center-th">Grading Authority</th>
                                             </tr>
-                                            </thead>
-                                            <tbody>
+                                        </thead>
+                                        <tbody>
                                             <tr>
                                                 <td><strong>{selectedRound?.categoryName}</strong></td>
                                                 <td className="center">
@@ -356,59 +413,64 @@ const PanelAllocation = () => {
                                                     </label>
                                                 </td>
                                             </tr>
-                                            </tbody>
-                                        </table>
-                                    ) : <p>This round has not been assigned a category yet.</p>}
-                                </div>
+                                        </tbody>
+                                    </table>
+                                ) : <p className="judge-missing-track">Missing target track focus.</p>}
+                            </div>
 
-                                <div className="panel-footer-actions">
-                                    <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>{isLoading ? 'Saving...' : 'Save'}
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="right-panel" style={{ padding: '24px' }}>
-                        <div className="management-block" style={{ border: 'none', padding: 0, margin: 0 }}>
-                            <h3 style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '16px' }}>Overview: Assigned Experts</h3>
-                            {!selectedRoundId ? (
-                                <p style={{ color: '#64748b', textAlign: 'center', marginTop: '20px' }}>No round selected.</p>
-                            ) : overviewJudges.length === 0 && overviewMentors.length === 0 ? (
-                                <p style={{ color: '#64748b', textAlign: 'center', marginTop: '20px' }}>No experts have been assigned to this round yet.</p>
-                            ) : (
-                                <table className="judge-pure-table" style={{ width: '100%' }}>
-                                    <thead>
-                                    <tr>
-                                        <th style={{width: '20%'}}>Role</th>
-                                        <th style={{width: '35%'}}>Name</th>
-                                        <th>Assigned Teams (Mentors only)</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {overviewJudges.map((judge, idx) => (
-                                        <tr key={`judge-${judge.userId}-${idx}`}>
-                                            <td><span style={{background: '#e0e7ff', color: '#3730a3', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Judge</span></td>
-                                            <td>{judge.fullName || judge.username}</td>
-                                            <td style={{color: '#94a3b8'}}>-</td>
-                                        </tr>
-                                    ))}
-                                    {overviewMentors.map((mentorData, idx) => (
-                                        <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
-                                            <td><span style={{background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600}}>Mentor</span></td>
-                                            <td>{mentorData.expert.fullName || mentorData.expert.username}</td>
-                                            <td>{mentorData.teams.join(', ')}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
+                            <div className="panel-footer-actions">
+                                <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    {isLoading ? 'Processing...' : 'Save'}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
+
+                <div className="overview-panel">
+                    <div className="panel-header">
+                        <h3 className="panel-title overview-title">Live Status Overview</h3>
+                    </div>
+                    {!selectedRoundId ? (
+                        <div className="panel-empty-text">
+                            <p>Awaiting parameters.</p>
+                        </div>
+                    ) : overviewJudges.length === 0 && overviewMentors.length === 0 ? (
+                        <div className="panel-empty-text">
+                            <p>No record found.</p>
+                        </div>
+                    ) : (
+                        <table className="judge-pure-table overview-table">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Identity</th>
+                                    <th>Scope</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {overviewJudges.map((judge, idx) => (
+                                    <tr key={`judge-${judge.userId}-${idx}`}>
+                                        <td><span className="badge-judge">JUDGE</span></td>
+                                        <td><strong>{judge.fullName || judge.username}</strong></td>
+                                        <td><span className="scope-judge">All teams</span></td>
+                                    </tr>
+                                ))}
+                                {overviewMentors.map((mentorData, idx) => (
+                                    <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
+                                        <td><span className="badge-mentor">MENTOR</span></td>
+                                        <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
+                                        <td><span className="scope-mentor">{mentorData.teams.join(', ')}</span></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
             </div>
         </div>
     );
