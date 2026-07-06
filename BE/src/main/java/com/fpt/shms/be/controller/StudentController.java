@@ -91,9 +91,7 @@ public class StudentController {
             studentRepository.findByUser(user)
                     .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findAll().stream()
-                    .filter(c -> c.getStatus() == com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED)
-                    .toList();
+            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findAll();
 
             return org.springframework.http.ResponseEntity.ok(allowedContests.stream()
                     .map(c -> {

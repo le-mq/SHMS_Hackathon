@@ -622,10 +622,10 @@ VALUES
 ('Fall', 2025, 'FA25');
 GO
 
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, contest_end_at)
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, min_team_members, max_team_members, status, registration_start, registration_end, contest_end_at)
 VALUES
-(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10', '2026-03-30 23:59:59'),
-(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59');
+(1, 'National AI Challenge', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2026-02-01', '2026-02-10', '2026-03-30 23:59:59'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59');
 GO
 
 INSERT INTO Category (contest_id, category_name, description, status)
@@ -680,3 +680,80 @@ INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
 WHERE u.email IN ('dntotrinh@gmail.com', 'phannha@gmail.com');
 GO
+
+-- 10. HISTORICAL COMPETITION DATA & PAST TEAMS
+-- Insert Rounds for past contests (Contest 1 & Contest 2)
+INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
+VALUES
+(1, 1, 'Final Round', 1, '2026-02-15 08:00:00', '2026-03-15 23:59:59', '2026-03-25 23:59:59', '2026-03-30 10:00:00', 'CLOSED', N'[{"title":"Project Repository","type":"url","required":true},{"title":"Demo Video","type":"url","required":true}]', 'ONLINE'),
+(2, 4, 'Final Round', 1, '2025-09-20 08:00:00', '2025-10-20 23:59:59', '2025-10-28 23:59:59', '2025-11-01 10:00:00', 'CLOSED', N'[{"title":"Smart Contract Repo","type":"url","required":true},{"title":"Architecture Doc","type":"url","required":true}]', 'ONLINE');
+GO
+
+DECLARE @PastTeam1_ID BIGINT, @PastTeam2_ID BIGINT, @PastTeam3_ID BIGINT;
+
+-- Past Team 1: AI Pioneers (Contest 1, Category 1) - 4 members from different current teams
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST01', 'AI Pioneers', 1, 'CLOSED', '2026-02-05 10:00:00');
+SET @PastTeam1_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20IT123457@st.huflit.edu.vn');
+
+-- Past Team 2: Visionary Devs (Contest 1, Category 1)
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST02', 'Visionary Devs', 1, 'CLOSED', '2026-02-06 10:00:00');
+SET @PastTeam2_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com', '20IT123456@st.huflit.edu.vn');
+
+-- Past Team 3: Blockchain Masters (Contest 2, Category 4)
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST03', 'Blockchain Masters', 2, 'CLOSED', '2025-09-05 10:00:00');
+SET @PastTeam3_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('20120001@student.hcmus.edu.vn', 'Phamgiahan@hcmut.edu.vn', '09876543@st.hcmuaf.edu.vn', '20IT123457@st.huflit.edu.vn', '20120002@student.hcmus.edu.vn');
+GO
+
+DECLARE @Sub1_ID BIGINT, @Sub2_ID BIGINT, @Sub3_ID BIGINT;
+DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
+DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
+
+-- Submissions
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status)
+VALUES
+((SELECT team_id FROM Team WHERE team_code = 'PAST01'), 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai","Demo Video":"https://youtube.com/watch?v=demo1"}', 1, '2026-03-10 14:00:00', 'GRADED');
+SET @Sub1_ID = SCOPE_IDENTITY();
+
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status)
+VALUES
+((SELECT team_id FROM Team WHERE team_code = 'PAST02'), 1, N'{"Project Repository":"https://github.com/visionary/ai-vision","Demo Video":"https://youtube.com/watch?v=demo2"}', 1, '2026-03-11 15:30:00', 'GRADED');
+SET @Sub2_ID = SCOPE_IDENTITY();
+
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status)
+VALUES
+((SELECT team_id FROM Team WHERE team_code = 'PAST03'), 2, N'{"Smart Contract Repo":"https://github.com/blockchainmasters/defi-dex","Architecture Doc":"https://drive.google.com/file/d/doc1"}', 1, '2025-10-15 09:20:00', 'GRADED');
+SET @Sub3_ID = SCOPE_IDENTITY();
+
+-- Scores
+INSERT INTO Score (submission_id, user_id, total_score, general_feedback, status)
+VALUES
+(@Sub1_ID, @Judge1_ID, 92.50, N'Excellent AI architecture and high accuracy model!', 'PUBLISHED'),
+(@Sub2_ID, @Judge1_ID, 88.00, N'Good vision pipeline, UI could be improved.', 'PUBLISHED'),
+(@Sub3_ID, @Judge1_ID, 95.00, N'Outstanding smart contract security and gas optimization!', 'PUBLISHED');
+
+-- Ranking Results (Leaderboards)
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at)
+VALUES
+(1, 1, (SELECT team_id FROM Team WHERE team_code = 'PAST01'), @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
+(1, 1, (SELECT team_id FROM Team WHERE team_code = 'PAST02'), @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 4, (SELECT team_id FROM Team WHERE team_code = 'PAST03'), @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-01 10:00:00');
+GO
+
