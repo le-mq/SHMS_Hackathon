@@ -22,10 +22,7 @@ public class RoundProgressResponse {
         private Long teamId;
         private String teamName;
         private String submissionState;
-        private String repoUrl;
-        private String demoUrl;
-        private String docUrl;
-        private String slideUrl;
+        private String submissionData;
         private String submissionRequirements;
         private String submittedAt;
     }

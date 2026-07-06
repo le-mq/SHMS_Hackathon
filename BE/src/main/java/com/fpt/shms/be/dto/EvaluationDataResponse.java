@@ -9,10 +9,7 @@ import java.util.List;
 @Builder
 public class EvaluationDataResponse {
     private Long submissionId;
-    private String githubRepoUrl;
-    private String liveDemoUrl;
-    private String docsUrl;
-    private String slideUrl;
+    private String submissionData;
     private String projectId;
     private String teamName;
     private String status;

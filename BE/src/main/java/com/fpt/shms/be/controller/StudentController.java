@@ -101,12 +101,27 @@ public class StudentController {
                                 .stream()
                                 .map(cu -> cu.getUniversity().getName())
                                 .toList();
-                        return java.util.Map.of(
-                                "id", c.getId(),
-                                "name", c.getName(),
-                                "status", c.getStatus() != null ? c.getStatus().name() : "CLOSED",
-                                "allowedUniversities", allowedUnis
-                        );
+                        java.util.Map<String, Object> map = new java.util.HashMap<>();
+                        map.put("id", c.getId());
+                        map.put("name", c.getName());
+                        map.put("status", c.getStatus() != null ? c.getStatus().name() : "CLOSED");
+                        map.put("allowedUniversities", allowedUnis);
+                        map.put("registrationStart", c.getRegistrationStart());
+                        map.put("registrationEnd", c.getRegistrationEnd());
+                        map.put("contestStartAt", c.getContestStartAt());
+                        map.put("contestEndAt", c.getContestEndAt());
+                        map.put("minTeamMembers", c.getMinTeamMembers());
+                        map.put("maxTeamMembers", c.getMaxTeamMembers());
+                        map.put("description", c.getDescription());
+                        map.put("location", c.getLocation());
+                        map.put("regionScope", c.getRegionScope());
+                        map.put("tieredPrizeStructures", c.getTieredPrizeStructures());
+                        java.util.List<String> categoryNames = categoryRepository.findByContestId(c.getId())
+                                .stream()
+                                .map(com.fpt.shms.be.model.Category::getName)
+                                .toList();
+                        map.put("categories", categoryNames);
+                        return map;
                     })
                     .toList());
 

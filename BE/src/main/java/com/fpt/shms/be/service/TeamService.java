@@ -121,7 +121,7 @@ public class TeamService{
                     .build();
         }).toList();
 
-        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 999;
+        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
         long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
 
         return TeamStatusResponse.builder()
@@ -304,7 +304,7 @@ public class TeamService{
             deadline = nearestDeadline;
         }
 
-        int maxMembers = (roundContest != null && roundContest.getMaxTeamMembers() != null) ? roundContest.getMaxTeamMembers() : 999;
+        int maxMembers = (roundContest != null && roundContest.getMaxTeamMembers() != null) ? roundContest.getMaxTeamMembers() : 5;
 
         List<WorkspaceResponse.AnnouncementDto> realAnnouncements = announcementRepository
                 .findByIsActiveTrueOrderByPublishedAtDesc()
@@ -600,10 +600,7 @@ public class TeamService{
                     .teamId(team.getId())
                     .teamName(team.getName())
                     .submissionState(state)
-                    .repoUrl(latestSub != null ? latestSub.getProjectRepositoryUrl() : null)
-                    .demoUrl(latestSub != null ? latestSub.getDemoVideoUrl() : null)
-                    .docUrl(latestSub != null ? latestSub.getDocumentationUrl() : null)
-                    .slideUrl(latestSub != null ? latestSub.getPresentationSlideUrl() : null)
+                    .submissionData(latestSub != null ? latestSub.getSubmissionData() : null)
                     .submittedAt(latestSub != null && latestSub.getSubmittedAt() != null ? latestSub.getSubmittedAt().format(fmt) : null)
                     .build());
         }
@@ -691,8 +688,8 @@ public class TeamService{
 
         // Validate capacity: đếm APPROVED + PENDING
         Contest contest = team.getContest();
-        int maxCapacity = contest != null && contest.getMaxTeamMembers() != null
-                ? contest.getMaxTeamMembers() : 999;
+        int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
+                ? contest.getMaxTeamMembers() : 5;
         long currentCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                 java.util.List.of("APPROVED", "PENDING"));
         if (currentCount >= maxCapacity) {
@@ -776,8 +773,8 @@ public class TeamService{
             // Re-check capacity (chỉ đếm APPROVED)
             Team team = membership.getTeam();
             Contest contest = team.getContest();
-            int maxCapacity = contest != null && contest.getMaxTeamMembers() != null
-                    ? contest.getMaxTeamMembers() : 999;
+            int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
+                    ? contest.getMaxTeamMembers() : 5;
             long approvedCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                     java.util.List.of("APPROVED"));
             if (approvedCount >= maxCapacity) {

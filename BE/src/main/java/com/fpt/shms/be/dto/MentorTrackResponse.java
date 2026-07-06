@@ -35,10 +35,7 @@ public class MentorTrackResponse {
         private String leaderName;
         private int totalMembers;
         private String progressStatus;
-        private String githubRepoUrl;
-        private String liveDemoUrl;
-        private String docsUrl;
-        private String slideUrl;
+        private String submissionData;
         private Long roundId;
         private String roundName;
         private Long submissionId;
