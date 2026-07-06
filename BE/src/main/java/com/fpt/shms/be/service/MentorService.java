@@ -54,7 +54,7 @@ public class MentorService {
 
             for (TeamMentor tmAlloc : contestTMs) {
                 Team team = tmAlloc.getTeam();
-                if (!"APPROVED".equals(team.getStatus()))
+                if (!"APPROVED".equalsIgnoreCase(team.getStatus()) && !"CLOSED".equalsIgnoreCase(team.getStatus()))
                     continue;
 
                 Category category = tmAlloc.getCategory();

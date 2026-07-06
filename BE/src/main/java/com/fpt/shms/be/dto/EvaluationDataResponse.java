@@ -18,6 +18,9 @@ public class EvaluationDataResponse {
     private String contestTheme;
     private String contestLocation;
     private String contestRules;
+    private java.time.LocalDateTime contestStart;
+    private java.time.LocalDateTime contestEnd;
+    private List<com.fpt.shms.be.dto.EvaluatorDashboardResponse.RoundDto> rounds;
     private List<CriteriaDto> criteria;
 
     @Data

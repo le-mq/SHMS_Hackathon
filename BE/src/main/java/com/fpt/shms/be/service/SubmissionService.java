@@ -35,7 +35,10 @@ public class SubmissionService {
             throw new IllegalArgumentException("User is not in any team");
         }
 
-        TeamMembership membership = memberships.get(0);
+        TeamMembership membership = memberships.stream()
+                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
+                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .orElse(memberships.get(0));
 
         if (!"LEADER".equals(membership.getRole())) {
             throw new IllegalArgumentException("Only the Team Leader can submit work.");

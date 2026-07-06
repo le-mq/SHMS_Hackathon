@@ -170,7 +170,10 @@ public class TeamService{
             throw new IllegalArgumentException("You are not currently in any team.");
         }
 
-        TeamMembership membership = memberships.get(0);
+        TeamMembership membership = memberships.stream()
+                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
+                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .orElse(memberships.get(0));
         Team team = membership.getTeam();
 
         if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
@@ -191,7 +194,11 @@ public class TeamService{
             throw new IllegalArgumentException("User is not in any team");
         }
 
-        Team team = memberships.get(0).getTeam();
+        TeamMembership activeMembership = memberships.stream()
+                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
+                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .orElse(memberships.get(0));
+        Team team = activeMembership.getTeam();
 
         if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
             throw new IllegalArgumentException("Team registration is already pending or approved.");
@@ -311,7 +318,7 @@ public class TeamService{
                         || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
                 .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
                 .orElseGet(() -> memberships.stream()
-                        .filter(m -> m.getTeam() != null)
+                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
                         .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
                         .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
@@ -783,7 +790,12 @@ public class TeamService{
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
             java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(user.getId());
-            boolean alreadyInTeam = existing.stream().anyMatch(m -> "APPROVED".equalsIgnoreCase(m.getStatus()));
+            boolean alreadyInTeam = existing.stream().anyMatch(m ->
+                    "APPROVED".equalsIgnoreCase(m.getStatus()) &&
+                    m.getTeam() != null &&
+                    !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) &&
+                    (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus()))
+            );
             if (alreadyInTeam) {
                 throw new IllegalArgumentException("You are already in a team.");
             }

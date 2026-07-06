@@ -739,12 +739,12 @@ GO
 -- 7. ROUNDS
 INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
-(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'COMPLETED', N'Nộp link GitHub Repo và tài liệu tả kiến trúc', 'ONLINE'),
-(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'COMPLETED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
-(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'COMPLETED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
-(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'COMPLETED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
-(3, 7, 'Ideation & Proposal', 1, '2026-06-05 08:00:00', '2026-08-15 23:59:59', '2026-08-20 17:00:00', '2026-08-22 10:00:00', 'IN_PROGRESS', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
-(3, 7, 'Final Hackathon Day', 2, '2026-08-23 08:00:00', '2026-09-25 23:59:59', '2026-09-28 17:00:00', '2026-09-30 10:00:00', 'NOT_STARTED', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE');
+(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'CLOSED', N'Nộp link GitHub Repo và tài liệu tả kiến trúc', 'ONLINE'),
+(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
+(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
+(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
+(3, 7, 'Ideation & Proposal', 1, '2026-06-05 08:00:00', '2026-08-15 23:59:59', '2026-08-20 17:00:00', '2026-08-22 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
+(3, 7, 'Final Hackathon Day', 2, '2026-08-23 08:00:00', '2026-09-25 23:59:59', '2026-09-28 17:00:00', '2026-09-30 10:00:00', 'UPCOMING', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE');
 GO
 
 -- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
@@ -769,7 +769,7 @@ SET @PastTeam2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com', '20IT123456@st.huflit.edu.vn');
+SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com');
 
 -- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
@@ -777,36 +777,36 @@ VALUES ('PAST03', 'Blockchain Masters', 2, 'CLOSED', '2025-09-05 10:00:00');
 SET @PastTeam3_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email = '20120001@student.hcmus.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('20120001@student.hcmus.edu.vn', 'Phamgiahan@hcmut.edu.vn', '09876543@st.hcmuaf.edu.vn', '20IT123457@st.huflit.edu.vn', '20120002@student.hcmus.edu.vn');
+SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('Phamgiahan@hcmut.edu.vn', '20120002@student.hcmus.edu.vn');
 
--- Ongoing Team 1: Cyber Core (Contest 3, Category 7) - APPROVED
+-- Historical Team 4: Cyber Core (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM01', 'Cyber Core', 3, 'APPROVED', '2026-06-02 10:00:00');
+VALUES ('TEAM01', 'Cyber Core', 1, 'CLOSED', '2026-02-07 10:00:00');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+SELECT @Team1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-02 10:00:00' FROM [User] u WHERE u.email IN ('vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
+SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
--- Ongoing Team 2: Code Rangers (Contest 3, Category 7) - APPROVED
+-- Historical Team 5: Code Rangers (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM02', 'Code Rangers', 3, 'APPROVED', '2026-06-03 10:00:00');
+VALUES ('TEAM02', 'Code Rangers', 2, 'CLOSED', '2025-09-06 10:00:00');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-03 10:00:00' FROM [User] u WHERE u.email = 'huongtuongyen1982@gmail.com';
+SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email = '20IT123456@st.huflit.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-03 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
+SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123457@st.huflit.edu.vn', 'nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com', 'Leduyphuc@hcmut.edu.vn');
 
--- Ongoing Team 3: Byte Wizards (Contest 3, Category 7) - APPROVED
+-- Historical Team 6: Byte Wizards (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM03', 'Byte Wizards', 3, 'APPROVED', '2026-06-04 10:00:00');
+VALUES ('TEAM03', 'Byte Wizards', 2, 'CLOSED', '2025-09-07 10:00:00');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team3_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-04 10:00:00' FROM [User] u WHERE u.email = 'nguyendangduyquang@gmail.com';
+SELECT @Team3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-04 10:00:00' FROM [User] u WHERE u.email IN ('buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
+SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com');
 
 -- Forming Team 4: Tech Titans (No contest yet) - FORMING
 INSERT INTO Team (team_code, team_name, status, created_at)
@@ -841,9 +841,9 @@ INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
 (@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'),
 (@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'),
 (@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
-(@Team1_ID, @Mentor1_ID, 7, 'ACTIVE'),
-(@Team2_ID, @Mentor2_ID, 7, 'ACTIVE'),
-(@Team3_ID, @Mentor1_ID, 7, 'ACTIVE');
+(@Team1_ID, @Mentor1_ID, 1, 'ACTIVE'),
+(@Team2_ID, @Mentor2_ID, 4, 'ACTIVE'),
+(@Team3_ID, @Mentor1_ID, 4, 'ACTIVE');
 GO
 
 -- 9. SUBMISSIONS
@@ -864,9 +864,9 @@ VALUES
 (@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2026-03-22 11:00:00', 'GRADED', N'Sản phẩm hoàn thiện rất tốt, thuyết trình rõ ràng.', @Mentor2_ID),
 (@PastTeam3_ID, 3, N'{"Project Repository":"https://github.com/blockchainmasters/defi-qual","Smart Contract":"0x71C...893"}', 1, '2025-10-10 16:00:00', 'GRADED', N'Smart contract viết chuẩn, gas fee tối ưu.', @Mentor1_ID),
 (@PastTeam3_ID, 4, N'{"Project Repository":"https://github.com/blockchainmasters/defi-final","Demo Video":"https://youtube.com/watch?v=demo3","DApp URL":"https://defi-masters.app"}', 1, '2025-11-20 09:30:00', 'GRADED', N'DApp chạy mượt, giao diện UI/UX rất đẳng cấp!', @Mentor1_ID),
-(@Team1_ID, 5, N'{"Project Repository":"https://github.com/cybercore/seal-app","Proposal":"https://docs.google.com/document/d/cybercore-proposal"}', 1, '2026-06-15 14:00:00', 'SUBMITTED', N'Đang chờ Mentor đánh giá chi tiết.', @Mentor1_ID),
-(@Team2_ID, 5, N'{"Project Repository":"https://github.com/coderangers/ai-web3","Proposal":"https://docs.google.com/document/d/coderangers-proposal"}', 1, '2026-06-16 10:00:00', 'UNDER_REVIEW', N'Đề xuất ý tưởng rất sáng tạo, tiếp tục làm prototype nhé!', @Mentor2_ID),
-(@Team3_ID, 5, N'{"Project Repository":"https://github.com/bytewizards/hackathon-draft"}', 1, '2026-06-17 08:00:00', 'DRAFT', NULL, NULL);
+(@Team1_ID, 1, N'{"Project Repository":"https://github.com/cybercore/ai-app","Documentation":"https://docs.google.com/document/d/cybercore-doc"}', 1, '2026-02-15 14:00:00', 'SUBMITTED', N'Dự án chuẩn bị tốt, đã nộp vòng Qualification.', @Mentor1_ID),
+(@Team2_ID, 3, N'{"Project Repository":"https://github.com/coderangers/blockchain-web3","Whitepaper":"https://docs.google.com/document/d/coderangers-whitepaper"}', 1, '2025-09-20 10:00:00', 'SUBMITTED', N'Đã nộp link Smart Contract và Whitepaper.', @Mentor2_ID),
+(@Team3_ID, 3, N'{"Project Repository":"https://github.com/bytewizards/defi-dapp","Whitepaper":"https://docs.google.com/document/d/bytewizards-doc"}', 1, '2025-09-21 08:00:00', 'SUBMITTED', N'Đã hoàn thành bài nộp vòng Qualification.', @Mentor1_ID);
 GO
 
 -- 10. SCORES & SCORE DETAILS (For Historical Finals)
