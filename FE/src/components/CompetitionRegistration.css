@@ -382,16 +382,19 @@
 
 .cancel-reg-btn {
     background: transparent;
-    border: 1px solid #7dd3fc;
-    color: #0284c7;
+    border: 1px solid #fca5a5;
+    color: #ef4444;
     padding: 8px 16px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
-.cancel-reg-btn:hover { background: #e0f2fe; }
+.cancel-reg-btn:hover { 
+    background: #fef2f2; 
+    border-color: #ef4444;
+}
 
 .reg-flow-content {
     display: grid;
