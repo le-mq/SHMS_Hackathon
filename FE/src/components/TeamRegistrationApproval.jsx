@@ -241,12 +241,12 @@ const TeamRegistrationApproval = () => {
                                 const statusText = (team.status || 'Active').toLowerCase();
                                 const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
 
-                                let badgeStyle = { padding: '4px 8px', with: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
+                                let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
                                 if (statusText === 'approved') {
-                                    badgeStyle.backgroundColor = '#dcfce7';
+                                    badgeStyle.backgroundColor = '#a9f8c5';
                                     badgeStyle.color = '#15803d';
                                 } else if (isCanceledOrRejected) {
-                                    badgeStyle.backgroundColor = '#fee2e2';
+                                    badgeStyle.backgroundColor = '#f9bebe';
                                     badgeStyle.color = '#b91c1c';
                                 } else {
                                     badgeStyle.backgroundColor = '#f1f5f9';
@@ -270,7 +270,7 @@ const TeamRegistrationApproval = () => {
                                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
                                                 {(statusText === 'approved' || isCanceledOrRejected) && (
                                                     <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
-                                                        style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                        style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                         onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
                                                         onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
                                                     >
@@ -280,7 +280,7 @@ const TeamRegistrationApproval = () => {
 
                                                 {isCanceledOrRejected ? (
                                                     <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
-                                                        style={{ padding: '4px 10px', width: '88px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                         onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
                                                         onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
                                                     >
@@ -288,7 +288,7 @@ const TeamRegistrationApproval = () => {
                                                     </button>
                                                 ) : (
                                                     <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
-                                                        style={{ padding: '4px 10px', width: '88px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                         onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
                                                         onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
                                                     >
