@@ -77,4 +77,38 @@ public class EmailService {
             log.error("Failed to send team invitation email to {}", toEmail, e);
         }
     }
+
+    @Async
+    public void sendExpertAllocationEmailAsync(String toEmail, String fullName, String roundName, String trackName, java.util.List<String> mentoredTeams, boolean isJudge) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("S-HMS Hackathon - New Assignment Notification");
+
+            StringBuilder textContent = new StringBuilder();
+            textContent.append("Dear ").append(fullName != null ? fullName : "Expert").append(",\n\n");
+            textContent.append("We are pleased to inform you that you have been assigned a new task in round ").append(roundName).append(".\n\n");
+
+            textContent.append("Assignment details:\n");
+            if (isJudge) {
+                textContent.append("⚖️ Judging Task: Evaluate teams in Track ").append(trackName).append(".\n");
+            }
+            if (mentoredTeams != null && !mentoredTeams.isEmpty()) {
+                textContent.append("🤝 Mentoring Task: Responsible for mentoring the following teams: ")
+                        .append(String.join(", ", mentoredTeams)).append(".\n");
+            }
+
+            textContent.append("\nPlease log in to the S-HMS system to view details and carry out your assignment.\n\n");
+            textContent.append("Best regards,\nS-HMS Hackathon Organizing Committee.");
+
+            message.setText(textContent.toString());
+
+            mailSender.send(message);
+            log.info("Sent allocation notification email to expert: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send allocation notification email to {}", toEmail, e);
+        }
+    }
+
 }

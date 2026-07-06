@@ -146,6 +146,20 @@ public class AdminController {
         return ResponseEntity.ok(allocationAdminService.getAllAllocations());
     }
 
+    @PostMapping("/contests/allocations/notify")
+    @Operation(summary = "Send assignment emails to experts", description = "Requires ADMIN role.")
+    public ResponseEntity<?> notifyAllocatedExperts(HttpServletRequest request, @RequestParam Long roundId) {
+        try {
+            allocationAdminService.notifyAllocatedExperts(roundId);
+            return ResponseEntity.ok(Map.of("message", "Email notifications process started successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/contests/rubrics")
     @Operation(summary = "Create and Bind a Rubric Template", description = "Requires ADMIN role.")
     public ResponseEntity<?> createRubric(HttpServletRequest request,
