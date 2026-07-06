@@ -240,6 +240,18 @@ public class JudgeService {
 
             Contest contest = round.getContest();
 
+            List<EvaluatorDashboardResponse.RoundDto> roundDtos = new ArrayList<>();
+            if (contest != null) {
+                List<Round> cRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contest.getId());
+                roundDtos = cRounds.stream().map(r -> EvaluatorDashboardResponse.RoundDto.builder()
+                        .id(r.getId())
+                        .name(r.getPhaseName())
+                        .format(r.getRoundFormat())
+                        .gradingOpenAt(r.getSubmissionOpen())
+                        .gradingDeadlineAt(r.getSubmissionDeadline())
+                        .build()).toList();
+            }
+
             return EvaluationDataResponse.builder()
                     .submissionId(null)
                     .teamName("Rubric Preview")
@@ -249,6 +261,9 @@ public class JudgeService {
                     .contestTheme(contest != null ? contest.getDescription() : null)
                     .contestLocation(contest != null ? contest.getLocation() : null)
                     .contestRules(contest != null ? contest.getComplianceRules() : null)
+                    .contestStart(contest != null ? contest.getContestStartAt() : null)
+                    .contestEnd(contest != null ? contest.getContestEndAt() : null)
+                    .rounds(roundDtos)
                     .criteria(criteriaDtos)
                     .build();
         }
