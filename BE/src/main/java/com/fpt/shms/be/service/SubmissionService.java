@@ -114,7 +114,15 @@ public class SubmissionService {
             throw new IllegalArgumentException("User is not in any team");
         }
 
-        TeamMembership membership = memberships.get(0);
+        TeamMembership membership = memberships.stream()
+                .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
+                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus())
+                        || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
+                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .orElseGet(() -> memberships.stream()
+                        .filter(m -> m.getTeam() != null)
+                        .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                        .orElse(memberships.get(0)));
         Team team = membership.getTeam();
 
         String contestName = team.getContest() != null ? team.getContest().getName() : "Not Registered";
@@ -412,6 +420,11 @@ public class SubmissionService {
 
                 if (!combinedFeedback.isEmpty()) {
                     combinedFeedback = "- " + combinedFeedback;
+                }
+
+                String catName = null;
+                if (rubricInfo.getContestRubric() != null && rubricInfo.getContestRubric().getCategory() != null) {
+                    catName = rubricInfo.getContestRubric().getCategory().getName();
                 }
 
                 detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
