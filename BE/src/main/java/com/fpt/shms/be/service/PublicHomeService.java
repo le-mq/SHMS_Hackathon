@@ -31,6 +31,7 @@ public class PublicHomeService {
     private final RoundRepository roundRepository;
     private final AnnouncementRepository announcementRepository;
     private final RankingResultRepository rankingResultRepository;
+    private final com.fpt.shms.be.repository.TeamMembershipRepository teamMembershipRepository;
 
     public PublicHomeResponse getHomeData() {
 
@@ -154,18 +155,33 @@ public class PublicHomeService {
     public List<Map<String, Object>> getLeaderboards() {
         List<RankingResult> results = rankingResultRepository.findPublishedLeaderboards();
         return results.stream().map(r -> {
-            boolean isCancelled = !"APPROVED".equals(r.getTeam().getStatus());
+            boolean isCancelled = !"APPROVED".equalsIgnoreCase(r.getTeam().getStatus()) && !"CLOSED".equalsIgnoreCase(r.getTeam().getStatus());
             Map<String, Object> map = new HashMap<>();
             map.put("contestId", r.getRound().getContest() != null ? r.getRound().getContest().getId() : null);
             map.put("contestName", r.getRound().getContest() != null ? r.getRound().getContest().getName() : "");
             map.put("roundName", r.getRound().getPhaseName());
             map.put("publishedAt", r.getDatePublishedAt().toString());
+            map.put("teamId", r.getTeam().getId());
             map.put("teamName", r.getTeam().getName());
             map.put("rank", r.getRankNo());
             map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
             map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
             map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
             map.put("prizeStructures", r.getRound().getContest() != null ? r.getRound().getContest().getTieredPrizeStructures() : null);
+            
+            List<com.fpt.shms.be.model.TeamMembership> members = teamMembershipRepository.findByTeamId(r.getTeam().getId());
+            List<Map<String, Object>> roster = members.stream()
+                    .filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus()))
+                    .map(m -> {
+                        Map<String, Object> memMap = new HashMap<>();
+                        memMap.put("fullName", m.getStudent() != null ? m.getStudent().getFullName() : (m.getUser() != null ? m.getUser().getUsername() : "Unknown"));
+                        memMap.put("studentCode", m.getStudent() != null ? m.getStudent().getStudentCode() : "");
+                        memMap.put("email", m.getUser() != null ? m.getUser().getEmail() : "");
+                        memMap.put("role", m.getRole());
+                        memMap.put("universityName", m.getStudent() != null && m.getStudent().getUniversity() != null ? m.getStudent().getUniversity().getName() : "N/A");
+                        return memMap;
+                    }).toList();
+            map.put("roster", roster);
             return map;
         }).toList();
     }

@@ -317,10 +317,17 @@ const EvaluatorDashboard = () => {
                                     (() => {
                                         if (team.submissionState?.toUpperCase() === 'PENDING') {
                                             return (
-                                                <button className="evaluate-btn" style={{ background: '#0284c7',
-                                                    color: 'white', border: 'none'
-                                                }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}&readonly=true`)}>
-                                                    View Details</button>
+                                                <button className="evaluate-btn" style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', border: '1px solid #cbd5e1' }} disabled>
+                                                    Evaluate
+                                                </button>
+                                            );
+                                        }
+
+                                        if (timeStatus === 'CLOSED') {
+                                            return (
+                                                <button className="evaluate-btn" style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', border: '1px solid #cbd5e1' }} disabled>
+                                                    Grading Closed
+                                                </button>
                                             );
                                         }
 
@@ -332,6 +339,7 @@ const EvaluatorDashboard = () => {
                                                     Evaluate</button>
                                             );
                                         }
+
                                         return (
                                             <button className="evaluate-btn"
                                                     onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>

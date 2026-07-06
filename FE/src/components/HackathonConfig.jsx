@@ -14,10 +14,10 @@ function HackathonConfig() {
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [availableSubReqs, setAvailableSubReqs] = useState([
-        {value: 'githubUrl', label: 'Source Code / GitHub Repository'},
-        {value: 'demoUrl', label: 'Live Demo / Video Link'},
-        {value: 'documentUrl', label: 'Project Documentation'},
-        {value: 'slideUrl', label: 'Presentation Slides'}
+        {value: 'Source Code URL', label: 'Source Code / GitHub Repository'},
+        {value: 'Live Demo URL', label: 'Live Demo / Video Link'},
+        {value: 'Documentation URL', label: 'Project Documentation'},
+        {value: 'Presentation Slide URL', label: 'Presentation Slides'}
     ]);
     const [availableRoundFormats, setAvailableRoundFormats] = useState([
         'On-site Submission', 'Remote Submission', 'In-booth Presentation', 'Stage Presentation'

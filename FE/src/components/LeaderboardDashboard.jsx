@@ -5,7 +5,7 @@ import NavbarStudent from './NavbarStudent';
 import NavbarMentor from './NavbarMentor';
 import NavbarJudge from './NavbarJudge';
 
-export const LeaderboardPresentation = ({ leaderboards }) => {
+export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => {
     const [selectedContestId, setSelectedContestId] = useState(null);
     const [selectedRound, setSelectedRound] = useState(null);
     useEffect(() => {
@@ -37,8 +37,18 @@ export const LeaderboardPresentation = ({ leaderboards }) => {
     const top3 = rawResults.slice(0, 3);
     const others = rawResults.slice(3);
 
-    // Check if the selected round is the final round (latest published)
-    const isFinalRound = rounds.length > 0 && rounds[0] === selectedRound;
+    // Check if the selected round is the final round
+    let isFinalRound = false;
+    const currentContest = contestsInfo.find(c => Number(c.id) === Number(selectedContestId));
+    if (currentContest && currentContest.rounds && currentContest.rounds.length > 0) {
+        const sortedRounds = [...currentContest.rounds].sort((a, b) => new Date(a.submissionDeadline || 0) - new Date(b.submissionDeadline || 0));
+        const lastRound = sortedRounds[sortedRounds.length - 1];
+        if (lastRound.phaseName === selectedRound || lastRound.roundName === selectedRound) {
+            isFinalRound = true;
+        }
+    } else {
+        isFinalRound = (selectedRound || "").toLowerCase().includes("final");
+    }
 
     const getPrizeName = (rank) => {
         if (!isFinalRound) return null;
@@ -182,8 +192,8 @@ function processLeaderboardData(rawData) {
 
 export const LeaderboardContent = ({ leaderboards }) => {
     const [fetchedLeaderboards, setFetchedLeaderboards] = useState([]);
+    const [contestsInfo, setContestsInfo] = useState([]);
     useEffect(() => {
-        if (leaderboards) return;
         async function getLeaderboard() {
             try {
                 const res = await fetch('http://localhost:8080/api/v1/public/leaderboards');
@@ -200,10 +210,30 @@ export const LeaderboardContent = ({ leaderboards }) => {
                 }
             }
         }
-        getLeaderboard();
+
+        async function getContests() {
+            try {
+                const res = await fetch("http://localhost:8080/api/v1/public/home");
+                if (res.ok) {
+                    const data = await res.json();
+                    setContestsInfo(data.contests || []);
+                }
+            } catch (err) {
+                try {
+                    const fallbackRes = await fetch('/testFE.json');
+                    const mock = await fallbackRes.json();
+                    setContestsInfo(mock.contests?.data || []);
+                } catch(e) {}
+            }
+        }
+
+        if (!leaderboards) {
+            getLeaderboard();
+        }
+        getContests();
     }, [leaderboards]);
 
-    return <LeaderboardPresentation leaderboards={leaderboards || fetchedLeaderboards} />;
+    return <LeaderboardPresentation leaderboards={leaderboards || fetchedLeaderboards} contestsInfo={contestsInfo} />;
 };
 
 const LeaderboardDashboard = () => {

@@ -14,6 +14,10 @@ public class TeamStatusResponse {
     private Integer maxMembers;
     private Long currentTotalMembers;
     private List<MemberDto> roster;
+    private Double finalScore;
+    private Integer rank;
+    private String contestName;
+    private String submissionData;
 
     @Data
     @Builder

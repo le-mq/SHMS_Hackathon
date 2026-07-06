@@ -1,18 +1,24 @@
 .admin-container {
-    background-color: #f4f7fa;
+    background-color: #ffffff;
+    /* TỐI HÓA NỀN TỔNG THỂ: Thay #f4f7fa bằng #e2e8f0 để làm nổi bật các khối Panel trắng */
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
 }
 
-.allocation-wrapper {
+.config-wrapper {
     padding: 40px;
-    max-width: 1400px;
+    max-width: 1600px;
+    /* MỞ RỘNG TỔNG THỂ: Tăng từ 1400px lên 1600px để tràn rộng ra 2 bên */
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 28px;
+    grid-template-columns: 320px 1fr;
+    /* Thu nhỏ nhẹ cột trái để dành toàn bộ đất cho cột giữa/phải */
+    gap: 32px;
+    /* Tăng khoảng cách giữa các khối để thoáng hơn */
     align-items: start;
 }
+
+
 
 .header-flex {
     display: flex;
@@ -22,72 +28,130 @@
     grid-column: 1 / -1;
 }
 
+.allocation-wrapper {
+    padding: 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+    display: grid;
+    /* Chia tổng thể thành 7 cột bằng nhau */
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 32px;
+    align-items: start;
+}
+
+/* Cột trái (Expert Registry): Chiếm 2 ô đầu tiên (từ cột 1 đến 3) */
+.left-panel {
+    grid-column: span 2;
+}
+
+/* Ô giữa (Allocation Management Board): Chiếm 3 ô tiếp theo (từ cột 3 đến 6) */
+.right-assignment-panel {
+    grid-column: span 3;
+    background: #ffffff;
+    border: 2px solid #d1d5db;
+    padding: 28px;
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
+    border-radius: 12px;
+}
+
+/* Cột phải (Overview): Chiếm 2 ô cuối cùng (từ cột 6 đến 8) */
+.overview-panel {
+    grid-column: span 2;
+}
+
+/* Giữ nguyên cấu hình lưới 3 team / hàng bên trong ô giữa */
+.global-teams-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
 .config-title {
     font-size: 26px;
-    font-weight: 700;
+    font-weight: 800;
+    /* TĂNG ĐỘ ĐẬM */
     color: #0f172a;
     margin: 0 0 6px 0;
 }
 
 .config-subtitle {
     font-size: 14px;
-    color: #64748b;
+    color: #334155;
+    /* TĂNG TƯƠNG PHẢN CHỮ: Thay #64748b bằng #334155 */
     margin: 0;
+    font-weight: 500;
 }
 
 .error-banner {
     background-color: #fee2e2;
-    border-left: 4px solid #ef4444;
+    border: 2px solid #ef4444;
+    /* ĐÓNG KHUNG RÕ RÀNG */
+    border-left: 6px solid #ef4444;
+    /* Làm vạch lỗi dày hơn */
     padding: 14px 18px;
     margin-bottom: 24px;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #b91c1c;
-    font-weight: 600;
+    color: #991b1b;
+    /* TĂNG ĐỘ ĐẬM CHỮ CẢNH BÁO */
+    font-weight: 700;
     font-size: 14px;
     grid-column: 1 / -1;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
 }
 
+/* --- LEFT EXPERT PANEL --- */
 .left-expert-panel {
     background: #ffffff;
+    width: 200px;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 2px solid #d1d5db;
+    /* LÀM ĐẬM ĐƯỜNG VIỀN KHỐI: Thay #e2e8f0 bằng #d1d5db */
     overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    /* Tăng đổ bóng tạo chiều sâu */
 }
 
 .left-expert-panel h3 {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
+    background-color: #f1f5f9;
+    /* THÊM NỀN CHO TIÊU ĐỀ KHỐI */
     padding: 20px 24px;
     margin: 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 2px solid #cbd5e1;
 }
 
 .search-inner-wrapper {
     position: relative;
     padding: 16px 20px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
+    background-color: #f8fafc;
+    /* Đổi nền nhẹ tạo khối */
+    border-bottom: 2px solid #d1d5db;
 }
 
 .search-input {
     width: 100%;
-    border: 1px solid #cbd5e1;
+    border: 2px solid #94a3b8;
+    /* LÀM ĐẬM VIỀN INPUT */
     border-radius: 8px;
     font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
     outline: none;
     box-sizing: border-box;
-    padding: 8px 12px 8px 36px;
+    padding: 10px 12px 10px 38px;
+    background-color: #ffffff;
     transition: all 0.2s;
 }
 
 .search-input:focus {
-    border-color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    border-color: #2563eb;
+    /* Màu sắc rực rỡ khi tương tác */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .search-icon {
@@ -95,7 +159,8 @@
     left: 32px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: #475569;
+    /* Tăng tương phản icon */
     pointer-events: none;
 }
 
@@ -106,7 +171,8 @@
 
 .expert-item {
     padding: 14px 20px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #d1d5db;
+    /* Làm rõ nét đường phân cách */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -115,13 +181,16 @@
 }
 
 .expert-item:hover {
-    background-color: #f8fafc;
+    background-color: #e2e8f0;
+    /* Hover đậm và rõ ràng hơn */
 }
 
 .expert-item.active {
-    background-color: #f0f7ff;
-    border-left: 4px solid #3b82f6;
-    padding-left: 16px;
+    background-color: #e0f2fe;
+    /* MÀU SẮC RỰC RỠ: Tông xanh rõ rệt khi active */
+    border-left: 6px solid #0284c7;
+    /* Vạch định vị dày và đậm màu hơn */
+    padding-left: 14px;
 }
 
 .expert-info {
@@ -134,13 +203,16 @@
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background-color: #e2e8f0;
+    background-color: #334155;
+    /* CHUYỂN AVATAR SANG TỐI: Nổi bật hơn */
+    color: #ffffff;
+    /* Chữ trắng tương phản cao */
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #475569;
     font-size: 14px;
+    border: 2px solid #0f172a;
 }
 
 .expert-details {
@@ -150,46 +222,56 @@
 
 .expert-name {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
+    /* Tăng chữ đậm */
     color: #0f172a;
     margin-bottom: 2px;
 }
 
 .expert-title {
     font-size: 12px;
-    color: #64748b;
+    color: #475569;
+    /* Tăng tương phản chữ phụ */
+    font-weight: 600;
 }
 
+/* --- RIGHT ASSIGNMENT PANEL --- */
 .right-assignment-panel {
     background: #ffffff;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 2px solid #d1d5db;
+    /* LÀM ĐẬM BORDER KHỐI */
     padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    min-height: 450px;
 }
 
 .panel-header-custom {
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 2px solid #cbd5e1;
 }
 
 .panel-header-custom h2 {
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
     margin: 0 0 4px 0;
 }
 
 .panel-header-custom p {
     font-size: 13px;
-    color: #64748b;
+    color: #475569;
+    /* Tăng tương phản chữ phụ */
     margin: 0;
+    font-weight: 500;
 }
 
 .management-block {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    /* Nền khối quản lý chuyển sang xám nhẹ để nổi bật checkbox trắng bên trong */
+    border: 2px solid #cbd5e1;
+    /* LÀM ĐẬM BORDER */
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 24px;
@@ -198,14 +280,16 @@
 .management-block h3 {
     margin: 0 0 4px 0;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
 }
 
 .block-hint {
     font-size: 13px;
-    color: #64748b;
+    color: #475569;
+    /* Tăng tương phản */
     margin: 0 0 16px 0;
+    font-weight: 500;
 }
 
 .global-teams-grid {
@@ -215,7 +299,8 @@
 }
 
 .team-card-global {
-    border: 1px solid #cbd5e1;
+    border: 2px solid #94a3b8;
+    /* LÀM ĐẬM ĐƯỜNG VIỀN */
     border-radius: 8px;
     padding: 12px 14px;
     display: flex;
@@ -228,82 +313,105 @@
 }
 
 .team-card-global:hover {
-    background: #f8fafc;
-    border-color: #94a3b8;
+    background: #f1f5f9;
+    border-color: #475569;
 }
 
 .team-card-global input[type="checkbox"] {
-    accent-color: #10b981;
-    width: 16px;
-    height: 16px;
+    accent-color: #059669;
+    /* Xanh lá rực rỡ khi tích chọn */
+    width: 18px;
+    /* Tăng nhẹ kích thước checkbox */
+    height: 18px;
     cursor: pointer;
 }
 
 .team-name-text {
     font-size: 13px;
-    font-weight: 600;
-    color: #334155;
+    font-weight: 700;
+    /* Làm chữ đậm rõ nét */
+    color: #1e293b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .team-card-global.active {
-    background: #f0fdf4;
-    border-color: #10b981;
+    background: #d1fae5;
+    /* MÀU SẮC RỰC RỠ: Xanh ngọc nổi bật khi kích hoạt */
+    border-color: #059669;
+    /* Đường viền xanh lục đậm */
+    box-shadow: 0 0 0 1px #059669;
 }
 
 .team-card-global.active .team-name-text {
-    color: #15803d;
+    color: #065f46;
 }
 
 .team-card-global:has(input:disabled) {
-    opacity: 0.5;
-    background: #f1f5f9;
-    border-color: #e2e8f0;
+    opacity: 0.6;
+    background: #cbd5e1;
+    /* Tối vùng disabled để nhìn phân biệt rõ rệt */
+    border-color: #94a3b8;
     cursor: not-allowed;
 }
 
+/* --- JUDGE PURE TABLE --- */
 .judge-pure-table {
     width: 100%;
     border-collapse: collapse;
+    border: 2px solid #d1d5db;
+    /* Khung bảng vững chắc */
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .judge-pure-table th,
 .judge-pure-table td {
     padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 2px solid #d1d5db;
+    /* ĐẬM ĐƯỜNG KẺ NẰM NGANG GIỮA CÁC TR */
     font-size: 14px;
 }
 
 .judge-pure-table th {
-    background-color: #f8fafc;
+    background-color: #e2e8f0;
+    /* ĐỔ MÀU NỀN HEADER BẢNG: Đậm đà, phân chia rạch ròi */
     text-align: left;
-    color: #475569;
-    font-weight: 700;
+    color: #0f172a;
+    /* Tăng tương phản text header */
+    font-weight: 800;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border-bottom: 3px solid #d1d5db;
 }
 
 .judge-pure-table td strong {
-    color: #1e293b;
-    font-weight: 600;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.judge-pure-table tr:last-child td {
+    border-bottom: none;
 }
 
 .judge-pure-table tr:hover td {
-    background-color: #fafafa;
+    background-color: #f1f5f9;
+    /* Hover dòng sắc nét hơn */
 }
 
 .center {
     text-align: center;
 }
 
+/* --- UI SWITCH BLUE (RỰC RỠ) --- */
 .ui-switch-blue {
     position: relative;
     display: inline-block;
-    width: 44px;
-    height: 24px;
+    width: 48px;
+    /* Tăng kích thước nút để dễ dùng */
+    height: 26px;
 }
 
 .ui-switch-blue input {
@@ -319,9 +427,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #cbd5e1;
+    background-color: #94a3b8;
+    /* Đậm màu nền khi chưa bật */
     transition: .3s;
     border-radius: 24px;
+    border: 1px solid #475569;
 }
 
 .ui-switch-blue .slider:before {
@@ -334,19 +444,22 @@
     background-color: white;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .ui-switch-blue input:checked+.slider {
     background-color: #2563eb;
+    /* MÀU XANH ROYAL RỰC RỠ */
+    border-color: #1d4ed8;
 }
 
 .ui-switch-blue input:checked+.slider:before {
-    transform: translateX(20px);
+    transform: translateX(22px);
 }
 
 .ui-switch-blue input:disabled+.slider {
-    background-color: #e2e8f0;
+    background-color: #cbd5e1;
+    border-color: #94a3b8;
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -355,41 +468,53 @@
     background-color: #93c5fd;
 }
 
+/* --- FOOTER ACTIONS --- */
 .panel-footer-actions {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 2px solid #d1d5db;
+    /* Làm đậm viền ngăn cách dưới cùng */
     display: flex;
     justify-content: flex-end;
 }
 
 .btn-save-master {
-    padding: 10px 24px;
+    padding: 12px 28px;
     background-color: #0f172a;
+    /* THAY MÀU NỀN NỔI BẬT: Đổi từ đen sang Xanh Royal rực rỡ */
     color: #ffffff;
-    border: none;
+    border: 2px solid #0f172a;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    /* Tạo hiệu ứng phát sáng nhẹ */
+    transition: all 0.2s;
 }
 
 .btn-save-master:hover {
-    background-color: #1e293b;
+    background-color: #6785d6;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+    transform: translateY(-1px);
 }
 
 .btn-save-master:disabled {
     background-color: #94a3b8;
+    border-color: #cbd5e1;
+    box-shadow: none;
     cursor: not-allowed;
+    transform: none;
 }
 
 .hint-text {
     font-size: 13px;
-    color: #94a3b8;
+    color: #4b5563;
+    /* TĂNG TƯƠNG PHẢN TEXT CHÚ THÍCH */
+    font-weight: 600;
     font-style: italic;
     grid-column: 1 / -1;
     margin: 8px 0;
@@ -414,59 +539,79 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #64748b;
+    color: #334155;
+    /* Tăng độ tương phản tiêu đề lựa chọn */
 }
 
 .form-select-styled {
     padding: 8px 12px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
+    border: 2px solid #94a3b8;
+    /* LÀM ĐẬM ĐƯỜNG VIỀN DROPDOWN */
     font-size: 13px;
-    font-weight: 500;
-    color: #1e293b;
+    font-weight: 700;
+    /* Chữ đậm rõ ràng */
+    color: #0f172a;
     background: #fff;
     outline: none;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s;
     width: 100%;
 }
 
 .form-select-styled:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .form-select-styled:disabled {
-    background: #f1f5f9;
-    color: #94a3b8;
+    background: #cbd5e1;
+    color: #475569;
     cursor: not-allowed;
 }
 
+/* --- READONLY BADGES (SẮC SỠ & RỰC RỠ) --- */
 .category-badge-readonly {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-    border: 1.5px solid #10b981;
+    background: #d1fae5;
+    /* Màu nền xanh ngọc sáng */
+    border: 2.5px solid #059669;
+    /* Viền dày sắc nét màu xanh lục */
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 800;
+    /* Siêu đậm chữ */
     color: #065f46;
     min-height: 36px;
     white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
 }
 
 .cat-icon {
     font-size: 14px;
 }
 
+/* --- ALT PANELS --- */
 .left-panel,
-.right-panel {
+.overview-panel {
     background: #ffffff;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 2px solid #d1d5db;
+    /* ĐẬM ĐƯỜNG VIỀN KHỐI PANELS */
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    overflow: hidden; /* Prevent background bleeding at corners */
+    min-height: 450px;
+}
+
+.panel-empty-text {
+    padding: 40px 20px;
+    text-align: center;
+    color: #4b5563; /* High contrast secondary text */
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .panel-header {
@@ -474,23 +619,27 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
+    background-color: #f1f5f9;
+    /* THÊM NỀN CHO HEADER PANEL */
+    border-bottom: 2px solid #d1d5db;
 }
 
 .panel-title {
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
     margin: 0;
 }
 
 .panel-badge {
     font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
+    font-weight: 800;
+    padding: 4px 12px;
     border-radius: 999px;
-    background: #e0f2fe;
+    background: #bae6fd;
+    /* LÀM ĐẬM MÀU BADGE: Tông xanh da trời rõ rệt */
     color: #0369a1;
+    border: 1px solid #7dd3fc;
 }
 
 .allocation-grid {
