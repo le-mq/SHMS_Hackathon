@@ -48,9 +48,9 @@
 .right-assignment-panel {
     grid-column: span 3;
     background: #ffffff;
-    border: 3px solid #64748b;
+    border: 2px solid #d1d5db;
     padding: 28px;
-    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
     border-radius: 12px;
 }
 
@@ -107,8 +107,8 @@
     background: #ffffff;
     width: 200px;
     border-radius: 12px;
-    border: 2px solid #94a3b8;
-    /* LÀM ĐẬM ĐƯỜNG VIỀN KHỐI: Thay #e2e8f0 bằng #94a3b8 */
+    border: 2px solid #d1d5db;
+    /* LÀM ĐẬM ĐƯỜNG VIỀN KHỐI: Thay #e2e8f0 bằng #d1d5db */
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
     /* Tăng đổ bóng tạo chiều sâu */
@@ -130,7 +130,7 @@
     padding: 16px 20px;
     background-color: #f8fafc;
     /* Đổi nền nhẹ tạo khối */
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 2px solid #d1d5db;
 }
 
 .search-input {
@@ -171,7 +171,7 @@
 
 .expert-item {
     padding: 14px 20px;
-    border-bottom: 1px solid #cbd5e1;
+    border-bottom: 1px solid #d1d5db;
     /* Làm rõ nét đường phân cách */
     display: flex;
     align-items: center;
@@ -239,10 +239,11 @@
 .right-assignment-panel {
     background: #ffffff;
     border-radius: 12px;
-    border: 2px solid #94a3b8;
+    border: 2px solid #d1d5db;
     /* LÀM ĐẬM BORDER KHỐI */
     padding: 24px;
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    min-height: 450px;
 }
 
 .panel-header-custom {
@@ -359,7 +360,7 @@
 .judge-pure-table {
     width: 100%;
     border-collapse: collapse;
-    border: 2px solid #cbd5e1;
+    border: 2px solid #d1d5db;
     /* Khung bảng vững chắc */
     border-radius: 8px;
     overflow: hidden;
@@ -368,7 +369,7 @@
 .judge-pure-table th,
 .judge-pure-table td {
     padding: 14px 16px;
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 2px solid #d1d5db;
     /* ĐẬM ĐƯỜNG KẺ NẰM NGANG GIỮA CÁC TR */
     font-size: 14px;
 }
@@ -383,7 +384,7 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 3px solid #cbd5e1;
+    border-bottom: 3px solid #d1d5db;
 }
 
 .judge-pure-table td strong {
@@ -471,7 +472,7 @@
 .panel-footer-actions {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 2px solid #cbd5e1;
+    border-top: 2px solid #d1d5db;
     /* Làm đậm viền ngăn cách dưới cùng */
     display: flex;
     justify-content: flex-end;
@@ -605,6 +606,14 @@
     min-height: 450px;
 }
 
+.panel-empty-text {
+    padding: 40px 20px;
+    text-align: center;
+    color: #4b5563; /* High contrast secondary text */
+    font-size: 14px;
+    font-weight: 600;
+}
+
 .panel-header {
     display: flex;
     align-items: center;
@@ -612,7 +621,7 @@
     padding: 16px 20px;
     background-color: #f1f5f9;
     /* THÊM NỀN CHO HEADER PANEL */
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 2px solid #d1d5db;
 }
 
 .panel-title {
