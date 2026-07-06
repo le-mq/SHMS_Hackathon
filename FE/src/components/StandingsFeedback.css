@@ -427,3 +427,26 @@
 .team-badge.pending .team-badge-dot, .team-badge.forming .team-badge-dot {
     background: #d97706;
 }
+
+/* ===== Card Status Styles ===== */
+.result-comp-card-closed,
+.result-comp-card-ended,
+.result-comp-card-inactive {
+    opacity: 0.6;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.result-comp-card-closed:hover,
+.result-comp-card-ended:hover,
+.result-comp-card-inactive:hover {
+    transform: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.result-comp-card-actived,
+.result-comp-card-active,
+.result-comp-card-approved {
+    background: #f0fdf4;
+    border-color: #86efac;
+}

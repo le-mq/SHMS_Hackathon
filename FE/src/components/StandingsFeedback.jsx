@@ -327,11 +327,12 @@ const StandingsFeedback = () => {
                             <div className="results-grid">
                                 {joinedCompetitions.map((item, idx) => {
                                     const c = item.contest;
+                                    const statusClass = (c?.status || 'UNKNOWN').toLowerCase().replace(/\s+/g, '-');
                                     return (
-                                        <div key={idx} className="result-comp-card">
+                                        <div key={idx} className={`result-comp-card result-comp-card-${statusClass}`}>
                                             <div className="result-comp-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <h3 className="result-comp-title" style={{ margin: 0, flex: 1, paddingRight: '12px' }}>{c?.name || 'Unknown Competition'}</h3>
-                                                <span className={`team-badge ${(c?.status || 'UNKNOWN').toLowerCase().replace(/\s+/g, '-')}`}>
+                                                <span className={`team-badge ${statusClass}`}>
                                                     <div className="team-badge-dot"></div>
                                                     {c?.status || 'UNKNOWN'}
                                                 </span>
