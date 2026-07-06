@@ -27,6 +27,7 @@ public class AllocationAdminService {
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Transactional
     public void allocateExpert(ExpertAllocationRequest request) {
@@ -241,5 +242,54 @@ public class AllocationAdminService {
         }
 
         return allocations;
+    }
+
+    public void notifyAllocatedExperts(Long roundId) {
+        Round round = roundRepository.findById(roundId)
+                .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+
+        Category targetCategory = round.getCategory();
+        if (targetCategory == null) {
+            throw new IllegalArgumentException("Round is not associated with any category");
+        }
+
+        String roundName = round.getPhaseName();
+        String trackName = targetCategory.getName();
+
+        Map<Long, Map<Long, Map<String, Object>>> allocations = getAllocationsByRound(roundId);
+
+        for (Map.Entry<Long, Map<Long, Map<String, Object>>> expertEntry : allocations.entrySet()) {
+            Long expertId = expertEntry.getKey();
+            Map<Long, Map<String, Object>> trackAllocations = expertEntry.getValue();
+
+            Map<String, Object> currentTrackAlloc = trackAllocations.get(targetCategory.getId());
+            if (currentTrackAlloc == null) continue;
+
+            User expert = userRepository.findById(expertId).orElse(null);
+            if (expert == null || expert.getEmail() == null) continue;
+
+            boolean isJudge = Boolean.TRUE.equals(currentTrackAlloc.get("isJudge"));
+            @SuppressWarnings("unchecked")
+            List<Long> mentoredTeamIds = (List<Long>) currentTrackAlloc.get("mentoredTeamIds");
+
+            List<String> mentoredTeamNames = new ArrayList<>();
+            if (mentoredTeamIds != null && !mentoredTeamIds.isEmpty()) {
+                List<Team> teams = teamRepository.findAllById(mentoredTeamIds);
+                for (Team t : teams) {
+                    mentoredTeamNames.add(t.getName());
+                }
+            }
+
+            if (isJudge || !mentoredTeamNames.isEmpty()) {
+                emailService.sendExpertAllocationEmailAsync(
+                        expert.getEmail(),
+                        expert.getFullName(),
+                        roundName,
+                        trackName,
+                        mentoredTeamNames,
+                        isJudge
+                );
+            }
+        }
     }
 }
