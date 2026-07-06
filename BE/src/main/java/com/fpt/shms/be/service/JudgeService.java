@@ -141,12 +141,12 @@ public class JudgeService {
                         ? team.getName().substring(0, 2).toUpperCase()
                         : "TM";
 
-                String trackName = round.getCategory() != null 
-                        ? round.getCategory().getName() 
+                String trackName = round.getCategory() != null
+                        ? round.getCategory().getName()
                         : categories.stream()
-                                .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                                .map(Category::getName)
-                                .collect(Collectors.joining(", "));
+                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                          .map(Category::getName)
+                          .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -239,7 +239,7 @@ public class JudgeService {
             }
 
             Contest contest = round.getContest();
-            
+
             return EvaluationDataResponse.builder()
                     .submissionId(null)
                     .teamName("Rubric Preview")
@@ -333,7 +333,7 @@ public class JudgeService {
                     .weight((int) Math.round(d.getPercentageWeight()))
                     .build()).toList();
         }
-        
+
         return EvaluationDataResponse.builder()
                 .submissionId(latestSubmission.getId())
                 .submissionData(latestSubmission.getSubmissionData())
@@ -475,6 +475,16 @@ public class JudgeService {
                     .details(detailDtos)
                     .build());
         }
+
+        records.sort((r1, r2) -> {
+            try {
+                java.time.LocalDateTime t1 = java.time.LocalDateTime.parse(r1.getTimestamp(), formatter);
+                java.time.LocalDateTime t2 = java.time.LocalDateTime.parse(r2.getTimestamp(), formatter);
+                return t2.compareTo(t1);
+            } catch (Exception e) {
+                return 0;
+            }
+        });
 
         return com.fpt.shms.be.dto.JudgeHistoricalLogResponse.builder()
                 .records(records)

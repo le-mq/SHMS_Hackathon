@@ -597,7 +597,7 @@ SELECT user_id, 'ACTIVE' FROM [User] WHERE username IN ('mentor1', 'judge_mentor
 GO
 
 INSERT INTO Judge (user_id, expertise, status)
-SELECT user_id, 'Software Architecture', 'ACTIVE' FROM [User] WHERE username = 'judge2';
+SELECT user_id, 'Software Architecture', 'ACTIVE' FROM [User] WHERE username IN ('judge2', 'judge_mentor');
 GO
 
 INSERT INTO Mentor (user_id, status)
@@ -612,71 +612,290 @@ INSERT INTO Admin (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin2';
 GO
 
-INSERT INTO Judge (user_id, expertise, status)
-SELECT user_id, 'Da nang', 'ACTIVE' FROM [User] WHERE username = 'judge_mentor';
-GO
-
+-- 0. SEMESTERS (3 Distinct Semesters for 3 Contests - No overlap!)
 INSERT INTO Semester (term, [year], semester_code)
 VALUES
-('Spring', 2026, 'SP26'),
-('Fall', 2025, 'FA25');
+('Spring', 2025, 'SP25'),
+('Fall', 2025, 'FA25'),
+('Summer', 2026, 'SU26');
 GO
 
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, status, registration_start, registration_end, contest_end_at)
+-- 1. CONTESTS (Each Contest in a DIFFERENT Semester!)
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, min_team_members, max_team_members, status, registration_start, registration_end, contest_end_at)
 VALUES
-(1, 'National AI Challenge', 'Artificial Intelligence', 100, 'CLOSED', '2026-02-01', '2026-02-10', '2026-03-30 23:59:59'),
-(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59');
+(1, 'National AI Challenge 2025', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-03-30 23:59:59'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59'),
+(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', 150, 3, 5, 'ACTIVED', '2026-06-01', '2026-08-30', '2026-09-30 23:59:59');
 GO
 
+-- 2. CATEGORIES
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (1, 'Computer Vision', N'Nhận diện hình ảnh', 'ACTIVE'),
-    (1, 'NLP', N'Xử lý ngôn ngữ tự nhiên', 'ACTIVE'),
-    (1, 'Data Science', N'Khoa học Dữ liệu', 'ACTIVE');
-
-INSERT INTO Category (contest_id, category_name, description, status)
-VALUES
-    (2, 'Smart Contracts', N'Lập trình Hợp đồng thông minh', 'ACTIVE'),
-    (2, 'DeFi', N'Tài chính phi tập trung', 'ACTIVE'),
-    (2, 'Web3 DApps', N'Phát triển Ứng dụng Web3', 'ACTIVE');
+    (1, 'Computer Vision', N'Nhận diện hình ảnh và Thị giác máy tính', 'ACTIVE'),
+    (1, 'NLP & LLMs', N'Xử lý ngôn ngữ tự nhiên và Mô hình ngôn ngữ lớn', 'ACTIVE'),
+    (1, 'Data Science & Predictive AI', N'Khoa học Dữ liệu và AI dự đoán', 'ACTIVE'),
+    (2, 'Smart Contracts & Security', N'Lập trình Hợp đồng thông minh và Bảo mật Web3', 'ACTIVE'),
+    (2, 'DeFi & Tokenomics', N'Tài chính phi tập trung và Mô hình kinh tế token', 'ACTIVE'),
+    (2, 'Web3 DApps', N'Phát triển Ứng dụng phi tập trung Web3', 'ACTIVE'),
+    (3, 'AI & Web3 Innovation', N'Sáng tạo ứng dụng kết hợp AI và Blockchain', 'ACTIVE'),
+    (3, 'Cloud & Big Data Architecture', N'Kiến trúc Cloud và Xử lý Dữ liệu lớn', 'ACTIVE'),
+    (3, 'Mobile & IoT Applications', N'Ứng dụng Di động thông minh và IoT', 'ACTIVE');
 GO
 
+-- 3. CONTEST UNIVERSITIES
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 1, university_id FROM University WHERE university_code IN ('HUFLIT', 'HCMUAF', 'FPT');
-
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 2, university_id FROM University;
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 3, university_id FROM University;
 GO
 
+-- 4. ANNOUNCEMENTS
+DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
+INSERT INTO Announcement (contest_id, user_id, title, content, announcement_type, status, published_at, target_roles)
+VALUES
+(1, @Admin1_ID, N'Công bố kết quả chung cuộc National AI Challenge 2025', N'Chúc mừng các đội thi AI Pioneers và Visionary Devs đã xuất sắc giành giải cao nhất!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00', 'STUDENT,MENTOR,JUDGE'),
+(2, @Admin1_ID, N'Tổng kết Global Blockchain Summit 2025', N'Đội thi Blockchain Masters đã giành giải Nhất với giải pháp DeFi đột phá.', 'GENERAL', 'PUBLISHED', '2025-12-01 09:00:00', 'STUDENT,MENTOR,JUDGE'),
+(3, @Admin1_ID, N'Chào mừng đến với SEAL Hackathon 2026', N'Cổng đăng ký thi đấu chính thức mở từ ngày 01/06/2026. Các đội thi vui lòng hoàn thiện đội hình!', 'REGULATION', 'PUBLISHED', '2026-06-01 08:00:00', 'STUDENT,MENTOR,JUDGE');
+GO
+
+-- 5. RUBRICS & CRITERIA
+INSERT INTO RubricTemplate (category_id, template_name, description, status)
+VALUES
+(1, 'Standard AI Judging Rubric', N'Tiêu chí chấm thi chuẩn cho các dự án AI', 'ACTIVE'),
+(4, 'Web3 & Blockchain Rubric', N'Tiêu chí chấm thi chuẩn cho các dự án Blockchain', 'ACTIVE'),
+(7, 'SEAL Innovation Rubric 2026', N'Tiêu chí chấm thi toàn diện cho SEAL Hackathon', 'ACTIVE');
+GO
+
+DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
+DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
+DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
+
+INSERT INTO RubricTemplateCriteria (rubric_template_id, criteria_name, description, default_weight, max_score)
+VALUES
+(@Rubric1_ID, 'Innovation & Creativity', N'Tính sáng tạo và độc đáo của giải pháp AI', 30.00, 30.00),
+(@Rubric1_ID, 'Technical Complexity', N'Độ khó kỹ thuật và mô hình AI sử dụng', 30.00, 30.00),
+(@Rubric1_ID, 'Feasibility & Impact', N'Tính khả thi và tác động thực tế tới xã hội', 20.00, 20.00),
+(@Rubric1_ID, 'Presentation & Demo', N'Chất lượng thuyết trình và Demo sản phẩm', 20.00, 20.00),
+
+(@Rubric2_ID, 'Smart Contract Security', N'Bảo mật tối ưu của Hợp đồng thông minh', 35.00, 35.00),
+(@Rubric2_ID, 'Decentralization & Utility', N'Tính phi tập trung và ứng dụng thực tế', 35.00, 35.00),
+(@Rubric2_ID, 'UI/UX & Web3 Integration', N'Trải nghiệm người dùng và kết nối ví Web3', 30.00, 30.00),
+
+(@Rubric3_ID, 'Problem Solving & Innovation', N'Đột phá trong tư duy giải quyết vấn đề', 30.00, 30.00),
+(@Rubric3_ID, 'Engineering Excellence', N'Chất lượng kiến trúc và mã nguồn phần mềm', 30.00, 30.00),
+(@Rubric3_ID, 'Business Feasibility', N'Tiềm năng thương mại hóa và mở rộng', 20.00, 20.00),
+(@Rubric3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00);
+GO
+
+-- Create ContestRubric and ContestRubricDetails for Contest 1 (Cat 1), Contest 2 (Cat 4), Contest 3 (Cat 7)
+DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
+DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
+DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
+
+INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_weight, status)
+VALUES
+(@Rubric1_ID, 1, 'Computer Vision Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric2_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric3_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE');
+GO
+
+DECLARE @CR1_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1);
+DECLARE @CR2_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4);
+DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
+
+INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
+VALUES
+(@CR1_ID, 'Innovation & Creativity', N'Tính sáng tạo và độc đáo của giải pháp AI', 30.00, 30.00),
+(@CR1_ID, 'Technical Complexity', N'Độ khó kỹ thuật và mô hình AI sử dụng', 30.00, 30.00),
+(@CR1_ID, 'Feasibility & Impact', N'Tính khả thi và tác động thực tế tới xã hội', 20.00, 20.00),
+(@CR1_ID, 'Presentation & Demo', N'Chất lượng thuyết trình và Demo sản phẩm', 20.00, 20.00),
+
+(@CR2_ID, 'Smart Contract Security', N'Bảo mật tối ưu của Hợp đồng thông minh', 35.00, 35.00),
+(@CR2_ID, 'Decentralization & Utility', N'Tính phi tập trung và ứng dụng thực tế', 35.00, 35.00),
+(@CR2_ID, 'UI/UX & Web3 Integration', N'Trải nghiệm người dùng và kết nối ví Web3', 30.00, 30.00),
+
+(@CR3_ID, 'Problem Solving & Innovation', N'Đột phá trong tư duy giải quyết vấn đề', 30.00, 30.00),
+(@CR3_ID, 'Engineering Excellence', N'Chất lượng kiến trúc và mã nguồn phần mềm', 30.00, 30.00),
+(@CR3_ID, 'Business Feasibility', N'Tiềm năng thương mại hóa và mở rộng', 20.00, 20.00),
+(@CR3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00);
+GO
+
+-- 6. MENTOR & JUDGE ASSIGNMENTS
+DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
+DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
+DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
+DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
+DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
+
+INSERT INTO MentorAssignment (category_id, user_id, status) VALUES
+(1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (7, @Mentor1_ID, 'ACTIVE'), (7, @Mentor2_ID, 'ACTIVE');
+
+INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
+(1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), (7, @Judge1_ID, 'ACTIVE'), (7, @Judge2_ID, 'ACTIVE'), (7, @JudgeMentor_ID, 'ACTIVE');
+GO
+
+-- 7. ROUNDS
+INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
+VALUES
+(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'COMPLETED', N'Nộp link GitHub Repo và tài liệu tả kiến trúc', 'ONLINE'),
+(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'COMPLETED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
+(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'COMPLETED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
+(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'COMPLETED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
+(3, 7, 'Ideation & Proposal', 1, '2026-06-05 08:00:00', '2026-08-15 23:59:59', '2026-08-20 17:00:00', '2026-08-22 10:00:00', 'IN_PROGRESS', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
+(3, 7, 'Final Hackathon Day', 2, '2026-08-23 08:00:00', '2026-09-25 23:59:59', '2026-09-28 17:00:00', '2026-09-30 10:00:00', 'NOT_STARTED', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE');
+GO
+
+-- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
+DECLARE @PastTeam1_ID BIGINT, @PastTeam2_ID BIGINT, @PastTeam3_ID BIGINT;
 DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT;
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE01', 'Cyber Core', 'FORMING');
+-- Historical Team 1: AI Pioneers (Contest 1, Category 1) - CLOSED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST01', 'AI Pioneers', 1, 'CLOSED', '2026-02-05 10:00:00');
+SET @PastTeam1_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20IT123457@st.huflit.edu.vn');
+
+-- Historical Team 2: Visionary Devs (Contest 1, Category 1) - CLOSED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST02', 'Visionary Devs', 1, 'CLOSED', '2026-02-06 10:00:00');
+SET @PastTeam2_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com', '20IT123456@st.huflit.edu.vn');
+
+-- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - CLOSED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('PAST03', 'Blockchain Masters', 2, 'CLOSED', '2025-09-05 10:00:00');
+SET @PastTeam3_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('20120001@student.hcmus.edu.vn', 'Phamgiahan@hcmut.edu.vn', '09876543@st.hcmuaf.edu.vn', '20IT123457@st.huflit.edu.vn', '20120002@student.hcmus.edu.vn');
+
+-- Ongoing Team 1: Cyber Core (Contest 3, Category 7) - APPROVED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('TEAM01', 'Cyber Core', 3, 'APPROVED', '2026-06-02 10:00:00');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
-WHERE u.email IN ('nhatmysocutedl@gmail.com', 'vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
+SELECT @Team1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-02 10:00:00' FROM [User] u WHERE u.email IN ('vuthituanh123@gmail.com', '12345678@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE02', 'Code Rangers', 'FORMING');
+-- Ongoing Team 2: Code Rangers (Contest 3, Category 7) - APPROVED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('TEAM02', 'Code Rangers', 3, 'APPROVED', '2026-06-03 10:00:00');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
-WHERE u.email IN ('huongtuongyen1982@gmail.com', 'vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
+SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-03 10:00:00' FROM [User] u WHERE u.email = 'huongtuongyen1982@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-03 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', '20120001@student.hcmus.edu.vn', '20IT123456@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE03', 'Byte Wizards', 'FORMING');
+-- Ongoing Team 3: Byte Wizards (Contest 3, Category 7) - APPROVED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
+VALUES ('TEAM03', 'Byte Wizards', 3, 'APPROVED', '2026-06-04 10:00:00');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
-WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
+SELECT @Team3_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-04 10:00:00' FROM [User] u WHERE u.email = 'nguyendangduyquang@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-04 10:00:00' FROM [User] u WHERE u.email IN ('buianhtuan123@gmail.com', 'Phamgiahan@hcmut.edu.vn', '20IT123457@st.huflit.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE04', 'Tech Titans', 'FORMING');
+-- Forming Team 4: Tech Titans (No contest yet) - FORMING
+INSERT INTO Team (team_code, team_name, status, created_at)
+VALUES ('TEAM04', 'Tech Titans', 'FORMING', '2026-06-05 10:00:00');
 SET @Team4_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
-WHERE u.email IN ('thuhien456@gmail.com', 'phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
+SELECT @Team4_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-05 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-05 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
 
-INSERT INTO Team (team_code, team_name, status) VALUES ('INVITE05', 'Data Ninjas', 'FORMING');
+-- Forming Team 5: Data Ninjas (No contest yet) - FORMING
+INSERT INTO Team (team_code, team_name, status, created_at)
+VALUES ('TEAM05', 'Data Ninjas', 'FORMING', '2026-06-06 10:00:00');
 SET @Team5_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', GETDATE() FROM [User] u
-WHERE u.email IN ('dntotrinh@gmail.com', 'phannha@gmail.com');
+SELECT @Team5_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = 'phannha@gmail.com';
+GO
+
+-- Assign Mentors to Teams
+DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
+DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
+DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
+DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
+DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
+DECLARE @Team1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01');
+DECLARE @Team2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02');
+DECLARE @Team3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03');
+
+INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
+(@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'),
+(@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'),
+(@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
+(@Team1_ID, @Mentor1_ID, 7, 'ACTIVE'),
+(@Team2_ID, @Mentor2_ID, 7, 'ACTIVE'),
+(@Team3_ID, @Mentor1_ID, 7, 'ACTIVE');
+GO
+
+-- 9. SUBMISSIONS
+DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
+DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
+DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
+DECLARE @Team1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01');
+DECLARE @Team2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02');
+DECLARE @Team3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03');
+DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
+DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
+
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id)
+VALUES
+(@PastTeam1_ID, 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-qual","Documentation":"https://docs.google.com/aipioneers-qual"}', 1, '2026-02-18 14:00:00', 'GRADED', N'Ý tưởng rất tốt, cần chuẩn bị kỹ cho vòng Chung kết.', @Mentor1_ID),
+(@PastTeam1_ID, 2, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-final","Demo Video":"https://youtube.com/watch?v=demo1","Slide":"https://docs.google.com/presentation/d/ai-pioneers"}', 1, '2026-03-20 15:30:00', 'GRADED', N'Kiến trúc tuyệt vời, phần Demo cực kỳ mượt mà!', @Mentor1_ID),
+(@PastTeam2_ID, 1, N'{"Project Repository":"https://github.com/visionary/cv-qual","Documentation":"https://docs.google.com/visionary-qual"}', 1, '2026-02-19 10:00:00', 'GRADED', N'Cải thiện thêm độ chính xác của model nhé.', @Mentor2_ID),
+(@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2026-03-22 11:00:00', 'GRADED', N'Sản phẩm hoàn thiện rất tốt, thuyết trình rõ ràng.', @Mentor2_ID),
+(@PastTeam3_ID, 3, N'{"Project Repository":"https://github.com/blockchainmasters/defi-qual","Smart Contract":"0x71C...893"}', 1, '2025-10-10 16:00:00', 'GRADED', N'Smart contract viết chuẩn, gas fee tối ưu.', @Mentor1_ID),
+(@PastTeam3_ID, 4, N'{"Project Repository":"https://github.com/blockchainmasters/defi-final","Demo Video":"https://youtube.com/watch?v=demo3","DApp URL":"https://defi-masters.app"}', 1, '2025-11-20 09:30:00', 'GRADED', N'DApp chạy mượt, giao diện UI/UX rất đẳng cấp!', @Mentor1_ID),
+(@Team1_ID, 5, N'{"Project Repository":"https://github.com/cybercore/seal-app","Proposal":"https://docs.google.com/document/d/cybercore-proposal"}', 1, '2026-06-15 14:00:00', 'SUBMITTED', N'Đang chờ Mentor đánh giá chi tiết.', @Mentor1_ID),
+(@Team2_ID, 5, N'{"Project Repository":"https://github.com/coderangers/ai-web3","Proposal":"https://docs.google.com/document/d/coderangers-proposal"}', 1, '2026-06-16 10:00:00', 'UNDER_REVIEW', N'Đề xuất ý tưởng rất sáng tạo, tiếp tục làm prototype nhé!', @Mentor2_ID),
+(@Team3_ID, 5, N'{"Project Repository":"https://github.com/bytewizards/hackathon-draft"}', 1, '2026-06-17 08:00:00', 'DRAFT', NULL, NULL);
+GO
+
+-- 10. SCORES & SCORE DETAILS (For Historical Finals)
+DECLARE @Sub_AI_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 2);
+DECLARE @Sub_Vis_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 2);
+DECLARE @Sub_Block_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 4);
+
+DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
+DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
+DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
+
+-- Score for AI Pioneers by Judge 1 & Judge 2
+INSERT INTO Score (submission_id, user_id, total_score, general_feedback, status)
+VALUES
+(@Sub_AI_Final, @Judge1_ID, 93.00, N'Dự án xuất sắc, giải quyết đúng nỗi đau của xã hội.', 'PUBLISHED'),
+(@Sub_AI_Final, @Judge2_ID, 92.00, N'Kiến trúc thuật toán rất vững chắc và sáng tạo.', 'PUBLISHED'),
+(@Sub_Vis_Final, @Judge1_ID, 88.00, N'Sản phẩm tốt nhưng tính năng thương mại cần hoàn thiện thêm.', 'PUBLISHED'),
+(@Sub_Block_Final, @JudgeMentor_ID, 95.00, N'Giải pháp DeFi toàn diện, bảo mật cao và UI/UX tuyệt vời.', 'PUBLISHED');
+GO
+
+-- 11. RANKING RESULTS (For Leaderboards & My Teams)
+DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
+DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
+DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
+DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
+
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at)
+VALUES
+(2, 1, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 1, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+(4, 4, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00');
 GO
