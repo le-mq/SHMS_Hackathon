@@ -1,6 +1,12 @@
+/* ============================================= */
+/* EXPERT PROVISION – HIGH-CONTRAST POLISH       */
+/* ============================================= */
+
 .admin-container {
-    background-color: #f4f7fa;
+    background-color: #ffffff;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
 }
 
 .config-wrapper {
@@ -9,18 +15,20 @@
     margin: 0 auto;
 }
 
+/* --- BREADCRUMBS --- */
 .breadcrumbs {
     font-size: 13px;
-    color: #6b7280;
+    color: #4b5563;
     margin-bottom: 24px;
 }
 
 .breadcrumbs span {
-    color: #111827;
-    font-weight: 600;
+    color: #0f172a;
+    font-weight: 700;
 }
 
-.config-header {
+/* --- HEADER --- */
+.config-header-v {
     margin-bottom: 32px;
     display: flex !important;
     flex-direction: column !important;
@@ -29,39 +37,35 @@
 
 .config-title {
     display: block;
-    font-size: 24px;
-    font-weight: 700;
-    color: #111827;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
     margin: 0 0 8px 0;
 }
 
 .config-subtitle {
     display: block;
     font-size: 14px;
-    color: #6b7280;
+    color: #334155;
+    font-weight: 500;
     margin: 0;
     max-width: 700px;
 }
 
-/* .provisioning-grid {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 32px;
-} */
-
+/* --- POLICY CARD (Side info) --- */
 .policy-card {
     background: white;
     border-radius: 12px;
     padding: 24px;
-    border: 1px solid #e5e7eb;
+    border: 2px solid #d1d5db;
     margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
 }
 
 .policy-title {
     font-size: 15px;
-    font-weight: 700;
-    color: #111827;
+    font-weight: 800;
+    color: #0f172a;
     margin: 0 0 16px 0;
     display: flex;
     align-items: center;
@@ -76,8 +80,8 @@
 
 .policy-list li {
     font-size: 13px;
-    color: #4b5563;
-    line-height: 1.5;
+    color: #334155;
+    line-height: 1.6;
     margin-bottom: 16px;
     display: flex;
     align-items: flex-start;
@@ -89,23 +93,26 @@
 }
 
 .policy-list svg {
-    color: #6b7280;
+    color: #475569;
     margin-top: 2px;
     flex-shrink: 0;
 }
 
+/* --- SESSIONS CARD (Dark info) --- */
 .sessions-card {
-    background: #0d1b2a;
+    background: #0f172a;
     border-radius: 12px;
     padding: 24px;
     color: white;
+    border: 2px solid #1e293b;
 }
 
 .sessions-title {
     font-size: 11px;
-    font-weight: 700;
-    color: #9ca3af;
+    font-weight: 800;
+    color: #94a3b8;
     letter-spacing: 1px;
+    text-transform: uppercase;
     margin-bottom: 8px;
 }
 
@@ -131,16 +138,19 @@
 
 .sessions-desc {
     font-size: 11px;
-    color: #9ca3af;
+    color: #94a3b8;
     line-height: 1.5;
 }
 
-.form-card {
-    background: white;
+/* ============================================= */
+/* FORM CARD – Main provisioning form            */
+/* ============================================= */
+.form-card-v {
+    background: #ffffff;
     border-radius: 12px;
     padding: 32px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border: 2px solid #94a3b8;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
     margin-bottom: 24px;
 }
 
@@ -148,32 +158,34 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 2px solid #d1d5db;
 }
 
 .form-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #374151;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
 }
 
 .step-badge {
-    background: #f3f4f6;
-    color: #4b5563;
-    padding: 4px 12px;
+    background: #e2e8f0;
+    color: #334155;
+    padding: 4px 14px;
     border-radius: 12px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
+    border: 1px solid #d1d5db;
 }
 
+/* --- Form Layout --- */
 .form-row {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 24px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .form-group {
@@ -181,41 +193,55 @@
     min-width: 0;
 }
 
+.form-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    display: block;
+}
+
 .form-input {
     width: 100%;
-    /* Đổi từ 50% thành 100% để chiếm trọn form-group cha */
     padding: 12px 16px;
     font-size: 14px;
-    border: 1px solid #d1d5db;
+    border: 2px solid #d1d5db;
     border-radius: 8px;
     outline: none;
     box-sizing: border-box;
     min-width: 0;
+    color: #0f172a;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
 }
 
-.form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 8px;
+.form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
+.form-input::placeholder {
+    color: #94a3b8;
+}
 
 .form-select {
     padding: 12px 16px;
     font-size: 14px;
-    border: 1px solid #d1d5db;
+    border: 2px solid #d1d5db;
     border-radius: 8px;
     outline: none;
     transition: border-color 0.2s;
     font-family: inherit;
     width: 100%;
     box-sizing: border-box;
+    color: #0f172a;
+    background: #ffffff;
 }
 
-.form-select {
-    width: 100%;
-    box-sizing: border-box;
+.form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .input-with-prefix {
@@ -233,8 +259,8 @@
 .input-with-prefix span {
     position: absolute;
     left: 16px;
-    color: #6b7280;
-    font-weight: 600;
+    color: #475569;
+    font-weight: 700;
 }
 
 .input-with-prefix input {
@@ -242,56 +268,63 @@
 }
 
 .expiry-info {
-    font-size: 11px;
-    color: #6b7280;
+    font-size: 12px;
+    color: #4b5563;
     margin-top: 8px;
     font-style: italic;
 }
 
+/* --- GENERATE BUTTON --- */
 .generate-btn {
     width: 300px;
     padding: 14px 24px;
-    background-color: #0d1b2a !important;
+    background-color: #0f172a !important;
     color: white;
     border: none;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
 }
 
 .generate-btn:hover {
-    background-color: #1a2c40 !important;
+    background-color: #1e293b !important;
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.2);
+    transform: translateY(-1px);
 }
 
 .generate-btn:disabled {
-    background-color: #9ca3af;
+    background-color: #94a3b8 !important;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
 .form-footer-note {
-    font-size: 11px;
-    color: #6b7280;
+    font-size: 12px;
+    color: #4b5563;
     line-height: 1.5;
 }
 
+/* --- STAT BOXES --- */
 .bottom-stats-row {
-    /* display: grid; */
-    /* grid-template-columns: 1fr 1fr; */
     gap: 24px;
 }
 
 .stat-box {
-    background: #f3f4f6;
+    background: #f1f5f9;
     border-radius: 12px;
     padding: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
+    border: 1px solid #d1d5db;
 }
 
 .stat-icon {
@@ -302,8 +335,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #374151;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: #0f172a;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
 }
 
 .stat-content {
@@ -313,49 +346,395 @@
 
 .stat-title {
     font-size: 14px;
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: #0f172a;
     margin-bottom: 4px;
 }
 
 .stat-desc {
     font-size: 12px;
-    color: #6b7280;
+    color: #4b5563;
 }
 
+/* --- ALERT MESSAGES --- */
 .alert-msg {
-    padding: 12px;
-    border-radius: 6px;
+    padding: 14px 18px;
+    border-radius: 8px;
     margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 2px solid #fca5a5;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 2px solid #86efac;
+}
+
+/* ============================================= */
+/* EXPERT CARD – Individual expert management    */
+/* ============================================= */
+.expert-manage-card {
+    border: 2px solid #d1d5db;
+    padding: 20px 24px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    background: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.expert-manage-card:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.expert-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.expert-avatar {
+    width: 42px;
+    height: 42px;
+    background: #0f172a;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.expert-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.expert-card-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+}
+
+.expert-card-meta {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.expert-card-meta strong {
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.expert-card-expiry {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.expert-card-expiry-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Roles management block */
+.expert-roles-block {
+    padding: 14px 16px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.expert-roles-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.expert-roles-checkboxes {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.expert-role-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.expert-role-option input[type="checkbox"] {
+    accent-color: #059669;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Actions row */
+.expert-actions-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.expert-expiry-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.expert-expiry-controls label {
+    font-size: 13px;
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.expert-expiry-controls .form-input {
+    margin-top: 10px;
+    width: auto;
     font-size: 13px;
 }
 
-.generate-btn-save{
-    background-color: #0f172a;
-    color: white;
-    padding: 0 7px;
-    height: 36px;
-    width: auto;
+.expert-btn-group {
     display: flex;
+    gap: 10px;
     align-items: center;
-    box-sizing: border-box;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* --- INLINE MESSAGE (same row as buttons) --- */
+.expert-inline-msg {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 24px;
+    border-radius: 8px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    animation: fadeInMsg 0.3s ease;
+}
+
+.expert-inline-msg.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.expert-inline-msg.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+@keyframes fadeInMsg {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- SAVE ROLES BUTTON --- */
+.generate-btn-save {
+    background-color: #0f172a;
+    color: white;
+    padding: 0 16px;
+    height: 38px;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+    transition: all 0.2s ease;
+}
+
+.generate-btn-save:hover {
+    background-color: #1e293b;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+}
+
+.generate-btn-save:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* --- DELETE BUTTON --- */
 .ph-btn-delete {
-    border: 1px solid #ef4444;
+    border: 2px solid #ef4444;
     color: #ef4444;
-    font-weight: 600;
-    height: 36px;
+    font-weight: 700;
+    height: 38px;
     padding: 0 16px;
     margin: 0;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 13px;
     cursor: pointer;
     background: transparent;
-    display: inline-flex; 
-    align-items: center;    
-    justify-content: center; 
-    transition: all 0.2s ease; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.ph-btn-delete:hover {
+    background: #fee2e2;
+    border-color: #dc2626;
+    color: #dc2626;
+}
+
+.ph-btn-delete:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- EXTEND BUTTON (within expert card) --- */
+.expert-extend-btn {
+    background: #3b82f6;
+    color: white;
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+}
+
+.expert-extend-btn:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.expert-extend-btn:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* --- STATUS MESSAGE (inline) --- */
+.expert-status-msg {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.expert-status-msg.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.expert-status-msg.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* --- EMPTY STATE --- */
+.expert-empty-state {
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 600;
+    font-style: italic;
+    text-align: center;
+    padding: 32px 20px;
+    background: #f8fafc;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+}
+
+/* --- ROLE SELECTION (in provisioning form) --- */
+.role-selection-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.role-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.role-checkbox-label input[type="checkbox"] {
+    accent-color: #059669;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.expert-search-wrap {
+    position: relative;
+    margin-bottom: 20px;
+    width: 500px;
+    height: 50px;
+    border: 1.5px solid #64748b;
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.25); 
+    border-radius: 8px;
+}
+
+.expert-search-wrap .form-input {
+    height: 100%;
+    padding-left: 42px;
+}
+
+.expert-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
 }

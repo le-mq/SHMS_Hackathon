@@ -30,14 +30,24 @@ const ExpertProvisioning = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [newExpiries, setNewExpiries] = useState({});
     const [managedRoles, setManagedRoles] = useState({});
-    const [extendLoading, setExtendLoading] = useState(false);
-    const [extendMsg, setExtendMsg] = useState('');
+    const [extendLoading, setExtendLoading] = useState({});
+    const [cardMessages, setCardMessages] = useState({});
 
     const formatExpiryDate = (date) => date ? `${date}T23:59:59` : null;
 
     const clearAlerts = () => {
         setError('');
         setSuccess('');
+    };
+
+    const setTempError = (msg) => {
+        setError(msg);
+        setTimeout(() => setError(''), 5000);
+    };
+
+    const setTempSuccess = (msg) => {
+        setSuccess(msg);
+        setTimeout(() => setSuccess(''), 5000);
     };
 
     const handleChange = (e) => {
@@ -87,11 +97,11 @@ const ExpertProvisioning = () => {
         const { fullName, professionalEmail, username, password, roleSelection, accessExpiry } = formData;
 
         if (!fullName || !professionalEmail || !username || !password || roleSelection.length === 0) {
-            setError('Please fill out all required fields and select at least one role.');
+            setTempError('Please fill out all required fields and select at least one role.');
             return;
         }
         if (roleSelection.includes('Guest Judge') && !accessExpiry) {
-            setError('Please provide an expiry date for the Guest Judge.');
+            setTempError('Please provide an expiry date for the Guest Judge.');
             return;
         }
 
@@ -117,9 +127,9 @@ const ExpertProvisioning = () => {
             }
 
             if (!response.ok) {
-                setError(data.message || data.error || 'Failed to provision expert credentials.');
+                setTempError(data.message || data.error || 'Failed to provision expert credentials.');
             } else {
-                setSuccess('Account generated! An invitation has been sent.');
+                setTempSuccess('Account generated! An invitation has been sent.');
                 setFormData(initialFormState);
                 fetchExperts();
             }
@@ -133,11 +143,16 @@ const ExpertProvisioning = () => {
                 accessExpiry: expiryDateIso
             };
             setExperts(prev => [...prev, newExpert]);
-            setSuccess("Mock account generated successfully!");
+            setTempSuccess("Mock account generated successfully!");
             setFormData(initialFormState);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const setCardMsg = (userId, msg) => {
+        setCardMessages(prev => ({ ...prev, [userId]: msg }));
+        setTimeout(() => setCardMessages(prev => ({ ...prev, [userId]: '' })), 4000);
     };
 
     const handleUpdateRolesSubmit = async (userId) => {
@@ -145,8 +160,8 @@ const ExpertProvisioning = () => {
         const rolesToUpdate = managedRoles[userId] || targetExpert?.roles || [];
         if (rolesToUpdate.length === 0) return;
 
-        setExtendLoading(true);
-        setExtendMsg('');
+        setExtendLoading(prev => ({ ...prev, [userId]: true }));
+        setCardMessages(prev => ({ ...prev, [userId]: '' }));
 
         const isGuestJudge = rolesToUpdate.some(r => r.toUpperCase() === 'GUEST JUDGE');
         let calculatedExpiry = null;
@@ -170,13 +185,13 @@ const ExpertProvisioning = () => {
                 body: JSON.stringify({ newExpiry: calculatedExpiry })
             });
 
-            setExtendMsg(resExpiry.ok ? 'Roles and Expiry updated successfully!' : 'Roles updated, but Server rejected Expiry format.');
+            setCardMsg(userId, resExpiry.ok ? 'Roles and Expiry updated successfully!' : 'Roles updated, but Server rejected Expiry format.');
             if (resExpiry.ok) fetchExperts();
         } catch {
             setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, roles: rolesToUpdate, accessExpiry: calculatedExpiry } : exp));
-            setExtendMsg("Mock update roles & expiry success!");
+            setCardMsg(userId, "Mock update roles & expiry success!");
         } finally {
-            setExtendLoading(false);
+            setExtendLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
 
@@ -184,8 +199,8 @@ const ExpertProvisioning = () => {
         const selectedExpiry = newExpiries[userId];
         if (!userId || !selectedExpiry) return;
 
-        setExtendLoading(true);
-        setExtendMsg('');
+        setExtendLoading(prev => ({ ...prev, [userId]: true }));
+        setCardMessages(prev => ({ ...prev, [userId]: '' }));
         const formattedExpiry = formatExpiryDate(selectedExpiry);
 
         try {
@@ -194,24 +209,24 @@ const ExpertProvisioning = () => {
                 headers
             });
             if (res.ok) {
-                setExtendMsg('Expiry extended successfully!');
+                setCardMsg(userId, 'Expiry extended successfully!');
                 fetchExperts();
             } else {
-                setExtendMsg('Failed to extend expiry. Please check parameter configuration.');
+                setCardMsg(userId, 'Failed to extend expiry. Please check parameter configuration.');
             }
         } catch (err) {
             setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, accessExpiry: formattedExpiry } : exp));
-            setExtendMsg("Mock extend expiry success!");
+            setCardMsg(userId, "Mock extend expiry success!");
         } finally {
-            setExtendLoading(false);
+            setExtendLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
 
     const handleDeleteSubmit = async (userId) => {
         if (!userId || !window.confirm("Are you sure you want to delete this expert?")) return;
 
-        setExtendLoading(true);
-        setExtendMsg('');
+        setExtendLoading(prev => ({ ...prev, [userId]: true }));
+        setCardMessages(prev => ({ ...prev, [userId]: '' }));
 
         try {
             const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}`, {
@@ -219,16 +234,16 @@ const ExpertProvisioning = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                setExtendMsg('Expert deleted successfully!');
+                setCardMsg(userId, 'Expert deleted successfully!');
                 fetchExperts();
             } else {
-                setExtendMsg('Failed to delete expert.');
+                setCardMsg(userId, 'Failed to delete expert.');
             }
         } catch {
             setExperts(prev => prev.filter(exp => exp.userId != userId));
-            setExtendMsg("Mock delete success!");
+            setCardMsg(userId, "Mock delete success!");
         } finally {
-            setExtendLoading(false);
+            setExtendLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
 
@@ -238,22 +253,24 @@ const ExpertProvisioning = () => {
             (exp.username || '').toLowerCase().includes(searchQuery.toLowerCase())
         ));
     }, [experts, searchQuery]);
-
+    
     return (
         <div className="admin-container">
             <div className="config-wrapper">
-                <div className="config-header">
+                <div className="config-header-v">
                     <h1 className="config-title">Expert Credentials Provisioning</h1>
-                    <p style={{ display: 'block', fontSize: '14px', color: '#6b7280', margin: '0', maxWidth: '800px' }}>
+                    <p className="config-subtitle">
                         Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.
                     </p>
                 </div>
 
                 <div>
                     <div>
-                        <div className="form-card">
+                        {/* ===== PROVISIONING FORM ===== */}
+                        <div className="form-card-v">
                             <div className="form-header">
                                 <div className="form-title">System Provisioning Form</div>
+                                <span className="step-badge">New Expert</span>
                             </div>
 
                             <div className="form-row">
@@ -287,7 +304,7 @@ const ExpertProvisioning = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            style={{ position: 'absolute', right: '9px', top: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                                            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}
                                         >
                                             {showPassword ? (
                                                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -304,49 +321,53 @@ const ExpertProvisioning = () => {
                                 </div>
                             </div>
 
-                            <div style={{ marginBottom: '16px' }}>
+                            <div style={{ marginBottom: '20px' }}>
                                 <div className="form-group">
                                     <label className="form-label">Role Selection</label>
-                                    <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                                    <div className="role-selection-row">
                                         {['Judge', 'Guest Judge', 'Mentor'].map(role => (
-                                            <label key={role} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                            <label key={role} className="role-checkbox-label">
                                                 <input type="checkbox" name="roleSelection" value={role} checked={formData.roleSelection.includes(role)} onChange={handleRoleChange} /> {role}
                                             </label>
                                         ))}
-                                        <button className="generate-btn" onClick={handleGenerate} disabled={isLoading} style={{ marginLeft: 'auto' }}>
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                                            {isLoading ? 'Generating...' : 'Generate Account Credentials'}
-                                        </button>
+                                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            {(error || success) && (
+                                                <span className={`expert-inline-msg ${success ? 'success' : 'error'}`}>
+                                                    {error || success}
+                                                </span>
+                                            )}
+                                            <button className="generate-btn" onClick={handleGenerate} disabled={isLoading}>
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                                                {isLoading ? 'Generating...' : 'Generate Account Credentials'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {formData.roleSelection.includes('Guest Judge') && (
-                                <div className="form-group" style={{ marginBottom: '16px' }}>
+                                <div className="form-group" style={{ marginBottom: '20px' }}>
                                     <label className="form-label">Access Token Expiry Lifespan ⓘ</label>
                                     <input type="date" name="accessExpiry" className="form-input" min={todayStr} value={formData.accessExpiry} onChange={handleChange} style={{ maxWidth: '300px' }} />
                                 </div>
                             )}
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
-                                {error && <div className="alert-msg alert-error" style={{ margin: 0, width: '100%' }}>{error}</div>}
-                                {success && <div className="alert-msg alert-success" style={{ margin: 0, width: '100%' }}>{success}</div>}
-                            </div>
                         </div>
 
-                        <div className="form-card" style={{ marginTop: '24px' }}>
-                            <div className="form-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div className="form-title">Manage Expert</div>
+                        {/* ===== MANAGE EXPERTS ===== */}
+                        <div className="form-card-v" style={{ marginTop: '24px' }}>
+                            <div className="form-header">
+                                <div className="form-title">Manage Experts</div>
+                                <span className="step-badge">{filteredExperts.length} Expert{filteredExperts.length !== 1 ? 's' : ''}</span>
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group" style={{ flex: 2 }}>
-                                    <label className="form-label">Search Expert</label>
-                                    <input type="text" className="form-input" placeholder="Search by name or username..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ marginBottom: '16px' }} />
-                                </div>
+                            <div className="expert-search-wrap">
+                                <svg className="expert-search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input type="text" className="form-input" placeholder="Search by name or username..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                             </div>
 
-                            {extendMsg && <div style={{ marginBottom: '16px', fontSize: '14px', color: extendMsg.includes('success') ? 'green' : 'red' }}>{extendMsg}</div>}
+
 
                             <div>
                                 {filteredExperts.map(exp => {
@@ -363,24 +384,36 @@ const ExpertProvisioning = () => {
                                     }
 
                                     const isGuestJudge = currentSelected.some(r => r.toUpperCase() === 'GUEST JUDGE');
-                                    return (
-                                        <div key={exp.userId} style={{ border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
-                                            <div style={{ fontSize: '15px', color: '#1e293b', marginBottom: '8px' }}>
-                                                <strong>Username:</strong> {exp.username} &nbsp;|&nbsp; <strong>Full Name:</strong> {exp.fullName}
-                                            </div>
-                                            {hasLifespan && (
-                                                <div style={{ fontSize: '14px', color: '#64748b', marginTop: '2px' }}>
-                                                    Current Expiry: {new Date(exp.accessExpiry).toLocaleDateString()}
-                                                </div>
-                                            )}
+                                    const initials = (exp.fullName || exp.username || '??').substring(0, 2).toUpperCase();
 
-                                            <div style={{ marginTop: '12px', padding: '12px', background: '#f8fafc', borderRadius: '6px' }}>
-                                                <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#334155' }}>Manage Roles</label>
-                                                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                                    return (
+                                        <div key={exp.userId} className="expert-manage-card">
+                                            {/* Card Header */}
+                                            <div className="expert-card-header">
+                                                <div className="expert-avatar">{initials}</div>
+                                                <div className="expert-card-info">
+                                                    <div className="expert-card-name">{exp.fullName}</div>
+                                                    <div className="expert-card-meta">
+                                                        <strong>{exp.username}</strong>
+                                                        {exp.professionalEmail && <> · {exp.professionalEmail}</>}
+                                                    </div>
+                                                </div>
+                                                {hasLifespan && (
+                                                    <div className="expert-card-expiry-badge">
+                                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                        Expires: {new Date(exp.accessExpiry).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Roles Block */}
+                                            <div className="expert-roles-block">
+                                                <span className="expert-roles-label">Manage Roles</span>
+                                                <div className="expert-roles-checkboxes">
                                                     {['Judge', 'Guest Judge', 'Mentor'].map(r => {
                                                         const isChecked = currentSelected.map(cr => cr.toUpperCase()).includes(r.toUpperCase());
                                                         return (
-                                                            <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+                                                            <label key={r} className="expert-role-option">
                                                                 <input type="checkbox" checked={isChecked}
                                                                        onChange={(e) => {
                                                                            const checked = e.target.checked;
@@ -402,26 +435,31 @@ const ExpertProvisioning = () => {
                                                 </div>
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '16px', marginTop: '16px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                            {/* Actions Row */}
+                                            <div className="expert-actions-row">
                                                 {isGuestJudge ? (
-                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                        <label style={{ fontSize: '14px', color: '#475569' }}>{hasLifespan ? 'Extend Expiry:' : 'Set Expiry:'}</label>
+                                                    <div className="expert-expiry-controls">
+                                                        <label>{hasLifespan ? 'Extend Expiry:' : 'Set Expiry:'}</label>
                                                         <input type="date" className="form-input" min={todayStr}
                                                                onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
                                                                value={newExpiries[exp.userId] || ''}
-                                                               style={{ width: 'auto', padding: '6px 10px', height: '36px', marginTop: '9px' }}
                                                         />
-                                                        <button className="generate-btn" style={{ background: '#3b82f6', height: '36px', padding: '0 16px', marginTop: '11px', width: 'auto', fontSize: '14px' }} onClick={() => handleExtendSubmit(exp.userId)} disabled={!newExpiries[exp.userId] || extendLoading}>
-                                                            {extendLoading ? 'Wait...' : (hasLifespan ? 'Extend' : 'Update Expiry')}
+                                                        <button className="expert-extend-btn" onClick={() => handleExtendSubmit(exp.userId)} disabled={!newExpiries[exp.userId] || extendLoading[exp.userId]}>
+                                                            {extendLoading[exp.userId] ? 'Wait...' : (hasLifespan ? 'Extend' : 'Update Expiry')}
                                                         </button>
                                                     </div>
                                                 ) : <div />}
-                                                <div style={{ display: 'flex', gap: '12px' }}>
-                                                    <button className="generate-btn-save" onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={extendLoading}>
-                                                        {extendLoading ? 'Wait...' : 'Save Roles'}
+                                                <div className="expert-btn-group">
+                                                    {cardMessages[exp.userId] && (
+                                                        <span className={`expert-inline-msg ${cardMessages[exp.userId].toLowerCase().includes('success') ? 'success' : 'error'}`}>
+                                                            {cardMessages[exp.userId]}
+                                                        </span>
+                                                    )}
+                                                    <button className="generate-btn-save" onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={extendLoading[exp.userId]}>
+                                                        {extendLoading[exp.userId] ? 'Wait...' : 'Save Roles'}
                                                     </button>
-                                                    <button className="ph-btn-delete" onClick={() => handleDeleteSubmit(exp.userId)} disabled={extendLoading}>
-                                                        {extendLoading ? 'Wait...' : 'Delete'}
+                                                    <button className="ph-btn-delete" onClick={() => handleDeleteSubmit(exp.userId)} disabled={extendLoading[exp.userId]}>
+                                                        {extendLoading[exp.userId] ? 'Wait...' : 'Delete'}
                                                     </button>
                                                 </div>
                                             </div>
@@ -429,7 +467,7 @@ const ExpertProvisioning = () => {
                                     );
                                 })}
                                 {filteredExperts.length === 0 && (
-                                    <div style={{ color: '#64748b', fontSize: '14px', fontStyle: 'italic' }}>No experts found.</div>
+                                    <div className="expert-empty-state">No experts found matching your search.</div>
                                 )}
                             </div>
                         </div>
