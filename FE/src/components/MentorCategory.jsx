@@ -97,6 +97,17 @@ const MentorCategory = () => {
     const uniqueRounds = Array.from(new Set(allocatedTeams.map(t => t.roundName).filter(Boolean)));
 
     const renderLinks = (team) => {
+        let subData = {};
+        try {
+            if (team.submissionData) {
+                subData = typeof team.submissionData === 'string' ? JSON.parse(team.submissionData) : team.submissionData;
+            } else {
+                subData = team;
+            }
+        } catch (e) {
+            subData = team;
+        }
+
         const getAssetUrl = (url) => {
             const trimmedUrl = String(url || '').trim();
             if (!trimmedUrl) return '';
@@ -107,7 +118,7 @@ const MentorCategory = () => {
             const assetUrl = getAssetUrl(url);
             if (!assetUrl) return null;
             return (
-                <a className="asset-link-icon" href={assetUrl} target="_blank"
+                <a key={label} className="asset-link-icon" href={assetUrl} target="_blank"
                    rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
                    style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
@@ -116,14 +127,35 @@ const MentorCategory = () => {
                 </a>
             );
         };
-        const hasAnyLink = team.githubRepoUrl || team.liveDemoUrl || team.docsUrl || team.slideUrl;
-        if (!hasAnyLink) return <span style={{ fontSize: '13px', color: '#94a3b8' }}>No links</span>;
+
+        const defaultIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+        const githubIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+        const demoIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+        const docsIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+        const slideIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>;
+
+        const iconMap = {
+            'Source Code URL': githubIcon, 'GitHub Repository': githubIcon,
+            'Live Demo URL': demoIcon, 'Live Demo': demoIcon, 'Video URL': demoIcon,
+            'Documentation URL': docsIcon, 'Project Documentation': docsIcon,
+            'Presentation Slide URL': slideIcon, 'Presentation Slides': slideIcon
+        };
+
+        const allLinks = [];
+        Object.entries(subData).forEach(([key, val]) => {
+            if (typeof val === 'string' && val.trim() !== '' && !['id', 'teamId', 'roundId'].includes(key)) {
+                const label = key;
+                const icon = iconMap[key] || defaultIcon;
+                allLinks.push(renderAssetLink(val, label, icon));
+            }
+        });
+
+        const validLinks = allLinks.filter(Boolean);
+        if (validLinks.length === 0) return <span style={{ fontSize: '13px', color: '#94a3b8' }}>No links</span>;
+
         return (
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {renderAssetLink(team.githubRepoUrl, 'GitHub', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>)}
-                {renderAssetLink(team.liveDemoUrl, 'Demo', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>)}
-                {renderAssetLink(team.docsUrl, 'Docs', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>)}
-                {renderAssetLink(team.slideUrl, 'Slides', <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>)}
+                {validLinks}
             </div>
         );
     };
@@ -290,7 +322,19 @@ const MentorCategory = () => {
                         {(() => {
                             const selectedTeam = filteredTeams.find(t => t.teamId === feedbackTeamId);
                             if (!selectedTeam) return null;
-                            const hasAnyLink = selectedTeam.githubRepoUrl || selectedTeam.liveDemoUrl || selectedTeam.docsUrl || selectedTeam.slideUrl;
+                            const hasAnyLink = (() => {
+                                let subData = {};
+                                try {
+                                    if (selectedTeam.submissionData) {
+                                        subData = typeof selectedTeam.submissionData === 'string' ? JSON.parse(selectedTeam.submissionData) : selectedTeam.submissionData;
+                                    } else {
+                                        subData = selectedTeam;
+                                    }
+                                } catch(e) {
+                                    subData = selectedTeam;
+                                }
+                                return Object.keys(subData).some(k => typeof subData[k] === 'string' && subData[k].trim() !== '' && !['id', 'teamId', 'roundId'].includes(k));
+                            })();
                             if (!hasAnyLink) return null;
                             return (
                                 <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>

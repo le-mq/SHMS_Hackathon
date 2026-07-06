@@ -31,6 +31,21 @@ const EvaluatorDashboard = () => {
     const [previewRoundId, setPreviewRoundId] = useState(null);
 
     useEffect(() => {
+        if (!selectedContest && data?.contests?.length > 0) {
+            let activeContestId = null;
+            for (const c of data.contests) {
+                const teams = data.queue?.filter(t => t.contestId == c.id) || [];
+                const allEval = teams.length > 0 && teams.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
+                if (!allEval && teams.length > 0) {
+                    activeContestId = c.id.toString();
+                    break;
+                }
+            }
+            setSelectedContest(activeContestId || data.contests[0].id.toString());
+        }
+    }, [data?.contests, data?.queue, selectedContest]);
+
+    useEffect(() => {
         const fetchDashboard = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
@@ -103,10 +118,22 @@ const EvaluatorDashboard = () => {
             if (saved && roundMap[saved]) {
                 setSelectedRound(saved);
             } else {
-                setSelectedRound(allRounds[0].name);
+                let activeRoundName = null;
+                const now = new Date();
+                for (const r of allRounds) {
+                    const teamsInRound = dashboardData.queue?.filter(t => (t.roundName || t.phaseName || t.round?.roundName) === r.name) || [];
+                    const deadline = r.gradingDeadlineAt ? new Date(r.gradingDeadlineAt) : null;
+                    const allEvaluated = teamsInRound.length > 0 && teamsInRound.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
+                    const isClosed = deadline && now > deadline;
+                    if (!isClosed && !allEvaluated) {
+                        activeRoundName = r.name;
+                        break;
+                    }
+                }
+                setSelectedRound(activeRoundName || allRounds[0].name);
             }
         }
-    }, [allRounds.length, selectedRound, JSON.stringify(roundMap)]);
+    }, [allRounds.length, selectedRound, JSON.stringify(roundMap), dashboardData.queue]);
 
     useEffect(() => {
         const currentRoundObj = roundMap[selectedRound];
@@ -152,38 +179,93 @@ const EvaluatorDashboard = () => {
             <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
             <div className="evaluator-content">
                 <div className="evaluator-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div className="evaluator-header-left" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="evaluator-header-left" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                         <div>
                             <h1 className="evaluator-title">Evaluator Panel Dashboard</h1>
                             <p className="evaluator-subtitle">Welcome back. Here is the real-time progress of your assigned teams.</p>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest:</span>
-                                <select className="eval-contest-select" value={selectedContest}
-                                        onChange={(e) => setSelectedContest(e.target.value)}
-                                        style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'white', color: '#0f172a', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
-                                    <option value="">All Assigned Contests</option>
+
+                        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', width: '100%', background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                            <div style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assigned Contest</span>
+                                <select
+                                    value={selectedContest}
+                                    onChange={(e) => setSelectedContest(e.target.value)}
+                                    style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: '#f8fafc', color: '#0f172a', fontWeight: 600, fontSize: '14px', cursor: 'pointer', width: '100%' }}
+                                >
                                     {dashboardData?.contests?.map(c => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
+                                    {(!dashboardData?.contests || dashboardData.contests.length === 0) && <option value="">No Contests Assigned</option>}
                                 </select>
+                                {(() => {
+                                    if (!selectedContest) return null;
+                                    const teams = dashboardData.queue?.filter(t => t.contestId == selectedContest) || [];
+                                    const allEval = teams.length > 0 && teams.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
+                                    const statusText = allEval ? 'Completed' : 'Active';
+                                    const badgeStyles = allEval ? { bg: '#dbeafe', color: '#1e3a8a', border: '#bfdbfe' } : { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+                                    return (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '12px', color: '#64748b' }}>Overall Status:</span>
+                                            <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: badgeStyles.bg, color: badgeStyles.color, border: `1px solid ${badgeStyles.border}` }}>{statusText}</span>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
-                            <div className="contest-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', minHeight: '36px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>Active Round:</span>
-                                {allRounds.map((r, idx) => (
-                                    <button
-                                        key={idx}
-                                        className={`contest-tab ${selectedRound === r.name ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setSelectedRound(r.name);
-                                            sessionStorage.setItem('judgeSelectedRound', r.name);
-                                        }}
-                                        style={{ padding: '6px 12px', background: selectedRound === r.name ? '#0f172a' : '#f1f5f9', color: selectedRound === r.name ? 'white' : '#475569', border: 'none', borderRadius: '16px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                    >{r.name}</button>
-                                ))}
-                                {allRounds.length === 0 && <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', padding: '6px 12px' }}>No Rounds Found</span>}
+                            <div style={{ width: '1px', background: '#e2e8f0', margin: '0 10px' }} className="divider-hide-mobile"></div>
+
+                            <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Round</span>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {allRounds.map((r, idx) => {
+                                        const teamsInRound = dashboardData.queue?.filter(t => (t.roundName || t.phaseName || t.round?.roundName) === r.name) || [];
+                                        const now = new Date();
+                                        const deadline = r.gradingDeadlineAt ? new Date(r.gradingDeadlineAt) : null;
+                                        const allEvaluated = teamsInRound.length > 0 && teamsInRound.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
+
+                                        let statusText = 'Grading';
+                                        let badgeStyles = { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+
+                                        if (deadline && now > deadline) {
+                                            statusText = 'Closed';
+                                            badgeStyles = { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
+                                        } else if (allEvaluated) {
+                                            statusText = 'Completed';
+                                            badgeStyles = { bg: '#dbeafe', color: '#1e3a8a', border: '#bfdbfe' };
+                                        }
+
+                                        const isActive = selectedRound === r.name;
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    setSelectedRound(r.name);
+                                                    sessionStorage.setItem('judgeSelectedRound', r.name);
+                                                }}
+                                                style={{
+                                                    padding: '10px 14px',
+                                                    borderRadius: '8px',
+                                                    border: `1px solid ${isActive ? '#3b82f6' : '#cbd5e1'}`,
+                                                    background: isActive ? '#eff6ff' : 'white',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '6px',
+                                                    minWidth: '150px',
+                                                    boxShadow: isActive ? '0 0 0 1px #3b82f6' : 'none'
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '13px', fontWeight: 600, color: isActive ? '#1e3a8a' : '#334155' }}>{r.name}</div>
+                                                <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: badgeStyles.bg, color: badgeStyles.color, border: `1px solid ${badgeStyles.border}`, alignSelf: 'flex-start' }}>
+                                                    {statusText}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                    {allRounds.length === 0 && <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', padding: '10px 0' }}>No Rounds Found for this Contest</span>}
+                                </div>
                             </div>
                         </div>
                     </div>
