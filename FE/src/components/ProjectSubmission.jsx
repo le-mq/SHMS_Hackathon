@@ -26,13 +26,108 @@ const formatScheduleDate = (dateValue, emptyText, invalidText) => {
         minute: '2-digit',
     }).replace(',', ' \u2022');
 };
+const parseRequirements = (reqString) => {
+    if (!reqString || reqString === '[]') return [];
+    try {
+        const parsed = JSON.parse(reqString);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    if (typeof reqString === 'string') {
+        return reqString.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+};
+
+const GenericLinkIcon = ({ width = 18, height = 18 }) => (
+    <svg width={width} height={height} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+    </svg>
+);
+
+const FeedbackDetailModal = ({ selectedFeedbackRecord, selectedRound, renderAssetLink, onClose }) => {
+    if (!selectedFeedbackRecord) return null;
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>Feedback Details (v{selectedFeedbackRecord.version}.0)</h2>
+                </div>
+                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {selectedFeedbackRecord.mentorFeedback && (
+                        <div style={{ border: '1px solid #c4b5fd', borderRadius: '8px', padding: '16px', background: '#f5f3ff' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <h4 style={{ margin: 0, color: '#0f172a', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    Mentor Feedback
+                                </h4>
+                                {selectedFeedbackRecord.mentorName && (
+                                    <span style={{ fontSize: '12px', color: '#0f172a', background: '#ede9fe', padding: '4px 8px', borderRadius: '12px', fontWeight: '500' }}>
+                                        by {selectedFeedbackRecord.mentorName}
+                                    </span>
+                                )}
+                            </div>
+                            <p style={{ margin: 0, color: '#0f172a', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                                {selectedFeedbackRecord.mentorFeedback}
+                            </p>
+                        </div>
+                    )}
+
+                    <div>
+                        <h4 style={{ margin: '0 0 8px 0', color: '#334155', fontSize: '15px' }}>Submitted Links</h4>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
+                                if (!selectedFeedbackRecord[req]) return null;
+                                return renderAssetLink(selectedFeedbackRecord[req], req, <GenericLinkIcon width={14} height={14} />);
+                            })}
+                        </div>
+                    </div>
+                </div>
+                <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="btn-secondary" onClick={onClose}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ConfirmSubmitModal = ({ isConfirmed, setIsConfirmed, onCancel, onConfirm }) => {
+    return (
+        <div className="modal-overlay" onClick={onCancel}>
+            <div className="modal-content" style={{ maxWidth: '450px', width: '90%' }} onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Final Submission Warning
+                    </h2>
+                </div>
+                <div className="modal-body">
+                    <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '15px', lineHeight: '1.5' }}>
+                        Are you sure you want to officially submit your project? This action will <strong>finalize</strong> your submission.
+                    </p>
+                    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+                        <p style={{ margin: 0, color: '#991b1b', fontSize: '14px', lineHeight: '1.5' }}>
+                            <strong>WARNING:</strong> Once submitted, you cannot edit or recall this submission for the current round. Only submit when your team is completely finished.
+                        </p>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '8px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                        <input type="checkbox" checked={isConfirmed} onChange={(e) => setIsConfirmed(e.target.checked)} style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#2563eb' }} />
+                        <span style={{ fontSize: '14px', color: '#1e293b', fontWeight: 500, userSelect: 'none' }}>
+                            I understand that this is the final submission and cannot be undone.
+                        </span>
+                    </label>
+                </div>
+                <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                    <button className="btn-secondary" onClick={onCancel} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                    <button className="btn-primary" onClick={onConfirm} disabled={!isConfirmed} style={{ padding: '8px 16px', background: isConfirmed ? '#2563eb' : '#94a3b8', color: 'white', border: 'none', borderRadius: '6px', cursor: isConfirmed ? 'pointer' : 'not-allowed', fontWeight: 600 }}>
+                        Confirm Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const ProjectSubmission = () => {
     const [formData, setFormData] = useState({
-        githubRepoUrl: '',
-        liveDemoUrl: '',
-        docsUrl: '',
-        slideUrl: '',
         submissionType: 'SUBMITTED'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +140,8 @@ const ProjectSubmission = () => {
     const [formattedDeadline, setFormattedDeadline] = useState('');
     const [workspaceData, setWorkspaceData] = useState(null);
     const [selectedFeedbackRecord, setSelectedFeedbackRecord] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [isConfirmed, setIsConfirmed] = useState(false);
     const errorTimerRef = useRef(null);
     const successTimerRef = useRef(null);
     const reloadTimerRef = useRef(null);
@@ -70,9 +167,17 @@ const ProjectSubmission = () => {
 
         async function applySubmissionData(data) {
             if (cancelled) return;
-
             setPageData(data);
-            setHistory(data.history || []);
+            const processedHistory = (data.history || []).map(item => {
+                let parsedData = {};
+                try {
+                    if (item.submissionData) {
+                        parsedData = JSON.parse(item.submissionData);
+                    }
+                } catch (e) {}
+                return { ...item, ...parsedData };
+            });
+            setHistory(processedHistory);
 
             if (data.rounds && data.rounds.length > 0) {
                 setFormData(prev => ({
@@ -349,13 +454,17 @@ const ProjectSubmission = () => {
         Number.isFinite(selectedRoundSubmitDeadlineTime) &&
         Date.now() > selectedRoundSubmitDeadlineTime;
 
-    const isInputsDisabled = !isTeamLeader || !formData.roundId || isSelectedRoundClosed || isSubmitting || !isSelectedRoundEligible;
     const hasOfficialSubmission = history.some(item => {
         if (item.roundId && formData.roundId && String(item.roundId) !== String(formData.roundId)) return false;
+
+        const isDraft = String(item.status || '').toUpperCase() === 'DRAFT' || String(item.submissionType || '').toUpperCase() === 'DRAFT';
+        if (isDraft) return false;
+
         const status = String(item.status || '').toUpperCase();
         return ['SUBMITTED', 'OFFICIAL', 'EVALUATED', 'MISSED_DEADLINE'].includes(status) || item.evaluated;
     });
 
+    const isInputsDisabled = !isTeamLeader || !formData.roundId || isSelectedRoundNotOpened || isSelectedRoundClosed || isSubmitting || !isSelectedRoundEligible || hasOfficialSubmission;
     const notEligibleMessage = !isSelectedRoundEligible ? selectedRoundLockedReason : '';
     const closedRoundMessage = isSelectedRoundClosed
         ? (hasOfficialSubmission
@@ -456,10 +565,10 @@ const ProjectSubmission = () => {
 
         return (
             <a className={`asset-link-icon ${showLabel ? 'with-label' : ''}`}
-                href={assetUrl} target="_blank"
-                rel="noopener noreferrer" title={`Open ${label}`}
-                aria-label={`Open ${label}`}
-                style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
+               href={assetUrl} target="_blank"
+               rel="noopener noreferrer" title={`Open ${label}`}
+               aria-label={`Open ${label}`}
+               style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
             >
                 {icon}
                 {showLabel && <span>{label}</span>}
@@ -522,19 +631,7 @@ const ProjectSubmission = () => {
         }, SUCCESS_MESSAGE_DURATION_MS);
     };
 
-    const scheduleSubmissionReload = (roundId) => {
-        if (reloadTimerRef.current) {
-            clearTimeout(reloadTimerRef.current);
-        }
 
-        if (roundId) {
-            sessionStorage.setItem(SELECTED_ROUND_STORAGE_KEY, String(roundId));
-        }
-
-        reloadTimerRef.current = setTimeout(() => {
-            window.location.reload();
-        }, SUCCESS_RELOAD_DELAY_MS);
-    };
 
     const clearErrorMessage = () => {
         if (errorTimerRef.current) {
@@ -545,22 +642,19 @@ const ProjectSubmission = () => {
         setError('');
     };
 
-    const handleSubmit = async (type = 'SUBMITTED') => {
+    const handleSubmitClick = (type = 'SUBMITTED') => {
         if (!isTeamApproved) {
-            const message = 'Your team has not been approved yet. You cannot submit.';
-            showErrorMessage(message);
+            showErrorMessage('Your team has not been approved yet. You cannot submit.');
             return;
         }
 
         if (hasLoadedSubmissionRole && !isTeamLeader) {
-            const message = 'Only Team Leaders are permitted to submit the project.';
-            showErrorMessage(message);
+            showErrorMessage('Only Team Leaders are permitted to submit the project.');
             return;
         }
 
         if (!isRoundActive) {
-            const message = 'This round is not active yet. You cannot submit.';
-            showErrorMessage(message);
+            showErrorMessage('This round is not active yet. You cannot submit.');
             return;
         }
 
@@ -575,34 +669,39 @@ const ProjectSubmission = () => {
         }
 
         if (selectedRound && selectedRound.submissionRequirements && selectedRound.submissionRequirements !== '[]') {
-            const reqs = selectedRound.submissionRequirements;
-            if (reqs.includes('githubUrl') && (!formData.githubRepoUrl || !formData.githubRepoUrl.trim())) {
-                showErrorMessage('GitHub Repository URL is required for this round.');
-                return;
-            }
-            if (reqs.includes('demoUrl') && (!formData.liveDemoUrl || !formData.liveDemoUrl.trim())) {
-                showErrorMessage('Live Demo/Video URL is required for this round.');
-                return;
-            }
-            if (reqs.includes('documentUrl') && (!formData.docsUrl || !formData.docsUrl.trim())) {
-                showErrorMessage('Documentation URL is required for this round.');
-                return;
-            }
-            if (reqs.includes('slideUrl') && (!formData.slideUrl || !formData.slideUrl.trim())) {
-                showErrorMessage('Presentation Slide URL is required for this round.');
-                return;
+            const reqs = parseRequirements(selectedRound.submissionRequirements);
+            for (const req of reqs) {
+                if (!formData[req] || !formData[req].trim()) {
+                    showErrorMessage(`${req} is required for this round.`);
+                    return;
+                }
             }
         }
 
+        if (type === 'SUBMITTED') {
+            setShowConfirmModal(true);
+            setIsConfirmed(false);
+            return;
+        }
+
+        executeSubmit('DRAFT');
+    };
+
+    const executeSubmit = async (type = 'SUBMITTED') => {
+        setShowConfirmModal(false);
         setIsSubmitting(true);
         clearErrorMessage();
         showSuccessMessage(`Project ${type === 'DRAFT' ? 'draft saved' : 'submitted'} successfully!`);
 
         try {
             const token = localStorage.getItem('shms_token');
-            const submittedRoundId = formData.roundId;
-
-            const payload = { ...formData, submissionType: type };
+            const { roundId, submissionType, ...restData } = formData;
+            const submittedRoundId = roundId;
+            const payload = {
+                roundId: submittedRoundId,
+                submissionType: type,
+                submissionData: JSON.stringify(restData)
+            };
 
             const response = await fetch(API_STUDENT + '/submissions/project', {
                 method: 'POST',
@@ -636,7 +735,17 @@ const ProjectSubmission = () => {
             }
 
             if (result.history || updatedPageData?.history) {
-                setHistory(result.history || updatedPageData.history);
+                const rawHistory = result.history || updatedPageData.history;
+                const processedHistory = rawHistory.map(item => {
+                    let parsedData = {};
+                    try {
+                        if (item.submissionData) {
+                            parsedData = JSON.parse(item.submissionData);
+                        }
+                    } catch (e) {}
+                    return { ...item, ...parsedData };
+                });
+                setHistory(processedHistory);
             }
 
             setFormData(prev => ({
@@ -644,7 +753,9 @@ const ProjectSubmission = () => {
                 roundId: submittedRoundId || prev.roundId,
             }));
 
-            scheduleSubmissionReload(submittedRoundId);
+            if (submittedRoundId) {
+                sessionStorage.setItem(SELECTED_ROUND_STORAGE_KEY, String(submittedRoundId));
+            }
         } catch (err) {
             console.warn('Submit API error:', err.message);
             const message = 'Cannot connect to server. Please try again later.';
@@ -759,85 +870,27 @@ const ProjectSubmission = () => {
                                 })}
                             </select>
                         </div>
-                        {isSelectedRoundEligible && (
-                            <>
-                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('githubUrl')) && (
-                                    <div className="form-group">
-                                        <label>GitHub Repository URL</label>
-                                        <div className="input-with-icon">
-                                            <div className="input-icon">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                name="githubRepoUrl"
-                                                value={formData.githubRepoUrl}
-                                                onChange={handleChange}
-                                                placeholder="https://github.com/team/repo"
-                                                disabled={isInputsDisabled}
-                                            />
-                                        </div>
+                        {isSelectedRoundEligible && selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, idx) => {
+                            return (
+                                <div className="form-group" key={idx}>
+                                    <label className="form-group-label">
+                                        <GenericLinkIcon />
+                                        {req}
+                                    </label>
+                                    <div className="input-wrapper">
+                                        <input
+                                            type="text"
+                                            name={req}
+                                            value={formData[req] || ''}
+                                            onChange={handleChange}
+                                            placeholder={`Enter your ${req}...`}
+                                            disabled={isInputsDisabled}
+                                            className="custom-input"
+                                        />
                                     </div>
-                                )}
-
-                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('demoUrl')) && (
-                                    <div className="form-group">
-                                        <label>Live Demo URL</label>
-                                        <div className="input-with-icon">
-                                            <div className="input-icon">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                name="liveDemoUrl"
-                                                value={formData.liveDemoUrl}
-                                                onChange={handleChange}
-                                                placeholder="https://demo.example.com"
-                                                disabled={isInputsDisabled}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('documentUrl')) && (
-                                    <div className="form-group">
-                                        <label>Project Documentation URL</label>
-                                        <div className="input-with-icon">
-                                            <div className="input-icon">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                name="docsUrl"
-                                                value={formData.docsUrl}
-                                                onChange={handleChange}
-                                                placeholder="https://docs.example.com"
-                                                disabled={isInputsDisabled}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {(!selectedRound || !selectedRound.submissionRequirements || selectedRound.submissionRequirements === '[]' || selectedRound.submissionRequirements.includes('slideUrl')) && (
-                                    <div className="form-group">
-                                        <label>Presentation Slide URL</label>
-                                        <div className="input-with-icon">
-                                            <div className="input-icon">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                name="slideUrl"
-                                                value={formData.slideUrl}
-                                                onChange={handleChange}
-                                                placeholder="https://slides.example.com"
-                                                disabled={isInputsDisabled}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </>
-                        )}
+                                </div>
+                            );
+                        })}
                     </div>
 
                     <div className="submit-action-row" style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'stretch' }}>
@@ -850,9 +903,13 @@ const ProjectSubmission = () => {
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
-                            <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmit('SUBMITTED')} disabled={isSubmitting || isSelectedRoundNotOpened || isSelectedRoundClosed || !isTeamLeader || !isSelectedRoundEligible}
+                            <button type="button" className="submit-btn submit-btn-draft" onClick={() => handleSubmitClick('DRAFT')} disabled={isInputsDisabled}
+                                    style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', background: '#f8fafc', border: '2px solid #e2e8f0', fontWeight: '600' }}>
+                                {isSubmitting ? 'Saving...' : 'Save Draft'}
+                            </button>
+                            <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmitClick('SUBMITTED')} disabled={isInputsDisabled}
                                     style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {isSubmitting ? 'Submitting...' : 'Submit Project'}
+                                {hasOfficialSubmission ? 'Already Submitted' : isSubmitting ? 'Submitting...' : 'Submit Project'}
                             </button>
                         </div>
                     </div>
@@ -889,22 +946,23 @@ const ProjectSubmission = () => {
                                 const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                 return (
                                     <tr key={idx}>
-                                        <td className="version-col">v{item.version}.0</td>
+                                        <td className="version-col">
+                                            v{item.version}.0
+                                            <div style={{ marginTop: '4px' }}>
+                                                {String(item.status || '').toUpperCase() === 'DRAFT' ? (
+                                                    <span style={{ fontSize: '11px', color: '#854d0e', background: '#fef08a', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Draft</span>
+                                                ) : (
+                                                    <span style={{ fontSize: '11px', color: '#166534', background: '#dcfce3', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Final</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td>{formattedTime}</td>
                                         <td>
                                             <div className="asset-icons">
-                                                {renderAssetLink( item.githubRepoUrl, 'GitHub repository',
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                                )}
-                                                {renderAssetLink( item.liveDemoUrl, 'live demo',
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                )}
-                                                {renderAssetLink( item.docsUrl, 'project documentation',
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                                )}
-                                                {renderAssetLink( item.slideUrl, 'presentation slides',
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                                )}
+                                                {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
+                                                    if (!item[req]) return null;
+                                                    return renderAssetLink(item[req], req, <GenericLinkIcon width={16} height={16} />);
+                                                })}
                                             </div>
                                         </td>
                                         <td>
@@ -931,46 +989,20 @@ const ProjectSubmission = () => {
                 </div>
             </div>
 
-            {selectedFeedbackRecord && (
-                <div className="modal-overlay" onClick={() => setSelectedFeedbackRecord(null)}>
-                    <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>Feedback Details (v{selectedFeedbackRecord.version}.0)</h2>
-                        </div>
-                        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {selectedFeedbackRecord.mentorFeedback && (
-                                <div style={{ border: '1px solid #c4b5fd', borderRadius: '8px', padding: '16px', background: '#f5f3ff' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <h4 style={{ margin: 0, color: '#0f172a', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            Mentor Feedback
-                                        </h4>
-                                        {selectedFeedbackRecord.mentorName && (
-                                            <span style={{ fontSize: '12px', color: '#0f172a', background: '#ede9fe', padding: '4px 8px', borderRadius: '12px', fontWeight: '500' }}>
-                                                by {selectedFeedbackRecord.mentorName}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p style={{ margin: 0, color: '#0f172a', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                                        {selectedFeedbackRecord.mentorFeedback}
-                                    </p>
-                                </div>
-                            )}
+            <FeedbackDetailModal
+                selectedFeedbackRecord={selectedFeedbackRecord}
+                selectedRound={selectedRound}
+                renderAssetLink={renderAssetLink}
+                onClose={() => setSelectedFeedbackRecord(null)}
+            />
 
-                            <div>
-                                <h4 style={{ margin: '0 0 8px 0', color: '#334155', fontSize: '15px' }}>Submitted Links</h4>
-                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                    {renderAssetLink(selectedFeedbackRecord.githubRepoUrl, 'GitHub', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.liveDemoUrl, 'Demo', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.docsUrl, 'Docs', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>)}
-                                    {renderAssetLink(selectedFeedbackRecord.slideUrl, 'Slides', <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>)}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button className="btn-secondary" onClick={() => setSelectedFeedbackRecord(null)}>Close</button>
-                        </div>
-                    </div>
-                </div>
+            {showConfirmModal && (
+                <ConfirmSubmitModal
+                    isConfirmed={isConfirmed}
+                    setIsConfirmed={setIsConfirmed}
+                    onCancel={() => setShowConfirmModal(false)}
+                    onConfirm={() => executeSubmit('SUBMITTED')}
+                />
             )}
         </div>
     );
