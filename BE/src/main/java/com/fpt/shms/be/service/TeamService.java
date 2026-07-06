@@ -121,6 +121,23 @@ public class TeamService{
                     .build();
         }).toList();
 
+        Double finalScore = null;
+        Integer rank = null;
+        String submissionData = null;
+        List<com.fpt.shms.be.model.RankingResult> rankings = rankingResultRepository.findByTeamId(team.getId());
+        if (!rankings.isEmpty()) {
+            com.fpt.shms.be.model.RankingResult rr = rankings.get(0);
+            if (rr.getFinalScore() != null) {
+                finalScore = rr.getFinalScore().doubleValue();
+            }
+            rank = rr.getRankNo();
+        }
+        List<Submission> subs = submissionRepository.findByTeamId(team.getId());
+        if (!subs.isEmpty()) {
+            Submission latestSub = subs.get(subs.size() - 1);
+            submissionData = latestSub.getSubmissionData();
+        }
+
         int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
         long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
 
@@ -132,6 +149,10 @@ public class TeamService{
                 .maxMembers(maxMembers)
                 .currentTotalMembers(currentTotalMembers)
                 .roster(memberDtos)
+                .finalScore(finalScore)
+                .rank(rank)
+                .contestName(team.getContest() != null ? team.getContest().getName() : "Not Registered")
+                .submissionData(submissionData)
                 .build();
     }
 
