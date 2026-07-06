@@ -85,16 +85,18 @@ public class SubmissionService {
             existingSub.setVersion(oldVersion + 1);
             existingSub.setSubmissionData(request.getSubmissionData());
             existingSub.setSubmittedAt(LocalDateTime.now());
-            existingSub.setStatus("SUBMITTED");
+            String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
+            existingSub.setStatus(newStatus);
             submissionRepository.save(existingSub);
         } else {
+            String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
             Submission submission = Submission.builder()
                     .team(team)
                     .round(round)
                     .version(1)
                     .historyLog("")
                     .submittedAt(LocalDateTime.now())
-                    .status("SUBMITTED")
+                    .status(newStatus)
                     .build();
             submission.setSubmissionData(request.getSubmissionData());
             submissionRepository.save(submission);
