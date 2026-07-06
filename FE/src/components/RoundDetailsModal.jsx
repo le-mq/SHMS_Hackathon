@@ -64,7 +64,28 @@ const RoundDetailsModal = ({ roundId, onClose }) => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#475569' }}>
                                             {evalData.contestTheme && <div><strong>Theme:</strong> {evalData.contestTheme}</div>}
                                             {evalData.contestLocation && <div><strong>Location:</strong> {evalData.contestLocation}</div>}
-                                            {evalData.contestRules && <div><strong>Rules:</strong> {evalData.contestRules}</div>}
+                                            {evalData.contestRules && (
+                                                <div>
+                                                    <strong>Rules:</strong>
+                                                    <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                                                        {(() => {
+                                                            try {
+                                                                const rules = JSON.parse(evalData.contestRules);
+                                                                if (Array.isArray(rules)) {
+                                                                    return rules.map((r, i) => (
+                                                                        <li key={i} style={{ marginBottom: '4px' }}>
+                                                                            <strong>{r.rule}</strong> {r.penalty && <span style={{ color: '#ef4444' }}>(Penalty: {r.penalty})</span>}
+                                                                        </li>
+                                                                    ));
+                                                                }
+                                                                return <li>{evalData.contestRules}</li>;
+                                                            } catch(e) {
+                                                                return <li>{evalData.contestRules}</li>;
+                                                            }
+                                                        })()}
+                                                    </ul>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

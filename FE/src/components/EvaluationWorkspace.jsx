@@ -31,7 +31,23 @@ const EvaluationWorkspace = () => {
                 });
                 if (!response.ok) throw new Error('API request failed');
                 const result = await response.json();
-                setEvalData(result);
+                let parsedSubData = {};
+                if (result && result.submissionData) {
+                    try {
+                        parsedSubData = JSON.parse(result.submissionData);
+                    } catch(e) {}
+                }
+
+                const mappedResult = {
+                    ...result,
+                    ...parsedSubData,
+                    githubRepoUrl: parsedSubData.githubUrl || result?.githubRepoUrl || '',
+                    liveDemoUrl: parsedSubData.demoUrl || result?.liveDemoUrl || '',
+                    docsUrl: parsedSubData.documentUrl || result?.docsUrl || '',
+                    slideUrl: parsedSubData.slidesUrl || result?.slideUrl || ''
+                };
+
+                setEvalData(mappedResult);
                 if (result && result.criteria) {
                     setScores(result.criteria.map(c => {
                         const rawId = c.id?.criteriaId || c.id?.rubricId || c.criterionId || c.id;
