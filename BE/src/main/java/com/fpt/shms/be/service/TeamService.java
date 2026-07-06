@@ -98,7 +98,11 @@ public class TeamService{
                 }
             }
             if (team == null) {
-                team = memberships.get(0).getTeam();
+                team = memberships.stream()
+                        .map(TeamMembership::getTeam)
+                        .filter(java.util.Objects::nonNull)
+                        .max(java.util.Comparator.comparing(Team::getId))
+                        .orElse(memberships.get(0).getTeam());
             }
         }
 
@@ -301,7 +305,15 @@ public class TeamService{
             throw new IllegalArgumentException("User is not in any team");
         }
 
-        TeamMembership activeMembership = memberships.get(0);
+        TeamMembership activeMembership = memberships.stream()
+                .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
+                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus())
+                        || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
+                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .orElseGet(() -> memberships.stream()
+                        .filter(m -> m.getTeam() != null)
+                        .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                        .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
 
         List<TeamMembership> teamMembers = teamMembershipRepository.findByTeamId(team.getId());
@@ -769,6 +781,14 @@ public class TeamService{
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
+            java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(user.getId());
+            boolean alreadyInTeam = existing.stream().anyMatch(m -> "APPROVED".equalsIgnoreCase(m.getStatus()));
+            if (alreadyInTeam) {
+                throw new IllegalArgumentException("You are already in a team.");
+            }
+        }
+
         TeamMembership membership = teamMembershipRepository.findByInvitationToken(request.getInvitationToken())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid invitation token."));
 
@@ -785,12 +805,6 @@ public class TeamService{
         java.util.Map<String, Object> result = new java.util.HashMap<>();
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
-            java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(
-                    user.getId());
-            boolean alreadyInTeam = existing.stream().anyMatch(m -> !m.getId().equals(membership.getId()) && "APPROVED".equalsIgnoreCase(m.getStatus()));
-            if (alreadyInTeam) {
-                throw new IllegalArgumentException("You are in another team. Please leave that team before accepting this invitation.");
-            }
             // Re-check capacity (chỉ đếm APPROVED)
             Team team = membership.getTeam();
             Contest contest = team.getContest();

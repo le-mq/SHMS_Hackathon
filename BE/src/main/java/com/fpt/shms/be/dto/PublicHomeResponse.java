@@ -7,15 +7,11 @@ import java.util.List;
  *
  * @param contests Active / upcoming seasonal hackathons
  * @param tracks   Open / coming-soon competitive tracks
- *                 // * @param announcements Latest active announcements
- *                 // * @param stats Contest count grouped by status for chart
  *                 visualisation
  */
 public record PublicHomeResponse(
         List<ContestDTO> contests,
         List<TrackDTO> tracks,
-        // List<AnnouncementDTO> announcements,
-        // Map<String, Long> stats,
         List<String> universities,
         List<String> geographicScopes) {
 }
