@@ -52,9 +52,13 @@ const renderPrizes = (prizeStr) => {
 
 // --- Subcomponents ---
 
-const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering }) => {
+const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams }) => {
     const cat = categorizeCompetition(comp);
     const isOpen = cat === 'OPEN';
+    
+    const isAlreadyRegistered = myTeams?.some(team => 
+        team.contestName === comp.name && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase())
+    );
     
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
@@ -81,13 +85,23 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering }) => 
             </div>
             <div className="comp-card-actions">
                 <button className="btn-secondary" onClick={() => onViewDetails(comp)}>View Details</button>
-                <button 
-                    className="btn-primary" 
-                    disabled={!isOpen} 
-                    onClick={() => onRegister(comp)}
-                >
-                    {isOpen ? 'Register' : 'Closed'}
-                </button>
+                {isAlreadyRegistered ? (
+                    <button 
+                        className="btn-primary" 
+                        disabled 
+                        style={{ backgroundColor: '#ef4444', borderColor: '#ef4444', color: 'white', opacity: 0.9 }}
+                    >
+                        Already Registered
+                    </button>
+                ) : (
+                    <button 
+                        className="btn-primary" 
+                        disabled={!isOpen} 
+                        onClick={() => onRegister(comp)}
+                    >
+                        {isOpen ? 'Register' : 'Closed'}
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -246,12 +260,12 @@ const CompetitionRegistration = () => {
             );
 
             let teams = statusResults
-                .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM')
+                .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM' && String(res.data.status).toUpperCase() !== 'CLOSED')
                 .map(res => res.data);
 
             const fallbackRes = await fetch(`${API_BASE}/teams/status`, { headers: { Authorization: `Bearer ${token}` } });
             const fallbackData = await safeJson(fallbackRes);
-            if (fallbackRes.ok && fallbackData && fallbackData.status !== 'NO TEAM') {
+            if (fallbackRes.ok && fallbackData && fallbackData.status !== 'NO TEAM' && String(fallbackData.status).toUpperCase() !== 'CLOSED') {
                 teams.push(fallbackData);
             }
 
@@ -389,6 +403,7 @@ const CompetitionRegistration = () => {
                                 onViewDetails={setViewDetailsComp} 
                                 onRegister={handleRegisterClick}
                                 isRegistering={registeringComp?.id === comp.id}
+                                myTeams={myTeams}
                             />
                         ))
                     )}

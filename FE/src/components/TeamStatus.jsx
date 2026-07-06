@@ -106,6 +106,23 @@ const TeamStatus = () => {
                     }
                 }
 
+                // Sort teams by most recent contest
+                joinedTeams.sort((a, b) => {
+                    if (a.contest?.id === 'forming') return -1;
+                    if (b.contest?.id === 'forming') return 1;
+                    
+                    const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
+                    const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
+                    
+                    if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) {
+                        return dateB - dateA;
+                    }
+                    
+                    const idA = parseInt(a.contest?.id) || 0;
+                    const idB = parseInt(b.contest?.id) || 0;
+                    return idB - idA;
+                });
+
                 if (!cancelled) {
                     setParticipatedTeams(joinedTeams);
                 }
@@ -127,6 +144,23 @@ const TeamStatus = () => {
                     if (mockJoinedTeams.length === 0 && mockContests.length > 0 && localJson.teamStatus?.data) {
                         mockJoinedTeams = [{ contest: mockContests[0], data: localJson.teamStatus.data }];
                     }
+                    
+                    mockJoinedTeams.sort((a, b) => {
+                        if (a.contest?.id === 'forming') return -1;
+                        if (b.contest?.id === 'forming') return 1;
+                        
+                        const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
+                        const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
+                        
+                        if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) {
+                            return dateB - dateA;
+                        }
+                        
+                        const idA = parseInt(a.contest?.id) || 0;
+                        const idB = parseInt(b.contest?.id) || 0;
+                        return idB - idA;
+                    });
+                    
                     if (!cancelled) setParticipatedTeams(mockJoinedTeams);
                 } catch (mockError) {
                     if (!cancelled) setError('Could not connect to server.');
@@ -268,7 +302,7 @@ const TeamStatus = () => {
                             const statusClass = status.toLowerCase().replace(/\s+/g, '-');
 
                             return (
-                                <div key={data.teamId || data.teamName} className="team-card">
+                                <div key={data.teamId || data.teamName} className={`team-card team-card-${statusClass}`}>
                                     <div className="tc-header">
                                         <h3 className="tc-name">{data.teamName}</h3>
                                         <span className={`team-badge ${statusClass}`}>
@@ -312,7 +346,7 @@ const TeamStatus = () => {
     const status = normalizeStatus(data.status);
     const statusClass = status.toLowerCase().replace(/\s+/g, '-');
     const isSubmitted = status === 'APPROVED' || status === 'PENDING';
-    const canLeaveTeam = !['APPROVED', 'PENDING'].includes(status);
+    const canLeaveTeam = !['APPROVED', 'PENDING', 'CLOSED'].includes(status);
 
     return (
         <div className="status-container">
@@ -361,7 +395,7 @@ const TeamStatus = () => {
                     <tbody>
                         {roster.length > 0 ? roster.map((member, idx) => {
                             const isPending = member.status === 'PENDING';
-                            const displayRole = isPending ? 'PENDING' : (isSubmitted ? member.internalRole : 'MEMBER');
+                            const displayRole = isPending ? 'PENDING' : member.internalRole;
 
                             return (
                                 <tr key={idx} style={{ opacity: isPending ? 0.6 : 1 }}>
@@ -392,7 +426,7 @@ const TeamStatus = () => {
             </div>
 
             {/* Invite Member Section */}
-            {!isSubmitted && (
+            {!isSubmitted && status !== 'CLOSED' && (
                 <div className="invite-section">
                     <h2 className="invite-title">Invite a New Member</h2>
                     {status !== 'FORMING' && status !== 'NO TEAM' && data.currentTotalMembers >= data.maxMembers ? (

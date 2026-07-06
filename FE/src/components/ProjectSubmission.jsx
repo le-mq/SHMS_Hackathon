@@ -773,7 +773,28 @@ const ProjectSubmission = () => {
                         Loading submission data...
                     </p>
                 )}
-                <div className="submission-header">
+
+                {!hasRegisteredContest ? (
+                    teamStatus === 'CLOSED' ? (
+                        <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', textAlign: 'center', fontWeight: '500' }}>
+                            This competition has been closed. You can no longer submit projects.
+                        </div>
+                    ) : (
+                        <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', textAlign: 'center', fontWeight: '500' }}>
+                            You have not registered for any competition yet.
+                        </div>
+                    )
+                ) : !isTeamApproved ? (
+                    <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fffbeb', border: '1px solid #fde68a', color: '#d97706', textAlign: 'center', fontWeight: '500' }}>
+                        Your team registration is currently {teamStatus.toLowerCase()}. You can submit projects once your team is approved.
+                    </div>
+                ) : String(contestStatus).toUpperCase() === 'CLOSED' ? (
+                    <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', textAlign: 'center', fontWeight: '500' }}>
+                        This competition has been closed. You can no longer submit projects.
+                    </div>
+                ) : (
+                    <>
+                        <div className="submission-header">
                     <div className="submission-header-left">
                         <h1 className="submission-title">Project Submission Portal</h1>
                         {contestName && (
@@ -846,7 +867,7 @@ const ProjectSubmission = () => {
                 </div>
 
                 <div className="form-card">
-                    <h2 className="form-title">Submit Project Assets</h2>
+                            <h2 className="form-title">Submit Project Assets</h2>
                     <p className="form-subtitle">Ensure all links are public or accessible to judges. At least one link is recommended.</p>
 
                     <div className="form-grid">
@@ -987,6 +1008,8 @@ const ProjectSubmission = () => {
                         </tbody>
                     </table>
                 </div>
+                    </>
+                )}
             </div>
 
             <FeedbackDetailModal
