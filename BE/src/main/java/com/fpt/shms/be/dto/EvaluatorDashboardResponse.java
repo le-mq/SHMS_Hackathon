@@ -30,6 +30,8 @@ public class EvaluatorDashboardResponse {
     public static class ContestDto {
         private Long id;
         private String name;
+        private String status;
+        private String contestStatus;
     }
 
     @Data

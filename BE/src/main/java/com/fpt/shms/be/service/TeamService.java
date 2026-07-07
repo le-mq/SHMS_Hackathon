@@ -224,9 +224,7 @@ public class TeamService{
         int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
 
         if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
-            team.setStatus("REJECTED");
-            teamRepository.save(team);
-            return new TeamRegistrationResponse("REJECTED", "Team must have between " + minMembers + " and " + maxMembers + " approved members.");
+            throw new IllegalArgumentException("Team must have between " + minMembers + " and " + maxMembers + " approved members.");
         }
 
         // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
@@ -238,9 +236,7 @@ public class TeamService{
         if (contest != null) {
             long registeredTeams = teamRepository.countByContestIdAndStatus(contest.getId(), "APPROVED");
             if (contest.getMaximumAllowedTeams() != null && registeredTeams >= contest.getMaximumAllowedTeams()) {
-                team.setStatus("REJECTED");
-                teamRepository.save(team);
-                return new TeamRegistrationResponse("REJECTED", "Contest capacity has been reached.");
+                throw new IllegalArgumentException("Contest capacity has been reached.");
             }
 
             java.time.LocalDate now = java.time.LocalDate.now();
@@ -250,9 +246,7 @@ public class TeamService{
             if (isWithinRegistration) {
                 team.setStatus("APPROVED");
             } else {
-                team.setStatus("REJECTED");
-                teamRepository.save(team);
-                return new TeamRegistrationResponse("REJECTED", "Outside of registration period.");
+                throw new IllegalArgumentException("Outside of registration period.");
             }
         } else {
             team.setStatus("APPROVED");

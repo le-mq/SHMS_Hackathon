@@ -209,7 +209,9 @@ public class StudentController {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             TeamRegistrationResponse response = teamService.registerOfficialTeam(registrationRequest, username);
-
+            if ("REJECTED".equalsIgnoreCase(response.getStatus())) {
+                return ResponseEntity.badRequest().body(response);
+            }
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

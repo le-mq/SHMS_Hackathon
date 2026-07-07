@@ -57,7 +57,12 @@ public class JudgeService {
                 .toList();
 
         List<EvaluatorDashboardResponse.ContestDto> contestDtos = allContests.stream()
-                .map(c -> EvaluatorDashboardResponse.ContestDto.builder().id(c.getId()).name(c.getName()).build())
+                .map(c -> EvaluatorDashboardResponse.ContestDto.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .status(c.getStatus() != null ? c.getStatus().name() : null)
+                        .contestStatus(c.getStatus() != null ? c.getStatus().name() : null)
+                        .build())
                 .toList();
 
         List<Category> categories = allCategories;
@@ -105,6 +110,7 @@ public class JudgeService {
 
                 Submission latestSub = submissions.stream()
                         .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
+                        .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
                         .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                         .orElse(null);
 
@@ -129,7 +135,7 @@ public class JudgeService {
                 }
 
                 String submissionState;
-                if (isEvaluated) {
+                if (isEvaluated || (latestSub != null && "GRADED".equalsIgnoreCase(latestSub.getStatus())) || (team.getContest() != null && team.getContest().getStatus() != null && "CLOSED".equalsIgnoreCase(team.getContest().getStatus().name()))) {
                     submissionState = "Evaluated";
                 } else if (latestSub != null) {
                     submissionState = latestSub.getStatus();
@@ -286,10 +292,12 @@ public class JudgeService {
             if (roundId != null) {
                 latestSubmission = teamSubmissions.stream()
                         .filter(s -> s.getRound() != null && s.getRound().getId().equals(roundId))
+                        .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
                         .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                         .orElse(null);
             } else {
                 latestSubmission = teamSubmissions.stream()
+                        .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
                         .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                         .orElse(null);
             }
