@@ -621,25 +621,25 @@ VALUES
 GO
 
 -- 1. CONTESTS (Each Contest in a DIFFERENT Semester!)
-INSERT INTO Contest (semester_id, contest_name, theme, max_teams, min_team_members, max_team_members, status, registration_start, registration_end, contest_end_at)
+INSERT INTO Contest (semester_id, contest_name, theme, max_teams, min_team_members, max_team_members, status, registration_start, registration_end, contest_start_at, contest_end_at, location, compliance_rules, tiered_prize_structures, published_at)
 VALUES
-(1, 'National AI Challenge 2025', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-03-30 23:59:59'),
-(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-11-30 23:59:59'),
-(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', 150, 3, 5, 'ACTIVED', '2026-06-01', '2026-08-30', '2026-09-30 23:59:59');
+(1, 'National AI Challenge 2025', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-02-11 08:00:00', '2025-03-30 23:59:59', N'FPT University Hà Nội Campus, Khu Công nghệ cao Hòa Lạc', N'1. Mã nguồn tự phát triển 100%.\n2. Tuân thủ quy tắc đạo đức AI.', N'[{"rank":"Giải Nhất","amount":"50,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"30,000,000 VNĐ"},{"rank":"Giải Ba","amount":"15,000,000 VNĐ"}]', '2025-01-15 08:00:00'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-09-16 08:00:00', '2025-11-30 23:59:59', N'FPT University HCM Campus, Lô E2a-7, Đường D1, TP.Thủ Đức', N'1. Smart contract phải deploy trên Testnet hoặc Mainnet.\n2. Báo cáo kiểm định bảo mật.', N'[{"rank":"Giải Nhất","amount":"60,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"35,000,000 VNĐ"},{"rank":"Giải Ba","amount":"20,000,000 VNĐ"}]', '2025-08-15 08:00:00'),
+(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-15', '2026-07-16 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lô E2a-7, Đường D1, TP.Thủ Đức', N'1. Tất cả mã nguồn phải được phát triển trong thời gian diễn ra cuộc thi.\n2. Các đội thi phải tuân thủ quy tắc ứng xử và đạo đức sinh viên.\n3. Quyết định của Ban Giám khảo là quyết định cuối cùng.', N'[{"rank":"Giải Nhất","amount":"100,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"50,000,000 VNĐ"},{"rank":"Giải Ba","amount":"25,000,000 VNĐ"},{"rank":"Giải Khuyến Khích","amount":"10,000,000 VNĐ"}]', '2026-04-15 08:00:00');
 GO
 
 -- 2. CATEGORIES
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (1, 'Computer Vision', N'Nhận diện hình ảnh và Thị giác máy tính', 'ACTIVE'),
-    (1, 'NLP & LLMs', N'Xử lý ngôn ngữ tự nhiên và Mô hình ngôn ngữ lớn', 'ACTIVE'),
-    (1, 'Data Science & Predictive AI', N'Khoa học Dữ liệu và AI dự đoán', 'ACTIVE'),
-    (2, 'Smart Contracts & Security', N'Lập trình Hợp đồng thông minh và Bảo mật Web3', 'ACTIVE'),
-    (2, 'DeFi & Tokenomics', N'Tài chính phi tập trung và Mô hình kinh tế token', 'ACTIVE'),
-    (2, 'Web3 DApps', N'Phát triển Ứng dụng phi tập trung Web3', 'ACTIVE'),
-    (3, 'AI & Web3 Innovation', N'Sáng tạo ứng dụng kết hợp AI và Blockchain', 'ACTIVE'),
-    (3, 'Cloud & Big Data Architecture', N'Kiến trúc Cloud và Xử lý Dữ liệu lớn', 'ACTIVE'),
-    (3, 'Mobile & IoT Applications', N'Ứng dụng Di động thông minh và IoT', 'ACTIVE');
+    (1, 'Computer Vision', N'Nhận diện hình ảnh và Thị giác máy tính', 'ACTIVED'),
+    (1, 'NLP & LLMs', N'Xử lý ngôn ngữ tự nhiên và Mô hình ngôn ngữ lớn', 'ACTIVED'),
+    (1, 'Data Science & Predictive AI', N'Khoa học Dữ liệu và AI dự đoán', 'ACTIVED'),
+    (2, 'Smart Contracts & Security', N'Lập trình Hợp đồng thông minh và Bảo mật Web3', 'ACTIVED'),
+    (2, 'DeFi & Tokenomics', N'Tài chính phi tập trung và Mô hình kinh tế token', 'ACTIVED'),
+    (2, 'Web3 DApps', N'Phát triển Ứng dụng phi tập trung Web3', 'ACTIVED'),
+    (3, 'AI & Web3 Innovation', N'Sáng tạo ứng dụng kết hợp AI và Blockchain', 'ACTIVED'),
+    (3, 'Cloud & Big Data Architecture', N'Kiến trúc Cloud và Xử lý Dữ liệu lớn', 'ACTIVED'),
+    (3, 'Mobile & IoT Applications', N'Ứng dụng Di động thông minh và IoT', 'ACTIVED');
 GO
 
 -- 3. CONTEST UNIVERSITIES
@@ -698,12 +698,16 @@ INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_w
 VALUES
 (@Rubric1_ID, 1, 'Computer Vision Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric2_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric3_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE');
+(@Rubric3_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric3_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric3_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE');
 GO
 
 DECLARE @CR1_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1);
 DECLARE @CR2_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4);
 DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
+DECLARE @CR4_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
+DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 9);
 
 INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
 VALUES
@@ -719,7 +723,15 @@ VALUES
 (@CR3_ID, 'Problem Solving & Innovation', N'Đột phá trong tư duy giải quyết vấn đề', 30.00, 30.00),
 (@CR3_ID, 'Engineering Excellence', N'Chất lượng kiến trúc và mã nguồn phần mềm', 30.00, 30.00),
 (@CR3_ID, 'Business Feasibility', N'Tiềm năng thương mại hóa và mở rộng', 20.00, 20.00),
-(@CR3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00);
+(@CR3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00),
+
+(@CR4_ID, 'Cloud Architecture & Scalability', N'Kiến trúc đám mây và khả năng mở rộng', 35.00, 35.00),
+(@CR4_ID, 'Big Data Processing', N'Xử lý dữ liệu lớn tối ưu', 35.00, 35.00),
+(@CR4_ID, 'System Reliability', N'Độ tin cậy và hiệu năng hệ thống', 30.00, 30.00),
+
+(@CR5_ID, 'Mobile UX & Performance', N'Trải nghiệm người dùng và hiệu ứng di động', 35.00, 35.00),
+(@CR5_ID, 'IoT Hardware Integration', N'Kết nối thiết bị IoT và ổn định tín hiệu', 35.00, 35.00),
+(@CR5_ID, 'Practical Utility', N'Ứng dụng thực tiễn trong cuộc sống', 30.00, 30.00);
 GO
 
 -- 6. MENTOR & JUDGE ASSIGNMENTS
@@ -743,13 +755,17 @@ VALUES
 (1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
 (2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
 (2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
-(3, 7, 'Ideation & Proposal', 1, '2026-06-05 08:00:00', '2026-08-15 23:59:59', '2026-08-20 17:00:00', '2026-08-22 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
-(3, 7, 'Final Hackathon Day', 2, '2026-08-23 08:00:00', '2026-09-25 23:59:59', '2026-09-28 17:00:00', '2026-09-30 10:00:00', 'UPCOMING', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE');
+(3, 7, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
+(3, 7, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE'),
+(3, 8, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Kiến trúc Cloud và Kế hoạch phát triển', 'ONLINE'),
+(3, 8, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo hệ thống Cloud/Big Data', 'OFFLINE'),
+(3, 9, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch IoT/Mobile', 'ONLINE'),
+(3, 9, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo ứng dụng Mobile/IoT', 'OFFLINE');
 GO
 
 -- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
 DECLARE @PastTeam1_ID BIGINT, @PastTeam2_ID BIGINT, @PastTeam3_ID BIGINT;
-DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT;
+DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT, @Team6_ID BIGINT;
 
 -- Historical Team 1: AI Pioneers (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
@@ -813,7 +829,7 @@ INSERT INTO Team (team_code, team_name, status, created_at)
 VALUES ('TEAM04', 'Tech Titans', 'FORMING', '2026-06-05 10:00:00');
 SET @Team4_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team4_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-05 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-05 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team4_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-05 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '09876543@st.hcmuaf.edu.vn', '20120002@student.hcmus.edu.vn');
 
@@ -822,9 +838,18 @@ INSERT INTO Team (team_code, team_name, status, created_at)
 VALUES ('TEAM05', 'Data Ninjas', 'FORMING', '2026-06-06 10:00:00');
 SET @Team5_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team5_ID, u.user_id, 'LEADER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team5_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = 'phannha@gmail.com';
+
+-- Forming Team 6: DatLe Pioneers (No contest yet) - FORMING
+INSERT INTO Team (team_code, team_name, status, created_at)
+VALUES ('TEAM06', 'DatLe Pioneers', 'FORMING', '2026-06-06 10:00:00');
+SET @Team6_ID = SCOPE_IDENTITY();
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = '20IT123457@st.huflit.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', 'Leduyphuc@hcmut.edu.vn', '12345678@st.hcmuaf.edu.vn');
 GO
 
 -- Assign Mentors to Teams

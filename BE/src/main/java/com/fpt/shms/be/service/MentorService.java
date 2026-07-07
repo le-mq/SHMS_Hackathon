@@ -113,6 +113,9 @@ public class MentorService {
                             && !s.getRound().getId().equals(targetRound.getId())) {
                         continue;
                     }
+                    if (!"DRAFT".equalsIgnoreCase(s.getStatus())) {
+                        continue;
+                    }
                     if (latestSub == null || (s.getVersion() != null && latestSub.getVersion() != null
                             && s.getVersion() > latestSub.getVersion())) {
                         latestSub = s;
