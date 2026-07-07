@@ -54,12 +54,17 @@ public class ContestAdminService {
                         Map<String, Object> roundMap = new HashMap<>();
                         roundMap.put("id", r.getId());
                         roundMap.put("phaseName", r.getPhaseName());
-                        roundMap.put("submissionOpen", r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
-                        roundMap.put("submissionDeadline", r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
-                        roundMap.put("gradingDeadlineAt", r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
-                        roundMap.put("publishResultAt", r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
+                        roundMap.put("submissionOpen",
+                                r.getSubmissionOpen() != null ? r.getSubmissionOpen().toString() : "");
+                        roundMap.put("submissionDeadline",
+                                r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
+                        roundMap.put("gradingDeadlineAt",
+                                r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
+                        roundMap.put("publishResultAt",
+                                r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
-                        roundMap.put("submissionRequirements", r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
+                        roundMap.put("submissionRequirements",
+                                r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
                         roundMap.put("roundFormat", r.getRoundFormat() != null ? r.getRoundFormat() : "");
                         return roundMap;
                     }).toList();
@@ -91,22 +96,27 @@ public class ContestAdminService {
         Map<String, Object> response = new HashMap<>();
         response.put("id", contest.getId());
         response.put("name", contest.getName());
-        response.put("theme",contest.getDescription() !=null ? contest.getDescription():"");
+        response.put("theme", contest.getDescription() != null ? contest.getDescription() : "");
         response.put("term", contest.getSeason() != null ? contest.getSeason().name() : "");
         response.put("year", contest.getYear() != null ? contest.getYear() : "");
-        response.put("registrationStart", contest.getRegistrationStart() != null ? contest.getRegistrationStart().toString() : "");
-        response.put("registrationEnd", contest.getRegistrationEnd() != null ? contest.getRegistrationEnd().toString() : "");
+        response.put("registrationStart",
+                contest.getRegistrationStart() != null ? contest.getRegistrationStart().toString() : "");
+        response.put("registrationEnd",
+                contest.getRegistrationEnd() != null ? contest.getRegistrationEnd().toString() : "");
         response.put("contestEndAt", contest.getContestEndAt() != null ? contest.getContestEndAt().toString() : "");
         response.put("status", contest.getStatus() != null ? contest.getStatus().name() : "UPCOMING");
         response.put("regionScope", contest.getRegionScope() != null ? contest.getRegionScope() : "");
-        response.put("maximumAllowedTeams", contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
+        response.put("maximumAllowedTeams",
+                contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
         response.put("minTeamMembers", contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3);
         response.put("maxTeamMembers", contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5);
         response.put("complianceRules", contest.getComplianceRules() != null ? contest.getComplianceRules() : "");
-        response.put("tieredPrizeStructures", contest.getTieredPrizeStructures() != null ? contest.getTieredPrizeStructures() : "");
+        response.put("tieredPrizeStructures",
+                contest.getTieredPrizeStructures() != null ? contest.getTieredPrizeStructures() : "");
         response.put("location", contest.getLocation() != null ? contest.getLocation() : "");
         response.put("publishedAt", contest.getPublishedAt() != null ? contest.getPublishedAt().toString() : "");
-        response.put("contestStartAt", contest.getContestStartAt() != null ? contest.getContestStartAt().toString() : "");
+        response.put("contestStartAt",
+                contest.getContestStartAt() != null ? contest.getContestStartAt().toString() : "");
         response.put("universities", domains);
         response.put("tracks", tracks);
 
@@ -142,13 +152,15 @@ public class ContestAdminService {
             oldScope = contest.getRegionScope();
             if (!contest.getSemester().getId().equals(semester.getId())) {
                 if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
-                    throw new IllegalArgumentException("A contest already exists for the selected season (" + request.getTerm() + " " + request.getYear() + ").");
+                    throw new IllegalArgumentException("A contest already exists for the selected season ("
+                            + request.getTerm() + " " + request.getYear() + ").");
                 }
             }
             contest.setSemester(semester);
         } else {
             if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
-                throw new IllegalArgumentException("A contest already exists for this season (" + request.getTerm() + " " + request.getYear() + "). Cannot create a new one.");
+                throw new IllegalArgumentException("A contest already exists for this season (" + request.getTerm()
+                        + " " + request.getYear() + "). Cannot create a new one.");
             }
             contest = Contest.builder()
                     .semester(semester)
@@ -230,7 +242,8 @@ public class ContestAdminService {
 
         if (contestModified) {
             String action = isNewContest ? "CREATE_CONTEST" : "UPDATE_CONTEST";
-            auditLogService.log(action, "Contest", contest.getName(), oldStatus, contest.getStatus().name(), contest.getName());
+            auditLogService.log(action, "Contest", contest.getName(), oldStatus, contest.getStatus().name(),
+                    contest.getName());
         }
 
         contestUniversityRepository.deleteByContest(contest);
@@ -312,94 +325,99 @@ public class ContestAdminService {
 
         List<Round> existingRounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(category.getId());
 
-        for (CreateTrackRoundRequest.RoundDto roundDto : request.getRounds()) {
-            if (roundDto.getSubmissionDeadline().isBefore(roundDto.getSubmissionOpen())) {
-                throw new IllegalArgumentException("Deadline cannot be before open time for " + roundDto.getPhaseName());
-            }
+        java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
+                : request.getRounds().stream()
+                  .map(CreateTrackRoundRequest.RoundDto::getId)
+                  .filter(id -> id != null && id > 0)
+                  .collect(java.util.stream.Collectors.toSet());
 
-            Round.RoundState state = Round.RoundState.UPCOMING;
-            if (roundDto.getState() != null) {
-                try {
-                    state = Round.RoundState.valueOf(roundDto.getState().toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    if (now.isAfter(roundDto.getSubmissionOpen()) && now.isBefore(roundDto.getSubmissionDeadline())) {
-                        state = Round.RoundState.ACTIVED;
-                    } else if (now.isAfter(roundDto.getSubmissionDeadline())) {
-                        state = Round.RoundState.CLOSED;
-                    }
+        // Delete orphaned rounds that were removed from the frontend (must be UPCOMING)
+        for (Round existing : existingRounds) {
+            if (!requestedRoundIds.contains(existing.getId())) {
+                if (existing.getState() == Round.RoundState.UPCOMING) {
+                    roundRepository.delete(existing);
+                } else {
+                    throw new IllegalArgumentException(
+                            "Cannot delete round " + existing.getPhaseName() + " because its state is not UPCOMING.");
                 }
-            }
-
-            Round round = null;
-            if (roundDto.getId() != null) {
-                round = existingRounds.stream()
-                        .filter(r -> roundDto.getId().equals(r.getId()))
-                        .findFirst()
-                        .orElse(null);
-            }
-
-            if (round == null) {
-                round = existingRounds.stream()
-                        .filter(r -> r.getPhaseName().equals(roundDto.getPhaseName()))
-                        .findFirst()
-                        .orElse(null);
-            }
-
-            if (round == null) {
-                round = Round.builder()
-                        .phaseName(roundDto.getPhaseName())
-                        .contest(contest)
-                        .build();
-            } else {
-                round.setPhaseName(roundDto.getPhaseName());
-            }
-
-            java.time.LocalDateTime oldDeadline = round.getSubmissionDeadline();
-            round.setSubmissionOpen(roundDto.getSubmissionOpen());
-            round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
-            round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
-            round.setPublishResultAt(roundDto.getPublishResultAt());
-            round.setState(state);
-            round.setContest(contest);
-            round.setCategory(category);
-            round.setSubmissionRequirements(roundDto.getSubmissionRequirements());
-            round.setRoundFormat(roundDto.getRoundFormat());
-            roundRepository.save(round);
-
-            if (oldDeadline != null && roundDto.getSubmissionDeadline() != null && !oldDeadline.equals(roundDto.getSubmissionDeadline())) {
-                auditLogService.logUpdateSubmissionDeadline(round.getPhaseName(), oldDeadline.toString(), roundDto.getSubmissionDeadline().toString(), "Admin updated round submission deadline");
             }
         }
 
-        List<String> requestedPhaseNames = request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getPhaseName)
-                .toList();
-        List<Long> requestedIds = request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getId)
-                .filter(java.util.Objects::nonNull)
-                .toList();
-
-        existingRounds.removeIf(r -> {
-            boolean inRequest = (r.getId() != null && requestedIds.contains(r.getId())) ||
-                    (r.getId() == null && requestedPhaseNames.contains(r.getPhaseName()));
-            if (!inRequest) {
-                if (r.getState() != Round.RoundState.UPCOMING) {
-                    throw new IllegalArgumentException("Cannot delete round '" + r.getPhaseName() + "' because its status is " + r.getState());
+        if (request.getRounds() != null) {
+            for (CreateTrackRoundRequest.RoundDto roundDto : request.getRounds()) {
+                if (roundDto.getSubmissionDeadline().isBefore(roundDto.getSubmissionOpen())) {
+                    throw new IllegalArgumentException(
+                            "Deadline cannot be before open time for " + roundDto.getPhaseName());
                 }
-                roundRepository.delete(r);
-                return true;
+
+                Round.RoundState state = Round.RoundState.UPCOMING;
+                if (roundDto.getState() != null) {
+                    try {
+                        state = Round.RoundState.valueOf(roundDto.getState().toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        if (now.isAfter(roundDto.getSubmissionOpen())
+                                && now.isBefore(roundDto.getSubmissionDeadline())) {
+                            state = Round.RoundState.ACTIVED;
+                        } else if (now.isAfter(roundDto.getSubmissionDeadline())) {
+                            state = Round.RoundState.CLOSED;
+                        }
+                    }
+                }
+
+                Round round = null;
+                if (roundDto.getId() != null) {
+                    round = existingRounds.stream()
+                            .filter(r -> roundDto.getId().equals(r.getId()))
+                            .findFirst()
+                            .orElse(null);
+                }
+
+                if (round == null) {
+                    round = existingRounds.stream()
+                            .filter(r -> r.getPhaseName().equals(roundDto.getPhaseName()))
+                            .findFirst()
+                            .orElse(null);
+                }
+
+                if (round == null) {
+                    round = Round.builder()
+                            .phaseName(roundDto.getPhaseName())
+                            .contest(contest)
+                            .build();
+                } else {
+                    round.setPhaseName(roundDto.getPhaseName());
+                }
+
+                java.time.LocalDateTime oldDeadline = round.getSubmissionDeadline();
+                round.setSubmissionOpen(roundDto.getSubmissionOpen());
+                round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
+                round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
+                round.setPublishResultAt(roundDto.getPublishResultAt());
+                round.setState(state);
+                round.setContest(contest);
+                round.setCategory(category);
+                round.setSubmissionRequirements(roundDto.getSubmissionRequirements());
+                round.setRoundFormat(roundDto.getRoundFormat());
+                roundRepository.save(round);
+                if (oldDeadline != null && roundDto.getSubmissionDeadline() != null
+                        && !oldDeadline.equals(roundDto.getSubmissionDeadline())) {
+                    auditLogService.logUpdateSubmissionDeadline(round.getPhaseName(), oldDeadline.toString(),
+                            roundDto.getSubmissionDeadline().toString(), "Admin updated round submission deadline");
+                }
             }
-            return false;
-        });
+        }
 
         Category savedCategory = categoryRepository.save(category);
         if (categoryModified) {
             if (isNewCategory) {
-                auditLogService.log("CREATE_CATEGORY", "Category", savedCategory.getName(), null, savedCategory.getStatus(), "Created new Category");
+                auditLogService.log("CREATE_CATEGORY", "Category", savedCategory.getName(), null,
+                        savedCategory.getStatus(), "Created new Category");
             } else if (!java.util.Objects.equals(oldName, savedCategory.getName())) {
-                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldName, savedCategory.getName(), "Renamed Category");
+                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldName,
+                        savedCategory.getName(), "Renamed Category");
             } else {
-                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldCatStatus, savedCategory.getStatus(), "Update Category and Rounds");
+                auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldCatStatus,
+                        savedCategory.getStatus(), "Update Category and Rounds");
             }
         }
         return savedCategory;
@@ -438,13 +456,15 @@ public class ContestAdminService {
         List<Round> rounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(categoryId);
         for (Round r : rounds) {
             if (r.getState() != Round.RoundState.UPCOMING) {
-                throw new IllegalArgumentException("Cannot delete category '" + category.getName() + "' because its round '" + r.getPhaseName() + "' is currently " + r.getState());
+                throw new IllegalArgumentException("Cannot delete category '" + category.getName()
+                        + "' because its round '" + r.getPhaseName() + "' is currently " + r.getState());
             }
         }
         roundRepository.deleteAll(rounds);
 
         categoryRepository.delete(category);
-        auditLogService.log("DELETE_CATEGORY", "Category", category.getName(), category.getStatus(), "DELETED", "Deleted Category");
+        auditLogService.log("DELETE_CATEGORY", "Category", category.getName(), category.getStatus(), "DELETED",
+                "Deleted Category");
     }
 
     private Contest.Season parseSeason(String term) {
