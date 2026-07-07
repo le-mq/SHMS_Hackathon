@@ -19,7 +19,7 @@
 
 .pod-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1.5px solid #94a3b8;
     border-radius: 16px;
     padding: 32px 24px;
     display: flex;
@@ -107,7 +107,7 @@
 
 .leader-table-card {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1.5px solid #94a3b8;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
