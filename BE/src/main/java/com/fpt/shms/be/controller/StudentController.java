@@ -209,9 +209,7 @@ public class StudentController {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             TeamRegistrationResponse response = teamService.registerOfficialTeam(registrationRequest, username);
-            if ("REJECTED".equalsIgnoreCase(response.getStatus())) {
-                return ResponseEntity.badRequest().body(response);
-            }
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -267,11 +265,12 @@ public class StudentController {
 
     @GetMapping("/team-score-details")
     @Operation(summary = "Get Own Team Score Details", description = "Returns detailed score breakdown for the user's team.")
-    public ResponseEntity<?> getTeamScoreDetails(HttpServletRequest request) {
+    public ResponseEntity<?> getTeamScoreDetails(HttpServletRequest request,
+                                                 @RequestParam(required = false) Long contestId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            TeamScoreDetailsResponse response = submissionService.getTeamScoreDetails(username);
+            TeamScoreDetailsResponse response = submissionService.getTeamScoreDetails(username, contestId);
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
