@@ -82,17 +82,14 @@ public class SubmissionService {
         if (existingSub != null) {
             int oldVersion = existingSub.getVersion() != null ? existingSub.getVersion() : 1;
             String oldTime = existingSub.getSubmittedAt() != null ? existingSub.getSubmittedAt().toString() : LocalDateTime.now().toString();
-            String oldStatus = existingSub.getStatus() != null ? existingSub.getStatus() : "DRAFT";
             String currentLog = existingSub.getHistoryLog() != null ? existingSub.getHistoryLog() : "";
 
-            existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + "|" + oldStatus + ";");
+            existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + ";");
             existingSub.setVersion(oldVersion + 1);
             existingSub.setSubmissionData(request.getSubmissionData());
             existingSub.setSubmittedAt(LocalDateTime.now());
             String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
             existingSub.setStatus(newStatus);
-            existingSub.setMentorFeedback(null);
-            existingSub.setMentor(null);
             submissionRepository.save(existingSub);
         } else {
             String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
@@ -169,19 +166,13 @@ public class SubmissionService {
                 for (String log : logs) {
                     if (log.isEmpty()) continue;
                     String[] parts = log.split("\\|");
-                    if (parts.length >= 2) {
+                    if (parts.length == 2) {
                         try {
-                            String histStatus = "ARCHIVED";
-                            if (parts.length >= 3 && parts[2] != null && !parts[2].isEmpty()) {
-                                histStatus = parts[2];
-                            } else if (s.getStatus() != null && "DRAFT".equalsIgnoreCase(s.getStatus())) {
-                                histStatus = "DRAFT";
-                            }
                             historyDtos.add(SubmissionPageResponse.HistoryDto.builder()
                                     .roundId(s.getRound() != null ? s.getRound().getId() : null)
                                     .version(Integer.parseInt(parts[0]))
                                     .timestamp(LocalDateTime.parse(parts[1]))
-                                    .status(histStatus)
+                                    .status("ARCHIVED")
                                     .build());
                         } catch (Exception e) {}
                     }
@@ -349,7 +340,7 @@ public class SubmissionService {
         }
     }
 
-    public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetails(String username) {
+    public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetails(String username, Long contestId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -357,7 +348,19 @@ public class SubmissionService {
         if (memberships.isEmpty()) {
             throw new IllegalArgumentException("User is not in any team");
         }
-        Team team = memberships.get(0).getTeam();
+
+        Team team = null;
+        if (contestId != null) {
+            team = memberships.stream()
+                    .map(TeamMembership::getTeam)
+                    .filter(t -> t.getContest() != null && t.getContest().getId().equals(contestId))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (team == null) {
+            team = memberships.get(0).getTeam();
+        }
 
         String trackName = team.getContest() != null ? team.getContest().getName() : "N/A";
         Double overallTotalScore = 0.0;
@@ -369,12 +372,10 @@ public class SubmissionService {
         for (Submission sub : submissions) {
             if (sub.getRound() == null) continue;
 
-            boolean isPublished = rankingResultRepository.findByRoundId(sub.getRound().getId()).stream()
-                    .anyMatch(rr -> rr.getDatePublishedAt() != null);
+            java.time.LocalDateTime publishDateTime = sub.getRound().getPublishResultAt();
 
-            if (!isPublished) {
-                continue;
-            }
+            boolean isPublished = publishDateTime != null && !publishDateTime.isAfter(java.time.LocalDateTime.now());
+            java.util.Date publishDate = publishDateTime != null ? java.util.Date.from(publishDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) : null;
 
             List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
 
@@ -450,10 +451,12 @@ public class SubmissionService {
             roundScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto.builder()
                     .roundId(sub.getRound().getId())
                     .roundName(sub.getRound().getPhaseName())
-                    .totalScore(avgRoundScore != null ? Math.round(avgRoundScore * 100.0) / 100.0 : null)
+                    .totalScore(isPublished && avgRoundScore != null ? Math.round(avgRoundScore * 100.0) / 100.0 : null)
                     .hasSubmission(true)
                     .isGraded(isGraded)
-                    .detailedScores(detailedScores)
+                    .resultPublished(publishDate != null)
+                    .publishResultAt(publishDate)
+                    .detailedScores(isPublished ? detailedScores : new ArrayList<>())
                     .build());
         }
 

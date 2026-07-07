@@ -23,6 +23,8 @@ public class TeamScoreDetailsResponse {
         private Double totalScore;
         private Boolean hasSubmission;
         private Boolean isGraded;
+        private Boolean resultPublished;
+        private java.util.Date publishResultAt;
         private List<RubricScoreDto> detailedScores;
     }
 
