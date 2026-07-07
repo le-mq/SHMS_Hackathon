@@ -755,12 +755,9 @@ VALUES
 (1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
 (2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
 (2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
-(3, 7, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch phát triển', 'ONLINE'),
-(3, 7, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo trực tiếp tại gian hàng', 'OFFLINE'),
-(3, 8, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Kiến trúc Cloud và Kế hoạch phát triển', 'ONLINE'),
-(3, 8, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo hệ thống Cloud/Big Data', 'OFFLINE'),
-(3, 9, 'Ideation & Proposal', 1, '2026-07-01 08:00:00', '2026-07-31 23:59:59', '2026-08-05 17:00:00', '2026-08-06 10:00:00', 'ACTIVED', N'Nộp bản Đề xuất Ý tưởng (Proposal), Wireframe và Kế hoạch IoT/Mobile', 'ONLINE'),
-(3, 9, 'Final Hackathon Day', 2, '2026-08-07 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Sản phẩm thực tế, Slide và Demo ứng dụng Mobile/IoT', 'OFFLINE');
+(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Mã nguồn (Source code), Video Demo và Slide thuyết trình AI/Web3', 'ONLINE'),
+(3, 8, 'Cloud & Big Data Architecture Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Kiến trúc Cloud/Big Data, Source code và Video Demo', 'ONLINE'),
+(3, 9, 'Mobile & IoT Solutions Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Ứng dụng Mobile/IoT, Source code và Video Demo', 'ONLINE');
 GO
 
 -- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
