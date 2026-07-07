@@ -6,6 +6,14 @@ import './HackathonConfig.css';
 
 const API_BASE = "http://localhost:8080/api/v1";
 
+const RemoveButton = ({ onClick, title, style }) => (
+    <button type="button" onClick={onClick} title={title}
+            style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, ...style }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+    >&#10005;</button>
+);
+
 function HackathonConfig() {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
@@ -13,6 +21,7 @@ function HackathonConfig() {
     const [allUniversities, setAllUniversities] = useState([]);
     const [selectedUniToAdd, setSelectedUniToAdd] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [deletedCategories, setDeletedCategories] = useState([]);
     const [availableSubReqs, setAvailableSubReqs] = useState([
         {value: 'Source Code URL', label: 'Source Code / GitHub Repository'},
         {value: 'Live Demo URL', label: 'Live Demo / Video Link'},
@@ -250,6 +259,21 @@ function HackathonConfig() {
                         throw new Error(errData.error || `Failed to save rounds for category: ${category.trackName}`);
                     }
                 }
+                for (const delCat of deletedCategories) {
+                    await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                        body: JSON.stringify({
+                            contestId: currentContestId,
+                            categoryName: delCat.trackName,
+                            trackDescription: delCat.trackDescription || 'No description',
+                            guidelineUrl: delCat.guidelineUrl || '',
+                            status: 'INACTIVED',
+                            rounds: []
+                        })
+                    });
+                }
+                setDeletedCategories([]);
                 setStatus({success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!'});
                 fetchContests();
             } catch (err) {
@@ -292,10 +316,12 @@ function HackathonConfig() {
         formik.setStatus({});
         if (!id) {
             setSelectedContestId('');
+            setDeletedCategories([]);
             formik.resetForm();
             return;
         }
         setSelectedContestId(id);
+        setDeletedCategories([]);
         setIsLoading(true);
         try {
             const data = await fetchData(`${API_BASE}/admin/contests/${id}`);
@@ -571,7 +597,14 @@ function HackathonConfig() {
                                                 {formik.values.categories.map((t, index) => (
                                                     <div key={t.id} style={{ background: '#f9fafb', border: '1.5px solid #9ca3af', borderRadius: '8px', padding: '16px', position: 'relative' }}>
                                                         {formik.values.categories.length > 1 && !isClosedContest && (
-                                                            <button type="button" onClick={() => formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== index))} style={{ position: 'absolute', top: '16px', right: '16px', color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Category">&#10005;</button>
+                                                            <RemoveButton title="Delete Category" style={{ position: 'absolute', top: '16px', right: '16px' }} onClick={() => {
+                                                                const catToDelete = formik.values.categories[index];
+                                                                if (catToDelete.id > 0) {
+                                                                    setDeletedCategories(prev => [...prev, catToDelete]);
+                                                                }
+                                                                formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== index));
+                                                                formik.setFieldValue('rounds', formik.values.rounds.filter(r => String(r.categoryId) !== String(catToDelete.id)));
+                                                            }} />
                                                         )}
                                                         <Form.Group className="mb-3">
                                                             <Form.Label className="form-label">Category Name <span style={{color: 'red'}}>*</span></Form.Label>
@@ -617,7 +650,8 @@ function HackathonConfig() {
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                                                 <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} disabled={isClosedContest}/>
                                                                 {index !== 0 && !isClosedContest && (
-                                                                    <button type="button" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Round">&#10005;</button>)}
+                                                                    <RemoveButton title="Delete Round" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} />
+                                                                )}
                                                             </div>
                                                             {roundTouched?.phaseName && roundErrors?.phaseName && <div className="text-danger mb-2" style={{fontSize: '12px'}}>{roundErrors.phaseName}</div>}
 
@@ -736,7 +770,7 @@ function HackathonConfig() {
                                                         <Form.Control type="text" name={`complianceRules[${idx}].rule`} className="form-input" value={item.rule} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Rule Description ${idx + 1}`}/>
                                                         <Form.Control type="text" name={`complianceRules[${idx}].penalty`} className="form-input" value={item.penalty} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Default Penalty (Optional)`}/>
                                                         {formik.values.complianceRules.length > 1 && !isClosedContest && (
-                                                            <button type="button" onClick={() => formik.setFieldValue('complianceRules', formik.values.complianceRules.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, marginTop: '5px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Rule">&#10005;</button>
+                                                            <RemoveButton title="Delete Rule" style={{ marginTop: '5px' }} onClick={() => formik.setFieldValue('complianceRules', formik.values.complianceRules.filter((_, i) => i !== idx))} />
                                                         )}
                                                     </div>
                                                 ))}
@@ -759,7 +793,7 @@ function HackathonConfig() {
                                                         <Form.Control type="text" name={`tieredPrizeStructures[${idx}].rank`} className="form-input" value={prize.rank} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. First Prize"/>
                                                         <Form.Control type="text" name={`tieredPrizeStructures[${idx}].amount`} className="form-input" value={prize.amount} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. $5000"/>
                                                         {formik.values.tieredPrizeStructures.length > 1 && !isClosedContest && (
-                                                            <button type="button" onClick={() => formik.setFieldValue('tieredPrizeStructures', formik.values.tieredPrizeStructures.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, marginTop: '5px' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'} onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'} title="Delete Prize Tier">&#10005;</button>
+                                                            <RemoveButton title="Delete Prize Tier" style={{ marginTop: '5px' }} onClick={() => formik.setFieldValue('tieredPrizeStructures', formik.values.tieredPrizeStructures.filter((_, i) => i !== idx))} />
                                                         )}
                                                     </div>
                                                 ))}

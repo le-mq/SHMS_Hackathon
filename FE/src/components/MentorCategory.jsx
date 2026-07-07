@@ -18,37 +18,40 @@ const MentorCategory = () => {
     const [feedbackLoading, setFeedbackLoading] = useState(false);
     const [selectedContestId, setSelectedContestId] = useState(null);
     const [previewRoundId, setPreviewRoundId] = useState(null);
-    useEffect(() => {
-        const fetchMentorData = async () => {
+    const [contestSearchQuery, setContestSearchQuery] = useState('');
+
+    const fetchMentorData = async () => {
+        try {
+            const token = localStorage.getItem('shms_token');
+            const response = await fetch('http://localhost:8080/api/v1/mentor/assigned-teams', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('API failed');
+            const jsonData = await response.json();
+            setData(jsonData);
+            if (Array.isArray(jsonData) && jsonData.length === 1) {
+                setSelectedContestId(jsonData[0].contestId);
+            }
+        } catch (err) {
+            console.warn("API failed, falling back to mock data...");
             try {
-                const token = localStorage.getItem('shms_token');
-                const response = await fetch('http://localhost:8080/api/v1/mentor/assigned-teams', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (!response.ok) throw new Error('API failed');
-                const jsonData = await response.json();
-                setData(jsonData);
-                if (Array.isArray(jsonData) && jsonData.length > 0) {
-                    setSelectedContestId(jsonData[0].contestId);
+                const fallback = await fetch('/testFE.json');
+                const mock = await fallback.json();
+                const mockData = mock.mentorCategory.data;
+                setData(mockData);
+                if (Array.isArray(mockData) && mockData.length === 1) {
+                    setSelectedContestId(mockData[0].contestId);
+                } else if (mockData && !Array.isArray(mockData)) {
+                    setData([mockData]);
+                    setSelectedContestId(mockData.contestId);
                 }
-            } catch (err) {
-                console.warn("API failed, falling back to mock data...");
-                try {
-                    const fallback = await fetch('/testFE.json');
-                    const mock = await fallback.json();
-                    const mockData = mock.mentorCategory.data;
-                    setData(mockData);
-                    if (Array.isArray(mockData) && mockData.length > 0) {
-                        setSelectedContestId(mockData[0].contestId);
-                    } else if (mockData && !Array.isArray(mockData)) {
-                        setData([mockData]);
-                        setSelectedContestId(mockData.contestId);
-                    }
-                } catch (mockErr) {
-                    setError('Could not connect to server and no mock data found.');
-                }
-            } finally { setIsLoading(false); }
-        };
+            } catch (mockErr) {
+                setError('Could not connect to server and no mock data found.');
+            }
+        } finally { setIsLoading(false); }
+    };
+
+    useEffect(() => {
         fetchMentorData();
     }, []);
     const handleSendFeedback = async () => {
@@ -66,7 +69,10 @@ const MentorCategory = () => {
             if (res.ok) {
                 setFeedbackMessage(json.message || 'Feedback sent successfully!');
                 setTimeout(() => {
-                    window.location.reload();
+                    fetchMentorData();
+                    setFeedbackTeamId(null);
+                    setFeedbackMessage('');
+                    setFeedbackContent('');
                 }, 1000);
             } else {
                 setFeedbackMessage(json.error || 'Failed to send feedback');
@@ -170,148 +176,189 @@ const MentorCategory = () => {
         <div className="mentor-container">
             <div className="mentor-content">
                 <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
-                <div className="mentor-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <h1 className="mentor-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            Contest: {contestName}
-                            {contestStatus === 'CLOSED' && (
-                                <span style={{ fontSize: '12px', background: '#fee2e2', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Closed</span>
-                            )}
-                        </h1>
-                        <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
-                    </div>
-                    {Array.isArray(data) && data.length > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-end' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest:</span>
-                            <select value={selectedContestId || ''}
-                                    onChange={(e) => setSelectedContestId(e.target.value)}
-                                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', background: 'white', color: '#0f172a', fontWeight: 600, fontSize: '14px' }}
-                            >{data.map(c => (
-                                <option key={c.contestId} value={c.contestId}>
-                                    {c.contestName} {c.contestStatus === 'CLOSED' ? '(Closed)' : ''}
-                                </option>
-                            ))}
-                            </select>
-                        </div>
-                    )}
-                </div>
-                <div className="track-cards">
-                    {trackOverviews.map((track, idx) => (
-                        <div className="track-card" key={idx}>
-                            <div className="track-card-header">
-                                <div className="track-name">{track.trackName}</div>
+
+                {!selectedContestId ? (
+                    <div className="contest-list-view">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <div>
+                                <h1 className="mentor-title">Your Assigned Contests</h1>
+                                <p className="mentor-subtitle">Select an active or past contest to manage student teams and feedback.</p>
                             </div>
-                            <div className="track-stat-row">
-                                <span className="track-stat-label">Assigned Teams</span>
-                                <span className="track-stat-value">{track.assignedTeams} Teams</span>
-                            </div>
-                            <div className="track-stat-row">
-                                <span className="track-stat-label">Submission Rate</span>
-                                <span className="track-stat-value">{track.completionPercentage}%</span>
-                            </div>
-                            <div className="progress-bar-bg">
-                                <div className="progress-bar-fill" style={{ width: `${track.completionPercentage}%` }}></div>
-                            </div>
-                            <div className="progress-label">{track.completionPercentage}% teams submitted</div>
-                            {track.targetRoundId && (
-                                <button
-                                    className="mentor-view-round-btn"
-                                    onClick={() => setPreviewRoundId(track.targetRoundId)}
-                                    style={{ marginTop: '12px', width: '100%', padding: '10px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                                >View Round Details</button>
-                            )}
-                        </div>
-                    ))}
-                </div>
-                <div className="teams-section">
-                    <div className="teams-header">
-                        <h2 className="teams-title">Allocated Student Teams</h2>
-                        <div className="teams-actions">
-                            <div className="search-box">
+                            <div className="search-box" style={{ width: '300px' }}>
                                 <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                                <input type="text" placeholder="Search contests..." value={contestSearchQuery} onChange={(e) => setContestSearchQuery(e.target.value)} />
                             </div>
-                            <select className="filter-btn" value={filterRound} onChange={(e) => setFilterRound(e.target.value)}
-                                    style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
-                                <option value="All">All Rounds</option>
-                                {uniqueRounds.map((r, idx) => (
-                                    <option key={idx} value={r}>{r}</option>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                            {Array.isArray(data) && data.filter(c => !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+                                .sort((a, b) => {
+                                    if (a.contestStatus === 'CLOSED' && b.contestStatus !== 'CLOSED') return 1;
+                                    if (a.contestStatus !== 'CLOSED' && b.contestStatus === 'CLOSED') return -1;
+                                    return 0;
+                                })
+                                .map(c => (
+                                    <div key={c.contestId} style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={() => setSelectedContestId(c.contestId)} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                            <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.contestName}</h3>
+                                            <span style={{ fontSize: '11px', background: c.contestStatus === 'CLOSED' ? '#fee2e2' : '#dcfce7', color: c.contestStatus === 'CLOSED' ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.contestStatus || 'ACTIVE'}</span>
+                                        </div>
+                                        <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{c.trackOverviews?.length || 0}</span>
+                                                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Categories</span>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{c.allocatedTeams?.length || 0}</span>
+                                                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Teams</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </select>
+                            {Array.isArray(data) && data.filter(c => !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                                <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', color: '#64748b' }}>No contests found matching your search.</div>
+                            )}
                         </div>
                     </div>
+                ) : (
+                    <>
+                        <div className="mentor-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h1 className="mentor-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Contest: {contestName}
+                                    {contestStatus === 'CLOSED' && (
+                                        <span style={{ fontSize: '12px', background: '#fee2e2', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Closed</span>
+                                    )}
+                                </h1>
+                                <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', alignSelf: 'flex-end' }}>
+                                <button onClick={() => setSelectedContestId(null)} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                    Back to Contests
+                                </button>
+                            </div>
+                        </div>
+                        <div className="track-cards">
+                            {trackOverviews.map((track, idx) => (
+                                <div className="track-card" key={idx}>
+                                    <div className="track-card-header">
+                                        <div className="track-name">{track.trackName}</div>
+                                    </div>
+                                    <div className="track-stat-row">
+                                        <span className="track-stat-label">Assigned Teams</span>
+                                        <span className="track-stat-value">{track.assignedTeams} Teams</span>
+                                    </div>
+                                    <div className="track-stat-row">
+                                        <span className="track-stat-label">Submission Rate</span>
+                                        <span className="track-stat-value">{track.completionPercentage}%</span>
+                                    </div>
+                                    <div className="progress-bar-bg">
+                                        <div className="progress-bar-fill" style={{ width: `${track.completionPercentage}%` }}></div>
+                                    </div>
+                                    <div className="progress-label">{track.completionPercentage}% teams submitted</div>
+                                    {track.targetRoundId && (
+                                        <button
+                                            className="mentor-view-round-btn"
+                                            onClick={() => setPreviewRoundId(track.targetRoundId)}
+                                            style={{ marginTop: '12px', width: '100%', padding: '10px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                                        >View Round Details</button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="teams-section">
+                            <div className="teams-header">
+                                <h2 className="teams-title">Allocated Student Teams</h2>
+                                <div className="teams-actions">
+                                    <div className="search-box">
+                                        <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                                    </div>
+                                    <select className="filter-btn" value={filterRound} onChange={(e) => setFilterRound(e.target.value)}
+                                            style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
+                                        <option value="All">All Rounds</option>
+                                        {uniqueRounds.map((r, idx) => (
+                                            <option key={idx} value={r}>{r}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
-                    <table className="teams-table">
-                        <thead>
-                        <tr>
-                            <th>TEAM NAME</th>
-                            <th>SELECTED CATEGORY</th>
-                            <th>ACTIVE ROUND</th>
-                            <th>LEADER NAME</th>
-                            <th>PROGRESS</th>
-                            <th>PRODUCT</th>
-                            <th>FEEDBACK STATUS</th>
-                            <th>ACTION</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {filteredTeams.map((team) => {
-                            const badge = getProgressBadge(team.progressStatus);
-                            const canGiveFeedback = team.progressStatus === 'Submitted' && team.canGiveFeedback !== false;
-                            return (
-                                <tr key={team.teamId}>
-                                    <td>
-                                        <div className="team-name-col">
-                                            <span className="team-name">{team.teamName}</span>
-                                        </div>
-                                    </td>
-                                    <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
-                                    <td>
+                            <table className="teams-table">
+                                <thead>
+                                <tr>
+                                    <th>TEAM NAME</th>
+                                    <th>SELECTED CATEGORY</th>
+                                    <th>ACTIVE ROUND</th>
+                                    <th>LEADER NAME</th>
+                                    <th>PROGRESS</th>
+                                    <th>PRODUCT</th>
+                                    <th>FEEDBACK STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {filteredTeams.map((team) => {
+                                    const badge = getProgressBadge(team.progressStatus);
+                                    const canGiveFeedback = team.progressStatus === 'Submitted' && team.canGiveFeedback !== false;
+                                    return (
+                                        <tr key={team.teamId}>
+                                            <td>
+                                                <div className="team-name-col">
+                                                    <span className="team-name">{team.teamName}</span>
+                                                </div>
+                                            </td>
+                                            <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
+                                            <td>
                                             <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                                                 {team.roundName || 'No Active Round'}
                                             </span>
-                                    </td>
-                                    <td><span className="team-leader">{team.leaderName}</span></td>
-                                    <td>
+                                            </td>
+                                            <td><span className="team-leader">{team.leaderName}</span></td>
+                                            <td>
                                             <span style={{ background: badge.bg, color: badge.color, padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
                                                 {badge.label}
                                             </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{renderLinks(team)}</div>
-                                    </td>
-                                    <td>
-                                        {canGiveFeedback ? (
-                                            <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{renderLinks(team)}</div>
+                                            </td>
+                                            <td>
+                                                {canGiveFeedback ? (
+                                                    <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
                                                 {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
                                             </span>
-                                        ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                    </td>
-                                    <td>
-                                        {canGiveFeedback ? (
-                                            <button onClick={() => {
-                                                setFeedbackTeamId(team.teamId);
-                                                setFeedbackSubmissionId(team.submissionId || team.teamId);
-                                                setFeedbackContent(team.mentorFeedback || '');
-                                                setFeedbackMessage('');
-                                            }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
-                                            </button>
-                                        ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                        {filteredTeams.length === 0 && (
-                            <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
-                </div>
+                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                            </td>
+                                            <td>
+                                                {canGiveFeedback ? (
+                                                    <button onClick={() => {
+                                                        setFeedbackTeamId(team.teamId);
+                                                        setFeedbackSubmissionId(team.submissionId || team.teamId);
+                                                        setFeedbackContent(team.mentorFeedback || '');
+                                                        setFeedbackMessage('');
+                                                    }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                        {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
+                                                    </button>
+                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {filteredTeams.length === 0 && (
+                                    <tr>
+                                        <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
             </div>
 
             {feedbackTeamId && (

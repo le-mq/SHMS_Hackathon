@@ -61,6 +61,9 @@ const EnforcementAuditLogs = () => {
                             target: l.entityName ? `${l.entityType ? l.entityType + ' ' : ''}${l.entityName}` : (l.entityType ? `${l.entityType} ${l.entityId || ''}` : (l.target || l.targetEntityId || 'N/A')),
                             timestamp: l.performedAt || l.timestamp || l.createdAt,
                             performer: (l.user && (l.user.email || l.user.username)) || l.performer || l.performedBy || l.createdBy || 'System',
+                            performerFullName: l.user && l.user.fullName ? l.user.fullName : '',
+                            performerEmail: l.user && l.user.email ? l.user.email : '',
+                            performerUsername: l.user && l.user.username ? l.user.username : '',
                             justification: l.reason || l.justification || l.justificationReason || '',
                             oldValue: l.oldValue || l.oldValues,
                             newValue: l.newValue || l.newValues
@@ -76,7 +79,17 @@ const EnforcementAuditLogs = () => {
     const filteredLogs = logs.filter(log => {
         let match = true;
         if (filters.actionType && log.actionType !== filters.actionType) match = false;
-        if (filters.performer && !log.performer.toLowerCase().includes(filters.performer.toLowerCase())) match = false;
+        if (filters.performer) {
+            const searchTerm = filters.performer.toLowerCase();
+            const p = log.performer?.toLowerCase() || '';
+            const pf = log.performerFullName?.toLowerCase() || '';
+            const pe = log.performerEmail?.toLowerCase() || '';
+            const pu = log.performerUsername?.toLowerCase() || '';
+
+            if (!p.includes(searchTerm) && !pf.includes(searchTerm) && !pe.includes(searchTerm) && !pu.includes(searchTerm)) {
+                match = false;
+            }
+        }
         if (filters.date) {
             const logDate = new Date(log.timestamp).toISOString().split('T')[0];
             if (logDate !== filters.date) match = false;
