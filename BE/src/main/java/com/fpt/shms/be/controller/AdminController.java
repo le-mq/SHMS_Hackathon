@@ -128,6 +128,20 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/contests/tracks/{categoryId}")
+    @Operation(summary = "Delete a Track/Category", description = "Requires ADMIN role.")
+    public ResponseEntity<?> deleteCategory(HttpServletRequest request, @PathVariable Long categoryId) {
+        try {
+            contestAdminService.deleteCategory(categoryId);
+            return ResponseEntity.ok(Map.of("message", "Category deleted successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/contests/{contestId}/rounds/{roundId}/teams")
     @Operation(summary = "Get Eligible Teams for Round")
     public ResponseEntity<?> getEligibleTeamsForRound(HttpServletRequest request,
