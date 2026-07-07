@@ -135,6 +135,23 @@ const normalizeScoreData = (payload) => {
                 round.rubricTemplate?.criteria ||
                 rootCriteria,
         }))
+        .sort((a, b) => {
+            const timeA = a.publishResultAt ? new Date(a.publishResultAt).getTime() : 0;
+            const timeB = b.publishResultAt ? new Date(b.publishResultAt).getTime() : 0;
+            
+            const now = Date.now();
+            const isPubA = a.totalScore != null && a.resultPublished !== false && (timeA === 0 || now >= timeA);
+            const isPubB = b.totalScore != null && b.resultPublished !== false && (timeB === 0 || now >= timeB);
+            
+            if (isPubA && !isPubB) return -1;
+            if (!isPubA && isPubB) return 1;
+            
+            if (isPubA && isPubB) {
+                return timeB - timeA;
+            }
+            
+            return timeA - timeB;
+        })
         : [fallbackRound];
 
     return {
@@ -157,6 +174,7 @@ const StandingsFeedback = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [selectedDetail, setSelectedDetail] = useState(null);
+    const [selectedResultRound, setSelectedResultRound] = useState(null);
 
     // Fetch joined competitions on mount
     useEffect(() => {
@@ -289,28 +307,6 @@ const StandingsFeedback = () => {
     }, [selectedCompetition]);
 
     const rounds = scoreData?.rounds || [];
-    const unpublishedRound = rounds.find(round => {
-        if (round.resultPublished === false) return true;
-
-        const publishTime = round.publishResultAt ? new Date(round.publishResultAt).getTime() : 0;
-        return publishTime !== 0 && Date.now() < publishTime;
-    });
-
-    const publishTimeText = unpublishedRound?.publishResultAt
-        ? new Date(unpublishedRound.publishResultAt).toLocaleString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        })
-        : '';
-
-    const shouldShowPrivateResults =
-        !isLoading &&
-        !error &&
-        scoreData &&
-        (Boolean(unpublishedRound) || rounds.length === 0);
 
     return (
         <div className="standings-container">
@@ -359,29 +355,6 @@ const StandingsFeedback = () => {
                             </div>
                         )}
                     </>
-                ) : shouldShowPrivateResults ? (
-                    <>
-                        <button className="back-btn" onClick={() => setSelectedCompetition(null)}>
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back to Competition Results
-                        </button>
-                        <div className="results-empty-state">
-                            <div className="waiting-result-icon">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                            </div>
-                            <h1>Scores are not public yet.</h1>
-                            <p>
-                                The judging scores have not been published.
-                                {publishTimeText && (
-                                    <> Results will be available on <strong>{publishTimeText}</strong>.</>
-                                )}
-                            </p>
-                        </div>
-                    </>
                 ) : (
                     <>
                         <button className="back-btn" onClick={() => setSelectedCompetition(null)}>
@@ -402,38 +375,12 @@ const StandingsFeedback = () => {
                                         Team: {selectedCompetition?.data?.teamName || scoreData?.teamName || 'Unknown Team'}
                                     </p>
                                 </div>
-                                <div className="score-display" style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
-                                    <div className="private-badge" style={{ alignSelf: 'flex-end', marginBottom: '8px' }}>
-                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                        Private
-                                    </div>
-                                </div>
                             </div>
 
                             {(() => {
-                                const now = new Date().getTime();
-                                const unpublishedRound = rounds.find(round => {
-                                    if (round.resultPublished === false) return true;
+                                const shouldShowEmpty = !isLoading && !error && scoreData && rounds.length === 0;
 
-                                    const publishTime = round.publishResultAt ? new Date(round.publishResultAt).getTime() : 0;
-                                    return publishTime !== 0 && now < publishTime;
-                                });
-                                const publishTimeText = unpublishedRound?.publishResultAt
-                                    ? new Date(unpublishedRound.publishResultAt).toLocaleString('en-US', {
-                                        month: 'short',
-                                        day: '2-digit',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })
-                                    : '';
-                                const shouldShowPrivateResults =
-                                    unpublishedRound ||
-                                    (!isLoading && !error && scoreData && rounds.length === 0);
-
-                                if (shouldShowPrivateResults) {
+                                if (shouldShowEmpty) {
                                     return (
                                         <div className="waiting-result-card">
                                             <div className="waiting-result-icon">
@@ -442,80 +389,179 @@ const StandingsFeedback = () => {
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h3>Scores are not public yet.</h3>
-                                                <p>
-                                                    The judging scores {unpublishedRound?.roundName ? `for ${unpublishedRound.roundName}` : 'for your team'} have not been published.
-                                                    {publishTimeText && (
-                                                        <> Results will be available on <strong>{publishTimeText}</strong>.</>
-                                                    )}
-                                                </p>
+                                                <h3>No Results Found</h3>
+                                                <p>There are no result records available for your team in this competition.</p>
                                             </div>
                                         </div>
                                     );
                                 }
 
                                 return (
-                                    <table className="history-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-                                        <thead>
-                                            <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Round</th>
-                                                <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Total Score</th>
-                                                <th style={{ textAlign: 'right', padding: '12px 16px', borderBottom: '2px solid #e2e8f0' }}>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {isLoading ? (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                                        Loading result data...
-                                                    </td>
-                                                </tr>
-                                            ) : error ? (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
-                                                        {error}
-                                                    </td>
-                                                </tr>
-                                            ) : rounds.length > 0 ? rounds.map((r, idx) => (
-                                                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td style={{ padding: '16px', fontWeight: '500', color: '#1e293b' }}>{r.roundName}</td>
-                                                    <td style={{ padding: '16px', textAlign: 'center', fontWeight: 'bold', color: '#0f172a' }}>
-                                                        {r.totalScore == null ? (
-                                                            r.hasSubmission && r.isGraded === false ? (
-                                                                <span style={{ color: '#f59e0b', fontSize: '13px' }}>Pending Evaluation</span>
-                                                            ) : (
-                                                                'Not public'
-                                                            )
-                                                        ) : (
-                                                            <>
-                                                                <div>{`${r.totalScore.toFixed(2)} / 100`}</div>
-                                                                {r.totalScore === 0 && (
-                                                                    <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: 'normal' }}>
-                                                                        {r.hasSubmission === false ? 'Eliminated (0 points) - No submission' : 'Eliminated (0 points)'}
+                                    <div style={{ marginTop: '16px' }}>
+                                        {isLoading ? (
+                                            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                                Loading result data...
+                                            </div>
+                                        ) : error ? (
+                                            <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
+                                                {error}
+                                            </div>
+                                        ) : rounds.length > 0 ? (
+                                            <>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                                    {rounds.map((r, idx) => {
+                                                        const nowTime = new Date().getTime();
+                                                        const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
+                                                        const isPublished = r.resultPublished !== false && (pTime === 0 || nowTime >= pTime);
+                                                        
+                                                        const isAvailable = isPublished && r.totalScore != null;
+                                                        
+                                                        const isSelected = selectedResultRound === r;
+                                                        const bgColor = isAvailable ? (isSelected ? '#bbf7d0' : '#dcfce7') : '#f1f5f9';
+                                                        const borderColor = isAvailable ? '#22c55e' : '#cbd5e1';
+                                                        const textColor = isAvailable ? '#166534' : '#64748b';
+
+                                                        return (
+                                                            <div 
+                                                                key={idx}
+                                                                onClick={() => setSelectedResultRound(r)}
+                                                                style={{
+                                                                    background: bgColor,
+                                                                    border: `2px solid ${isSelected ? (isAvailable ? '#16a34a' : '#94a3b8') : borderColor}`,
+                                                                    borderRadius: '8px',
+                                                                    padding: '16px',
+                                                                    cursor: 'pointer',
+                                                                    textAlign: 'center',
+                                                                    fontWeight: '600',
+                                                                    color: textColor,
+                                                                    transition: 'all 0.2s',
+                                                                    boxShadow: isSelected ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
+                                                                }}
+                                                            >
+                                                                {r.roundName}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                
+                                                {selectedResultRound && (
+                                                    <div style={{ padding: '32px', background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden' }}>
+                                                        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
+                                                        <div style={{ position: 'relative', zIndex: 1 }}>
+                                                        {(() => {
+                                                            const nowTime = new Date().getTime();
+                                                            const pTime = selectedResultRound.publishResultAt ? new Date(selectedResultRound.publishResultAt).getTime() : 0;
+                                                            const isPublished = selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime);
+                                                            
+                                                            if (!isPublished) {
+                                                                return (
+                                                                    <div style={{ textAlign: 'center', padding: '30px', background: '#fff', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                                                        <div style={{ color: '#94a3b8', marginBottom: '12px' }}>
+                                                                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                                        </div>
+                                                                        <div style={{ color: '#64748b', fontSize: '18px', fontWeight: '600' }}>Scores are not public yet</div>
+                                                                        <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>The results for this round will be revealed later.</p>
                                                                     </div>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'right' }}>
-                                                        <button
-                                                            className="view-rubric-btn"
-                                                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-block', float: 'right' }}
-                                                            onClick={() => setSelectedDetail(r)}
-                                                        >
-                                                            View Detail
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            )) : (
-                                                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                    <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                                        No result data available yet.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
+                                                                );
+                                                            }
+                                                            
+                                                            return (
+                                                                <>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                        <div>
+                                                                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                                                {selectedResultRound.roundName} Score
+                                                                            </p>
+                                                                            
+                                                                            {selectedResultRound.totalScore == null ? (
+                                                                                selectedResultRound.hasSubmission && selectedResultRound.isGraded === false ? (
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                                                                                        <div style={{ padding: '10px', background: '#fffbeb', borderRadius: '50%', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div style={{ color: '#d97706', fontSize: '18px', fontWeight: 'bold' }}>Pending Evaluation</div>
+                                                                                            <div style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#92400e' }}>Your submission is currently being graded by judges.</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                                                                                        <div style={{ padding: '10px', background: '#f1f5f9', borderRadius: '50%', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div style={{ color: '#475569', fontSize: '18px', fontWeight: 'bold' }}>Not Public</div>
+                                                                                            <div style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>The score for this round is not available yet.</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )
+                                                                            ) : (
+                                                                                <div>
+                                                                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                                                                        <span style={{ fontSize: '48px', fontWeight: '800', background: 'linear-gradient(90deg, #1e40af, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1' }}>
+                                                                                            {selectedResultRound.totalScore.toFixed(2)}
+                                                                                        </span>
+                                                                                        <span style={{ fontSize: '20px', fontWeight: '600', color: '#94a3b8' }}>/ 100</span>
+                                                                                    </div>
+                                                                                    {selectedResultRound.totalScore === 0 && (
+                                                                                        <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
+                                                                                            {selectedResultRound.hasSubmission === false ? 'Eliminated (0 points) - No submission' : 'Eliminated (0 points)'}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        
+                                                                        <button
+                                                                            className="view-rubric-btn"
+                                                                            style={{ 
+                                                                                padding: '12px 24px', 
+                                                                                fontSize: '15px', 
+                                                                                fontWeight: '600', 
+                                                                                borderRadius: '8px',
+                                                                                background: '#1e293b',
+                                                                                color: 'white',
+                                                                                border: 'none',
+                                                                                cursor: 'pointer',
+                                                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                                                                transition: 'all 0.2s ease',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '8px'
+                                                                            }}
+                                                                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
+                                                                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'; }}
+                                                                            onClick={() => setSelectedDetail(selectedResultRound)}
+                                                                        >
+                                                                            View Full Detail
+                                                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                                                        </button>
+                                                                    </div>
+                                                                    
+                                                                    {selectedResultRound.totalScore != null && (
+                                                                        <div style={{ marginTop: '24px', width: '100%', background: '#e2e8f0', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+                                                                            <div style={{ 
+                                                                                height: '100%', 
+                                                                                width: `${selectedResultRound.totalScore}%`, 
+                                                                                background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+                                                                                borderRadius: '999px',
+                                                                                transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                                                                            }}></div>
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        })()}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                                No result data available yet.
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })()}
                         </div>
