@@ -379,17 +379,18 @@ public class ContestAdminService {
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
-        if (contest.getStatus() == Contest.ContestStatus.UPCOMING) {
-            existingRounds.removeIf(r -> {
-                boolean inRequest = (r.getId() != null && requestedIds.contains(r.getId())) ||
-                        (r.getId() == null && requestedPhaseNames.contains(r.getPhaseName()));
-                if (!inRequest) {
-                    roundRepository.delete(r);
-                    return true;
+        existingRounds.removeIf(r -> {
+            boolean inRequest = (r.getId() != null && requestedIds.contains(r.getId())) ||
+                    (r.getId() == null && requestedPhaseNames.contains(r.getPhaseName()));
+            if (!inRequest) {
+                if (r.getState() != Round.RoundState.UPCOMING) {
+                    throw new IllegalArgumentException("Cannot delete round '" + r.getPhaseName() + "' because its status is " + r.getState());
                 }
-                return false;
-            });
-        }
+                roundRepository.delete(r);
+                return true;
+            }
+            return false;
+        });
 
         Category savedCategory = categoryRepository.save(category);
         if (categoryModified) {
@@ -427,6 +428,23 @@ public class ContestAdminService {
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return savedAnnouncement;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+
+        List<Round> rounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(categoryId);
+        for (Round r : rounds) {
+            if (r.getState() != Round.RoundState.UPCOMING) {
+                throw new IllegalArgumentException("Cannot delete category '" + category.getName() + "' because its round '" + r.getPhaseName() + "' is currently " + r.getState());
+            }
+        }
+        roundRepository.deleteAll(rounds);
+
+        categoryRepository.delete(category);
+        auditLogService.log("DELETE_CATEGORY", "Category", category.getName(), category.getStatus(), "DELETED", "Deleted Category");
     }
 
     private Contest.Season parseSeason(String term) {
