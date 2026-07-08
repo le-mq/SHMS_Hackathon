@@ -62,6 +62,10 @@ public class Round {
     }
 
     public RoundState getState() {
+        if (this.state == RoundState.CLOSED) {
+            return RoundState.CLOSED;
+        }
+
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         if (this.submissionDeadline != null && now.isAfter(this.submissionDeadline)) {
             return RoundState.CLOSED;
