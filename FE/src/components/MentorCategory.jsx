@@ -4,22 +4,105 @@ import './MentorCategory.css';
 import LatestAnnouncements from './LatestAnnouncements';
 import RoundDetailsModal from './RoundDetailsModal';
 
+const getRoundBadgeStyle = (state) => {
+    if (state === 'CLOSED') return { bg: '#f1f5f9', color: '#475569' };
+    return { bg: '#d1fae5', color: '#065f46' };
+};
+
+const getProgressBadge = (status) => {
+    if (status === 'Draft') return { bg: '#fef3c7', color: '#92400e', label: 'Draft' };
+    if (status === 'Official') return { bg: '#dcfce7', color: '#166534', label: 'Official' };
+    if (status === 'Submitted') return { bg: '#dbeafe', color: '#1e40af', label: 'Submitted' };
+    return { bg: '#f1f5f9', color: '#475569', label: status || 'Ideation' };
+};
+
+const TeamAssetLinks = ({ team }) => {
+    let subData = {};
+    try {
+        if (team.submissionData) {
+            subData = typeof team.submissionData === 'string' ? JSON.parse(team.submissionData) : team.submissionData;
+        } else {
+            subData = team;
+        }
+    } catch (e) {
+        subData = team;
+    }
+
+    const getAssetUrl = (url) => {
+        const trimmedUrl = String(url || '').trim();
+        if (!trimmedUrl) return '';
+        if (/^https?:\/\//i.test(trimmedUrl)) return trimmedUrl;
+        return `https://${trimmedUrl}`;
+    };
+
+    const renderAssetLink = (url, label, icon) => {
+        const assetUrl = getAssetUrl(url);
+        if (!assetUrl) return null;
+        return (
+            <a key={label} className="asset-link-icon" href={assetUrl} target="_blank"
+               rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
+               style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                {icon}
+            </a>
+        );
+    };
+
+    const defaultIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+    const githubIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+    const demoIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+    const docsIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+    const slideIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>;
+    const iconMap = {
+        'Source Code URL': githubIcon, 'GitHub Repository': githubIcon,
+        'Live Demo URL': demoIcon, 'Live Demo': demoIcon, 'Video URL': demoIcon,
+        'Documentation URL': docsIcon, 'Project Documentation': docsIcon,
+        'Presentation Slide URL': slideIcon, 'Presentation Slides': slideIcon
+    };
+    const allLinks = [];
+    Object.entries(subData).forEach(([key, val]) => {
+        if (typeof val === 'string' && val.trim() !== '' && !['id', 'teamId', 'roundId'].includes(key)) {
+            const label = key;
+            const icon = iconMap[key] || defaultIcon;
+            allLinks.push(renderAssetLink(val, label, icon));
+        }
+    });
+    const validLinks = allLinks.filter(Boolean);
+    if (validLinks.length === 0) return <span style={{ fontSize: '13px', color: '#94a3b8' }}>No links</span>;
+    return <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>{validLinks}</div>;
+};
+
+const ContestCard = ({ c, onClick }) => (
+    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={onClick} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.contestName}</h3>
+            <span style={{ fontSize: '11px', background: c.contestStatus === 'CLOSED' ? '#fee2e2' : '#dcfce7', color: c.contestStatus === 'CLOSED' ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.contestStatus || 'ACTIVE'}</span>
+        </div>
+        <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Categories</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
+                    {c.trackOverviews && c.trackOverviews.length > 0 ? c.trackOverviews.map(t => t.trackName).join(', ') : 'N/A'}
+                </span>
+            </div>
+        </div>
+    </div>
+);
+
 const MentorCategory = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterRound, setFilterRound] = useState('All');
+    const [filterRound, setFilterRound] = useState(() => sessionStorage.getItem('mentorSelectedRound') || '');
     const [feedbackTeamId, setFeedbackTeamId] = useState(null);
     const [feedbackContent, setFeedbackContent] = useState('');
     const [feedbackSubmissionId, setFeedbackSubmissionId] = useState(null);
     const [feedbackMessage, setFeedbackMessage] = useState('');
     const [feedbackLoading, setFeedbackLoading] = useState(false);
-    const [selectedContestId, setSelectedContestId] = useState(null);
+    const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('mentorSelectedContestId') || null);
     const [previewRoundId, setPreviewRoundId] = useState(null);
     const [contestSearchQuery, setContestSearchQuery] = useState('');
-
     const fetchMentorData = async () => {
         try {
             const token = localStorage.getItem('shms_token');
@@ -80,8 +163,6 @@ const MentorCategory = () => {
         } catch { setFeedbackMessage('Could not connect to server.'); }
         finally { setFeedbackLoading(false); }
     };
-    if (isLoading) return <div className="mentor-container">Loading...</div>;
-    if (error && (!data || data.length === 0)) return <div className="mentor-container">Error: {error}</div>;
     let activeContestData = null;
     if (Array.isArray(data)) {
         activeContestData = data.find(c => String(c.contestId) === String(selectedContestId)) || data[0];
@@ -89,6 +170,28 @@ const MentorCategory = () => {
         activeContestData = data;
     }
     const { contestName = "N/A", contestStatus, trackOverviews = [], allocatedTeams = [] } = activeContestData || {};
+    const uniqueRounds = Array.from(new Set(allocatedTeams.map(t => t.roundName).filter(Boolean)));
+    const roundStateMap = {};
+    allocatedTeams.forEach(t => {
+        if (t.roundName) {
+            roundStateMap[t.roundName] = t.roundState || 'ACTIVED';
+        }
+    });
+
+    useEffect(() => {
+        if (uniqueRounds.length > 0 && (!filterRound || filterRound === 'All' || !uniqueRounds.includes(filterRound))) {
+            const saved = sessionStorage.getItem('mentorSelectedRound');
+            if (saved && saved !== 'All' && uniqueRounds.includes(saved)) {
+                setFilterRound(saved);
+            } else {
+                setFilterRound(uniqueRounds[0]);
+                sessionStorage.setItem('mentorSelectedRound', uniqueRounds[0]);
+            }
+        }
+    }, [uniqueRounds.length, filterRound, JSON.stringify(uniqueRounds)]);
+
+    if (isLoading) return <div className="mentor-container">Loading...</div>;
+    if (error && (!data || data.length === 0)) return <div className="mentor-container">Error: {error}</div>;
     const filteredTeams = allocatedTeams.filter(team => {
         const query = searchQuery.toLowerCase();
         const matchesSearch = !query || team.teamName?.toLowerCase().includes(query) ||
@@ -100,83 +203,10 @@ const MentorCategory = () => {
         return matchesSearch && matchesRound;
     });
 
-    const uniqueRounds = Array.from(new Set(allocatedTeams.map(t => t.roundName).filter(Boolean)));
-
-    const renderLinks = (team) => {
-        let subData = {};
-        try {
-            if (team.submissionData) {
-                subData = typeof team.submissionData === 'string' ? JSON.parse(team.submissionData) : team.submissionData;
-            } else {
-                subData = team;
-            }
-        } catch (e) {
-            subData = team;
-        }
-
-        const getAssetUrl = (url) => {
-            const trimmedUrl = String(url || '').trim();
-            if (!trimmedUrl) return '';
-            if (/^https?:\/\//i.test(trimmedUrl)) return trimmedUrl;
-            return `https://${trimmedUrl}`;
-        };
-        const renderAssetLink = (url, label, icon) => {
-            const assetUrl = getAssetUrl(url);
-            if (!assetUrl) return null;
-            return (
-                <a key={label} className="asset-link-icon" href={assetUrl} target="_blank"
-                   rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
-                   style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b',
-                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
-                   }}
-                >{icon}
-                </a>
-            );
-        };
-
-        const defaultIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
-        const githubIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
-        const demoIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
-        const docsIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
-        const slideIcon = <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>;
-
-        const iconMap = {
-            'Source Code URL': githubIcon, 'GitHub Repository': githubIcon,
-            'Live Demo URL': demoIcon, 'Live Demo': demoIcon, 'Video URL': demoIcon,
-            'Documentation URL': docsIcon, 'Project Documentation': docsIcon,
-            'Presentation Slide URL': slideIcon, 'Presentation Slides': slideIcon
-        };
-
-        const allLinks = [];
-        Object.entries(subData).forEach(([key, val]) => {
-            if (typeof val === 'string' && val.trim() !== '' && !['id', 'teamId', 'roundId'].includes(key)) {
-                const label = key;
-                const icon = iconMap[key] || defaultIcon;
-                allLinks.push(renderAssetLink(val, label, icon));
-            }
-        });
-
-        const validLinks = allLinks.filter(Boolean);
-        if (validLinks.length === 0) return <span style={{ fontSize: '13px', color: '#94a3b8' }}>No links</span>;
-
-        return (
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {validLinks}
-            </div>
-        );
-    };
-    const getProgressBadge = (status) => {
-        if (status === 'Draft') return { bg: '#fef3c7', color: '#92400e', label: 'Draft' };
-        if (status === 'Official') return { bg: '#dcfce7', color: '#166534', label: 'Official' };
-        if (status === 'Submitted') return { bg: '#dbeafe', color: '#1e40af', label: 'Submitted' };
-        return { bg: '#f1f5f9', color: '#475569', label: status || 'Ideation' };
-    };
-
     return (
         <div className="mentor-container">
             <div className="mentor-content">
                 <div style={{ marginTop: '32px' }}><LatestAnnouncements /></div>
-
                 {!selectedContestId ? (
                     <div className="contest-list-view">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -199,22 +229,7 @@ const MentorCategory = () => {
                                     return 0;
                                 })
                                 .map(c => (
-                                    <div key={c.contestId} style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={() => setSelectedContestId(c.contestId)} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                            <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.contestName}</h3>
-                                            <span style={{ fontSize: '11px', background: c.contestStatus === 'CLOSED' ? '#fee2e2' : '#dcfce7', color: c.contestStatus === 'CLOSED' ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.contestStatus || 'ACTIVE'}</span>
-                                        </div>
-                                        <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{c.trackOverviews?.length || 0}</span>
-                                                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Categories</span>
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{c.allocatedTeams?.length || 0}</span>
-                                                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Teams</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <ContestCard key={c.contestId} c={c} onClick={() => { setSelectedContestId(c.contestId); sessionStorage.setItem('mentorSelectedContestId', c.contestId); }} />
                                 ))}
                             {Array.isArray(data) && data.filter(c => !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
                                 <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', color: '#64748b' }}>No contests found matching your search.</div>
@@ -234,39 +249,38 @@ const MentorCategory = () => {
                                 <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', alignSelf: 'flex-end' }}>
-                                <button onClick={() => setSelectedContestId(null)} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button onClick={() => { setSelectedContestId(null); sessionStorage.removeItem('mentorSelectedContestId'); }} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                                     Back to Contests
                                 </button>
                             </div>
                         </div>
-                        <div className="track-cards">
-                            {trackOverviews.map((track, idx) => (
-                                <div className="track-card" key={idx}>
-                                    <div className="track-card-header">
-                                        <div className="track-name">{track.trackName}</div>
-                                    </div>
-                                    <div className="track-stat-row">
-                                        <span className="track-stat-label">Assigned Teams</span>
-                                        <span className="track-stat-value">{track.assignedTeams} Teams</span>
-                                    </div>
-                                    <div className="track-stat-row">
-                                        <span className="track-stat-label">Submission Rate</span>
-                                        <span className="track-stat-value">{track.completionPercentage}%</span>
-                                    </div>
-                                    <div className="progress-bar-bg">
-                                        <div className="progress-bar-fill" style={{ width: `${track.completionPercentage}%` }}></div>
-                                    </div>
-                                    <div className="progress-label">{track.completionPercentage}% teams submitted</div>
-                                    {track.targetRoundId && (
-                                        <button
-                                            className="mentor-view-round-btn"
-                                            onClick={() => setPreviewRoundId(track.targetRoundId)}
-                                            style={{ marginTop: '12px', width: '100%', padding: '10px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                                        >View Round Details</button>
-                                    )}
+                        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', width: '100%', background: 'white', padding: '20px', borderRadius: '12px', border: '1.5px solid #94a3b8', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', marginTop: '20px', marginBottom: '20px' }}>
+                            <div style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assigned Contest</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: 600, fontSize: '14px', width: '100%' }}>
+                                    {contestName}
                                 </div>
-                            ))}
+                            </div>
+                            <div style={{ width: '1px', background: '#e2e8f0', margin: '0 10px' }} className="divider-hide-mobile"></div>
+                            <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Round</span>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {uniqueRounds.map((r, idx) => {
+                                        const isActive = filterRound === r;
+                                        const badgeStyle = getRoundBadgeStyle(roundStateMap[r]);
+                                        return (
+                                            <div key={idx} onClick={() => { setFilterRound(r); sessionStorage.setItem('mentorSelectedRound', r); }} style={{ padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${isActive ? '#3b82f6' : '#cbd5e1'}`, background: isActive ? '#eff6ff' : 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '100px', boxShadow: isActive ? '0 0 0 1px #3b82f6' : 'none' }}>
+                                                <div style={{ fontSize: '13px', fontWeight: 600, color: isActive ? '#1e3a8a' : '#334155' }}>{r}</div>
+                                                <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyle.bg, color: badgeStyle.color, alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                    {roundStateMap[r]}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {uniqueRounds.length === 0 && <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', padding: '10px 0' }}>No Rounds Available</span>}
+                                </div>
+                            </div>
                         </div>
                         <div className="teams-section">
                             <div className="teams-header">
@@ -278,16 +292,9 @@ const MentorCategory = () => {
                                         </svg>
                                         <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                                     </div>
-                                    <select className="filter-btn" value={filterRound} onChange={(e) => setFilterRound(e.target.value)}
-                                            style={{ border: '1px solid #e2e8f0', background: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '500', color: '#475569', outline: 'none', cursor: 'pointer' }}>
-                                        <option value="All">All Rounds</option>
-                                        {uniqueRounds.map((r, idx) => (
-                                            <option key={idx} value={r}>{r}</option>
-                                        ))}
-                                    </select>
+
                                 </div>
                             </div>
-
                             <table className="teams-table">
                                 <thead>
                                 <tr>
@@ -304,7 +311,7 @@ const MentorCategory = () => {
                                 <tbody>
                                 {filteredTeams.map((team) => {
                                     const badge = getProgressBadge(team.progressStatus);
-                                    const canGiveFeedback = team.progressStatus === 'Submitted' && team.canGiveFeedback !== false;
+                                    const canGiveFeedback = ['Submitted', 'Draft'].includes(team.progressStatus) && team.canGiveFeedback !== false;
                                     return (
                                         <tr key={team.teamId}>
                                             <td>
@@ -324,27 +331,23 @@ const MentorCategory = () => {
                                                 {badge.label}
                                             </span>
                                             </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{renderLinks(team)}</div>
-                                            </td>
-                                            <td>
-                                                {canGiveFeedback ? (
-                                                    <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                            <td><TeamAssetLinks team={team} /></td>
+                                            <td>{canGiveFeedback ? (
+                                                <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
                                                 {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
                                             </span>
-                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                            ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
                                             </td>
-                                            <td>
-                                                {canGiveFeedback ? (
-                                                    <button onClick={() => {
-                                                        setFeedbackTeamId(team.teamId);
-                                                        setFeedbackSubmissionId(team.submissionId || team.teamId);
-                                                        setFeedbackContent(team.mentorFeedback || '');
-                                                        setFeedbackMessage('');
-                                                    }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                        {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
-                                                    </button>
-                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                            <td>{canGiveFeedback ? (
+                                                <button onClick={() => {
+                                                    setFeedbackTeamId(team.teamId);
+                                                    setFeedbackSubmissionId(team.submissionId || team.teamId);
+                                                    setFeedbackContent(team.mentorFeedback || '');
+                                                    setFeedbackMessage('');
+                                                }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                    {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
+                                                </button>
+                                            ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
                                             </td>
                                         </tr>
                                     );
@@ -386,7 +389,7 @@ const MentorCategory = () => {
                             return (
                                 <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Submitted Assets</div>
-                                    {renderLinks(selectedTeam)}
+                                    <TeamAssetLinks team={selectedTeam} />
                                 </div>
                             );
                         })()}
@@ -403,7 +406,6 @@ const MentorCategory = () => {
                     </div>
                 </div>
             )}
-
             {previewRoundId && (
                 <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
             )}

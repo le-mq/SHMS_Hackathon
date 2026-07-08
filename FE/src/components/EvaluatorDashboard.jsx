@@ -1,5 +1,5 @@
-import {useState, useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './EvaluatorDashboard.css';
 import './LeaderWorkspace.css';
 import LatestAnnouncements from './LatestAnnouncements';
@@ -24,7 +24,7 @@ const formatScheduleDate = (dateValue, emptyText, invalidText) => {
 const EvaluatorDashboard = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
-    const [selectedContest, setSelectedContest] = useState('');
+    const [selectedContest, setSelectedContest] = useState(() => sessionStorage.getItem('judgeSelectedContest') || '');
     const [selectedRound, setSelectedRound] = useState('');
     const [timeLeft, setTimeLeft] = useState('');
     const [timeStatus, setTimeStatus] = useState('');
@@ -39,7 +39,7 @@ const EvaluatorDashboard = () => {
                 if (selectedContest) {
                     url += `?contestId=${selectedContest}`;
                 }
-                const response = await fetch(url, {headers: {'Authorization': `Bearer ${token}`}});
+                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (response.ok) {
                     const result = await response.json();
                     setData(result);
@@ -54,7 +54,8 @@ const EvaluatorDashboard = () => {
                     let dashboardMock = mockData.evaluatorDashboard.data;
                     if (selectedContest) {
                         const filteredQueue = dashboardMock.queue.filter(team => team.contestId === parseInt(selectedContest));
-                        dashboardMock = { ...dashboardMock, queue: filteredQueue,
+                        dashboardMock = {
+                            ...dashboardMock, queue: filteredQueue,
                             assignedCategoryCount: Array.from(new Set(filteredQueue.map(t => t.categoryName || t.trackName || t.category))).length,
                             totalAllocatedTeams: filteredQueue.length,
                             evaluatedCount: filteredQueue.filter(t => t.submissionState === 'EVALUATED').length
@@ -79,7 +80,8 @@ const EvaluatorDashboard = () => {
                 id: r.id,
                 name: r.name,
                 gradingDeadlineAt: r.gradingDeadlineAt,
-                roundFormat: r.format || 'Not Specified'
+                roundFormat: r.format || 'Not Specified',
+                status: r.status
             };
         });
     } else {
@@ -90,7 +92,8 @@ const EvaluatorDashboard = () => {
                     id: t.roundId,
                     name: rName,
                     gradingDeadlineAt: t.gradingDeadlineAt,
-                    roundFormat: t.roundFormat || t.round?.roundFormat || 'Not Specified'
+                    roundFormat: t.roundFormat || t.round?.roundFormat || 'Not Specified',
+                    status: t.status
                 };
             }
         });
@@ -162,7 +165,7 @@ const EvaluatorDashboard = () => {
 
     return (
         <div className="evaluator-container">
-            <div style={{padding: '20px', maxWidth: 1200, margin: 'auto'}}><LatestAnnouncements/></div>
+            <div style={{ padding: '20px', maxWidth: 1200, margin: 'auto' }}><LatestAnnouncements /></div>
             <div className="evaluator-content">
                 {!selectedContest ? (
                     <div className="contest-list-view">
@@ -191,20 +194,12 @@ const EvaluatorDashboard = () => {
                                     const evalTeams = teamsInContest.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length;
                                     const isClosed = c.status === 'CLOSED';
                                     return (
-                                        <div key={c.id} style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={() => setSelectedContest(c.id.toString())} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
+                                        <div key={c.id} style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={() => { setSelectedContest(c.id.toString()); sessionStorage.setItem('judgeSelectedContest', c.id.toString()); }} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                                                 <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.name}</h3>
                                                 <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.status || 'ACTIVE'}</span>
                                             </div>
                                             <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{totalTeams}</span>
-                                                    <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Teams</span>
-                                                </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{evalTeams}</span>
-                                                    <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Evaluated</span>
-                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -224,7 +219,7 @@ const EvaluatorDashboard = () => {
                                         <p className="evaluator-subtitle">Welcome back. Here is the real-time progress of your assigned teams.</p>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <button onClick={() => setSelectedContest('')} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                                        <button onClick={() => { setSelectedContest(''); sessionStorage.removeItem('judgeSelectedContest'); }} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                                             Back to Contests
                                         </button>
@@ -239,10 +234,9 @@ const EvaluatorDashboard = () => {
                                         </div>
                                         {(() => {
                                             if (!selectedContest) return null;
-                                            const teams = dashboardData.queue?.filter(t => t.contestId == selectedContest) || [];
-                                            const allEval = teams.length > 0 && teams.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
-                                            const statusText = allEval ? 'Completed' : 'Active';
-                                            const badgeStyles = allEval ? { bg: '#dbeafe', color: '#1e3a8a', border: '#bfdbfe' } : { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+                                            const selectedC = dashboardData?.contests?.find(c => c.id.toString() === selectedContest);
+                                            const statusText = selectedC?.status || 'UNKNOWN';
+                                            const badgeStyles = statusText === 'CLOSED' ? { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' } : { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
                                             return (
                                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
                                                     <span style={{ fontSize: '12px', color: '#64748b' }}>Overall Status:</span>
@@ -258,24 +252,13 @@ const EvaluatorDashboard = () => {
                                         <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Round</span>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                             {allRounds.map((r, idx) => {
-                                                const teamsInRound = dashboardData.queue?.filter(t => (t.roundName || t.phaseName || t.round?.roundName) === r.name) || [];
-                                                const now = new Date();
-                                                const deadline = r.gradingDeadlineAt ? new Date(r.gradingDeadlineAt) : null;
-                                                const allEvaluated = teamsInRound.length > 0 && teamsInRound.every(t => t.submissionState?.toUpperCase() === 'EVALUATED');
-
-                                                let statusText = 'Grading';
+                                                const statusText = r.status || 'UNKNOWN';
                                                 let badgeStyles = { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
 
-                                                if (deadline && now > deadline) {
-                                                    statusText = 'Closed';
+                                                if (statusText === 'CLOSED') {
                                                     badgeStyles = { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
-                                                } else if (allEvaluated) {
-                                                    statusText = 'Completed';
-                                                    badgeStyles = { bg: '#dbeafe', color: '#1e3a8a', border: '#bfdbfe' };
                                                 }
-
                                                 const isActive = selectedRound === r.name;
-
                                                 return (
                                                     <div
                                                         key={idx}
@@ -298,8 +281,8 @@ const EvaluatorDashboard = () => {
                                                     >
                                                         <div style={{ fontSize: '13px', fontWeight: 600, color: isActive ? '#1e3a8a' : '#334155' }}>{r.name}</div>
                                                         <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: badgeStyles.bg, color: badgeStyles.color, border: `1px solid ${badgeStyles.border}`, alignSelf: 'flex-start' }}>
-                                                    {statusText}
-                                                </span>
+                                                            {statusText}
+                                                        </span>
                                                     </div>
                                                 );
                                             })}
@@ -325,21 +308,15 @@ const EvaluatorDashboard = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
                                         {timeStatus && timeStatus === 'OPEN' && (
                                             <span className="stat-val" style={{ fontSize: '18px', color: '#16a34a', display: 'block', marginBottom: '12px', textAlign: 'center' }}>
-                                        Closes in: {timeLeft}
-                                    </span>
+                                                Closes in: {timeLeft}
+                                            </span>
                                         )}
                                         {timeStatus && timeStatus === 'CLOSED' && (
                                             <span className="stat-val" style={{ fontSize: '18px', color: '#ef4444', display: 'block', marginBottom: '12px', textAlign: 'center' }}>
-                                        Grading Ended
-                                    </span>
+                                                Grading Ended
+                                            </span>
                                         )}
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', width: '100%' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <span>Status:</span>
-                                                <span style={{ fontWeight: 600, color: timeStatus === 'OPEN' ? '#334155' : '#ef4444' }}>
-                                            {timeStatus === 'OPEN' ? 'Available for Grading' : 'Closed'}
-                                        </span>
-                                            </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <span>Closes:</span>
                                                 <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingDeadlineAt, 'No Date Set', 'Invalid Date')}</span>
@@ -347,8 +324,8 @@ const EvaluatorDashboard = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                 <span>Format:</span>
                                                 <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                                            {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
-                                        </span>
+                                                    {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
+                                                </span>
                                             </div>
                                             {roundMap[selectedRound]?.id && (
                                                 <button
@@ -369,7 +346,7 @@ const EvaluatorDashboard = () => {
                                         <span className="stat-label" style={{ marginBottom: 0 }}>TOTAL ALLOCATED TEAMS</span>
                                         <div className="stat-icon" style={{ margin: 0 }}>
                                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                             </svg>
                                         </div>
                                     </div>
@@ -429,14 +406,15 @@ const EvaluatorDashboard = () => {
                                             className="round-txt">{team.roundName || team.phaseName || team.round?.roundName}</span>
                                         </td>
                                         <td><span className={`status-pill ${team.submissionState?.toUpperCase() === 'EVALUATED' ? 'pill-evaluated' : team.submissionState?.toUpperCase() === 'SUBMITTED' ? 'pill-submitted' : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? 'pill-not-submitted' : 'pill-pending')}`}>
-                                     {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'MISSED_DEADLINE' ? 'Not Submitted' : team.submissionState)}
-                                     </span>
+                                                {team.submissionState === 'SUBMITTED' ? 'Submitted' : (team.submissionState === 'MISSED_DEADLINE' ? 'Not Submitted' : team.submissionState)}
+                                            </span>
                                         </td>
                                         <td className="score-cell">
                                             {team.score !== undefined && team.score !== null ? team.score : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
                                         </td>
                                         <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
-                                            <button className="evaluate-btn" style={{ background: '#f1f5f9',
+                                            <button className="evaluate-btn" style={{
+                                                background: '#f1f5f9',
                                                 color: '#334155', cursor: 'not-allowed', border: '1px solid #cbd5e1'
                                             }} disabled>Already Evaluated</button>
                                         ) : (
@@ -459,7 +437,8 @@ const EvaluatorDashboard = () => {
 
                                                 if (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE') {
                                                     return (
-                                                        <button className="evaluate-btn" style={{ background: '#ef4444',
+                                                        <button className="evaluate-btn" style={{
+                                                            background: '#ef4444',
                                                             color: 'white', border: 'none'
                                                         }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
                                                             Evaluate</button>
@@ -482,7 +461,6 @@ const EvaluatorDashboard = () => {
                     </>
                 )}
             </div>
-
             {previewRoundId && (
                 <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
             )}
