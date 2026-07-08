@@ -214,7 +214,9 @@ const PanelAllocation = () => {
             } else {
                 newTeams.push(Number(teamId));
             }
-            return { ...prev, [expertKey]: { ...expertAlloc,
+            return {
+                ...prev, [expertKey]: {
+                    ...expertAlloc,
                     [roundCategoryId]: { ...trackAlloc, mentoredTeamIds: newTeams }
                 }
             };
@@ -227,7 +229,9 @@ const PanelAllocation = () => {
             const expertKey = String(selectedExpertId);
             const expertAlloc = prev[expertKey] || {};
             const trackAlloc = expertAlloc[roundCategoryId] || { isJudge: false, mentoredTeamIds: [] };
-            return { ...prev, [expertKey]: { ...expertAlloc,
+            return {
+                ...prev, [expertKey]: {
+                    ...expertAlloc,
                     [roundCategoryId]: { ...trackAlloc, isJudge: !trackAlloc.isJudge }
                 }
             };
@@ -268,7 +272,7 @@ const PanelAllocation = () => {
     const handleNotifyExperts = async () => {
         if (!selectedRoundId) return alert("Please select Round.");
         if (!window.confirm("Bạn có chắc chắn muốn gửi email thông báo phân công cho tất cả chuyên gia trong vòng thi này không?")) return;
-        
+
         setIsSendingMail(true);
         try {
             const response = await fetch(`${API_BASE}/admin/contests/allocations/notify?roundId=${selectedRoundId}`, {
@@ -457,9 +461,9 @@ const PanelAllocation = () => {
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 className="panel-title overview-title" style={{ margin: 0 }}>Live Status Overview</h3>
                         {selectedRoundId && (overviewJudges.length > 0 || overviewMentors.length > 0) && (
-                            <button 
-                                className="btn-notify" 
-                                onClick={handleNotifyExperts} 
+                            <button
+                                className="btn-notify"
+                                onClick={handleNotifyExperts}
                                 disabled={isSendingMail}
                                 style={{
                                     backgroundColor: '#0056b3',
@@ -524,7 +528,15 @@ const PanelAllocation = () => {
                                     <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
                                         <td><span className="badge-mentor">MENTOR</span></td>
                                         <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
-                                        <td><span className="scope-mentor">{mentorData.teams.join(', ')}</span></td>
+                                        <td>
+                                            <div className="mentor-teams-badge-wrap">
+                                                {mentorData.teams.map((teamName, tIdx) => (
+                                                    <span key={tIdx} className="scope-mentor-tag">
+                                                        {teamName}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
