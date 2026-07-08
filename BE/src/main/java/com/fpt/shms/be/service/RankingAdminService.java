@@ -301,6 +301,11 @@ public class RankingAdminService {
             throw new IllegalArgumentException("Leaderboard must be generated before publishing");
         }
 
+        if (round.getPublishResultAt() == null || round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+            round.setPublishResultAt(LocalDateTime.now());
+            roundRepository.save(round);
+        }
+
         for (RankingResult rr : results) {
             rr.setDatePublishedAt(LocalDateTime.now());
             rankingResultRepository.save(rr);
