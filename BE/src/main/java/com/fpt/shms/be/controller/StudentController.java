@@ -112,7 +112,6 @@ public class StudentController {
                         map.put("maxTeamMembers", c.getMaxTeamMembers());
                         map.put("description", c.getDescription());
                         map.put("location", c.getLocation());
-                        map.put("regionScope", c.getRegionScope());
                         map.put("tieredPrizeStructures", c.getTieredPrizeStructures());
                         java.util.List<String> categoryNames = categoryRepository.findByContestId(c.getId())
                                 .stream()
