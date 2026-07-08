@@ -29,6 +29,7 @@ const EvaluatorDashboard = () => {
     const [timeLeft, setTimeLeft] = useState('');
     const [timeStatus, setTimeStatus] = useState('');
     const [previewRoundId, setPreviewRoundId] = useState(null);
+    const [previewContestId, setPreviewContestId] = useState(null);
     const [contestSearchQuery, setContestSearchQuery] = useState('');
 
     useEffect(() => {
@@ -199,7 +200,16 @@ const EvaluatorDashboard = () => {
                                                 <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.name}</h3>
                                                 <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.status || 'ACTIVE'}</span>
                                             </div>
-                                            <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                                            <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end' }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPreviewContestId(c.id);
+                                                    }}
+                                                    style={{ padding: '6px 12px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    View Contest Info
+                                                </button>
                                             </div>
                                         </div>
                                     );
@@ -332,7 +342,7 @@ const EvaluatorDashboard = () => {
                                                     onClick={() => setPreviewRoundId(roundMap[selectedRound].id)}
                                                     style={{ marginTop: '8px', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                                                 >
-                                                    View Details
+                                                    View Requirements & Rubric
                                                 </button>
                                             )}
                                         </div>
@@ -410,7 +420,7 @@ const EvaluatorDashboard = () => {
                                             </span>
                                         </td>
                                         <td className="score-cell">
-                                            {team.score !== undefined && team.score !== null ? team.score : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
+                                            {team.score !== undefined && team.score !== null ? Number(team.score).toFixed(2) : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
                                         </td>
                                         <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
                                             <button className="evaluate-btn" style={{
@@ -462,7 +472,10 @@ const EvaluatorDashboard = () => {
                 )}
             </div>
             {previewRoundId && (
-                <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
+                <RoundDetailsModal roundId={previewRoundId} mode="round" onClose={() => setPreviewRoundId(null)} />
+            )}
+            {previewContestId && (
+                <RoundDetailsModal contestId={previewContestId} mode="contest" onClose={() => setPreviewContestId(null)} />
             )}
         </div>
     );

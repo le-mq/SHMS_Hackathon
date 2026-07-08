@@ -151,7 +151,7 @@ export default function PublicHome() {
         return () => { cancelled = true; };
     }, []);
 
-    const { contests = [], universities = [], geographicScopes = [] } = data || {};
+    const { contests = [], universities = [] } = data || {};
     const filteredContests = useMemo(() => {
         if (!searchTerm.trim()) {
             return contests.filter(c => c.status === 'ACTIVED' || c.status === 'UPCOMING');
@@ -245,10 +245,6 @@ export default function PublicHome() {
                                     <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Location</h4>
                                         <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.location || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Region Scope</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.regionScope || '—'}</div>
                                     </div>
                                     <div>
                                         <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Team Size</h4>
@@ -377,22 +373,6 @@ export default function PublicHome() {
                             </div>
                         ))}
                         {universities.length === 0 && <p style={{ textAlign: 'center', color: '#888' }}>No universities found.</p>}
-                    </div>
-                </div>
-            </section>
-
-            <section className="ph-section ph-section-alt">
-                <div className="ph-container">
-                    <div className="ph-section-header" style={{ textAlign: 'center' }}>
-                        <h2>Geographic Scopes</h2>
-                    </div>
-                    <div className="ph-scopes-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
-                        {geographicScopes.map(scope => (
-                            <div key={scope} className="ph-scope-btn active" style={{ cursor: 'default' }}>
-                                <span className="ph-scope-label">{scope}</span>
-                            </div>
-                        ))}
-                        {geographicScopes.length === 0 && <p style={{ textAlign: 'center', color: '#888' }}>No scopes found.</p>}
                     </div>
                 </div>
             </section>

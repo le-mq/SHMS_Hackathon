@@ -270,6 +270,11 @@
     background: #f8fafc;
 }
 
+.teams-table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
 .teams-table {
     width: 100%;
     border-collapse: collapse;
@@ -285,6 +290,7 @@
     color: #334155;
     border-bottom: 2px solid #cbd5e1;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .feedback-badge {

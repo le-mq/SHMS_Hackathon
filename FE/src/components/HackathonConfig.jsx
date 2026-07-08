@@ -103,7 +103,7 @@ function HackathonConfig() {
     }, []);
     const formik = useFormik({
         initialValues: {
-            name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(), regionScope: 'Ha Noi',
+            name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(),
             maximumAllowedTeams: 100, minTeamMembers: 3, maxTeamMembers: 5, registrationStart: '', registrationEnd: '', contestEndAt: '',
             complianceRules: [{rule: '', penalty: ''}], tieredPrizeStructures: [{rank: '', amount: ''}], status: 'UNSAVED',
             location: '', contestStartAt: '', publishedAt: '', universities: [],
@@ -116,7 +116,7 @@ function HackathonConfig() {
             name: Yup.string().required('Event Name is required'),
             theme: Yup.string().required('Theme is required'),
             year: Yup.number().required('Year is required'),
-            regionScope: Yup.string().required('Region Scope is required'),
+
             maximumAllowedTeams: Yup.number().min(1, 'Must be at least 1').required('Required'),
             minTeamMembers: Yup.number().min(1, 'Must be at least 1').required('Required').test('min-max-check', 'Min must be <= Max', function(val) {
                 const max = this.parent.maxTeamMembers;
@@ -235,7 +235,12 @@ function HackathonConfig() {
                     })
                 });
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to create contest configuration');
+                if (!response.ok) {
+                    if (data.errors && Array.isArray(data.errors)) {
+                        throw new Error(data.errors.map(e => e.defaultMessage || e.field).join(', '));
+                    }
+                    throw new Error(data.message || data.error || 'Failed to create contest configuration');
+                }
                 if (!currentContestId) currentContestId = data.contestId;
                 setSelectedContestId(currentContestId);
                 for (const category of values.categories) {
@@ -397,7 +402,7 @@ function HackathonConfig() {
                 formik.setValues({
                     name: data.name || '', theme: data.theme || '',
                     term: data.term || 'Auto setup', year: data.year || new Date().getFullYear(),
-                    regionScope: data.regionScope || 'Ha Noi', maximumAllowedTeams: data.maximumAllowedTeams || 100,
+                    maximumAllowedTeams: data.maximumAllowedTeams || 100,
                     minTeamMembers: data.minTeamMembers || 3, maxTeamMembers: data.maxTeamMembers || 5,
                     registrationStart: data.registrationStart ? data.registrationStart.slice(0, 10) : '',
                     registrationEnd: data.registrationEnd ? data.registrationEnd.slice(0, 10) : '',
@@ -540,13 +545,6 @@ function HackathonConfig() {
                                         <Form.Label className="form-label">Location <span style={{color: 'red'}}>*</span></Form.Label>
                                         <Form.Control type="text" name="location" className="form-input" placeholder="e.g. FPT University, Campus HCM" value={formik.values.location} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.location && !!formik.errors.location} disabled={isClosedContest}/>
                                         <Form.Control.Feedback type="invalid">{formik.errors.location}</Form.Control.Feedback>
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Region Scope <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Select name="regionScope" className="form-select" value={formik.values.regionScope} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.regionScope && !!formik.errors.regionScope} disabled={isClosedContest}>
-                                            <option value="Ha Noi">Ha Noi</option><option value="Da Nang">Da Nang</option><option value="Ho Chi Minh">Ho Chi Minh</option><option value="Can Tho">Can Tho</option><option value="Quy Nhon">Quy Nhon</option>
-                                        </Form.Select>
-                                        <Form.Control.Feedback type="invalid">{formik.errors.regionScope}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
                                         <Form.Label className="form-label">Maximum Allowed Teams <span style={{color: 'red'}}>*</span></Form.Label>
