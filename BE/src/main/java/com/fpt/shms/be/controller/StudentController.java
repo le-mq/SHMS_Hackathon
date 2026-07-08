@@ -112,6 +112,7 @@ public class StudentController {
                         map.put("maxTeamMembers", c.getMaxTeamMembers());
                         map.put("description", c.getDescription());
                         map.put("location", c.getLocation());
+                        map.put("regionScope", c.getRegionScope());
                         map.put("tieredPrizeStructures", c.getTieredPrizeStructures());
                         java.util.List<String> categoryNames = categoryRepository.findByContestId(c.getId())
                                 .stream()
@@ -226,6 +227,19 @@ public class StudentController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             return ResponseEntity.ok(teamService.getTeamStatus(username, contestId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @GetMapping("/teams/all-forming")
+    @Operation(summary = "Get All Forming Teams Status", description = "Returns team status for all forming teams.")
+    public ResponseEntity<?> getAllFormingTeamsStatus(HttpServletRequest request) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            return ResponseEntity.ok(teamService.getAllFormingTeamsStatus(username));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
