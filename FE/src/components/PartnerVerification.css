@@ -32,7 +32,7 @@
     border-radius: 12px;
     border: 1px solid #e5e7eb;
     margin-bottom: 24px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
@@ -91,7 +91,7 @@
 }
 
 .partners-table td {
-    padding: 16px 24px;
+    padding: 18px 24px;
     border-bottom: 1px solid #e5e7eb;
     vertical-align: middle;
 }
@@ -316,4 +316,89 @@
     border-radius: 6px;
     margin-bottom: 20px;
     font-size: 13px;
+}
+
+/* Zebra Striping and Hover styles */
+.partners-table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.partners-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.partners-table tbody tr:hover {
+    background-color: #eef6ff !important;
+    transition: background-color 0.2s ease;
+}
+
+/* Centered cells */
+.partners-table td.checkbox-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.partners-table td.checkbox-cell input[type="checkbox"] {
+    margin: 0 auto;
+    display: inline-block;
+}
+
+.partners-table td.actions-td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.partners-table td.actions-td .actions-cell {
+    justify-content: center;
+}
+
+/* Sticky Footer */
+.sticky-footer {
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 0;
+    background-color: #ffffff;
+    border-top: 2px solid #e5e7eb;
+    z-index: 99;
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Toast Notification Styles */
+.toast-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #E8F8EF;
+    border: 1px solid #2ECC71;
+    color: #1E8449;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-notification.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

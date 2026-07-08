@@ -2,25 +2,32 @@ import { useState, useEffect, useRef } from 'react';
 import './PartnerVerification.css';
 
 const API_BASE = "http://localhost:8080/api/v1";
+
 const PartnerVerification = () => {
     const [partners, setPartners] = useState([]);
     const [students, setStudents] = useState([]);
     const [selectedStudentPartner, setSelectedStudentPartner] = useState('');
 
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+
+    const [partnerErrors, setPartnerErrors] = useState({});
+    const [protocolSuccess, setProtocolSuccess] = useState('');
+    const [partnerAddSuccess, setPartnerAddSuccess] = useState('');
 
     const [studentError, setStudentError] = useState('');
     const [studentSuccess, setStudentSuccess] = useState('');
-    const [toastFadeOut, setToastFadeOut] = useState(false);
+    const [studentAddSuccess, setStudentAddSuccess] = useState('');
+
     const [isSavingStudents, setIsSavingStudents] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
 
     const [newStudent, setNewStudent] = useState({ studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true });
     const [newStudentErrors, setNewStudentErrors] = useState({});
 
     const studentFooterRef = useRef(null);
     const newStudentIdRef = useRef(null);
+    const addStudentFormRef = useRef(null);
+
     useEffect(() => {
         fetchPartners();
     }, []);
@@ -31,10 +38,14 @@ const PartnerVerification = () => {
         } else {
             setStudents([]);
         }
-        setError('');
-        setSuccess('');
+        setPartnerErrors({});
+        setProtocolSuccess('');
+        setPartnerAddSuccess('');
         setStudentError('');
         setStudentSuccess('');
+        setStudentAddSuccess('');
+        setNewStudentErrors({});
+        setShowAddForm(false);
     }, [selectedStudentPartner]);
 
     const fetchPartners = async () => {
@@ -75,39 +86,71 @@ const PartnerVerification = () => {
 
     const handlePartnerChange = (id, field, value) => {
         setPartners(partners.map(p => p.ui_id === id ? { ...p, [field]: value } : p));
-        setError('');
-        setSuccess('');
+        if (partnerErrors[id]?.[field]) {
+            setPartnerErrors(prev => ({
+                ...prev,
+                [id]: { ...prev[id], [field]: '' }
+            }));
+        }
+        setProtocolSuccess('');
     };
 
     const handleAddPartner = () => {
         const newId = `temp-${Date.now()}`;
-        setPartners([
-            ...partners,
-            { ui_id: newId, name: 'New Partner University', universityCode: '', emailRegex: '^[a-zA-Z0-9._%+-]+@example\\.edu\\.vn$', studentCodeRegex: '^\\d+$' }
-        ]);
+        const defaultName = 'New Partner University';
+
+        const newPartner = {
+            ui_id: newId,
+            name: defaultName,
+            universityCode: '',
+            emailRegex: '^[a-zA-Z0-9._%+-]+@example\\.edu\\.vn$',
+            studentCodeRegex: '^\\d+$',
+            isJustAdded: true
+        };
+
+        setPartners([newPartner, ...partners]);
+        setProtocolSuccess('');
+        setTimeout(() => setPartnerAddSuccess(''), 3000);
     };
 
     const handleDeletePartner = (id) => {
         setPartners(prev => prev.filter(p => p.ui_id !== id));
+        if (partnerErrors[id]) {
+            setPartnerErrors(prev => {
+                const copy = { ...prev };
+                delete copy[id];
+                return copy;
+            });
+        }
     };
 
     const handleApply = async () => {
         setIsLoading(true);
-        setError('');
-        setSuccess('');
+        setProtocolSuccess('');
 
-        // Validation
+        const errors = {};
+        let hasError = false;
+
         for (let p of partners) {
+            const currentErrors = {};
             if (!p.name || !p.name.trim()) {
-                setError('Partner institution name is required.');
-                setIsLoading(false);
-                return;
+                currentErrors.name = 'Institution name is required.';
+                hasError = true;
             }
             if (!p.universityCode || !p.universityCode.trim()) {
-                setError(`University code is required for ${p.name}.`);
-                setIsLoading(false);
-                return;
+                currentErrors.universityCode = 'University code is required.';
+                hasError = true;
             }
+
+            if (Object.keys(currentErrors).length > 0) {
+                errors[p.ui_id] = currentErrors;
+            }
+        }
+
+        if (hasError) {
+            setPartnerErrors(errors);
+            setIsLoading(false);
+            return;
         }
 
         try {
@@ -129,14 +172,19 @@ const PartnerVerification = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || 'Failed to apply settings.');
+                alert(data.error || 'Failed to apply settings.');
             } else {
-                setSuccess('Verification settings saved successfully.');
+                setProtocolSuccess('Verification settings saved successfully.');
+                setPartners(prev => prev.map(item => ({ ...item, isJustAdded: false })));
+                setPartnerErrors({});
                 fetchPartners();
+                setTimeout(() => setProtocolSuccess(''), 3000);
             }
         } catch {
             localStorage.setItem("universities", JSON.stringify(partners));
-            setSuccess("Saved locally (Mock API)");
+            setProtocolSuccess("Saved locally (Mock API)");
+            setPartnerErrors({});
+            setTimeout(() => setProtocolSuccess(''), 3000);
         } finally {
             setIsLoading(false);
         }
@@ -147,7 +195,13 @@ const PartnerVerification = () => {
             setStudentError('Please select a partner institution first.');
             return;
         }
-        newStudentIdRef.current?.focus();
+        setStudentError('');
+        setShowAddForm(true);
+
+        setTimeout(() => {
+            addStudentFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newStudentIdRef.current?.focus();
+        }, 80);
     };
 
     const handleNewStudentChange = (field, value) => {
@@ -164,26 +218,23 @@ const PartnerVerification = () => {
         const errors = {};
         const partner = partners.find(p => String(p.ui_id) === String(selectedStudentPartner));
 
-        // 1. Student ID
         if (!newStudent.studentCode || !newStudent.studentCode.trim()) {
             errors.studentCode = 'Student ID is required.';
         } else if (partner?.studentCodeRegex) {
             try {
                 const regex = new RegExp(partner.studentCodeRegex);
                 if (!regex.test(newStudent.studentCode.trim())) {
-                    errors.studentCode = `Must match format: ${partner.studentCodeRegex}`;
+                    errors.studentCode = `Format error (Expected: ${partner.studentCodeRegex})`;
                 }
             } catch (e) {
                 console.error(e);
             }
         }
 
-        // 2. Full Name
         if (!newStudent.fullName || !newStudent.fullName.trim()) {
             errors.fullName = 'Full Name is required.';
         }
 
-        // 3. Email
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!newStudent.corporateEmail || !newStudent.corporateEmail.trim()) {
             errors.corporateEmail = 'Email is required.';
@@ -193,21 +244,15 @@ const PartnerVerification = () => {
             try {
                 const regex = new RegExp(partner.emailRegex);
                 if (!regex.test(newStudent.corporateEmail.trim())) {
-                    errors.corporateEmail = `Must match university pattern: ${partner.emailRegex}`;
+                    errors.corporateEmail = `Must match university domain logic.`;
                 }
             } catch (e) {
                 console.error(e);
             }
         }
 
-        // 4. Major
         if (!newStudent.major || !newStudent.major.trim()) {
             errors.major = 'Major is required.';
-        }
-
-        // 5. IsCurrentStudent = true
-        if (newStudent.isCurrentStudent !== true) {
-            errors.isCurrentStudent = 'Must be true.';
         }
 
         if (Object.keys(errors).length > 0) {
@@ -215,20 +260,26 @@ const PartnerVerification = () => {
             return;
         }
 
-        // Add to list
         const newRecord = {
             ui_id: `temp-${Date.now()}`,
             studentCode: newStudent.studentCode.trim(),
             fullName: newStudent.fullName.trim(),
             corporateEmail: newStudent.corporateEmail.trim(),
             major: newStudent.major.trim(),
-            isCurrentStudent: true
+            isCurrentStudent: true,
+            isJustAdded: true
         };
 
-        setStudents([...students, newRecord]);
-        // Reset form
+        setStudents([newRecord, ...students]);
+
+        setStudentAddSuccess(`Added student ${newRecord.fullName} successfully!`);
+        setStudentSuccess('');
+        setStudentError('');
+        setTimeout(() => setStudentAddSuccess(''), 3000);
+
         setNewStudent({ studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true });
         setNewStudentErrors({});
+        setShowAddForm(false);
     };
 
     const handleStudentChange = (id, field, value) => {
@@ -244,20 +295,21 @@ const PartnerVerification = () => {
     const handleSaveStudents = async () => {
         setStudentError('');
         setStudentSuccess('');
+        setIsSavingStudents(true);
+
         if (!selectedStudentPartner) {
-            setStudentError('Please select a partner institution first.');
-            setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+            setTimeout(() => setStudentError('Please select a partner institution first.'), 3000);
+            setIsSavingStudents(false);
             return;
         }
 
         const token = localStorage.getItem('shms_token');
         const partnerName = partners.find(p => String(p.ui_id) === String(selectedStudentPartner))?.name || '';
 
-        // Validation
         for (let s of students) {
             if (!s.studentCode || !s.studentCode.trim()) {
                 setStudentError('Student ID is required for all records.');
-                setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+                setIsSavingStudents(false);
                 return;
             }
         }
@@ -283,14 +335,8 @@ const PartnerVerification = () => {
 
             if (response.ok) {
                 setStudentSuccess('Student directory saved successfully.');
-                setToastFadeOut(false);
-                setTimeout(() => {
-                    setToastFadeOut(true);
-                    setTimeout(() => {
-                        setStudentSuccess('');
-                        setToastFadeOut(false);
-                    }, 300);
-                }, 3700);
+                setStudents(prev => prev.map(item => ({ ...item, isJustAdded: false })));
+                setTimeout(() => setStudentSuccess(''), 3000);
             } else {
                 const data = await response.json();
                 setStudentError(data.error || 'Failed to save directory.');
@@ -299,38 +345,34 @@ const PartnerVerification = () => {
             setStudentError('Server connection failed.');
         } finally {
             setIsSavingStudents(false);
-            setTimeout(() => studentFooterRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
         }
     };
 
     return (
         <div className="admin-container">
-            {studentSuccess && (
-                <div className={`toast-notification ${toastFadeOut ? 'fade-out' : ''}`}>
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#2ECC71' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>{studentSuccess}</span>
-                </div>
-            )}
-
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Partner Verification Settings</h1>
                     <p className="config-subtitle">Configure university code, domains, and student verification protocols globally.</p>
                 </div>
 
-                {error && <div className="alert-box alert-error">{error}</div>}
-                {success && <div className="alert-box alert-success">{success}</div>}
-
-                <div className="main-card">
+                <div className="main-card" style={{ overflow: 'visible' }}>
                     <div className="card-header-flex">
                         <div>
                             <h2 className="card-title-main">Verification Protocols</h2>
                             <p className="card-subtitle-main">Global settings for academic partner validation.</p>
                         </div>
-                        <button className="add-partner-btn" onClick={handleAddPartner}>
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                            Add Partner
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {partnerAddSuccess && (
+                                <span style={{ color: '#16a34a', background: '#f0fdf4', padding: '6px 12px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '650', border: '1px solid #bbf7d0' }}>
+                                    {partnerAddSuccess}
+                                </span>
+                            )}
+                            <button className="add-partner-btn" onClick={handleAddPartner}>
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                Add Partner
+                            </button>
+                        </div>
                     </div>
 
                     <table className="partners-table">
@@ -351,27 +393,40 @@ const PartnerVerification = () => {
                                             <div className="institution-avatar">
                                                 {p.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <input
-                                                type="text"
-                                                className="table-input institution-input"
-                                                value={p.name}
-                                                onChange={(e) => handlePartnerChange(p.ui_id, 'name', e.target.value)}
-                                            />
+                                            <div style={{ width: '100%' }}>
+                                                <input
+                                                    type="text"
+                                                    className="table-input institution-input"
+                                                    style={{
+                                                        fontWeight: p.isJustAdded ? '700' : '600',
+                                                        borderBottom: partnerErrors[p.ui_id]?.name ? '1.5px solid #ef4444' : ''
+                                                    }}
+                                                    value={p.name}
+                                                    onChange={(e) => handlePartnerChange(p.ui_id, 'name', e.target.value)}
+                                                />
+                                                {partnerErrors[p.ui_id]?.name && <span style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '4px', display: 'block' }}>{partnerErrors[p.ui_id].name}</span>}
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
                                         <input
                                             type="text"
                                             className="table-input"
+                                            style={{
+                                                fontWeight: p.isJustAdded ? '700' : '400',
+                                                border: partnerErrors[p.ui_id]?.universityCode ? '1.5px solid #ef4444' : ''
+                                            }}
                                             placeholder="e.g. FPT-HCMC"
                                             value={p.universityCode || ''}
                                             onChange={(e) => handlePartnerChange(p.ui_id, 'universityCode', e.target.value)}
                                         />
+                                        {partnerErrors[p.ui_id]?.universityCode && <span style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '4px', display: 'block' }}>{partnerErrors[p.ui_id].universityCode}</span>}
                                     </td>
                                     <td>
                                         <input
                                             type="text"
                                             className="table-input"
+                                            style={{ fontWeight: p.isJustAdded ? '700' : '400' }}
                                             value={p.emailRegex || ''}
                                             onChange={(e) => handlePartnerChange(p.ui_id, 'emailRegex', e.target.value)}
                                         />
@@ -380,6 +435,7 @@ const PartnerVerification = () => {
                                         <input
                                             type="text"
                                             className="table-input"
+                                            style={{ fontWeight: p.isJustAdded ? '700' : '400' }}
                                             value={p.studentCodeRegex || ''}
                                             onChange={(e) => handlePartnerChange(p.ui_id, 'studentCodeRegex', e.target.value)}
                                         />
@@ -396,10 +452,20 @@ const PartnerVerification = () => {
                         </tbody>
                     </table>
 
-                    <div className="table-footer">
-                        <div className="footer-info">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Save carefully! Removing an existing university will also disable it for users.
+                    <div className="table-footer sticky-footer">
+                        <div className="footer-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
+                            {protocolSuccess && (
+                                <span style={{ color: '#16a34a', background: '#f0fdf4', padding: '8px 14px', borderRadius: '6px', fontSize: '0.95rem', fontWeight: '650', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #bbf7d0' }}>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {protocolSuccess}
+                                </span>
+                            )}
+                            {!protocolSuccess && (
+                                <>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Save carefully! Removing an existing university will also disable it for users.
+                                </>
+                            )}
                         </div>
                         <div className="footer-actions">
                             <button className="apply-btn" onClick={handleApply} disabled={isLoading}>
@@ -409,7 +475,7 @@ const PartnerVerification = () => {
                     </div>
                 </div>
 
-                <div className="main-card" style={{ marginTop: '24px' }}>
+                <div className="main-card" style={{ marginTop: '24px', overflow: 'visible' }}>
                     <div className="card-header-flex">
                         <div>
                             <h2 className="card-title-main">Student Directory</h2>
@@ -420,6 +486,7 @@ const PartnerVerification = () => {
                             Add Student
                         </button>
                     </div>
+
                     <div style={{ padding: '0 24px 16px' }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Partner Institution</label>
                         <select
@@ -435,8 +502,8 @@ const PartnerVerification = () => {
                         </select>
                     </div>
 
-                    {selectedStudentPartner && (
-                        <div className="add-student-form" style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
+                    {selectedStudentPartner && showAddForm && (
+                        <div ref={addStudentFormRef} className="add-student-form" style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
                             <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#1f2937' }}>Add New Student</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.5fr 2fr 1fr auto auto', gap: '12px', alignItems: 'start' }}>
                                 <div>
@@ -444,21 +511,29 @@ const PartnerVerification = () => {
                                         ref={newStudentIdRef}
                                         type="text"
                                         className="table-input"
+                                        style={{
+                                            border: newStudentErrors.studentCode ? '1.5px solid #ef4444' : '',
+                                            fontWeight: newStudent.studentCode ? '600' : '400'
+                                        }}
                                         placeholder="Student ID"
                                         value={newStudent.studentCode}
                                         onChange={(e) => handleNewStudentChange('studentCode', e.target.value)}
                                     />
-                                    {newStudentErrors.studentCode && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.studentCode}</span>}
+                                    {newStudentErrors.studentCode && <span className="error-text" style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '6px', display: 'block' }}>{newStudentErrors.studentCode}</span>}
                                 </div>
                                 <div>
                                     <input
                                         type="text"
                                         className="table-input"
+                                        style={{
+                                            border: newStudentErrors.fullName ? '1.5px solid #ef4444' : '',
+                                            fontWeight: newStudent.fullName ? '600' : '400'
+                                        }}
                                         placeholder="Full Name"
                                         value={newStudent.fullName}
                                         onChange={(e) => handleNewStudentChange('fullName', e.target.value)}
                                     />
-                                    {newStudentErrors.fullName && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.fullName}</span>}
+                                    {newStudentErrors.fullName && <span className="error-text" style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '6px', display: 'block' }}>{newStudentErrors.fullName}</span>}
                                 </div>
                                 <div>
                                     <input
@@ -466,21 +541,29 @@ const PartnerVerification = () => {
                                         name="email"
                                         autoComplete="email"
                                         className="table-input"
+                                        style={{
+                                            border: newStudentErrors.corporateEmail ? '1.5px solid #ef4444' : '',
+                                            fontWeight: newStudent.corporateEmail ? '600' : '400'
+                                        }}
                                         placeholder="Email (e.g. nva@fpt.edu.vn)"
                                         value={newStudent.corporateEmail}
                                         onChange={(e) => handleNewStudentChange('corporateEmail', e.target.value)}
                                     />
-                                    {newStudentErrors.corporateEmail && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.corporateEmail}</span>}
+                                    {newStudentErrors.corporateEmail && <span className="error-text" style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '6px', display: 'block' }}>{newStudentErrors.corporateEmail}</span>}
                                 </div>
                                 <div>
                                     <input
                                         type="text"
                                         className="table-input"
+                                        style={{
+                                            border: newStudentErrors.major ? '1.5px solid #ef4444' : '',
+                                            fontWeight: newStudent.major ? '600' : '400'
+                                        }}
                                         placeholder="Major (e.g. SE)"
                                         value={newStudent.major}
                                         onChange={(e) => handleNewStudentChange('major', e.target.value)}
                                     />
-                                    {newStudentErrors.major && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.major}</span>}
+                                    {newStudentErrors.major && <span className="error-text" style={{ fontSize: '12px', color: '#b91c1c', fontWeight: '600', marginTop: '6px', display: 'block' }}>{newStudentErrors.major}</span>}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '38px' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
@@ -492,17 +575,21 @@ const PartnerVerification = () => {
                                         />
                                         Current
                                     </label>
-                                    {newStudentErrors.isCurrentStudent && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block', textAlign: 'center' }}>{newStudentErrors.isCurrentStudent}</span>}
                                 </div>
-                                <div>
-                                    <button 
-                                        type="button" 
-                                        className="add-partner-btn" 
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <button
+                                        type="button"
+                                        className="add-partner-btn"
                                         onClick={submitNewStudent}
                                         style={{ height: '38px', whiteSpace: 'nowrap' }}
                                     >
                                         Add Student
                                     </button>
+                                    {studentAddSuccess && (
+                                        <span style={{ color: '#16a34a', background: '#f0fdf4', padding: '6px 12px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '650', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' }}>
+                                            {studentAddSuccess}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -529,6 +616,7 @@ const PartnerVerification = () => {
                                             <input
                                                 type="text"
                                                 className="table-input"
+                                                style={{ fontWeight: s.isJustAdded ? '700' : '400' }}
                                                 placeholder="SE150000"
                                                 value={s.studentCode}
                                                 onChange={(e) => handleStudentChange(s.ui_id, 'studentCode', e.target.value)}
@@ -538,6 +626,7 @@ const PartnerVerification = () => {
                                             <input
                                                 type="text"
                                                 className="table-input"
+                                                style={{ fontWeight: s.isJustAdded ? '700' : '400' }}
                                                 placeholder="Nguyen Van A"
                                                 value={s.fullName}
                                                 onChange={(e) => handleStudentChange(s.ui_id, 'fullName', e.target.value)}
@@ -550,6 +639,7 @@ const PartnerVerification = () => {
                                                 autoComplete="email"
                                                 id={`email-${s.ui_id}`}
                                                 className="table-input"
+                                                style={{ fontWeight: s.isJustAdded ? '700' : '400' }}
                                                 placeholder="nva@fpt.edu.vn"
                                                 value={s.corporateEmail || ''}
                                                 onChange={(e) => handleStudentChange(s.ui_id, 'corporateEmail', e.target.value)}
@@ -559,10 +649,10 @@ const PartnerVerification = () => {
                                             <input
                                                 type="text"
                                                 className="table-input"
+                                                style={{ fontWeight: s.isJustAdded ? '700' : '400', width: '80px' }}
                                                 placeholder="SE"
                                                 value={s.major || ''}
                                                 onChange={(e) => handleStudentChange(s.ui_id, 'major', e.target.value)}
-                                                style={{ width: '80px' }}
                                             />
                                         </td>
                                         <td className="checkbox-cell">
@@ -592,15 +682,27 @@ const PartnerVerification = () => {
                             </tbody>
                         </table>
                     </form>
+
                     <div className="table-footer sticky-footer" ref={studentFooterRef}>
-                        <div className="footer-info" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                        <div className="footer-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
                             {studentError && (
-                                <span style={{ color: '#ef4444', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span style={{ color: '#d92727', background: '#fef2f2', padding: '8px 14px', borderRadius: '6px', fontSize: '0.95rem', fontWeight: '650', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #fca5a5' }}>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     {studentError}
                                 </span>
                             )}
-                            {!studentError && "Click Save Directory to commit changes to the database."}
+                            {studentSuccess && (
+                                <span style={{ color: '#16a34a', background: '#f0fdf4', padding: '8px 14px', borderRadius: '6px', fontSize: '0.95rem', fontWeight: '650', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #bbf7d0' }}>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {studentSuccess}
+                                </span>
+                            )}
+                            {!studentError && !studentSuccess && (
+                                <>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Click Save Directory to commit changes to the database.
+                                </>
+                            )}
                         </div>
                         <div className="footer-actions">
                             <button
