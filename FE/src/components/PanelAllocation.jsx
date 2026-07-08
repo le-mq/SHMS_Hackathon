@@ -16,6 +16,7 @@ const PanelAllocation = () => {
     const [allocations, setAllocations] = useState({});
     const [savedAllocations, setSavedAllocations] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [isSendingMail, setIsSendingMail] = useState(false);
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
@@ -264,6 +265,28 @@ const PanelAllocation = () => {
         }
     };
 
+    const handleNotifyExperts = async () => {
+        if (!selectedRoundId) return alert("Please select Round.");
+        if (!window.confirm("Bạn có chắc chắn muốn gửi email thông báo phân công cho tất cả chuyên gia trong vòng thi này không?")) return;
+        
+        setIsSendingMail(true);
+        try {
+            const response = await fetch(`${API_BASE}/admin/contests/allocations/notify?roundId=${selectedRoundId}`, {
+                method: "POST",
+                headers: headers
+            });
+            if (response.ok) {
+                alert("Email notifications have been queued to send!");
+            } else {
+                alert("Send Error");
+            }
+        } catch {
+            alert("Send Fail!");
+        } finally {
+            setIsSendingMail(false);
+        }
+    };
+
     const filteredExperts = useMemo(() =>
         experts.filter(e =>
             e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -431,8 +454,46 @@ const PanelAllocation = () => {
                 </div>
 
                 <div className="overview-panel">
-                    <div className="panel-header">
-                        <h3 className="panel-title overview-title">Live Status Overview</h3>
+                    <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 className="panel-title overview-title" style={{ margin: 0 }}>Live Status Overview</h3>
+                        {selectedRoundId && (overviewJudges.length > 0 || overviewMentors.length > 0) && (
+                            <button 
+                                className="btn-notify" 
+                                onClick={handleNotifyExperts} 
+                                disabled={isSendingMail}
+                                style={{
+                                    backgroundColor: '#0056b3',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: isSendingMail ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    transition: 'background-color 0.2s',
+                                    opacity: isSendingMail ? 0.7 : 1
+                                }}
+                            >
+                                {isSendingMail ? (
+                                    <>
+                                        <svg className="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="32" strokeLinecap="round" />
+                                        </svg>
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                        Notify Experts
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                     {!selectedRoundId ? (
                         <div className="panel-empty-text">
