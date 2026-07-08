@@ -432,9 +432,14 @@
 .result-comp-card-closed,
 .result-comp-card-ended,
 .result-comp-card-inactive {
-    opacity: 0.6;
     background: #f8fafc;
     border-color: #cbd5e1;
+}
+
+.result-comp-card-closed > *:not(.result-comp-actions),
+.result-comp-card-ended > *:not(.result-comp-actions),
+.result-comp-card-inactive > *:not(.result-comp-actions) {
+    opacity: 0.6;
 }
 
 .result-comp-card-closed:hover,
