@@ -484,9 +484,10 @@ const ProjectSubmission = () => {
             minute: '2-digit',
         })}.`
         : '';
-    const submitFeedbackMessage = error || successMessage || notEligibleMessage || closedRoundMessage || notOpenedRoundMessage;
-    const submitFeedbackType = error || notEligibleMessage || closedRoundMessage ? 'error' : notOpenedRoundMessage ? 'warning' : 'success';
-    const submitFeedbackVariant = notEligibleMessage || closedRoundMessage || notOpenedRoundMessage ? ' closed' : '';
+    const notLeaderMessage = hasLoadedSubmissionRole && !isTeamLeader ? 'Only the leader is allowed to submit the project.' : '';
+    const submitFeedbackMessage = error || successMessage || notLeaderMessage || notEligibleMessage || closedRoundMessage || notOpenedRoundMessage;
+    const submitFeedbackType = error || notLeaderMessage || notEligibleMessage || closedRoundMessage ? 'error' : notOpenedRoundMessage ? 'warning' : 'success';
+    const submitFeedbackVariant = notLeaderMessage || notEligibleMessage || closedRoundMessage || notOpenedRoundMessage ? ' closed' : '';
 
     useEffect(() => {
         if (!currentDeadline) {

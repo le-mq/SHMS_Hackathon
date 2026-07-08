@@ -1,4 +1,27 @@
 {
+  "universities": [
+    {
+      "id": 1,
+      "name": "FPT University",
+      "universityCode": "FPT",
+      "emailRegex": "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$",
+      "studentCodeRegex": "^[A-Z]{2}\\d{6}$"
+    },
+    {
+      "id": 2,
+      "name": "Hanoi University of Science and Technology",
+      "universityCode": "HUST",
+      "emailRegex": "^[a-zA-Z0-9._%+-]+@sis\\.hust\\.edu\\.vn$",
+      "studentCodeRegex": "^\\d{8}$"
+    },
+    {
+      "id": 3,
+      "name": "National Economics University",
+      "universityCode": "NEU",
+      "emailRegex": "^[a-zA-Z0-9._%+-]+@neu\\.edu\\.vn$",
+      "studentCodeRegex": "^\\d{8}$"
+    }
+  ],
   "users": {
     "data": [
       {
@@ -1032,13 +1055,28 @@
               "trackName": "Web Development",
               "rounds": [
                 {
-                  "phaseName": "Phase 01: Screening"
+                  "id": 1,
+                  "phaseName": "Phase 01: Screening",
+                  "submissionOpen": "2026-06-01T08:00:00",
+                  "submissionDeadline": "2026-07-01T18:00:00",
+                  "totalTeams": 35,
+                  "submittedTeams": 35
                 },
                 {
-                  "phaseName": "Phase 02: Semi-Final"
+                  "id": 2,
+                  "phaseName": "Phase 02: Semi-Final",
+                  "submissionOpen": "2026-07-02T08:00:00",
+                  "submissionDeadline": "2026-07-08T18:00:00",
+                  "totalTeams": 20,
+                  "submittedTeams": 12
                 },
                 {
-                  "phaseName": "Phase 03: Final"
+                  "id": 3,
+                  "phaseName": "Phase 03: Final",
+                  "submissionOpen": "2026-07-10T08:00:00",
+                  "submissionDeadline": "2026-07-15T18:00:00",
+                  "totalTeams": 10,
+                  "submittedTeams": 0
                 }
               ]
             }
@@ -1151,6 +1189,66 @@
           "teamName": "Bug Hunters",
           "averageScore": 65,
           "status": "ELIMINATED"
+        }
+      ]
+    },
+    "roundProgress": {
+      "roundStatus": "OPEN",
+      "timeRemaining": "12 hours remaining",
+      "submittedCount": 3,
+      "awaitingCount": 1,
+      "notSubmittedCount": 1,
+      "submissionRequirements": "['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl']",
+      "teams": [
+        {
+          "teamId": 1,
+          "teamName": "CodeCrafters",
+          "submissionState": "OFFICIAL",
+          "submittedAt": "2026-06-19 21:15:00",
+          "repoUrl": "https://github.com/codecrafters/shms-final",
+          "demoUrl": "https://shms-final.vercel.app",
+          "docUrl": "https://docs.google.com/document/d/shms-final-docs",
+          "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide"
+        },
+        {
+          "teamId": 2,
+          "teamName": "AI Wizards",
+          "submissionState": "OFFICIAL",
+          "submittedAt": "2026-06-19 22:30:00",
+          "repoUrl": "https://github.com/aiwizards/shms",
+          "demoUrl": "https://aiwizards.demo.app",
+          "docUrl": "https://docs.google.com/document/d/aiwizards",
+          "slideUrl": ""
+        },
+        {
+          "teamId": 3,
+          "teamName": "Quantum Leap",
+          "submissionState": "Not Submitted",
+          "submittedAt": null,
+          "repoUrl": "",
+          "demoUrl": "",
+          "docUrl": "",
+          "slideUrl": ""
+        },
+        {
+          "teamId": 4,
+          "teamName": "Syntax Error",
+          "submissionState": "DRAFT",
+          "submittedAt": "2026-06-18 10:00:00",
+          "repoUrl": "https://github.com/syntaxerror/shms-draft",
+          "demoUrl": "",
+          "docUrl": "",
+          "slideUrl": ""
+        },
+        {
+          "teamId": 5,
+          "teamName": "Cyber Sentry",
+          "submissionState": "MISSED_DEADLINE",
+          "submittedAt": null,
+          "repoUrl": "",
+          "demoUrl": "",
+          "docUrl": "",
+          "slideUrl": ""
         }
       ]
     }

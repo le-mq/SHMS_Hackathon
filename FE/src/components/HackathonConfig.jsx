@@ -317,12 +317,20 @@ function HackathonConfig() {
 
     useEffect(() => {
         if (formik.submitCount > 0 && !formik.isValid) {
-            const firstErrorNode = document.querySelector('.is-invalid, .text-danger');
-            if (firstErrorNode) {
-                firstErrorNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            setTimeout(() => {
+                const firstErrorNode = document.querySelector('.is-invalid, .text-danger');
+                if (firstErrorNode) {
+                    firstErrorNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (firstErrorNode.tagName === 'INPUT' || firstErrorNode.tagName === 'SELECT' || firstErrorNode.tagName === 'TEXTAREA') {
+                        firstErrorNode.focus();
+                    } else {
+                        const input = firstErrorNode.parentElement?.querySelector('input, select, textarea');
+                        if (input) input.focus();
+                    }
+                }
+            }, 100);
         }
-    }, [formik.submitCount, formik.isValid]);
+    }, [formik.submitCount]);
 
     const handleSelectContest = async (id) => {
         formik.setStatus({});

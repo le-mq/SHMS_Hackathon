@@ -89,21 +89,25 @@ const TeamStatus = () => {
                 let joinedTeams = dedupeParticipatedTeams(statusResults.filter(isJoinedTeam));
 
                 // 3. Fetch global team status for any draft/forming team without a contest yet
-                const res = await fetch(`${API_BASE}/teams/status`, {
+                const res = await fetch(`${API_BASE}/teams/all-forming`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                const data = await safeJson(res);
-                const fallbackStatus = String(data.status || '').toUpperCase();
+                const formingTeams = await safeJson(res);
 
-                if (res.ok && ['FORMING', 'PENDING'].includes(fallbackStatus)) {
-                    // Make sure we don't duplicate if it already matches one
-                    const exists = joinedTeams.some(item => getTeamIdentity(item.data) === getTeamIdentity(data));
-                    if (!exists) {
-                        joinedTeams = [
-                            { contest: { id: 'forming', name: 'Not Registered' }, data },
-                            ...joinedTeams,
-                        ];
-                    }
+                if (res.ok && Array.isArray(formingTeams)) {
+                    formingTeams.forEach(data => {
+                        const fallbackStatus = String(data.status || '').toUpperCase();
+                        if (['FORMING', 'PENDING'].includes(fallbackStatus)) {
+                            // Make sure we don't duplicate if it already matches one
+                            const exists = joinedTeams.some(item => getTeamIdentity(item.data) === getTeamIdentity(data));
+                            if (!exists) {
+                                joinedTeams = [
+                                    { contest: { id: 'forming', name: 'Not Registered' }, data },
+                                    ...joinedTeams,
+                                ];
+                            }
+                        }
+                    });
                 }
 
                 // Sort teams by most recent contest

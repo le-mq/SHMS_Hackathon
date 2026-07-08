@@ -98,6 +98,17 @@
     height: 38px;
 }
 
+.admin-container .form-input[type="number"]::-webkit-outer-spin-button,
+.admin-container .form-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.admin-container .form-input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .admin-container .form-textarea {
     resize: vertical;
     min-height: 80px;
