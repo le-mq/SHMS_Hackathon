@@ -105,7 +105,6 @@ public class ContestAdminService {
                 contest.getRegistrationEnd() != null ? contest.getRegistrationEnd().toString() : "");
         response.put("contestEndAt", contest.getContestEndAt() != null ? contest.getContestEndAt().toString() : "");
         response.put("status", contest.getStatus() != null ? contest.getStatus().name() : "UPCOMING");
-        response.put("regionScope", contest.getRegionScope() != null ? contest.getRegionScope() : "");
         response.put("maximumAllowedTeams",
                 contest.getMaximumAllowedTeams() != null ? contest.getMaximumAllowedTeams() : 100);
         response.put("minTeamMembers", contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3);
@@ -140,7 +139,7 @@ public class ContestAdminService {
         Contest contest;
         String oldStatus = null;
         boolean isNewContest = (request.getId() == null);
-        String oldName = null, oldTheme = null, oldScope = null;
+        String oldName = null, oldTheme = null;
         Integer oldYear = null;
         if (!isNewContest) {
             contest = contestRepository.findById(request.getId())
@@ -149,7 +148,6 @@ public class ContestAdminService {
             oldName = contest.getName();
             oldTheme = contest.getDescription();
             oldYear = contest.getYear();
-            oldScope = contest.getRegionScope();
             if (!contest.getSemester().getId().equals(semester.getId())) {
                 if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
                     throw new IllegalArgumentException("A contest already exists for the selected season ("
@@ -172,7 +170,6 @@ public class ContestAdminService {
         contest.setDescription(request.getTheme());
         contest.setSeason(parseSeason(request.getTerm()));
         contest.setYear(request.getYear());
-        contest.setRegionScope(request.getRegionScope());
         contest.setMaximumAllowedTeams(request.getMaximumAllowedTeams());
         contest.setMinTeamMembers(request.getMinTeamMembers() != null ? request.getMinTeamMembers() : 3);
         contest.setMaxTeamMembers(request.getMaxTeamMembers() != null ? request.getMaxTeamMembers() : 5);
@@ -237,7 +234,6 @@ public class ContestAdminService {
                 !java.util.Objects.equals(oldName, contest.getName()) ||
                 !java.util.Objects.equals(oldTheme, contest.getDescription()) ||
                 !java.util.Objects.equals(oldYear, contest.getYear()) ||
-                !java.util.Objects.equals(oldScope, contest.getRegionScope()) ||
                 !java.util.Objects.equals(oldStatus, contest.getStatus() != null ? contest.getStatus().name() : null);
 
         if (contestModified) {
@@ -327,9 +323,9 @@ public class ContestAdminService {
 
         java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
                 : request.getRounds().stream()
-                  .map(CreateTrackRoundRequest.RoundDto::getId)
-                  .filter(id -> id != null && id > 0)
-                  .collect(java.util.stream.Collectors.toSet());
+                .map(CreateTrackRoundRequest.RoundDto::getId)
+                .filter(id -> id != null && id > 0)
+                .collect(java.util.stream.Collectors.toSet());
 
         // Delete orphaned rounds that were removed from the frontend (must be UPCOMING)
         for (Round existing : existingRounds) {

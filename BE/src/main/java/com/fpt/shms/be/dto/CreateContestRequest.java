@@ -30,9 +30,6 @@ public class CreateContestRequest {
     @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private java.time.LocalDateTime contestEndAt;
 
-    @NotBlank(message = "Region scope is required")
-    private String regionScope;
-
     @NotNull(message = "Maximum allowed teams is required")
     @Min(value = 1, message = "Maximum teams must be at least 1")
     private Integer maximumAllowedTeams;

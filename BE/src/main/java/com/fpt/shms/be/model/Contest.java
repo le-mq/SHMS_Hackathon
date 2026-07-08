@@ -53,8 +53,6 @@ public class Contest {
     private String description;
 
     @org.hibernate.annotations.Nationalized
-    @Column(name = "region", length = 50)
-    private String regionScope;
 
     @Column(name = "max_teams")
     private Integer maximumAllowedTeams;
