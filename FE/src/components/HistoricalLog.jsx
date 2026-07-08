@@ -108,7 +108,7 @@ const HistoricalLog = () => {
                                     </td>
                                     <td>
                                         <div className="hist-score">
-                                            <span className="hist-score-val">{rec.totalScore.toFixed(1)}</span>
+                                            <span className="hist-score-val">{rec.totalScore.toFixed(2)}</span>
                                             <div className="hist-score-bar" style={{ width: `${(rec.totalScore / 100) * 60}px` }}></div>
                                         </div>
                                     </td>
@@ -136,7 +136,7 @@ const HistoricalLog = () => {
                         <div className="modal-body">
                             <div style={{ marginBottom: '20px' }}>
                                 <strong style={{ color: '#334155' }}>Total Score: </strong>
-                                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#10b981' }}>{selectedRecord.totalScore.toFixed(1)} / 100</span>
+                                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#10b981' }}>{selectedRecord.totalScore.toFixed(2)} / 100</span>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {selectedRecord.details && selectedRecord.details.map((detail, idx) => (

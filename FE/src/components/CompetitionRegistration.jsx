@@ -3,18 +3,16 @@ import './CompetitionRegistration.css';
 
 const API_BASE = 'http://localhost:8080/api/v1/student';
 
-// --- Helpers ---
 const normalizeList = (json) => (Array.isArray(json) ? json : json?.data || []);
 const safeJson = async (res) => { try { return await res.json(); } catch { return {}; } };
 
 const categorizeCompetition = (c) => {
     const status = String(c.status || '').toUpperCase();
     if (['CLOSED', 'ENDED', 'INACTIVE'].includes(status)) return 'PAST';
-    
     const now = new Date();
     const regStart = new Date(c.registrationStart);
     if (regStart && regStart > now) return 'UPCOMING';
-    
+
     return 'OPEN';
 };
 
@@ -50,16 +48,14 @@ const renderPrizes = (prizeStr) => {
     }
 };
 
-// --- Subcomponents ---
-
 const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams }) => {
     const cat = categorizeCompetition(comp);
     const isOpen = cat === 'OPEN';
-    
-    const isAlreadyRegistered = myTeams?.some(team => 
+
+    const isAlreadyRegistered = myTeams?.some(team =>
         team.contestName === comp.name && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase())
     );
-    
+
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
             <div className="comp-card-banner">
@@ -86,17 +82,17 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
             <div className="comp-card-actions">
                 <button className="btn-secondary" onClick={() => onViewDetails(comp)}>View Details</button>
                 {isAlreadyRegistered ? (
-                    <button 
-                        className="btn-primary" 
-                        disabled 
+                    <button
+                        className="btn-primary"
+                        disabled
                         style={{ backgroundColor: '#ef4444', borderColor: '#ef4444', color: 'white', opacity: 0.9 }}
                     >
                         Already Registered
                     </button>
                 ) : (
-                    <button 
-                        className="btn-primary" 
-                        disabled={!isOpen} 
+                    <button
+                        className="btn-primary"
+                        disabled={!isOpen}
                         onClick={() => onRegister(comp)}
                     >
                         {isOpen ? 'Register' : 'Closed'}
@@ -139,7 +135,7 @@ const CompetitionDetailModal = ({ comp, onClose }) => {
                         </div>
                         <div className="location-box" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '1.2rem' }}>📍</span>
-                            <strong>Location:</strong> <span>{comp.regionScope || comp.location || 'Online / TBA'}</span>
+                            <strong>Location:</strong> <span>{comp.location || 'Online / TBA'}</span>
                         </div>
                         <div className="prizes-box">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -163,7 +159,7 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
             </div>
         );
     }
-    
+
     return (
         <div className="team-selector-grid">
             {myTeams.map(team => {
@@ -174,8 +170,8 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                 const isRegistered = ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase());
 
                 return (
-                    <div 
-                        key={tId} 
+                    <div
+                        key={tId}
                         className={`team-select-card ${isSelected ? 'selected' : ''} ${isRegistered ? 'disabled' : ''}`}
                         onClick={() => !isRegistered && onSelectTeam(String(tId))}
                     >
@@ -191,15 +187,15 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                             <p><strong>Status:</strong> <span className={`ts-status ts-status-${String(team.status).toLowerCase().replace(/\s+/g, '-')}`}>{team.status}</span></p>
                         </div>
                         {isRegistered && <div className="ts-overlay">Already Registered</div>}
-                        
+
                         {isSelected && roster.length > 0 && (
                             <div className="ts-member-list" style={{ marginTop: '16px', borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
                                 <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Team Leader:</p>
                                 {roster.map(member => (
                                     <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
-                                        <input 
-                                            type="radio" 
-                                            name="leaderSelect" 
+                                        <input
+                                            type="radio"
+                                            name="leaderSelect"
                                             value={member.studentId}
                                             checked={selectedLeaderId === member.studentId}
                                             onChange={() => onSelectLeader(member.studentId)}
@@ -217,28 +213,20 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
         </div>
     );
 };
-
-// --- Main Page Component ---
 const CompetitionRegistration = () => {
-    // State
     const [competitions, setCompetitions] = useState([]);
     const [myTeams, setMyTeams] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-
-    // UI State
     const [activeTab, setActiveTab] = useState('OPEN');
     const [searchKeyword, setSearchKeyword] = useState('');
     const [sortBy, setSortBy] = useState('NEWEST');
-    
     const [viewDetailsComp, setViewDetailsComp] = useState(null);
     const [registeringComp, setRegisteringComp] = useState(null);
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedLeaderId, setSelectedLeaderId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Fetch Data
     const loadData = async () => {
         try {
             setIsLoading(true);
@@ -290,7 +278,7 @@ const CompetitionRegistration = () => {
     // Filter & Sort Logic
     const filteredCompetitions = useMemo(() => {
         let result = competitions.filter(c => categorizeCompetition(c) === activeTab);
-        
+
         if (searchKeyword) {
             const kw = searchKeyword.toLowerCase();
             result = result.filter(c => c.name?.toLowerCase().includes(kw));
@@ -299,14 +287,12 @@ const CompetitionRegistration = () => {
         result.sort((a, b) => {
             if (sortBy === 'REG_DEADLINE') return new Date(a.registrationEnd) - new Date(b.registrationEnd);
             if (sortBy === 'DATE') return new Date(a.startDate) - new Date(b.startDate);
-            // Default NEWEST (by id desc for now assuming newer has higher ID, or reverse date)
-            return b.id - a.id; 
+            return b.id - a.id;
         });
 
         return result;
     }, [competitions, activeTab, searchKeyword, sortBy]);
 
-    // Handlers
     const handleRegisterClick = (comp) => {
         setRegisteringComp(comp);
         setSelectedTeamId('');
@@ -355,7 +341,7 @@ const CompetitionRegistration = () => {
             setRegisteringComp(null);
             setSelectedTeamId('');
             loadData();
-            
+
             setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
         } catch (err) {
             setError(err.message || 'Registration failed.');
@@ -397,10 +383,10 @@ const CompetitionRegistration = () => {
                         <div className="cr-empty-state">No competitions found for this category.</div>
                     ) : (
                         filteredCompetitions.map(comp => (
-                            <CompetitionCard 
-                                key={comp.id} 
-                                comp={comp} 
-                                onViewDetails={setViewDetailsComp} 
+                            <CompetitionCard
+                                key={comp.id}
+                                comp={comp}
+                                onViewDetails={setViewDetailsComp}
                                 onRegister={handleRegisterClick}
                                 isRegistering={registeringComp?.id === comp.id}
                                 myTeams={myTeams}
@@ -415,14 +401,14 @@ const CompetitionRegistration = () => {
                             <h2>Complete Your Registration</h2>
                             <button className="cancel-reg-btn" onClick={() => { setRegisteringComp(null); setError(''); }}>Cancel</button>
                         </div>
-                        
+
                         <div className="reg-flow-content">
                             <div className="reg-team-selection">
                                 <h3>Choose a Team</h3>
                                 <p>Select one of your existing teams to register for <strong>{registeringComp.name}</strong>.</p>
-                                <TeamSelector 
-                                    myTeams={myTeams} 
-                                    selectedTeamId={selectedTeamId} 
+                                <TeamSelector
+                                    myTeams={myTeams}
+                                    selectedTeamId={selectedTeamId}
                                     onSelectTeam={(tId) => {
                                         setSelectedTeamId(tId);
                                         const t = myTeams.find(x => String(x.teamId) === String(tId) || x.teamName === tId);
@@ -458,10 +444,10 @@ const CompetitionRegistration = () => {
                                         </div>
                                     </>
                                 )}
-                                
+
                                 {error && <div className="cr-alert cr-alert-error small-alert">{error}</div>}
 
-                                <button 
+                                <button
                                     className="btn-primary btn-large btn-block mt-4"
                                     disabled={!selectedTeamId || isSubmitting}
                                     onClick={handleSubmitRegistration}

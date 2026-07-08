@@ -13,7 +13,7 @@ const getProgressBadge = (status) => {
     if (status === 'Draft') return { bg: '#fef3c7', color: '#92400e', label: 'Draft' };
     if (status === 'Official') return { bg: '#dcfce7', color: '#166534', label: 'Official' };
     if (status === 'Submitted') return { bg: '#dbeafe', color: '#1e40af', label: 'Submitted' };
-    return { bg: '#f1f5f9', color: '#475569', label: status || 'Ideation' };
+    return { bg: '#fee2e2', color: '#991b1b', label: status && status !== 'Ideation' ? status : 'Not Submitted' };
 };
 
 const TeamAssetLinks = ({ team }) => {
@@ -71,19 +71,23 @@ const TeamAssetLinks = ({ team }) => {
     return <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>{validLinks}</div>;
 };
 
-const ContestCard = ({ c, onClick }) => (
+const ContestCard = ({ c, onClick, onViewInfo }) => (
     <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={onClick} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.contestName}</h3>
             <span style={{ fontSize: '11px', background: c.contestStatus === 'CLOSED' ? '#fee2e2' : '#dcfce7', color: c.contestStatus === 'CLOSED' ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.contestStatus || 'ACTIVE'}</span>
         </div>
-        <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Categories</span>
                 <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
                     {c.trackOverviews && c.trackOverviews.length > 0 ? c.trackOverviews.map(t => t.trackName).join(', ') : 'N/A'}
                 </span>
             </div>
+            <button
+                onClick={(e) => { e.stopPropagation(); onViewInfo(); }}
+                style={{ padding: '6px 12px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: '4px' }}
+            >View Contest Info</button>
         </div>
     </div>
 );
@@ -102,6 +106,7 @@ const MentorCategory = () => {
     const [feedbackLoading, setFeedbackLoading] = useState(false);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('mentorSelectedContestId') || null);
     const [previewRoundId, setPreviewRoundId] = useState(null);
+    const [previewContestId, setPreviewContestId] = useState(null);
     const [contestSearchQuery, setContestSearchQuery] = useState('');
     const fetchMentorData = async () => {
         try {
@@ -229,7 +234,9 @@ const MentorCategory = () => {
                                     return 0;
                                 })
                                 .map(c => (
-                                    <ContestCard key={c.contestId} c={c} onClick={() => { setSelectedContestId(c.contestId); sessionStorage.setItem('mentorSelectedContestId', c.contestId); }} />
+                                    <ContestCard key={c.contestId} c={c} onClick={() => { setSelectedContestId(c.contestId); sessionStorage.setItem('mentorSelectedContestId', c.contestId); }} onViewInfo={() => {
+                                        setPreviewContestId(c.contestId);
+                                    }} />
                                 ))}
                             {Array.isArray(data) && data.filter(c => !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
                                 <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', color: '#64748b' }}>No contests found matching your search.</div>
@@ -248,7 +255,7 @@ const MentorCategory = () => {
                                 </h1>
                                 <p className="mentor-subtitle">Manage your assigned technical categories and track the real-time progress of student teams.</p>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', alignSelf: 'flex-end' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <button onClick={() => { setSelectedContestId(null); sessionStorage.removeItem('mentorSelectedContestId'); }} style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                                     Back to Contests
@@ -261,6 +268,10 @@ const MentorCategory = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: 600, fontSize: '14px', width: '100%' }}>
                                     {contestName}
                                 </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>Overall Status:</span>
+                                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: contestStatus === 'CLOSED' ? '#fee2e2' : '#d1fae5', color: contestStatus === 'CLOSED' ? '#ef4444' : '#065f46', border: `1px solid ${contestStatus === 'CLOSED' ? '#fecaca' : '#a7f3d0'}` }}>{contestStatus || 'UNKNOWN'}</span>
+                                </div>
                             </div>
                             <div style={{ width: '1px', background: '#e2e8f0', margin: '0 10px' }} className="divider-hide-mobile"></div>
                             <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -269,11 +280,25 @@ const MentorCategory = () => {
                                     {uniqueRounds.map((r, idx) => {
                                         const isActive = filterRound === r;
                                         const badgeStyle = getRoundBadgeStyle(roundStateMap[r]);
+                                        const roundId = allocatedTeams.find(t => t.roundName === r)?.roundId;
                                         return (
                                             <div key={idx} onClick={() => { setFilterRound(r); sessionStorage.setItem('mentorSelectedRound', r); }} style={{ padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${isActive ? '#3b82f6' : '#cbd5e1'}`, background: isActive ? '#eff6ff' : 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '100px', boxShadow: isActive ? '0 0 0 1px #3b82f6' : 'none' }}>
                                                 <div style={{ fontSize: '13px', fontWeight: 600, color: isActive ? '#1e3a8a' : '#334155' }}>{r}</div>
-                                                <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyle.bg, color: badgeStyle.color, alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                    {roundStateMap[r]}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+                                                    <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyle.bg, color: badgeStyle.color, alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                        {roundStateMap[r]}
+                                                    </span>
+                                                    {roundId && (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setPreviewRoundId(roundId); }}
+                                                            style={{ padding: '4px 8px', background: isActive ? '#dbeafe' : '#f1f5f9', color: isActive ? '#1e40af' : '#475569', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = isActive ? '#bfdbfe' : '#e2e8f0'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = isActive ? '#dbeafe' : '#f1f5f9'}
+                                                        >
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                            Req & Rubric
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
@@ -295,70 +320,72 @@ const MentorCategory = () => {
 
                                 </div>
                             </div>
-                            <table className="teams-table">
-                                <thead>
-                                <tr>
-                                    <th>TEAM NAME</th>
-                                    <th>SELECTED CATEGORY</th>
-                                    <th>ACTIVE ROUND</th>
-                                    <th>LEADER NAME</th>
-                                    <th>PROGRESS</th>
-                                    <th>PRODUCT</th>
-                                    <th>FEEDBACK STATUS</th>
-                                    <th>ACTION</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {filteredTeams.map((team) => {
-                                    const badge = getProgressBadge(team.progressStatus);
-                                    const canGiveFeedback = ['Submitted', 'Draft'].includes(team.progressStatus) && team.canGiveFeedback !== false;
-                                    return (
-                                        <tr key={team.teamId}>
-                                            <td>
-                                                <div className="team-name-col">
-                                                    <span className="team-name">{team.teamName}</span>
-                                                </div>
-                                            </td>
-                                            <td><span className="team-track">{team.trackName || team.categoryName}</span></td>
-                                            <td>
-                                            <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                                                {team.roundName || 'No Active Round'}
-                                            </span>
-                                            </td>
-                                            <td><span className="team-leader">{team.leaderName}</span></td>
-                                            <td>
-                                            <span style={{ background: badge.bg, color: badge.color, padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
-                                                {badge.label}
-                                            </span>
-                                            </td>
-                                            <td><TeamAssetLinks team={team} /></td>
-                                            <td>{canGiveFeedback ? (
-                                                <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
-                                            </span>
-                                            ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                            </td>
-                                            <td>{canGiveFeedback ? (
-                                                <button onClick={() => {
-                                                    setFeedbackTeamId(team.teamId);
-                                                    setFeedbackSubmissionId(team.submissionId || team.teamId);
-                                                    setFeedbackContent(team.mentorFeedback || '');
-                                                    setFeedbackMessage('');
-                                                }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                    {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
-                                                </button>
-                                            ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {filteredTeams.length === 0 && (
+                            <div className="teams-table-container">
+                                <table className="teams-table">
+                                    <thead>
                                     <tr>
-                                        <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
+                                        <th>TEAM & LEADER</th>
+                                        <th>CATEGORY / ROUND</th>
+                                        <th>PROGRESS</th>
+                                        <th>PRODUCT</th>
+                                        <th>FEEDBACK</th>
+                                        <th>ACTION</th>
                                     </tr>
-                                )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                    {filteredTeams.map((team) => {
+                                        const badge = getProgressBadge(team.progressStatus);
+                                        const canGiveFeedback = ['Submitted', 'Draft'].includes(team.progressStatus) && team.canGiveFeedback !== false;
+                                        return (
+                                            <tr key={team.teamId}>
+                                                <td>
+                                                    <div className="team-name-col" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                                                        <span className="team-name">{team.teamName}</span>
+                                                        <span style={{ fontSize: '12px', color: '#64748b' }}>Leader: {team.leaderName}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        <span className="team-track" style={{ fontWeight: 500 }}>{team.trackName || team.categoryName}</span>
+                                                        <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, color: '#334155', width: 'fit-content' }}>
+                                                            {team.roundName || 'No Active Round'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                <span style={{ background: badge.bg, color: badge.color, padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                                    {badge.label}
+                                                </span>
+                                                </td>
+                                                <td>{badge.label === 'Not Submitted' ? <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> : <TeamAssetLinks team={team} />}</td>
+                                                <td>{canGiveFeedback ? (
+                                                    <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                    {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
+                                                </span>
+                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                                </td>
+                                                <td>{canGiveFeedback ? (
+                                                    <button onClick={() => {
+                                                        setFeedbackTeamId(team.teamId);
+                                                        setFeedbackSubmissionId(team.submissionId || team.teamId);
+                                                        setFeedbackContent(team.mentorFeedback || '');
+                                                        setFeedbackMessage('');
+                                                    }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
+                                                        {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
+                                                    </button>
+                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {filteredTeams.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No student teams found matching filters.</td>
+                                        </tr>
+                                    )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </>
                 )}
@@ -407,7 +434,10 @@ const MentorCategory = () => {
                 </div>
             )}
             {previewRoundId && (
-                <RoundDetailsModal roundId={previewRoundId} onClose={() => setPreviewRoundId(null)} />
+                <RoundDetailsModal roundId={previewRoundId} mode="round" onClose={() => setPreviewRoundId(null)} />
+            )}
+            {previewContestId && (
+                <RoundDetailsModal contestId={previewContestId} mode="contest" onClose={() => setPreviewContestId(null)} />
             )}
         </div>
     );
