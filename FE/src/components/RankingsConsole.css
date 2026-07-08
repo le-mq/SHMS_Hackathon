@@ -7,7 +7,7 @@
 
 
 .rankings-content {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
     padding: 40px 24px;
 }
@@ -199,18 +199,6 @@
     margin-bottom: 12px;
 }
 
-/* .execute-btn:hover:not(:disabled) {
-    background: #0f172a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
-}
-
-.execute-btn:disabled {
-    background: #0f172a;
-    cursor: not-allowed;
-    transform: none;
-} */
-
 .execute-btn.processing {
     background: #1d4ed8;
 }
@@ -286,41 +274,6 @@
     color: #0f172a;
 }
 
-/* Bar Chart */
-.bar-chart-wrap {
-    height: 160px;
-    background: #f8fafc;
-    border-radius: 10px;
-    padding: 20px 20px 12px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-}
-
-.bar-item {
-    flex: 1;
-    border-radius: 4px 4px 0 0;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.bar-item:hover {
-    opacity: 0.8;
-}
-
-.bar-item.bar-dark {
-    background: #334155;
-}
-
-.bar-item.bar-mid {
-    background: #94a3b8;
-}
-
-.bar-item.bar-light {
-    background: #cbd5e1;
-}
-
-/* Evaluator Table */
 .eval-table-card {
     background: white;
     border: 1.5px solid #d1d5db;
@@ -470,34 +423,6 @@
     color: #f87171;
 }
 
-/* Tabs styling */
-.rankings-tabs {
-    display: flex;
-    gap: 8px;
-    border-bottom: 2px solid #d1d5db;
-    margin-bottom: 24px;
-}
-
-.rankings-tab {
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #4b5563;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.rankings-tab:hover {
-    color: #0f172a;
-}
-
-.rankings-tab.active {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
-}
-
-/* Asset Link styles for deliverables modal */
 .asset-link {
     transition: all 0.2s ease;
 }
@@ -626,15 +551,6 @@
     background-color: #1d4ed8;
 }
 
-.round-card-action-btn.success {
-    background-color: #10b981;
-    color: white;
-}
-
-.round-card-action-btn.success:hover {
-    background-color: #059669;
-}
-
 .round-card-action-btn.secondary {
     background-color: #f1f5f9;
     color: #1e293b;
@@ -668,30 +584,17 @@
     border: 1px solid #cbd5e1;
 }
 
-.status-badge.running {
+.status-badge.actived {
     background-color: #eff6ff;
     color: #1d4ed8;
     border: 1px solid #bfdbfe;
 }
 
-.status-badge.submission_closed {
-    background-color: #fff7ed;
-    color: #c2410c;
-    border: 1px solid #ffedd5;
-}
-
-.status-badge.completed {
+.status-badge.closed {
     background-color: #f0fdf4;
     color: #15803d;
     border: 1px solid #bbf7d0;
 }
-
-.status-badge.ranking_generated {
-    background-color: #faf5ff;
-    color: #6b21a8;
-    border: 1px solid #e9d5ff;
-}
-
 /* Progress bar style */
 .round-progress-wrapper {
     margin: 16px 0;
@@ -816,4 +719,14 @@
     color: #64748b;
     font-size: 14px;
     font-weight: 500;
+}
+
+.round-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.round-card-actions .round-card-action-btn {
+    flex: 1;
 }
