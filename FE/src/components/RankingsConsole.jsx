@@ -38,85 +38,32 @@ const getRoundIcon = (name) => {
     return '📅';
 };
 
-const getRoundStatus = (round, selectedContestId) => {
+const getRoundStatus = (round) => {
     if (round.status) return round.status.toUpperCase();
-    
-    const now = new Date("2026-07-06T16:04:19+07:00"); // current local time
+
+    const now = new Date();
     const openDate = round.submissionOpen ? new Date(round.submissionOpen) : null;
     const deadlineDate = round.submissionDeadline ? new Date(round.submissionDeadline) : null;
-    
-    if (openDate && now < openDate) {
-        return "UPCOMING";
-    }
-    if (openDate && deadlineDate && now >= openDate && now <= deadlineDate) {
-        return "RUNNING";
-    }
-    if (deadlineDate && now > deadlineDate) {
-        const hasCache = localStorage.getItem(`ranking_cache_${selectedContestId}_${round.id}`);
-        return hasCache ? "RANKING_GENERATED" : "COMPLETED";
-    }
-    
-    return "UPCOMING";
+
+    if (openDate && now < openDate) return "UPCOMING";
+    if (deadlineDate && now > deadlineDate) return "CLOSED";
+    return "ACTIVED";
 };
 
-const enrichRound = (r, idx, totalRounds, selectedContestId) => {
-    let openStr = r.submissionOpen || "";
-    let deadlineStr = r.submissionDeadline || "";
-    let total = r.totalTeams || 0;
-    let submitted = r.submittedTeams || 0;
-    
-    const nameLower = (r.phaseName || "").toLowerCase();
-    
-    if (!openStr || !deadlineStr) {
-        if (nameLower.includes("final") && !nameLower.includes("semi")) {
-            openStr = "2026-07-10T08:00:00";
-            deadlineStr = "2026-07-15T18:00:00";
-            total = 10;
-            submitted = 0;
-        } else if (nameLower.includes("semi")) {
-            openStr = "2026-07-02T08:00:00";
-            deadlineStr = "2026-07-08T18:00:00";
-            total = 20;
-            submitted = 12;
-        } else if (nameLower.includes("screening") || nameLower.includes("qualification") || nameLower.includes("idea")) {
-            openStr = "2026-06-01T08:00:00";
-            deadlineStr = "2026-07-01T18:00:00";
-            total = 35;
-            submitted = 35;
-        } else {
-            if (idx === 0) { // Final
-                openStr = "2026-07-10T08:00:00";
-                deadlineStr = "2026-07-15T18:00:00";
-                total = 10;
-                submitted = 0;
-            } else if (idx === 1) { // Semi Final
-                openStr = "2026-07-02T08:00:00";
-                deadlineStr = "2026-07-08T18:00:00";
-                total = 20;
-                submitted = 12;
-            } else { // Screening / Qualification
-                openStr = "2026-06-01T08:00:00";
-                deadlineStr = "2026-07-01T18:00:00";
-                total = 35;
-                submitted = 35;
-            }
-        }
-    }
-    
+const enrichRound = (r) => {
     const enriched = {
         ...r,
-        submissionOpen: openStr,
-        submissionDeadline: deadlineStr,
-        totalTeams: total,
-        submittedTeams: submitted,
+        submissionOpen: r.submissionOpen || "",
+        submissionDeadline: r.submissionDeadline || "",
+        totalTeams: r.totalTeams || 0,
+        submittedTeams: r.submittedTeams || 0,
     };
-    
-    enriched.status = getRoundStatus(enriched, selectedContestId);
-    
-    enriched.submissionProgress = enriched.totalTeams > 0 
+
+    enriched.status = getRoundStatus(enriched);
+    enriched.submissionProgress = enriched.totalTeams > 0
         ? Math.round((enriched.submittedTeams / enriched.totalTeams) * 100)
         : 0;
-        
+
     return enriched;
 };
 
@@ -144,8 +91,14 @@ const RankingsConsole = () => {
     const [viewSubmissionModal, setViewSubmissionModal] = useState({ isOpen: false, team: null });
 
     const enrichedRounds = useMemo(() => {
-        return rounds.map((r, idx) => enrichRound(r, idx, rounds.length, selectedContestId));
-    }, [rounds, selectedContestId, viewMode]);
+        return rounds
+            .map(enrichRound)
+            .sort((a, b) => {
+                const aTime = a.submissionOpen ? new Date(a.submissionOpen).getTime() : Infinity;
+                const bTime = b.submissionOpen ? new Date(b.submissionOpen).getTime() : Infinity;
+                return aTime - bTime;
+            });
+    }, [rounds]);
 
     const selectedRound = useMemo(() => {
         return enrichedRounds.find(r => String(r.id) === String(selectedRoundId)) || null;
@@ -219,8 +172,7 @@ const RankingsConsole = () => {
                 }
 
                 if (data && data.tracks) {
-                    const allRounds = data.tracks.flatMap(track => track.rounds || [])
-                        .map(r => ({ id: r.id, phaseName: r.phaseName }));
+                    const allRounds = data.tracks.flatMap(track => track.rounds || []);
 
                     const uniqueRoundsMap = new Map();
                     allRounds.forEach(r => uniqueRoundsMap.set(r.id, r));
@@ -266,9 +218,9 @@ const RankingsConsole = () => {
                     const parsedCache = JSON.parse(savedCache);
                     setResult(parsedCache.resultData);
                     setCurrentCompiledTopN(parsedCache.compiledTopN);
-                    setTopN(parsedCache.inputTopN); 
+                    setTopN(parsedCache.inputTopN);
                 } else {
-                    setResult(null); 
+                    setResult(null);
                 }
 
             } catch (err) {
@@ -294,66 +246,15 @@ const RankingsConsole = () => {
                     }
                 } catch (e) {
                     console.warn("Error fetching progress, falling back to mock:", e);
-                    setRoundProgress({
-                        roundStatus: "OPEN",
-                        timeRemaining: "12 hours remaining",
-                        submittedCount: 3,
-                        awaitingCount: 1,
-                        notSubmittedCount: 1,
-                        submissionRequirements: "['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl']",
-                        teams: [
-                            {
-                                teamId: 1,
-                                teamName: "CodeCrafters",
-                                submissionState: "OFFICIAL",
-                                submittedAt: "2026-06-19 21:15:00",
-                                repoUrl: "https://github.com/codecrafters/shms-final",
-                                demoUrl: "https://shms-final.vercel.app",
-                                docUrl: "https://docs.google.com/document/d/shms-final-docs",
-                                slideUrl: "https://docs.google.com/presentation/d/shms-final-slide"
-                            },
-                            {
-                                teamId: 2,
-                                teamName: "AI Wizards",
-                                submissionState: "OFFICIAL",
-                                submittedAt: "2026-06-19 22:30:00",
-                                repoUrl: "https://github.com/aiwizards/shms",
-                                demoUrl: "https://aiwizards.demo.app",
-                                docUrl: "https://docs.google.com/document/d/aiwizards",
-                                slideUrl: ""
-                            },
-                            {
-                                teamId: 3,
-                                teamName: "Quantum Leap",
-                                submissionState: "Not Submitted",
-                                submittedAt: null,
-                                repoUrl: "",
-                                demoUrl: "",
-                                docUrl: "",
-                                slideUrl: ""
-                            },
-                            {
-                                teamId: 4,
-                                teamName: "Syntax Error",
-                                submissionState: "DRAFT",
-                                submittedAt: "2026-06-18 10:00:00",
-                                repoUrl: "https://github.com/syntaxerror/shms-draft",
-                                demoUrl: "",
-                                docUrl: "",
-                                slideUrl: ""
-                            },
-                            {
-                                teamId: 5,
-                                teamName: "Cyber Sentry",
-                                submissionState: "MISSED_DEADLINE",
-                                submittedAt: null,
-                                repoUrl: "",
-                                demoUrl: "",
-                                docUrl: "",
-                                slideUrl: ""
-                            }
-                        ]
-                    });
+                    try {
+                        const localRes = await fetch("/testFE.json");
+                        const localJson = await localRes.json();
+                        if (localJson.rankingConsole?.roundProgress) {
+                            setRoundProgress(localJson.rankingConsole.roundProgress);
+                        }
+                    } catch (mockErr) {
+                        console.error("Mock fetch progress error:", mockErr);
+                    }
                 }
             };
             fetchProgress();
@@ -497,9 +398,9 @@ const RankingsConsole = () => {
                             </div>
                             <div className="round-select-wrap">
                                 <label className="round-select-label">Select Contest</label>
-                                <select 
-                                    className="round-select" 
-                                    value={selectedContestId} 
+                                <select
+                                    className="round-select"
+                                    value={selectedContestId}
                                     onChange={e => {
                                         setSelectedContestId(e.target.value);
                                     }}
@@ -512,41 +413,33 @@ const RankingsConsole = () => {
                         </div>
 
                         <div className="rounds-grid">
-                            {enrichedRounds.map((round, idx) => {
-                                const isQualifiedBtn = round.status === 'RANKING_GENERATED';
-                                const isCompletedBtn = round.status === 'COMPLETED';
-                                const isRunningBtn = round.status === 'RUNNING' || round.status === 'SUBMISSION_CLOSED';
-                                const isUpcomingBtn = round.status === 'UPCOMING';
+                            {enrichedRounds.map((round) => {
+                                const isUpcoming = round.status === 'UPCOMING';
 
-                                let btnText = 'Coming Soon';
-                                let btnClass = 'disabled';
-                                if (isQualifiedBtn) {
-                                    btnText = 'View Ranking';
-                                    btnClass = 'success';
-                                } else if (isCompletedBtn) {
-                                    btnText = 'Generate Ranking';
-                                    btnClass = 'primary';
-                                } else if (isRunningBtn) {
-                                    btnText = 'View Submission Statistics';
-                                    btnClass = 'secondary';
-                                }
+                                const goToRanking = (e) => {
+                                    e?.stopPropagation();
+                                    setSelectedRoundId(round.id);
+                                    setActiveTab('COMPILATION');
+                                    setViewMode('COMPILATION_VIEW');
+                                };
+
+                                const goToSubmissions = (e) => {
+                                    e?.stopPropagation();
+                                    setSelectedRoundId(round.id);
+                                    setActiveTab('SUBMISSIONS');
+                                    setViewMode('SUBMISSIONS_VIEW');
+                                };
 
                                 return (
-                                    <div 
-                                        key={round.id} 
+                                    <div
+                                        key={round.id}
                                         className={`round-card ${round.status.toLowerCase()}`}
                                         onClick={() => {
-                                            if (isUpcomingBtn) {
+                                            if (isUpcoming) {
                                                 setSelectedRoundId(round.id);
                                                 setViewMode('DETAILS_VIEW');
-                                            } else if (isCompletedBtn || isQualifiedBtn) {
-                                                setSelectedRoundId(round.id);
-                                                setActiveTab('COMPILATION');
-                                                setViewMode('COMPILATION_VIEW');
-                                            } else if (isRunningBtn) {
-                                                setSelectedRoundId(round.id);
-                                                setActiveTab('SUBMISSIONS');
-                                                setViewMode('SUBMISSIONS_VIEW');
+                                            } else {
+                                                goToRanking();
                                             }
                                         }}
                                         style={{ cursor: 'pointer' }}
@@ -558,12 +451,12 @@ const RankingsConsole = () => {
                                                     <h3 className="round-card-name">{round.phaseName}</h3>
                                                 </div>
                                                 <span className={`status-badge ${round.status.toLowerCase()}`}>
-                                                    {round.status.replace('_', ' ')}
+                                                    {round.status}
                                                 </span>
                                             </div>
 
                                             <div className="round-timeline">
-                                                {isUpcomingBtn ? (
+                                                {isUpcoming ? (
                                                     <div className="timeline-row">
                                                         <span className="timeline-label">Starts:</span>
                                                         <span className="timeline-value">{formatDateOnly(round.submissionOpen)}</span>
@@ -582,18 +475,18 @@ const RankingsConsole = () => {
                                                 )}
                                             </div>
 
-                                            {!isUpcomingBtn && (
+                                            {!isUpcoming && (
                                                 <div className="round-progress-wrapper">
                                                     <div className="round-progress-text">
                                                         <span>{round.submittedTeams} / {round.totalTeams} Submitted</span>
                                                         <span>{round.submissionProgress}%</span>
                                                     </div>
                                                     <div className="round-progress-bar-bg">
-                                                        <div 
-                                                            className="round-progress-bar-fill" 
-                                                            style={{ 
+                                                        <div
+                                                            className="round-progress-bar-fill"
+                                                            style={{
                                                                 width: `${round.submissionProgress}%`,
-                                                                backgroundColor: isCompletedBtn || isQualifiedBtn ? '#10b981' : '#3b82f6'
+                                                                backgroundColor: round.status === 'CLOSED' ? '#10b981' : '#3b82f6'
                                                             }}
                                                         />
                                                     </div>
@@ -601,24 +494,20 @@ const RankingsConsole = () => {
                                             )}
                                         </div>
 
-                                        <button 
-                                            className={`round-card-action-btn ${btnClass}`}
-                                            disabled={isUpcomingBtn}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (isUpcomingBtn) return;
-                                                setSelectedRoundId(round.id);
-                                                if (isCompletedBtn || isQualifiedBtn) {
-                                                    setActiveTab('COMPILATION');
-                                                    setViewMode('COMPILATION_VIEW');
-                                                } else {
-                                                    setActiveTab('SUBMISSIONS');
-                                                    setViewMode('SUBMISSIONS_VIEW');
-                                                }
-                                            }}
-                                        >
-                                            {btnText}
-                                        </button>
+                                        {isUpcoming ? (
+                                            <button className="round-card-action-btn disabled" disabled>
+                                                Coming Soon
+                                            </button>
+                                        ) : (
+                                            <div className="round-card-actions">
+                                                <button className="round-card-action-btn secondary" onClick={goToSubmissions}>
+                                                    View Submissions
+                                                </button>
+                                                <button className="round-card-action-btn primary" onClick={goToRanking}>
+                                                    View Ranking
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
