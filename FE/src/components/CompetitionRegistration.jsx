@@ -251,10 +251,14 @@ const CompetitionRegistration = () => {
                 .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM' && String(res.data.status).toUpperCase() !== 'CLOSED')
                 .map(res => res.data);
 
-            const fallbackRes = await fetch(`${API_BASE}/teams/status`, { headers: { Authorization: `Bearer ${token}` } });
-            const fallbackData = await safeJson(fallbackRes);
-            if (fallbackRes.ok && fallbackData && fallbackData.status !== 'NO TEAM' && String(fallbackData.status).toUpperCase() !== 'CLOSED') {
-                teams.push(fallbackData);
+            const fallbackRes = await fetch(`${API_BASE}/teams/all-forming`, { headers: { Authorization: `Bearer ${token}` } });
+            const fallbackDataList = await safeJson(fallbackRes);
+            if (fallbackRes.ok && Array.isArray(fallbackDataList)) {
+                fallbackDataList.forEach(data => {
+                    if (data && data.status !== 'NO TEAM' && String(data.status).toUpperCase() !== 'CLOSED') {
+                        teams.push(data);
+                    }
+                });
             }
 
             const uniqueTeamsMap = new Map();
