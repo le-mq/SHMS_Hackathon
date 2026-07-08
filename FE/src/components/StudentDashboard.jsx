@@ -158,8 +158,8 @@ const StudentDashboard = () => {
                     allowedContests,
                     detailedContests
                 );
-                const activeList = contests.filter(c => c.status === 'ACTIVED');
-                const active = pickActiveContest(contests);
+                const activeList = contests.filter(c => c.status === 'ACTIVED' || c.status === 'UPCOMING');
+                const active = null;
 
                 if (!cancelled) {
                     setActiveContest(active);
@@ -178,8 +178,8 @@ const StudentDashboard = () => {
 
                     const localJson = await localRes.json();
                     const contests = getContestList(localJson);
-                    const activeList = contests.filter(c => c.status === 'ACTIVED');
-                    const active = pickActiveContest(contests);
+                    const activeList = contests.filter(c => c.status === 'ACTIVED' || c.status === 'UPCOMING');
+                    const active = null;
 
                     if (!cancelled) {
                         setActiveContest(active);
@@ -310,7 +310,7 @@ const StudentDashboard = () => {
                                     }}
                                 >
                                     <div className="ic-header">
-                                        ACTIVED CONTEST
+                                        {contest.status} CONTEST
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 strokeLinecap="round"
@@ -339,71 +339,73 @@ const StudentDashboard = () => {
                             ))
                         ) : (
                             <div className="info-card">
-                                <div className="ic-header">ACTIVED CONTEST</div>
-                                <div className="ic-title">No actived contest</div>
+                                <div className="ic-header">CONTESTS</div>
+                                <div className="ic-title">No actived or upcoming contest</div>
                                 <div className="ic-subtitle">
-                                    No actived contests found.
+                                    No actived or upcoming contests found.
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="milestones-card">
-                        <div className="mc-header">
-                            Milestones
-                            {activeContest?.name ? <span>{activeContest.name}</span> : null}
+                    {activeContest && (
+                        <div className="milestones-card">
+                            <div className="mc-header">
+                                Milestones
+                                {activeContest?.name ? <span>{activeContest.name}</span> : null}
+                            </div>
+                            <table className="mc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Milestone</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Registration Open</strong></td>
+                                        <td>{formatDateOnly(activeContest?.registrationStart)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Registration Deadline</strong></td>
+                                        <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Contest Start</strong></td>
+                                        <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                    </tr>
+                                    {activeContest?.rounds?.map((round, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
+                                                <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
+                                                <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
+                                                <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
+                                                <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
+                                                <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
+                                                <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
+                                            </tr>
+                                        </React.Fragment>
+                                    ))}
+                                    <tr>
+                                        <td><strong>Contest End</strong></td>
+                                        <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <table className="mc-table">
-                            <thead>
-                                <tr>
-                                    <th>Milestone</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Registration Open</strong></td>
-                                    <td>{formatDateOnly(activeContest?.registrationStart)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Registration Deadline</strong></td>
-                                    <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Contest Start</strong></td>
-                                    <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                </tr>
-                                {activeContest?.rounds?.map((round, idx) => (
-                                    <React.Fragment key={idx}>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
-                                            <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
-                                            <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
-                                            <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
-                                            <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
-                                            <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
-                                            <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
-                                        </tr>
-                                    </React.Fragment>
-                                ))}
-                                <tr>
-                                    <td><strong>Contest End</strong></td>
-                                    <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    )}
                 </div>
 
                 <div className="dash-right">
