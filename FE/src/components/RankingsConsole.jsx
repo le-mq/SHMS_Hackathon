@@ -51,17 +51,26 @@ const getRoundStatus = (round) => {
 };
 
 const enrichRound = (r) => {
+    const totalTeams = Number(r.totalTeams) || 0;
+    const submittedTeams = Number(r.submittedTeams) || 0;
+
     const enriched = {
         ...r,
         submissionOpen: r.submissionOpen || "",
         submissionDeadline: r.submissionDeadline || "",
-        totalTeams: r.totalTeams || 0,
-        submittedTeams: r.submittedTeams || 0,
+        totalTeams,
+        submittedTeams,
     };
 
-    enriched.status = getRoundStatus(enriched);
-    enriched.submissionProgress = enriched.totalTeams > 0
-        ? Math.round((enriched.submittedTeams / enriched.totalTeams) * 100)
+    const rawStatus = r.state || r.status || getRoundStatus(enriched);
+    enriched.status = String(rawStatus).toUpperCase();
+
+    if (enriched.status === "ACTIVED") {
+        enriched.status = "ACTIVE";
+    }
+
+    enriched.submissionProgress = totalTeams > 0
+        ? Math.round((submittedTeams / totalTeams) * 100)
         : 0;
 
     return enriched;
@@ -487,7 +496,7 @@ const RankingsConsole = () => {
                                                 )}
                                             </div>
 
-                                            {!isUpcoming && (
+                                            {(round.status === 'ACTIVE' || round.status === 'ACTIVED') && (
                                                 <div className="round-progress-wrapper">
                                                     <div className="round-progress-text">
                                                         <span>{round.submittedTeams} / {round.totalTeams} Submitted</span>
@@ -498,7 +507,7 @@ const RankingsConsole = () => {
                                                             className="round-progress-bar-fill"
                                                             style={{
                                                                 width: `${round.submissionProgress}%`,
-                                                                backgroundColor: round.status === 'CLOSED' ? '#10b981' : '#3b82f6'
+                                                                backgroundColor: '#3b82f6' /* Màu xanh dương chủ đạo cho vòng đang active */
                                                             }}
                                                         />
                                                     </div>
