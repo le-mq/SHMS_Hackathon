@@ -308,7 +308,7 @@ const RubricConfig = () => {
                                         <h3 className="rt-card-name">
                                             {tpl.name.replace(' (Copy)', '')}
                                         </h3>
-                                        <p className="rt-card-desc">{tpl.description || 'No description'}</p>
+                                        <p className="rt-card-desc" style={{ color: '#000', fontSize: '13px' }}>{tpl.description || 'No description'}</p>
                                     </div>
                                 </div>
                                 <div className="rt-card-meta">
