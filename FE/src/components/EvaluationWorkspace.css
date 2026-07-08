@@ -213,6 +213,17 @@
     outline: none;
 }
 
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.score-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .score-input:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
