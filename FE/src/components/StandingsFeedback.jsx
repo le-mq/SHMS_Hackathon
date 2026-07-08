@@ -112,7 +112,7 @@ const normalizeScoreData = (payload) => {
         roundName: rawData.roundName || 'Round',
         publishResultAt: rawData.publishResultAt || rawData.resultPublishAt || null,
         resultPublished: rawData.resultPublished,
-        totalScore: toScoreNumber(rawData.totalScore),
+        totalScore: rawData.totalScore == null && rawData.score == null && rawData.finalScore == null && rawData.averageScore == null ? null : toScoreNumber(rawData.totalScore ?? rawData.score ?? rawData.finalScore ?? rawData.averageScore),
         detailedScores: Array.isArray(rawData.detailedScores) ? rawData.detailedScores : [],
         criteria: rootCriteria,
     };
@@ -123,7 +123,7 @@ const normalizeScoreData = (payload) => {
             roundName: round.roundName || round.name || 'Round',
             publishResultAt: round.publishResultAt || round.resultPublishAt || round.publishAt || null,
             resultPublished: typeof round.resultPublished === 'boolean' ? round.resultPublished : undefined,
-            totalScore: round.totalScore == null && round.score == null ? null : toScoreNumber(round.totalScore ?? round.score),
+            totalScore: round.totalScore == null && round.score == null && round.finalScore == null && round.averageScore == null ? null : toScoreNumber(round.totalScore ?? round.score ?? round.finalScore ?? round.averageScore),
             hasSubmission: round.hasSubmission,
             isGraded: round.isGraded,
             detailedScores: Array.isArray(round.detailedScores) ? round.detailedScores : [],
@@ -158,7 +158,7 @@ const normalizeScoreData = (payload) => {
         ...rawData,
         teamName: rawData.teamName || 'Unknown Team',
         projectName: rawData.projectName || 'Untitled Project',
-        totalScore: toScoreNumber(rawData.totalScore ?? rounds[0]?.totalScore),
+        totalScore: toScoreNumber(rawData.totalScore ?? rawData.score ?? rawData.finalScore ?? rawData.averageScore ?? rounds[0]?.totalScore),
         rounds,
     };
 };
@@ -175,8 +175,9 @@ const StandingsFeedback = () => {
     const [error, setError] = useState('');
     const [selectedDetail, setSelectedDetail] = useState(null);
     const [selectedResultRound, setSelectedResultRound] = useState(null);
+    const [publicLeaderboards, setPublicLeaderboards] = useState([]);
 
-    // Fetch joined competitions on mount
+    // Fetch joined competitions and public leaderboards on mount
     useEffect(() => {
         let cancelled = false;
 
@@ -239,7 +240,24 @@ const StandingsFeedback = () => {
             }
         };
 
+        const loadLeaderboards = async () => {
+            try {
+                const res = await fetch('http://localhost:8080/api/v1/public/leaderboards');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!cancelled) setPublicLeaderboards(data || []);
+                }
+            } catch (err) {
+                try {
+                    const localRes = await fetch(MOCK_DATA_URL);
+                    const localJson = await localRes.json();
+                    if (!cancelled) setPublicLeaderboards(localJson.leaderboard?.data || []);
+                } catch (e) {}
+            }
+        };
+
         loadCompetitions();
+        loadLeaderboards();
         return () => { cancelled = true; };
     }, []);
 
@@ -415,9 +433,13 @@ const StandingsFeedback = () => {
                                                     {rounds.map((r, idx) => {
                                                         const nowTime = new Date().getTime();
                                                         const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
-                                                        const isPublished = r.resultPublished !== false && (pTime === 0 || nowTime >= pTime);
+                                                        const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
+                                                        const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === r.roundName && lb.teamName === myTeamName);
+                                                        const isPublishedOnLeaderboard = !!lbEntry;
+                                                        const isPublished = r.resultPublished === true || isPublishedOnLeaderboard || (r.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
                                                         
-                                                        const isAvailable = isPublished && r.totalScore != null;
+                                                        const effectiveScore = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
+                                                        const isAvailable = isPublished && effectiveScore != null;
                                                         
                                                         const isSelected = selectedResultRound === r;
                                                         const bgColor = isAvailable ? (isSelected ? '#bbf7d0' : '#dcfce7') : '#f1f5f9';
@@ -454,7 +476,12 @@ const StandingsFeedback = () => {
                                                         {(() => {
                                                             const nowTime = new Date().getTime();
                                                             const pTime = selectedResultRound.publishResultAt ? new Date(selectedResultRound.publishResultAt).getTime() : 0;
-                                                            const isPublished = selectedResultRound.resultPublished === true || (selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
+                                                            const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
+                                                            const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === selectedResultRound.roundName && lb.teamName === myTeamName);
+                                                            const isPublishedOnLeaderboard = !!lbEntry;
+                                                            const isPublished = selectedResultRound.resultPublished === true || isPublishedOnLeaderboard || (selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
+                                                            
+                                                            const effectiveScore = selectedResultRound.totalScore != null ? selectedResultRound.totalScore : (lbEntry ? lbEntry.finalScore : null);
                                                             
                                                             if (!isPublished) {
                                                                 return (
@@ -476,7 +503,7 @@ const StandingsFeedback = () => {
                                                                                 {selectedResultRound.roundName} Score
                                                                             </p>
                                                                             
-                                                                            {selectedResultRound.totalScore == null ? (
+                                                                            {effectiveScore == null ? (
                                                                                 (scoreData?.rounds?.findIndex(r => r === selectedResultRound) > 0 && scoreData.rounds.slice(0, scoreData.rounds.findIndex(r => r === selectedResultRound)).some(r => r.totalScore === 0)) ? (
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
                                                                                         <div style={{ padding: '10px', background: '#fef2f2', borderRadius: '50%', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -512,11 +539,11 @@ const StandingsFeedback = () => {
                                                                                 <div>
                                                                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                                                                                         <span style={{ fontSize: '48px', fontWeight: '800', background: 'linear-gradient(90deg, #1e40af, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1' }}>
-                                                                                            {selectedResultRound.totalScore.toFixed(2)}
+                                                                                            {effectiveScore.toFixed(2)}
                                                                                         </span>
                                                                                         <span style={{ fontSize: '20px', fontWeight: '600', color: '#94a3b8' }}>/ 100</span>
                                                                                     </div>
-                                                                                    {selectedResultRound.totalScore === 0 && (
+                                                                                    {effectiveScore === 0 && (
                                                                                         <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
                                                                                             {selectedResultRound.hasSubmission === false ? 'Eliminated (0 points) - No submission' : 'Eliminated (0 points)'}
                                                                                         </div>
@@ -551,11 +578,11 @@ const StandingsFeedback = () => {
                                                                         </button>
                                                                     </div>
                                                                     
-                                                                    {selectedResultRound.totalScore != null && (
+                                                                    {effectiveScore != null && (
                                                                         <div style={{ marginTop: '24px', width: '100%', background: '#e2e8f0', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
                                                                             <div style={{ 
                                                                                 height: '100%', 
-                                                                                width: `${selectedResultRound.totalScore}%`, 
+                                                                                width: `${effectiveScore}%`, 
                                                                                 background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
                                                                                 borderRadius: '999px',
                                                                                 transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -619,7 +646,7 @@ const StandingsFeedback = () => {
                                                 {score.pointsAwarded ?? score.points ?? score.score ?? 0}
                                             </td>
 
-                                            <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word' }}>
+                                            <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
                                                 {score.feedback || 'No feedback provided.'}
                                             </td>
                                         </tr>

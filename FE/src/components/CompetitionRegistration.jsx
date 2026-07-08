@@ -48,6 +48,26 @@ const renderPrizes = (prizeStr) => {
     }
 };
 
+const renderComplianceRules = (rulesStr) => {
+    if (!rulesStr) return <span style={{ color: '#64748b' }}>No rules specified.</span>;
+    try {
+        const rules = JSON.parse(rulesStr);
+        if (!Array.isArray(rules) || rules.length === 0) return <span style={{ color: '#64748b' }}>No rules specified.</span>;
+        return (
+            <ul style={{ paddingLeft: '20px', margin: 0, color: '#475569', fontSize: '15px', lineHeight: '1.6' }}>
+                {rules.map((r, idx) => (
+                    <li key={idx} style={{ marginBottom: '6px' }}>
+                        <strong style={{ color: '#1e293b' }}>{r.rule}</strong>
+                        {r.penalty && <span style={{ color: '#ef4444', marginLeft: '6px', fontSize: '14px' }}>(Penalty: {r.penalty})</span>}
+                    </li>
+                ))}
+            </ul>
+        );
+    } catch(e) {
+        return <p style={{ color: '#475569' }}>{rulesStr}</p>;
+    }
+};
+
 const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams }) => {
     const cat = categorizeCompetition(comp);
     const isOpen = cat === 'OPEN';
@@ -124,11 +144,19 @@ const CompetitionDetailModal = ({ comp, onClose }) => {
                             <p><strong>Competition:</strong> {formatDateTime(comp.contestStartAt)} - {formatDateTime(comp.contestEndAt)}</p>
                         </div>
                         <div className="modal-info-box">
-                            <h4>Rules & Criteria</h4>
+                            <h4>Requirements & Categories</h4>
                             <p><strong>Team Size:</strong> {comp.minTeamMembers || 3} - {comp.maxTeamMembers || 5} members</p>
                             <p><strong>Category:</strong> {comp.categories?.length > 0 ? comp.categories.join(', ') : 'Not specified'}</p>
                         </div>
                     </div>
+                    <section className="modal-section">
+                        <div className="section-header" style={{ marginBottom: '16px' }}>
+                            <h3>Compliance Rules</h3>
+                        </div>
+                        <div className="rules-box" style={{ marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            {renderComplianceRules(comp.complianceRules)}
+                        </div>
+                    </section>
                     <section className="modal-section">
                         <div className="section-header" style={{ marginBottom: '16px' }}>
                             <h3>Location & Prizes</h3>
