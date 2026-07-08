@@ -140,8 +140,8 @@ const normalizeScoreData = (payload) => {
             const timeB = b.publishResultAt ? new Date(b.publishResultAt).getTime() : 0;
             
             const now = Date.now();
-            const isPubA = a.totalScore != null && a.resultPublished !== false && (timeA === 0 || now >= timeA);
-            const isPubB = b.totalScore != null && b.resultPublished !== false && (timeB === 0 || now >= timeB);
+            const isPubA = a.totalScore != null && (a.resultPublished === true || (a.resultPublished !== false && (timeA === 0 || now >= timeA)));
+            const isPubB = b.totalScore != null && (b.resultPublished === true || (b.resultPublished !== false && (timeB === 0 || now >= timeB)));
             
             if (isPubA && !isPubB) return -1;
             if (!isPubA && isPubB) return 1;
@@ -245,6 +245,9 @@ const StandingsFeedback = () => {
 
     // Fetch score data when a competition is selected
     useEffect(() => {
+        setSelectedResultRound(null);
+        setSelectedDetail(null);
+        
         if (!selectedCompetition) {
             setScoreData(null);
             return;
@@ -451,7 +454,7 @@ const StandingsFeedback = () => {
                                                         {(() => {
                                                             const nowTime = new Date().getTime();
                                                             const pTime = selectedResultRound.publishResultAt ? new Date(selectedResultRound.publishResultAt).getTime() : 0;
-                                                            const isPublished = selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime);
+                                                            const isPublished = selectedResultRound.resultPublished === true || (selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
                                                             
                                                             if (!isPublished) {
                                                                 return (
@@ -474,7 +477,17 @@ const StandingsFeedback = () => {
                                                                             </p>
                                                                             
                                                                             {selectedResultRound.totalScore == null ? (
-                                                                                selectedResultRound.hasSubmission && selectedResultRound.isGraded === false ? (
+                                                                                (scoreData?.rounds?.findIndex(r => r === selectedResultRound) > 0 && scoreData.rounds.slice(0, scoreData.rounds.findIndex(r => r === selectedResultRound)).some(r => r.totalScore === 0)) ? (
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                                                                                        <div style={{ padding: '10px', background: '#fef2f2', borderRadius: '50%', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div style={{ color: '#ef4444', fontSize: '18px', fontWeight: 'bold' }}>Eliminated</div>
+                                                                                            <div style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#b91c1c' }}>Your team did not qualify for this round.</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : selectedResultRound.hasSubmission && selectedResultRound.isGraded === false ? (
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
                                                                                         <div style={{ padding: '10px', background: '#fffbeb', borderRadius: '50%', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                                                             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
