@@ -166,10 +166,36 @@ const VerifyEmail = () => {
                 setError(data.error || data.message || 'Verification failed');
             } else {
                 setError('');
-                setSuccess(data.message || 'Account activated successfully!');
-                setTimeout(() => {
-                    navigate('/login');
-                }, 2000);
+                setSuccess(data.message || 'Account activated successfully! Logging you in...');
+                
+                if (data.token) {
+                    localStorage.setItem('shms_token', data.token);
+                    if (data.role)
+                        localStorage.setItem('shms_role', data.role);
+                    if (data.allRoles)
+                        localStorage.setItem('shms_allRoles', JSON.stringify(data.allRoles));
+                    if (data.username)
+                        localStorage.setItem('shms_user', data.username);
+                    if (data.fullName) {
+                        localStorage.setItem('shms_fullname', data.fullName);
+                        localStorage.setItem('shms_fullname_' + data.username, data.fullName);
+                    }
+                    setTimeout(() => {
+                        const role = data.role || 'STUDENT';
+                        const roleRoutes = {
+                            ADMIN: '/admin/config',
+                            JUDGE: '/judge/workspace',
+                            MENTOR: '/mentor/workspace',
+                            STUDENT: '/student/dashboard',
+                            LEADER: '/student/dashboard',
+                        };
+                        navigate(roleRoutes[role] || '/student/dashboard');
+                    }, 2000);
+                } else {
+                    setTimeout(() => {
+                        navigate('/login');
+                    }, 2000);
+                }
             }
         } catch (err) {
             setSuccess('');
