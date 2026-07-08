@@ -113,16 +113,22 @@ public class MentorService {
                             && !s.getRound().getId().equals(targetRound.getId())) {
                         continue;
                     }
-                    if (!"DRAFT".equalsIgnoreCase(s.getStatus())) {
-                        continue;
-                    }
                     if (latestSub == null || (s.getVersion() != null && latestSub.getVersion() != null
                             && s.getVersion() > latestSub.getVersion())) {
                         latestSub = s;
                     }
                 }
 
-                String progressStatus = latestSub != null ? "Submitted" : "Ideation";
+                String progressStatus = "Ideation";
+                if (latestSub != null) {
+                    if ("DRAFT".equalsIgnoreCase(latestSub.getStatus())) {
+                        progressStatus = "Draft";
+                    } else if ("SUBMITTED".equalsIgnoreCase(latestSub.getStatus())) {
+                        progressStatus = "Official";
+                    } else {
+                        progressStatus = "Submitted";
+                    }
+                }
 
                 if (latestSub != null) {
                     categorySubmittedCount.put(category.getId(),
@@ -132,6 +138,8 @@ public class MentorService {
                 boolean canGiveFeedback = false;
                 if (latestSub != null && targetRound != null) {
                     if (targetRound.getState() == Round.RoundState.CLOSED) {
+                        canGiveFeedback = false;
+                    } else if (!"DRAFT".equalsIgnoreCase(latestSub.getStatus())) {
                         canGiveFeedback = false;
                     } else {
                         canGiveFeedback = true;
@@ -158,6 +166,7 @@ public class MentorService {
                         .submissionData(latestSub != null ? latestSub.getSubmissionData() : null)
                         .roundId(targetRound != null ? targetRound.getId() : null)
                         .roundName(targetRound != null ? targetRound.getPhaseName() : null)
+                        .roundState(targetRound != null && targetRound.getState() != null ? targetRound.getState().name() : null)
                         .submissionId(latestSub != null ? latestSub.getId() : null)
                         .canGiveFeedback(canGiveFeedback)
                         .hasGivenFeedback(hasGivenFeedback)

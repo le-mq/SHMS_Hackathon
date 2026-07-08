@@ -209,6 +209,11 @@ public class AuthService {
         log.info("Verification record found: studentCode='{}', fullName='{}', major='{}'",
                 verificationData.getStudentCode(), verificationData.getFullName(), verificationData.getMajor());
 
+        if (Boolean.FALSE.equals(verificationData.getIsCurrentStudent())) {
+            log.warn("Registration failed: Student '{}' is marked as not current student", request.getStudentCode());
+            throw new IllegalArgumentException("Registration failed. You are not verified as a current student.");
+        }
+
         if (!verificationData.getFullName().equalsIgnoreCase(request.getFullName())) {
             log.warn("Registration failed: Full Name '{}' does not match verification data '{}'", request.getFullName(), verificationData.getFullName());
             throw new IllegalArgumentException("Full Name does not match Verification Data");
@@ -256,7 +261,7 @@ public class AuthService {
     }
 
     @Transactional
-    public String verifyEmail(VerifyEmailRequest request) {
+    public java.util.Map<String, Object> verifyEmail(VerifyEmailRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -281,7 +286,37 @@ public class AuthService {
 
         tokenRepository.deleteByUser(user);
 
-        return "Email verified successfully. Account activated.";
+        // Generate auto-login payload
+        java.util.List<String> userRoles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(java.util.stream.Collectors.toList());
+
+        String activeRole;
+        if (userRoles.contains("ADMIN")) {
+            activeRole = "ADMIN";
+        } else if (userRoles.contains("JUDGE")) {
+            activeRole = "JUDGE";
+        } else if (userRoles.contains("MENTOR")) {
+            activeRole = "MENTOR";
+        } else if (userRoles.contains("LEADER")) {
+            activeRole = "LEADER";
+        } else if (userRoles.contains("STUDENT")) {
+            activeRole = "STUDENT";
+        } else {
+            activeRole = userRoles.isEmpty() ? "STUDENT" : userRoles.get(0);
+        }
+
+        String jwtToken = jwtUtils.generateToken(user.getUsername(), activeRole);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("token", jwtToken);
+        result.put("role", activeRole);
+        result.put("allRoles", userRoles);
+        result.put("username", user.getUsername());
+        result.put("fullName", user.getFullName());
+        result.put("isEmailVerified", String.valueOf(user.getIsEmailVerified()));
+        result.put("message", "Email verified successfully. Account activated.");
+
+        return result;
     }
 
     @Transactional

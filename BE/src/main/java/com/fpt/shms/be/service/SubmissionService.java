@@ -82,14 +82,17 @@ public class SubmissionService {
         if (existingSub != null) {
             int oldVersion = existingSub.getVersion() != null ? existingSub.getVersion() : 1;
             String oldTime = existingSub.getSubmittedAt() != null ? existingSub.getSubmittedAt().toString() : LocalDateTime.now().toString();
+            String oldStatus = existingSub.getStatus() != null ? existingSub.getStatus() : "SUBMITTED";
             String currentLog = existingSub.getHistoryLog() != null ? existingSub.getHistoryLog() : "";
 
-            existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + ";");
+            existingSub.setHistoryLog(currentLog + oldVersion + "|" + oldTime + "|" + oldStatus + ";");
             existingSub.setVersion(oldVersion + 1);
             existingSub.setSubmissionData(request.getSubmissionData());
             existingSub.setSubmittedAt(LocalDateTime.now());
             String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
             existingSub.setStatus(newStatus);
+            existingSub.setMentorFeedback(null);
+            existingSub.setMentor(null);
             submissionRepository.save(existingSub);
         } else {
             String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
@@ -166,13 +169,14 @@ public class SubmissionService {
                 for (String log : logs) {
                     if (log.isEmpty()) continue;
                     String[] parts = log.split("\\|");
-                    if (parts.length == 2) {
+                    if (parts.length >= 2) {
                         try {
+                            String histStatus = parts.length >= 3 ? parts[2] : "ARCHIVED";
                             historyDtos.add(SubmissionPageResponse.HistoryDto.builder()
                                     .roundId(s.getRound() != null ? s.getRound().getId() : null)
                                     .version(Integer.parseInt(parts[0]))
                                     .timestamp(LocalDateTime.parse(parts[1]))
-                                    .status("ARCHIVED")
+                                    .status(histStatus)
                                     .build());
                         } catch (Exception e) {}
                     }

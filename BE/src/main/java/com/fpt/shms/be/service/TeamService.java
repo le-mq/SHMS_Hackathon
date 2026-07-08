@@ -28,6 +28,7 @@ public class TeamService{
     private final AnnouncementRepository announcementRepository;
     private final RankingResultRepository rankingResultRepository;
     private final EmailService emailService;
+    private final StudentVerificationDataRepository studentVerificationDataRepository;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -225,6 +226,36 @@ public class TeamService{
 
         if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
             throw new IllegalArgumentException("Team must have between " + minMembers + " and " + maxMembers + " approved members.");
+        }
+
+        // Validate that all approved members are current students
+        List<TeamMembership> approvedMembers = allMemberships.stream()
+                .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
+                .toList();
+
+        List<String> invalidMembersInfo = new java.util.ArrayList<>();
+        for (TeamMembership tm : approvedMembers) {
+            Student student = studentRepository.findByUser(tm.getUser()).orElse(null);
+            if (student != null) {
+                java.util.Optional<StudentVerificationData> verificationDataOpt =
+                        studentVerificationDataRepository.findByStudentCode(student.getStudentCode());
+                if (verificationDataOpt.isPresent()) {
+                    StudentVerificationData verificationData = verificationDataOpt.get();
+                    if (Boolean.FALSE.equals(verificationData.getIsCurrentStudent())) {
+                        invalidMembersInfo.add("• " + student.getStudentCode() + " – " + student.getFullName());
+                    }
+                }
+            }
+        }
+
+        if (!invalidMembersInfo.isEmpty()) {
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("Your team cannot register because the following members are not marked as Current Students:\n");
+            for (String info : invalidMembersInfo) {
+                errorMsg.append(info).append("\n");
+            }
+            errorMsg.append("Please ask the administrator to update their student status before registering.");
+            throw new IllegalArgumentException(errorMsg.toString());
         }
 
         // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
@@ -617,8 +648,8 @@ public class TeamService{
                     .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                     .orElse(null);
 
-            boolean hasSubmitted = latestSub != null && !"MISSED_DEADLINE".equals(latestSub.getStatus());
-            String state = hasSubmitted ? latestSub.getStatus() : (roundStatus.equals("CLOSED") ? "MISSED_DEADLINE" : "Not Submitted");
+            boolean hasSubmitted = latestSub != null && "SUBMITTED".equals(latestSub.getStatus());
+            String state = latestSub != null ? latestSub.getStatus() : (roundStatus.equals("CLOSED") ? "MISSED_DEADLINE" : "Not Submitted");
 
             if (hasSubmitted) {
                 submittedCount++;
@@ -786,9 +817,9 @@ public class TeamService{
             java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(user.getId());
             boolean alreadyInTeam = existing.stream().anyMatch(m ->
                     "APPROVED".equalsIgnoreCase(m.getStatus()) &&
-                    m.getTeam() != null &&
-                    !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) &&
-                    (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus()))
+                            m.getTeam() != null &&
+                            !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) &&
+                            (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus()))
             );
             if (alreadyInTeam) {
                 throw new IllegalArgumentException("You are already in a team.");

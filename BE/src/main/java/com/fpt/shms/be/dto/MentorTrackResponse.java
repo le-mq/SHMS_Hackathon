@@ -38,6 +38,7 @@ public class MentorTrackResponse {
         private String submissionData;
         private Long roundId;
         private String roundName;
+        private String roundState;
         private Long submissionId;
         private boolean canGiveFeedback;
         private boolean hasGivenFeedback;

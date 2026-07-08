@@ -42,8 +42,8 @@ public class AuthController {
     @Operation(summary = "Verify Email with OTP", description = "Verifies the 6-digit OTP sent to the user's email within 3 minutes to activate the account.")
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         try {
-            String message = authService.verifyEmail(request);
-            return ResponseEntity.ok(Map.of("message", message));
+            java.util.Map<String, Object> result = authService.verifyEmail(request);
+            return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

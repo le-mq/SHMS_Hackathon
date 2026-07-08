@@ -182,6 +182,7 @@ public class JudgeService {
                             .name(r.getPhaseName())
                             .format(r.getRoundFormat())
                             .gradingDeadlineAt(r.getSubmissionDeadline())
+                            .status(r.getState() != null ? r.getState().name() : null)
                             .build());
                 }
             }
@@ -255,6 +256,7 @@ public class JudgeService {
                         .format(r.getRoundFormat())
                         .gradingOpenAt(r.getSubmissionOpen())
                         .gradingDeadlineAt(r.getSubmissionDeadline())
+                        .status(r.getState() != null ? r.getState().name() : null)
                         .build()).toList();
             }
 
