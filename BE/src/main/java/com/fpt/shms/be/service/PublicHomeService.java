@@ -74,13 +74,7 @@ public class PublicHomeService {
                 })
                 .toList();
 
-        List<String> scopes = allPublishedContests.stream()
-                .map(Contest::getRegionScope)
-                .filter(java.util.Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .distinct()
-                .toList();
+        List<String> scopes = new java.util.ArrayList<>();
 
         List<TrackDTO> tracks = categoryRepository.findAll()
                 .stream()
@@ -168,7 +162,7 @@ public class PublicHomeService {
             map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
             map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
             map.put("prizeStructures", r.getRound().getContest() != null ? r.getRound().getContest().getTieredPrizeStructures() : null);
-            
+
             List<com.fpt.shms.be.model.TeamMembership> members = teamMembershipRepository.findByTeamId(r.getTeam().getId());
             List<Map<String, Object>> roster = members.stream()
                     .filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus()))
