@@ -370,6 +370,24 @@ const TeamStatus = () => {
                 </div>
 
                 <div className="header-actions">
+                    {(data.invitationCode || data.teamCode) && (
+                        <div className="team-code-box" style={{ display: 'flex', alignItems: 'center', background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '8px', padding: '8px 14px', gap: '10px', marginRight: '12px', boxShadow: '0 2px 6px rgba(59, 130, 246, 0.15)' }}>
+                            <span style={{ fontSize: '14px', color: '#1e40af', fontWeight: 600 }}>Team Code:</span>
+                            <span style={{ fontSize: '17px', color: '#1e3a8a', fontWeight: 800, letterSpacing: '1px' }}>{data.invitationCode || data.teamCode}</span>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(data.invitationCode || data.teamCode);
+                                    alert('Team code copied successfully!');
+                                }}
+                                style={{ background: '#dbeafe', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center', color: '#2563eb', transition: 'all 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.background = '#bfdbfe'}
+                                onMouseOut={(e) => e.currentTarget.style.background = '#dbeafe'}
+                                title="Copy team code"
+                            >
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </button>
+                        </div>
+                    )}
                     {canLeaveTeam && (
                         <button className="leave-team-btn" onClick={handleLeaveTeam}>
                             Leave Team
