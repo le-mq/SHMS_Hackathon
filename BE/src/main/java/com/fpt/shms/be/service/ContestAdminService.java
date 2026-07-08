@@ -31,8 +31,6 @@ public class ContestAdminService {
     private final UniversityRepository universityRepository;
     private final TeamMentorRepository teamMentorRepository;
     private final AuditLogService auditLogService;
-
-    // THÊM 2 REPOSITORY NÀY ĐỂ TÍNH TOÁN SỐ LƯỢNG ĐỘI ĐÃ NỘP BÀI
     private final SubmissionRepository submissionRepository;
     private final RankingResultRepository rankingResultRepository;
 
@@ -40,7 +38,6 @@ public class ContestAdminService {
         return contestRepository.findAll();
     }
 
-    // Hàm phụ trợ tính toán số lượng đội tham gia (Được chuyển từ RankingAdminService sang để dùng chung)
     private List<Team> getParticipatingTeamsForRound(Round round) {
         if (round.getCategory() == null) {
             return new ArrayList<>();
@@ -115,16 +112,13 @@ public class ContestAdminService {
                                 r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
                         roundMap.put("roundFormat", r.getRoundFormat() != null ? r.getRoundFormat() : "");
 
-                        // =================== CẬP NHẬT THÊM ĐOẠN NÀY ĐỂ ĐỒNG BỘ 1/2 SUBMITTED ===================
                         List<Team> dynamicParticipatingTeams = getParticipatingTeamsForRound(r);
                         roundMap.put("totalTeams", dynamicParticipatingTeams.size());
 
-                        // Lấy danh sách các submission mới nhất của vòng đấu để đếm số đội thực tế đã bấm nút SUBMITTED
                         List<Submission> roundSubs = submissionRepository.findByRoundId(r.getId());
                         Map<Long, String> teamLatestStatus = new HashMap<>();
                         for (Submission sub : roundSubs) {
                             if (sub.getTeam() != null) {
-                                // Nếu tồn tại version cao hơn, ghi đè status mới nhất
                                 teamLatestStatus.put(sub.getTeam().getId(), sub.getStatus());
                             }
                         }
@@ -134,7 +128,6 @@ public class ContestAdminService {
                                 .count();
 
                         roundMap.put("submittedTeams", (int) submittedCount);
-                        // =====================================================================================
 
                         return roundMap;
                     }).toList();

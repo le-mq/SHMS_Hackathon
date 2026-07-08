@@ -33,7 +33,7 @@ public class RankingAdminService {
             return new ArrayList<>();
         }
         Long categoryId = round.getCategory().getId();
-        // SỬA ĐỔI: Lấy danh sách round theo ContestId để đảm bảo sort chính xác theo thứ tự thời gian mở của Contest
+
         List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId()).stream()
                 .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
                 .sorted(Comparator.comparing(Round::getSubmissionOpen))
