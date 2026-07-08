@@ -188,7 +188,7 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                                 <p><strong>Leader:</strong> <strong>{leader?.fullName || 'Not Selected'}</strong></p>
                             )}
                             <p><strong>Members:</strong> <strong>{roster.length} / {registeringComp?.maxTeamMembers || (team.maxMembers === 999 ? 5 : team.maxMembers) || 5}</strong></p>
-                            <p><strong>Status:</strong> <span className="ts-status">{team.status}</span></p>
+                            <p><strong>Status:</strong> <span className={`ts-status ts-status-${String(team.status).toLowerCase().replace(/\s+/g, '-')}`}>{team.status}</span></p>
                         </div>
                         {isRegistered && <div className="ts-overlay">Already Registered</div>}
                         
