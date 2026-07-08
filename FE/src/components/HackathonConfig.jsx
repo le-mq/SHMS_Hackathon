@@ -44,6 +44,15 @@ function HackathonConfig() {
         return 'CLOSED';
     };
 
+    const getStatusBadgeStyle = (status) => {
+        switch(status) {
+            case 'ACTIVED': return { background: '#dcfce7', color: '#166534' }; // Green
+            case 'UPCOMING': return { background: '#dbeafe', color: '#1e40af' }; // Blue
+            case 'CLOSED': return { background: '#f3f4f6', color: '#4b5563' }; // Gray
+            default: return { background: '#e5e7eb', color: '#4b5563' };
+        }
+    };
+
     const isClosedContest = useMemo(() => {
         const currentContest = contests.find(c => c.id === selectedContestId);
         if (!currentContest) return false;
@@ -260,18 +269,16 @@ function HackathonConfig() {
                     }
                 }
                 for (const delCat of deletedCategories) {
-                    await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                        body: JSON.stringify({
-                            contestId: currentContestId,
-                            categoryName: delCat.trackName,
-                            trackDescription: delCat.trackDescription || 'No description',
-                            guidelineUrl: delCat.guidelineUrl || '',
-                            status: 'INACTIVED',
-                            rounds: []
-                        })
-                    });
+                    if (delCat.id && delCat.id > 0) {
+                        const delRes = await fetch(`${API_BASE}/admin/contests/tracks/${delCat.id}`, {
+                            method: 'DELETE',
+                            headers: {'Authorization': `Bearer ${token}`}
+                        });
+                        if (!delRes.ok) {
+                            const errData = await delRes.json().catch(() => ({}));
+                            throw new Error(errData.error || `Failed to delete Category: ${delCat.trackName}`);
+                        }
+                    }
                 }
                 setDeletedCategories([]);
                 setStatus({success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!'});
@@ -479,7 +486,7 @@ function HackathonConfig() {
                                 <div className="config-card">
                                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
                                         <h3 className="card-title" style={{marginBottom: 0}}>Core Settings</h3>
-                                        <div style={{ background: '#e5e7eb', color: '#4b5563', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{formik.values.status}</div>
+                                        <div style={{ ...getStatusBadgeStyle(formik.values.status), padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{formik.values.status}</div>
                                     </div>
                                     <Form.Group className="mb-3">
                                         <Form.Label className="form-label">Event Name <span style={{color: 'red'}}>*</span></Form.Label>
@@ -595,8 +602,8 @@ function HackathonConfig() {
                                         {() => (
                                             <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
                                                 {formik.values.categories.map((t, index) => (
-                                                    <div key={t.id} style={{ background: '#f9fafb', border: '1.5px solid #9ca3af', borderRadius: '8px', padding: '16px', position: 'relative' }}>
-                                                        {formik.values.categories.length > 1 && !isClosedContest && (
+                                                    <div key={t.id} style={{ background: '#f8fafc', border: '1px solid #9ca3af', boxShadow: '4px 4px 12px rgba(0,0,0,0.03)', borderRadius: '10px', padding: '20px', position: 'relative' }}>
+                                                        {formik.values.categories.length > 1 && !isClosedContest && formik.values.rounds.filter(r => String(r.categoryId) === String(t.id)).every(r => r.state === 'UPCOMING') && (
                                                             <RemoveButton title="Delete Category" style={{ position: 'absolute', top: '16px', right: '16px' }} onClick={() => {
                                                                 const catToDelete = formik.values.categories[index];
                                                                 if (catToDelete.id > 0) {
@@ -622,7 +629,7 @@ function HackathonConfig() {
                                                             </Form.Group>
                                                             <Form.Group className="col-md-4 col-sm-2">
                                                                 <Form.Label className="form-label">Status</Form.Label>
-                                                                <div style={{ background: '#e5e7eb', color: '#4b5563', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{t.status}</div>
+                                                                <div style={{ ...getStatusBadgeStyle(t.status), padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{t.status}</div>
                                                             </Form.Group>
                                                         </div>
                                                     </div>
@@ -646,10 +653,10 @@ function HackathonConfig() {
                                                     const roundTouched = formik.touched.rounds?.[index];
                                                     const roundErrors = formik.errors.rounds?.[index];
                                                     return (
-                                                        <div key={round.id} style={{ background: '#f9fafb', border: '1.5px solid #9ca3af', borderRadius: '8px', padding: '16px', position: 'relative' }}>
+                                                        <div key={round.id} style={{ background: '#f8fafc', border: '1px solid #9ca3af', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', borderRadius: '10px', padding: '20px', position: 'relative' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                                                 <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} disabled={isClosedContest}/>
-                                                                {index !== 0 && !isClosedContest && (
+                                                                {index !== 0 && !isClosedContest && round.state === 'UPCOMING' && (
                                                                     <RemoveButton title="Delete Round" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} />
                                                                 )}
                                                             </div>
@@ -669,7 +676,7 @@ function HackathonConfig() {
                                                                 </Form.Group>
                                                                 <Form.Group>
                                                                     <Form.Label style={{fontSize: '12px'}}>Status</Form.Label>
-                                                                    <div style={{ background: '#e5e7eb', color: '#4b5563', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{round.state}</div>
+                                                                    <div style={{ ...getStatusBadgeStyle(round.state), padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{round.state}</div>
                                                                 </Form.Group>
                                                             </div>
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
