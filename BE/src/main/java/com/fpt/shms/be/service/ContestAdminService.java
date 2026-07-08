@@ -31,9 +31,54 @@ public class ContestAdminService {
     private final UniversityRepository universityRepository;
     private final TeamMentorRepository teamMentorRepository;
     private final AuditLogService auditLogService;
+    private final SubmissionRepository submissionRepository;
+    private final RankingResultRepository rankingResultRepository;
 
     public List<Contest> getAllContests() {
         return contestRepository.findAll();
+    }
+
+    private List<Team> getParticipatingTeamsForRound(Round round) {
+        if (round.getCategory() == null) {
+            return new ArrayList<>();
+        }
+        Long categoryId = round.getCategory().getId();
+        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId()).stream()
+                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
+                .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
+                .toList();
+
+        int idx = -1;
+        for (int i = 0; i < categoryRounds.size(); i++) {
+            if (categoryRounds.get(i).getId().equals(round.getId())) {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx <= 0) {
+            List<Team> teams = new ArrayList<>(teamMentorRepository.findByCategoryId(categoryId).stream()
+                    .map(TeamMentor::getTeam)
+                    .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
+                    .toList());
+
+            List<Submission> submissions = submissionRepository.findByRoundId(round.getId());
+            for (Submission sub : submissions) {
+                Team t = sub.getTeam();
+                if (t != null && "APPROVED".equals(t.getStatus())) {
+                    if (teams.stream().noneMatch(existing -> existing.getId().equals(t.getId()))) {
+                        teams.add(t);
+                    }
+                }
+            }
+            return teams;
+        } else {
+            Round previousRound = categoryRounds.get(idx - 1);
+            return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
+                    .map(RankingResult::getTeam)
+                    .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
+                    .toList();
+        }
     }
 
     @Transactional(readOnly = true)
@@ -66,6 +111,24 @@ public class ContestAdminService {
                         roundMap.put("submissionRequirements",
                                 r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
                         roundMap.put("roundFormat", r.getRoundFormat() != null ? r.getRoundFormat() : "");
+
+                        List<Team> dynamicParticipatingTeams = getParticipatingTeamsForRound(r);
+                        roundMap.put("totalTeams", dynamicParticipatingTeams.size());
+
+                        List<Submission> roundSubs = submissionRepository.findByRoundId(r.getId());
+                        Map<Long, String> teamLatestStatus = new HashMap<>();
+                        for (Submission sub : roundSubs) {
+                            if (sub.getTeam() != null) {
+                                teamLatestStatus.put(sub.getTeam().getId(), sub.getStatus());
+                            }
+                        }
+
+                        long submittedCount = dynamicParticipatingTeams.stream()
+                                .filter(team -> "SUBMITTED".equalsIgnoreCase(teamLatestStatus.get(team.getId())))
+                                .count();
+
+                        roundMap.put("submittedTeams", (int) submittedCount);
+
                         return roundMap;
                     }).toList();
 
@@ -124,7 +187,6 @@ public class ContestAdminService {
 
     @Transactional
     public Contest createContest(CreateContestRequest request) {
-
         String semesterCode = request.getTerm().substring(0, Math.min(2, request.getTerm().length())).toUpperCase()
                 + String.valueOf(request.getYear()).substring(2);
 
@@ -187,7 +249,6 @@ public class ContestAdminService {
             try {
                 Contest.ContestStatus newStatus = Contest.ContestStatus.valueOf(request.getStatus().toUpperCase());
                 if (newStatus == Contest.ContestStatus.CLOSED && contest.getStatus() != Contest.ContestStatus.CLOSED) {
-
                     List<Category> categories = categoryRepository.findByContestId(contest.getId());
                     for (Category cat : categories) {
                         cat.setStatus("CLOSED");
@@ -224,8 +285,7 @@ public class ContestAdminService {
                     }
                     teamRepository.saveAll(teams);
                 }
-            } catch (IllegalArgumentException e) {
-            }
+            } catch (IllegalArgumentException e) {}
         }
 
         contest = contestRepository.save(contest);
@@ -327,7 +387,6 @@ public class ContestAdminService {
                 .filter(id -> id != null && id > 0)
                 .collect(java.util.stream.Collectors.toSet());
 
-        // Delete orphaned rounds that were removed from the frontend (must be UPCOMING)
         for (Round existing : existingRounds) {
             if (!requestedRoundIds.contains(existing.getId())) {
                 if (existing.getState() == Round.RoundState.UPCOMING) {
@@ -419,7 +478,7 @@ public class ContestAdminService {
         return savedCategory;
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public Announcement createAnnouncement(CreateAnnouncementRequest request) {
         Contest contest = contestRepository.findById(request.getContestId())
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
@@ -440,11 +499,10 @@ public class ContestAdminService {
                 .targetRoles(rolesString)
                 .build();
 
-        Announcement savedAnnouncement = announcementRepository.save(announcement);
-        return savedAnnouncement;
+        return announcementRepository.save(announcement);
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));

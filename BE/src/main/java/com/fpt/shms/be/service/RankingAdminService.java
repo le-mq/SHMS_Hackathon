@@ -33,7 +33,11 @@ public class RankingAdminService {
             return new ArrayList<>();
         }
         Long categoryId = round.getCategory().getId();
-        List<Round> categoryRounds = roundRepository.findByCategoryIdOrderBySubmissionOpenAsc(categoryId);
+
+        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId()).stream()
+                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
+                .sorted(Comparator.comparing(Round::getSubmissionOpen))
+                .toList();
 
         int idx = -1;
         for (int i = 0; i < categoryRounds.size(); i++) {
@@ -49,18 +53,11 @@ public class RankingAdminService {
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
                     .toList());
 
-            List<com.fpt.shms.be.model.Submission> submissions = submissionRepository.findByRoundId(round.getId());
-            for (com.fpt.shms.be.model.Submission sub : submissions) {
+            List<Submission> submissions = submissionRepository.findByRoundId(round.getId());
+            for (Submission sub : submissions) {
                 Team t = sub.getTeam();
                 if (t != null && "APPROVED".equals(t.getStatus())) {
-                    boolean exists = false;
-                    for (Team existing : teams) {
-                        if (existing.getId().equals(t.getId())) {
-                            exists = true;
-                            break;
-                        }
-                    }
-                    if (!exists) {
+                    if (teams.stream().noneMatch(existing -> existing.getId().equals(t.getId()))) {
                         teams.add(t);
                     }
                 }

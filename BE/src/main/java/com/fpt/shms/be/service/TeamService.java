@@ -35,6 +35,17 @@ public class TeamService{
         User leader = userRepository.findByUsername(leaderUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Leader user not found"));
 
+        boolean hasCreatedTeam = teamMembershipRepository.findByUserId(leader.getId()).stream()
+                .anyMatch(m -> m.getInviterUserId() == null &&
+                        m.getTeam() != null &&
+                        !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) &&
+                        !"CANCELED".equalsIgnoreCase(m.getTeam().getStatus()) &&
+                        !"CANCELLED".equalsIgnoreCase(m.getTeam().getStatus()) &&
+                        !"REJECTED".equalsIgnoreCase(m.getTeam().getStatus()));
+        if (hasCreatedTeam) {
+            throw new IllegalArgumentException("You have already created a team and can only create one.");
+        }
+
         Team team = Team.builder()
                 .name(request.getTeamName())
                 .build();
@@ -111,6 +122,10 @@ public class TeamService{
             throw new IllegalArgumentException("No team found for the selected contest");
         }
 
+        return buildTeamStatusResponse(team);
+    }
+
+    private TeamStatusResponse buildTeamStatusResponse(Team team) {
         List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId())
                 .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus())).toList();
 
@@ -150,7 +165,7 @@ public class TeamService{
                 .teamId(team.getId())
                 .teamName(team.getName())
                 .categoryName("All Categories")
-                .status(team.getStatus())
+                .status(team.getStatus() != null ? team.getStatus() : "FORMING")
                 .maxMembers(maxMembers)
                 .currentTotalMembers(currentTotalMembers)
                 .roster(memberDtos)
@@ -159,6 +174,24 @@ public class TeamService{
                 .contestName(team.getContest() != null ? team.getContest().getName() : "Not Registered")
                 .submissionData(submissionData)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamStatusResponse> getAllFormingTeamsStatus(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId())
+                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus())).toList();
+
+        List<TeamStatusResponse> responses = new java.util.ArrayList<>();
+        for (TeamMembership m : memberships) {
+            Team team = m.getTeam();
+            if (team != null && ("FORMING".equalsIgnoreCase(team.getStatus()) || team.getStatus() == null)) {
+                responses.add(buildTeamStatusResponse(team));
+            }
+        }
+        return responses;
     }
 
     @Transactional
@@ -196,9 +229,12 @@ public class TeamService{
         }
 
         TeamMembership activeMembership = memberships.stream()
-                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
-                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
-                .orElse(memberships.get(0));
+                .filter(m -> m.getTeam() != null && m.getTeam().getName() != null && m.getTeam().getName().equals(request.getTeamName()))
+                .findFirst()
+                .orElseGet(() -> memberships.stream()
+                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
+                        .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                        .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
 
         if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
@@ -285,6 +321,27 @@ public class TeamService{
         team = teamRepository.save(team);
         String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty() ? " - Leader assigned: " + request.getLeaderStudentId() : "";
         auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
+
+        if ("APPROVED".equals(team.getStatus()) || "PENDING".equals(team.getStatus())) {
+            List<TeamMembership> currentMembers = teamMembershipRepository.findByTeamId(team.getId());
+            for (TeamMembership tm : currentMembers) {
+                if ("APPROVED".equalsIgnoreCase(tm.getStatus())) {
+                    Long userId = tm.getUser().getId();
+                    List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(userId);
+                    for (TeamMembership otherMembership : otherMemberships) {
+                        Team otherTeam = otherMembership.getTeam();
+                        if (otherTeam != null && !otherTeam.getId().equals(team.getId())) {
+                            String otherTeamStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "FORMING";
+                            if ("FORMING".equals(otherTeamStatus)) {
+                                teamMembershipRepository.delete(otherMembership);
+                                auditLogService.log("REMOVE_FROM_TEAM", "TeamMembership", otherTeam.getName(), null, "DELETED",
+                                        "Removed user " + userId + " from forming team because they registered with team " + team.getId());
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -751,6 +808,17 @@ public class TeamService{
             throw new IllegalArgumentException("This student is already in the team or has a pending invitation.");
         }
 
+        // Validate: người được mời đã nằm trong một team đã đăng ký chưa
+        java.util.List<TeamMembership> invitedExisting = teamMembershipRepository.findByUserId(request.getStudentUserId());
+        boolean inRegisteredTeam = invitedExisting.stream().anyMatch(m ->
+                "APPROVED".equalsIgnoreCase(m.getStatus()) &&
+                        m.getTeam() != null &&
+                        ("PENDING".equalsIgnoreCase(m.getTeam().getStatus()) || "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()))
+        );
+        if (inRegisteredTeam) {
+            throw new IllegalArgumentException("This person is already in a team registered for the competition.");
+        }
+
         // Validate capacity: đếm APPROVED + PENDING
         Contest contest = team.getContest();
         int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
@@ -814,15 +882,15 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
+            // Check if they are already in an active registered team
             java.util.List<TeamMembership> existing = teamMembershipRepository.findByUserId(user.getId());
-            boolean alreadyInTeam = existing.stream().anyMatch(m ->
+            boolean inRegisteredTeam = existing.stream().anyMatch(m ->
                     "APPROVED".equalsIgnoreCase(m.getStatus()) &&
                             m.getTeam() != null &&
-                            !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) &&
-                            (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus()))
+                            ("PENDING".equalsIgnoreCase(m.getTeam().getStatus()) || "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()))
             );
-            if (alreadyInTeam) {
-                throw new IllegalArgumentException("You are already in a team.");
+            if (inRegisteredTeam) {
+                throw new IllegalArgumentException("You are already in a registered team.");
             }
         }
 
