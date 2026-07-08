@@ -164,6 +164,7 @@ public class TeamService{
         return TeamStatusResponse.builder()
                 .teamId(team.getId())
                 .teamName(team.getName())
+                .teamCode(team.getTeamCode())
                 .categoryName("All Categories")
                 .status(team.getStatus() != null ? team.getStatus() : "FORMING")
                 .maxMembers(maxMembers)
@@ -894,8 +895,64 @@ public class TeamService{
             }
         }
 
-        TeamMembership membership = teamMembershipRepository.findByInvitationToken(request.getInvitationToken())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid invitation token."));
+        java.util.Optional<TeamMembership> membershipOpt = teamMembershipRepository.findByInvitationToken(request.getInvitationToken());
+
+        if (membershipOpt.isEmpty()) {
+            java.util.Optional<Team> teamOpt = teamRepository.findByTeamCode(request.getInvitationToken());
+            if (teamOpt.isPresent() && "ACCEPT".equalsIgnoreCase(request.getAction())) {
+                Team team = teamOpt.get();
+
+                // Prevent joining if team is already registered (PENDING or APPROVED)
+                if ("APPROVED".equalsIgnoreCase(team.getStatus()) || "PENDING".equalsIgnoreCase(team.getStatus())) {
+                    throw new IllegalArgumentException("You cannot join this team because it has already been officially registered.");
+                }
+
+                // Validate capacity (chỉ đếm APPROVED giống như phần ACCEPT bên dưới)
+                Contest contest = team.getContest();
+                int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
+                        ? contest.getMaxTeamMembers() : 5;
+                long approvedCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
+                        java.util.List.of("APPROVED"));
+                if (approvedCount >= maxCapacity) {
+                    throw new IllegalArgumentException("Unfortunate! The team is already full.");
+                }
+
+                // Check if user is already in this team
+                boolean alreadyInTeam = teamMembershipRepository.findByTeamId(team.getId()).stream()
+                        .anyMatch(tm -> tm.getUser().getId().equals(user.getId()));
+                if (alreadyInTeam) {
+                    throw new IllegalArgumentException("You are already in the team or have a pending invitation.");
+                }
+
+                // Validate: sinh viên chưa có trong đội khác cùng Contest
+                if (contest != null) {
+                    java.util.List<TeamMembership> existing = teamMembershipRepository
+                            .findByUserIdAndContestIdAndStatusIn(user.getId(), contest.getId(),
+                                    java.util.List.of("APPROVED", "PENDING"));
+                    if (!existing.isEmpty()) {
+                        throw new IllegalArgumentException("You are already in another team for this contest.");
+                    }
+                }
+
+                // Create membership
+                TeamMembership newMembership = TeamMembership.builder()
+                        .team(team)
+                        .user(user)
+                        .role("MEMBER")
+                        .status("APPROVED")
+                        .joinedAt(java.time.LocalDateTime.now())
+                        .build();
+                teamMembershipRepository.save(newMembership);
+
+                java.util.Map<String, Object> result = new java.util.HashMap<>();
+                result.put("message", "Invitation accepted. You are now a team member.");
+                return result;
+            } else {
+                throw new IllegalArgumentException("Invalid invitation token or team code.");
+            }
+        }
+
+        TeamMembership membership = membershipOpt.get();
 
         // Validate token thuộc về user đang đăng nhập
         if (!membership.getStudent().getId().equals(user.getId())) {

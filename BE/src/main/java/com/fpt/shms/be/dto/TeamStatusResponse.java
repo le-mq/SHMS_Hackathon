@@ -9,6 +9,7 @@ import java.util.List;
 public class TeamStatusResponse {
     private Long teamId;
     private String teamName;
+    private String teamCode;
     private String categoryName;
     private String status;
     private Integer maxMembers;
