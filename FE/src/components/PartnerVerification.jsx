@@ -13,9 +13,14 @@ const PartnerVerification = () => {
 
     const [studentError, setStudentError] = useState('');
     const [studentSuccess, setStudentSuccess] = useState('');
+    const [toastFadeOut, setToastFadeOut] = useState(false);
     const [isSavingStudents, setIsSavingStudents] = useState(false);
 
+    const [newStudent, setNewStudent] = useState({ studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true });
+    const [newStudentErrors, setNewStudentErrors] = useState({});
+
     const studentFooterRef = useRef(null);
+    const newStudentIdRef = useRef(null);
     useEffect(() => {
         fetchPartners();
     }, []);
@@ -138,7 +143,92 @@ const PartnerVerification = () => {
     };
 
     const handleAddStudent = () => {
-        setStudents([...students, { ui_id: `temp-${Date.now()}`, studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true }]);
+        if (!selectedStudentPartner) {
+            setStudentError('Please select a partner institution first.');
+            return;
+        }
+        newStudentIdRef.current?.focus();
+    };
+
+    const handleNewStudentChange = (field, value) => {
+        setNewStudent(prev => ({ ...prev, [field]: value }));
+        setNewStudentErrors(prev => ({ ...prev, [field]: '' }));
+    };
+
+    const submitNewStudent = () => {
+        if (!selectedStudentPartner) {
+            setStudentError('Please select a partner institution first.');
+            return;
+        }
+
+        const errors = {};
+        const partner = partners.find(p => String(p.ui_id) === String(selectedStudentPartner));
+
+        // 1. Student ID
+        if (!newStudent.studentCode || !newStudent.studentCode.trim()) {
+            errors.studentCode = 'Student ID is required.';
+        } else if (partner?.studentCodeRegex) {
+            try {
+                const regex = new RegExp(partner.studentCodeRegex);
+                if (!regex.test(newStudent.studentCode.trim())) {
+                    errors.studentCode = `Must match format: ${partner.studentCodeRegex}`;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 2. Full Name
+        if (!newStudent.fullName || !newStudent.fullName.trim()) {
+            errors.fullName = 'Full Name is required.';
+        }
+
+        // 3. Email
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!newStudent.corporateEmail || !newStudent.corporateEmail.trim()) {
+            errors.corporateEmail = 'Email is required.';
+        } else if (!emailPattern.test(newStudent.corporateEmail.trim())) {
+            errors.corporateEmail = 'Invalid email format.';
+        } else if (partner?.emailRegex) {
+            try {
+                const regex = new RegExp(partner.emailRegex);
+                if (!regex.test(newStudent.corporateEmail.trim())) {
+                    errors.corporateEmail = `Must match university pattern: ${partner.emailRegex}`;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 4. Major
+        if (!newStudent.major || !newStudent.major.trim()) {
+            errors.major = 'Major is required.';
+        }
+
+        // 5. IsCurrentStudent = true
+        if (newStudent.isCurrentStudent !== true) {
+            errors.isCurrentStudent = 'Must be true.';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setNewStudentErrors(errors);
+            return;
+        }
+
+        // Add to list
+        const newRecord = {
+            ui_id: `temp-${Date.now()}`,
+            studentCode: newStudent.studentCode.trim(),
+            fullName: newStudent.fullName.trim(),
+            corporateEmail: newStudent.corporateEmail.trim(),
+            major: newStudent.major.trim(),
+            isCurrentStudent: true
+        };
+
+        setStudents([...students, newRecord]);
+        // Reset form
+        setNewStudent({ studentCode: '', fullName: '', corporateEmail: '', major: '', isCurrentStudent: true });
+        setNewStudentErrors({});
     };
 
     const handleStudentChange = (id, field, value) => {
@@ -193,7 +283,14 @@ const PartnerVerification = () => {
 
             if (response.ok) {
                 setStudentSuccess('Student directory saved successfully.');
-                setTimeout(() => setStudentSuccess(''), 4000);
+                setToastFadeOut(false);
+                setTimeout(() => {
+                    setToastFadeOut(true);
+                    setTimeout(() => {
+                        setStudentSuccess('');
+                        setToastFadeOut(false);
+                    }, 300);
+                }, 3700);
             } else {
                 const data = await response.json();
                 setStudentError(data.error || 'Failed to save directory.');
@@ -208,6 +305,13 @@ const PartnerVerification = () => {
 
     return (
         <div className="admin-container">
+            {studentSuccess && (
+                <div className={`toast-notification ${toastFadeOut ? 'fade-out' : ''}`}>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#2ECC71' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>{studentSuccess}</span>
+                </div>
+            )}
+
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Partner Verification Settings</h1>
@@ -280,7 +384,7 @@ const PartnerVerification = () => {
                                             onChange={(e) => handlePartnerChange(p.ui_id, 'studentCodeRegex', e.target.value)}
                                         />
                                     </td>
-                                    <td>
+                                    <td className="actions-td">
                                         <div className="actions-cell">
                                             <button type="button" className="action-btn delete" onClick={() => handleDeletePartner(p.ui_id)} title="Delete Partner">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -298,7 +402,6 @@ const PartnerVerification = () => {
                             Save carefully! Removing an existing university will also disable it for users.
                         </div>
                         <div className="footer-actions">
-
                             <button className="apply-btn" onClick={handleApply} disabled={isLoading}>
                                 {isLoading ? 'Saving...' : 'Save Settings'}
                             </button>
@@ -331,84 +434,165 @@ const PartnerVerification = () => {
                             ))}
                         </select>
                     </div>
-                    <table className="partners-table">
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Major</th>
-                                <th>Current</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {students.map((s) => (
-                                <tr key={s.ui_id}>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="table-input"
-                                            placeholder="SE150000"
-                                            value={s.studentCode}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'studentCode', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="table-input"
-                                            placeholder="Nguyen Van A"
-                                            value={s.fullName}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'fullName', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="table-input"
-                                            placeholder="nva@fpt.edu.vn"
-                                            value={s.corporateEmail}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'corporateEmail', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="table-input"
-                                            placeholder="SE"
-                                            value={s.major || ''}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'major', e.target.value)}
-                                            style={{ width: '80px' }}
-                                        />
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
+
+                    {selectedStudentPartner && (
+                        <div className="add-student-form" style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
+                            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#1f2937' }}>Add New Student</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.5fr 2fr 1fr auto auto', gap: '12px', alignItems: 'start' }}>
+                                <div>
+                                    <input
+                                        ref={newStudentIdRef}
+                                        type="text"
+                                        className="table-input"
+                                        placeholder="Student ID"
+                                        value={newStudent.studentCode}
+                                        onChange={(e) => handleNewStudentChange('studentCode', e.target.value)}
+                                    />
+                                    {newStudentErrors.studentCode && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.studentCode}</span>}
+                                </div>
+                                <div>
+                                    <input
+                                        type="text"
+                                        className="table-input"
+                                        placeholder="Full Name"
+                                        value={newStudent.fullName}
+                                        onChange={(e) => handleNewStudentChange('fullName', e.target.value)}
+                                    />
+                                    {newStudentErrors.fullName && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.fullName}</span>}
+                                </div>
+                                <div>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        autoComplete="email"
+                                        className="table-input"
+                                        placeholder="Email (e.g. nva@fpt.edu.vn)"
+                                        value={newStudent.corporateEmail}
+                                        onChange={(e) => handleNewStudentChange('corporateEmail', e.target.value)}
+                                    />
+                                    {newStudentErrors.corporateEmail && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.corporateEmail}</span>}
+                                </div>
+                                <div>
+                                    <input
+                                        type="text"
+                                        className="table-input"
+                                        placeholder="Major (e.g. SE)"
+                                        value={newStudent.major}
+                                        onChange={(e) => handleNewStudentChange('major', e.target.value)}
+                                    />
+                                    {newStudentErrors.major && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{newStudentErrors.major}</span>}
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '38px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
                                         <input
                                             type="checkbox"
-                                            checked={s.isCurrentStudent !== false}
-                                            onChange={(e) => handleStudentChange(s.ui_id, 'isCurrentStudent', e.target.checked)}
-                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                            checked={newStudent.isCurrentStudent}
+                                            onChange={(e) => handleNewStudentChange('isCurrentStudent', e.target.checked)}
+                                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                                         />
-                                    </td>
-                                    <td>
-                                        <div className="actions-cell">
-                                            <button type="button" className="action-btn delete" onClick={() => handleDeleteStudent(s.ui_id)} title="Delete Record">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {students.length === 0 && (
+                                        Current
+                                    </label>
+                                    {newStudentErrors.isCurrentStudent && <span className="error-text" style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', display: 'block', textAlign: 'center' }}>{newStudentErrors.isCurrentStudent}</span>}
+                                </div>
+                                <div>
+                                    <button 
+                                        type="button" 
+                                        className="add-partner-btn" 
+                                        onClick={submitNewStudent}
+                                        style={{ height: '38px', whiteSpace: 'nowrap' }}
+                                    >
+                                        Add Student
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <table className="partners-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                        No student records. Add a student to start.
-                                    </td>
+                                    <th>#</th>
+                                    <th>Student ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Major</th>
+                                    <th>Current</th>
+                                    <th>Actions</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                    <div className="table-footer" ref={studentFooterRef}>
+                            </thead>
+                            <tbody>
+                                {students.map((s, index) => (
+                                    <tr key={s.ui_id}>
+                                        <td>{index + 1}</td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                className="table-input"
+                                                placeholder="SE150000"
+                                                value={s.studentCode}
+                                                onChange={(e) => handleStudentChange(s.ui_id, 'studentCode', e.target.value)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                className="table-input"
+                                                placeholder="Nguyen Van A"
+                                                value={s.fullName}
+                                                onChange={(e) => handleStudentChange(s.ui_id, 'fullName', e.target.value)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                autoComplete="email"
+                                                id={`email-${s.ui_id}`}
+                                                className="table-input"
+                                                placeholder="nva@fpt.edu.vn"
+                                                value={s.corporateEmail || ''}
+                                                onChange={(e) => handleStudentChange(s.ui_id, 'corporateEmail', e.target.value)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                className="table-input"
+                                                placeholder="SE"
+                                                value={s.major || ''}
+                                                onChange={(e) => handleStudentChange(s.ui_id, 'major', e.target.value)}
+                                                style={{ width: '80px' }}
+                                            />
+                                        </td>
+                                        <td className="checkbox-cell">
+                                            <input
+                                                type="checkbox"
+                                                checked={s.isCurrentStudent !== false}
+                                                onChange={(e) => handleStudentChange(s.ui_id, 'isCurrentStudent', e.target.checked)}
+                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                            />
+                                        </td>
+                                        <td className="actions-td">
+                                            <div className="actions-cell">
+                                                <button type="button" className="action-btn delete" onClick={() => handleDeleteStudent(s.ui_id)} title="Delete Record">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {students.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                            No student records. Add a student to start.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </form>
+                    <div className="table-footer sticky-footer" ref={studentFooterRef}>
                         <div className="footer-info" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                             {studentError && (
                                 <span style={{ color: '#ef4444', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -416,13 +600,7 @@ const PartnerVerification = () => {
                                     {studentError}
                                 </span>
                             )}
-                            {studentSuccess && (
-                                <span style={{ color: '#10b981', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    {studentSuccess}
-                                </span>
-                            )}
-                            {!studentError && !studentSuccess && "Click Save Directory to commit changes to the database."}
+                            {!studentError && "Click Save Directory to commit changes to the database."}
                         </div>
                         <div className="footer-actions">
                             <button
