@@ -492,9 +492,13 @@
 
 /* Card Status Styles */
 .team-card-closed {
-    opacity: 0.6;
     border-color: #cbd5e1;
     background: #f8fafc;
+}
+
+.team-card-closed .tc-header,
+.team-card-closed .tc-body {
+    opacity: 0.6;
 }
 
 .team-card-closed:hover {
