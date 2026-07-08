@@ -36,11 +36,11 @@ const parseRequirements = (reqString) => {
         const formatted = reqString.replace(/'/g, '"');
         const parsed = JSON.parse(formatted);
         if (Array.isArray(parsed)) return parsed;
-    } catch (e) { }
+    } catch (e) {}
     try {
         const parsed = JSON.parse(reqString);
         if (Array.isArray(parsed)) return parsed;
-    } catch (e) { }
+    } catch (e) {}
     if (typeof reqString === 'string') {
         return reqString.split(',').map(s => s.trim()).filter(Boolean);
     }
@@ -101,6 +101,7 @@ const RankingsConsole = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
     const [selectedRoundId, setSelectedRoundId] = useState('');
+    const [contestDetails, setContestDetails] = useState(null);
 
     const [rounds, setRounds] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -129,6 +130,46 @@ const RankingsConsole = () => {
     const selectedRound = useMemo(() => {
         return enrichedRounds.find(r => String(r.id) === String(selectedRoundId)) || null;
     }, [enrichedRounds, selectedRoundId]);
+
+    const isFinalRound = useMemo(() => {
+        if (!selectedRound || enrichedRounds.length === 0) return false;
+        const lastRound = enrichedRounds[enrichedRounds.length - 1];
+        return String(selectedRound.id) === String(lastRound?.id);
+    }, [selectedRound, enrichedRounds]);
+
+    const prizes = useMemo(() => {
+        if (!isFinalRound) return [];
+        const rawPrizes = contestDetails?.tieredPrizeStructures;
+        if (!rawPrizes) return [];
+        try {
+            const parsed = JSON.parse(rawPrizes);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+            if (typeof rawPrizes === 'string') {
+                return rawPrizes.split('\n').map(line => {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        return {
+                            rank: parts[0].trim(),
+                            amount: parts.slice(1).join(':').trim()
+                        };
+                    }
+                    return { rank: line.trim(), amount: '' };
+                }).filter(p => p.rank);
+            }
+        }
+        return [];
+    }, [contestDetails, isFinalRound]);
+
+    const getPrizeForRank = (rankNum) => {
+        if (!prizes || prizes.length === 0) return null;
+        const index = rankNum - 1;
+        if (index >= 0 && index < prizes.length) {
+            const p = prizes[index];
+            return `${p.rank}${p.amount ? `: ${p.amount}` : ''}`;
+        }
+        return null;
+    };
 
     const getAssetUrl = (url) => {
         const trimmedUrl = String(url || '').trim();
@@ -195,6 +236,10 @@ const RankingsConsole = () => {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole.contests.data.find(c => c.id == selectedContestId);
+                }
+
+                if (data) {
+                    setContestDetails(data);
                 }
 
                 if (data && data.tracks) {
@@ -391,13 +436,21 @@ const RankingsConsole = () => {
     const handleDownloadCSV = () => {
         if (!result || !result.results) return;
 
+        const hasPrizes = prizes && prizes.length > 0;
         const headers = ['Rank', 'Team Name', 'Average Score', 'Status'];
+        if (hasPrizes) {
+            headers.push('Prize');
+        }
         const csvRows = [headers.join(',')];
 
         for (const row of result.results) {
             const isQualified = row.rank <= currentCompiledTopN;
             const csvStatus = isQualified ? 'QUALIFIED' : 'ELIMINATED';
             const values = [row.rank, `"${row.teamName}"`, row.averageScore, csvStatus];
+            if (hasPrizes) {
+                const prizeStr = getPrizeForRank(row.rank) || '';
+                values.push(`"${prizeStr}"`);
+            }
             csvRows.push(values.join(','));
         }
 
@@ -713,6 +766,27 @@ const RankingsConsole = () => {
                                                 <div className="result-stat-label">Total Processed</div>
                                                 <div className="result-stat-val">{result.totalProcessed}</div>
                                             </div>
+
+                                         {prizes.length > 0 && (
+                                             <div style={{ marginTop: '20px', background: '#0f172a', padding: '16px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                                                 <div style={{ color: '#fbbf24', fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                     🏆 Contest Prize Structure
+                                                 </div>
+                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                                                     {prizes.map((p, idx) => (
+                                                         <div key={idx} style={{ background: '#1e293b', padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                             <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '13px' }}>#{idx + 1}</span>
+                                                             <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: '500' }}>{p.rank}</span>
+                                                             {p.amount && (
+                                                                 <span style={{ color: '#a7f3d0', fontSize: '12px', background: '#064e3b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                     {p.amount}
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                     ))}
+                                                 </div>
+                                             </div>
+                                         )}
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
@@ -735,11 +809,13 @@ const RankingsConsole = () => {
                                                     <th style={{ color: '#0f172a' }}>Team Name</th>
                                                     <th style={{ color: '#0f172a' }}>Average Score</th>
                                                     <th style={{ color: '#0f172a' }}>Status</th>
+                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {result.results.map(r => {
                                                     const isQualified = r.rank <= currentCompiledTopN;
+                                                    const teamPrize = getPrizeForRank(r.rank);
                                                     return (
                                                         <tr key={r.rank}>
                                                             <td>#{r.rank}</td>
@@ -750,6 +826,17 @@ const RankingsConsole = () => {
                                                                     {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                                 </span>
                                                             </td>
+                                                            {prizes.length > 0 && (
+                                                                <td>
+                                                                    {teamPrize ? (
+                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                                            🏆 {teamPrize}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{ color: '#94a3b8' }}>—</span>
+                                                                    )}
+                                                                </td>
+                                                            )}
                                                         </tr>
                                                     );
                                                 })}
@@ -977,7 +1064,7 @@ const RankingsConsole = () => {
                                 value: parsedData.slideUrl || team.slideUrl || ''
                             };
                         }
-
+                        
                         const formatLabel = (str) => {
                             let result = str.replace(/([A-Z])/g, ' $1');
                             result = result.replace(/[_-]/g, ' ');
