@@ -1,6 +1,5 @@
 .admin-container {
     background-color: #ffffff;
-    /* TỐI HÓA NỀN TỔNG THỂ: Thay #f4f7fa bằng #e2e8f0 để làm nổi bật các khối Panel trắng */
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #0f172a;
@@ -9,16 +8,11 @@
 .config-wrapper {
     padding: 40px;
     max-width: 1600px;
-    /* MỞ RỘNG TỔNG THỂ: Tăng từ 1400px lên 1600px để tràn rộng ra 2 bên */
     margin: 0 auto;
     grid-template-columns: 320px 1fr;
-    /* Thu nhỏ nhẹ cột trái để dành toàn bộ đất cho cột giữa/phải */
     gap: 32px;
-    /* Tăng khoảng cách giữa các khối để thoáng hơn */
     align-items: start;
 }
-
-
 
 .header-flex {
     display: flex;
@@ -33,18 +27,15 @@
     max-width: 1600px;
     margin: 0 auto;
     display: grid;
-    /* Chia tổng thể thành 7 cột bằng nhau */
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 32px;
     align-items: start;
 }
 
-/* Cột trái (Expert Registry): Chiếm 2 ô đầu tiên (từ cột 1 đến 3) */
 .left-panel {
     grid-column: span 2;
 }
 
-/* Ô giữa (Allocation Management Board): Chiếm 3 ô tiếp theo (từ cột 3 đến 6) */
 .right-assignment-panel {
     grid-column: span 3;
     background: #ffffff;
@@ -54,12 +45,10 @@
     border-radius: 12px;
 }
 
-/* Cột phải (Overview): Chiếm 2 ô cuối cùng (từ cột 6 đến 8) */
 .overview-panel {
     grid-column: span 2;
 }
 
-/* Giữ nguyên cấu hình lưới 3 team / hàng bên trong ô giữa */
 .global-teams-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -69,7 +58,6 @@
 .config-title {
     font-size: 26px;
     font-weight: 800;
-    /* TĂNG ĐỘ ĐẬM */
     color: #0f172a;
     margin: 0 0 6px 0;
 }
@@ -77,7 +65,6 @@
 .config-subtitle {
     font-size: 14px;
     color: #334155;
-    /* TĂNG TƯƠNG PHẢN CHỮ: Thay #64748b bằng #334155 */
     margin: 0;
     font-weight: 500;
 }
@@ -85,9 +72,7 @@
 .error-banner {
     background-color: #fee2e2;
     border: 2px solid #ef4444;
-    /* ĐÓNG KHUNG RÕ RÀNG */
     border-left: 6px solid #ef4444;
-    /* Làm vạch lỗi dày hơn */
     padding: 14px 18px;
     margin-bottom: 24px;
     border-radius: 8px;
@@ -95,23 +80,19 @@
     align-items: center;
     gap: 12px;
     color: #991b1b;
-    /* TĂNG ĐỘ ĐẬM CHỮ CẢNH BÁO */
     font-weight: 700;
     font-size: 14px;
     grid-column: 1 / -1;
     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
 }
 
-/* --- LEFT EXPERT PANEL --- */
 .left-expert-panel {
     background: #ffffff;
     width: 200px;
     border-radius: 12px;
     border: 2px solid #d1d5db;
-    /* LÀM ĐẬM ĐƯỜNG VIỀN KHỐI: Thay #e2e8f0 bằng #d1d5db */
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-    /* Tăng đổ bóng tạo chiều sâu */
 }
 
 .left-expert-panel h3 {
@@ -119,7 +100,6 @@
     font-weight: 800;
     color: #0f172a;
     background-color: #f1f5f9;
-    /* THÊM NỀN CHO TIÊU ĐỀ KHỐI */
     padding: 20px 24px;
     margin: 0;
     border-bottom: 2px solid #cbd5e1;
@@ -129,14 +109,12 @@
     position: relative;
     padding: 16px 20px;
     background-color: #f8fafc;
-    /* Đổi nền nhẹ tạo khối */
     border-bottom: 2px solid #d1d5db;
 }
 
 .search-input {
     width: 100%;
     border: 2px solid #94a3b8;
-    /* LÀM ĐẬM VIỀN INPUT */
     border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
@@ -150,7 +128,6 @@
 
 .search-input:focus {
     border-color: #2563eb;
-    /* Màu sắc rực rỡ khi tương tác */
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
@@ -160,7 +137,6 @@
     top: 50%;
     transform: translateY(-50%);
     color: #475569;
-    /* Tăng tương phản icon */
     pointer-events: none;
 }
 
@@ -172,7 +148,6 @@
 .expert-item {
     padding: 14px 20px;
     border-bottom: 1px solid #d1d5db;
-    /* Làm rõ nét đường phân cách */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -182,14 +157,11 @@
 
 .expert-item:hover {
     background-color: #e2e8f0;
-    /* Hover đậm và rõ ràng hơn */
 }
 
 .expert-item.active {
     background-color: #e0f2fe;
-    /* MÀU SẮC RỰC RỠ: Tông xanh rõ rệt khi active */
     border-left: 6px solid #0284c7;
-    /* Vạch định vị dày và đậm màu hơn */
     padding-left: 14px;
 }
 
@@ -204,9 +176,7 @@
     height: 38px;
     border-radius: 50%;
     background-color: #334155;
-    /* CHUYỂN AVATAR SANG TỐI: Nổi bật hơn */
     color: #ffffff;
-    /* Chữ trắng tương phản cao */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -223,7 +193,6 @@
 .expert-name {
     font-size: 14px;
     font-weight: 700;
-    /* Tăng chữ đậm */
     color: #0f172a;
     margin-bottom: 2px;
 }
@@ -231,19 +200,7 @@
 .expert-title {
     font-size: 12px;
     color: #475569;
-    /* Tăng tương phản chữ phụ */
     font-weight: 600;
-}
-
-/* --- RIGHT ASSIGNMENT PANEL --- */
-.right-assignment-panel {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 2px solid #d1d5db;
-    /* LÀM ĐẬM BORDER KHỐI */
-    padding: 24px;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-    min-height: 450px;
 }
 
 .panel-header-custom {
@@ -262,16 +219,13 @@
 .panel-header-custom p {
     font-size: 13px;
     color: #475569;
-    /* Tăng tương phản chữ phụ */
     margin: 0;
     font-weight: 500;
 }
 
 .management-block {
     background: #f8fafc;
-    /* Nền khối quản lý chuyển sang xám nhẹ để nổi bật checkbox trắng bên trong */
     border: 2px solid #cbd5e1;
-    /* LÀM ĐẬM BORDER */
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 24px;
@@ -287,7 +241,6 @@
 .block-hint {
     font-size: 13px;
     color: #475569;
-    /* Tăng tương phản */
     margin: 0 0 16px 0;
     font-weight: 500;
 }
@@ -300,7 +253,6 @@
 
 .team-card-global {
     border: 2px solid #94a3b8;
-    /* LÀM ĐẬM ĐƯỜNG VIỀN */
     border-radius: 8px;
     padding: 12px 14px;
     display: flex;
@@ -319,9 +271,7 @@
 
 .team-card-global input[type="checkbox"] {
     accent-color: #059669;
-    /* Xanh lá rực rỡ khi tích chọn */
     width: 18px;
-    /* Tăng nhẹ kích thước checkbox */
     height: 18px;
     cursor: pointer;
 }
@@ -329,7 +279,6 @@
 .team-name-text {
     font-size: 13px;
     font-weight: 700;
-    /* Làm chữ đậm rõ nét */
     color: #1e293b;
     white-space: nowrap;
     overflow: hidden;
@@ -338,9 +287,7 @@
 
 .team-card-global.active {
     background: #d1fae5;
-    /* MÀU SẮC RỰC RỠ: Xanh ngọc nổi bật khi kích hoạt */
     border-color: #059669;
-    /* Đường viền xanh lục đậm */
     box-shadow: 0 0 0 1px #059669;
 }
 
@@ -351,17 +298,14 @@
 .team-card-global:has(input:disabled) {
     opacity: 0.6;
     background: #cbd5e1;
-    /* Tối vùng disabled để nhìn phân biệt rõ rệt */
     border-color: #94a3b8;
     cursor: not-allowed;
 }
 
-/* --- JUDGE PURE TABLE --- */
 .judge-pure-table {
     width: 100%;
     border-collapse: collapse;
     border: 2px solid #d1d5db;
-    /* Khung bảng vững chắc */
     border-radius: 8px;
     overflow: hidden;
 }
@@ -370,16 +314,13 @@
 .judge-pure-table td {
     padding: 14px 16px;
     border-bottom: 2px solid #d1d5db;
-    /* ĐẬM ĐƯỜNG KẺ NẰM NGANG GIỮA CÁC TR */
     font-size: 14px;
 }
 
 .judge-pure-table th {
     background-color: #e2e8f0;
-    /* ĐỔ MÀU NỀN HEADER BẢNG: Đậm đà, phân chia rạch ròi */
     text-align: left;
     color: #0f172a;
-    /* Tăng tương phản text header */
     font-weight: 800;
     font-size: 12px;
     text-transform: uppercase;
@@ -398,19 +339,16 @@
 
 .judge-pure-table tr:hover td {
     background-color: #f1f5f9;
-    /* Hover dòng sắc nét hơn */
 }
 
 .center {
     text-align: center;
 }
 
-/* --- UI SWITCH BLUE (RỰC RỠ) --- */
 .ui-switch-blue {
     position: relative;
     display: inline-block;
     width: 48px;
-    /* Tăng kích thước nút để dễ dùng */
     height: 26px;
 }
 
@@ -428,7 +366,6 @@
     right: 0;
     bottom: 0;
     background-color: #94a3b8;
-    /* Đậm màu nền khi chưa bật */
     transition: .3s;
     border-radius: 24px;
     border: 1px solid #475569;
@@ -449,7 +386,6 @@
 
 .ui-switch-blue input:checked+.slider {
     background-color: #2563eb;
-    /* MÀU XANH ROYAL RỰC RỠ */
     border-color: #1d4ed8;
 }
 
@@ -468,12 +404,10 @@
     background-color: #93c5fd;
 }
 
-/* --- FOOTER ACTIONS --- */
 .panel-footer-actions {
     margin-top: 24px;
     padding-top: 20px;
     border-top: 2px solid #d1d5db;
-    /* Làm đậm viền ngăn cách dưới cùng */
     display: flex;
     justify-content: flex-end;
 }
@@ -481,7 +415,6 @@
 .btn-save-master {
     padding: 12px 28px;
     background-color: #0f172a;
-    /* THAY MÀU NỀN NỔI BẬT: Đổi từ đen sang Xanh Royal rực rỡ */
     color: #ffffff;
     border: 2px solid #0f172a;
     border-radius: 8px;
@@ -492,7 +425,6 @@
     align-items: center;
     gap: 8px;
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
-    /* Tạo hiệu ứng phát sáng nhẹ */
     transition: all 0.2s;
 }
 
@@ -513,7 +445,6 @@
 .hint-text {
     font-size: 13px;
     color: #4b5563;
-    /* TĂNG TƯƠNG PHẢN TEXT CHÚ THÍCH */
     font-weight: 600;
     font-style: italic;
     grid-column: 1 / -1;
@@ -540,17 +471,14 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #334155;
-    /* Tăng độ tương phản tiêu đề lựa chọn */
 }
 
 .form-select-styled {
     padding: 8px 12px;
     border-radius: 8px;
     border: 2px solid #94a3b8;
-    /* LÀM ĐẬM ĐƯỜNG VIỀN DROPDOWN */
     font-size: 13px;
     font-weight: 700;
-    /* Chữ đậm rõ ràng */
     color: #0f172a;
     background: #fff;
     outline: none;
@@ -570,20 +498,16 @@
     cursor: not-allowed;
 }
 
-/* --- READONLY BADGES (SẮC SỠ & RỰC RỠ) --- */
 .category-badge-readonly {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
     background: #d1fae5;
-    /* Màu nền xanh ngọc sáng */
     border: 2.5px solid #059669;
-    /* Viền dày sắc nét màu xanh lục */
     border-radius: 8px;
     font-size: 13px;
     font-weight: 800;
-    /* Siêu đậm chữ */
     color: #065f46;
     min-height: 36px;
     white-space: nowrap;
@@ -594,22 +518,20 @@
     font-size: 14px;
 }
 
-/* --- ALT PANELS --- */
 .left-panel,
 .overview-panel {
     background: #ffffff;
     border-radius: 12px;
     border: 2px solid #d1d5db;
-    /* ĐẬM ĐƯỜNG VIỀN KHỐI PANELS */
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
-    overflow: hidden; /* Prevent background bleeding at corners */
+    overflow: hidden;
     min-height: 450px;
 }
 
 .panel-empty-text {
     padding: 40px 20px;
     text-align: center;
-    color: #4b5563; /* High contrast secondary text */
+    color: #4b5563;
     font-size: 14px;
     font-weight: 600;
 }
@@ -620,7 +542,6 @@
     justify-content: space-between;
     padding: 16px 20px;
     background-color: #f1f5f9;
-    /* THÊM NỀN CHO HEADER PANEL */
     border-bottom: 2px solid #d1d5db;
 }
 
@@ -637,7 +558,6 @@
     padding: 4px 12px;
     border-radius: 999px;
     background: #bae6fd;
-    /* LÀM ĐẬM MÀU BADGE: Tông xanh da trời rõ rệt */
     color: #0369a1;
     border: 1px solid #7dd3fc;
 }
@@ -647,4 +567,23 @@
     grid-template-columns: 280px 1fr 340px;
     gap: 24px;
     align-items: start;
+}
+
+.mentor-teams-badge-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 240px;
+}
+
+.scope-mentor-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
 }

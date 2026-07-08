@@ -217,10 +217,12 @@ const RankingsConsole = () => {
                 if (savedCache) {
                     const parsedCache = JSON.parse(savedCache);
                     setResult(parsedCache.resultData);
-                    setCurrentCompiledTopN(parsedCache.compiledTopN);
-                    setTopN(parsedCache.inputTopN);
+                    setCurrentCompiledTopN(parsedCache.compiledTopN || 1);
+                    setTopN(parsedCache.inputTopN || 1);
                 } else {
                     setResult(null);
+                    setCurrentCompiledTopN(1);
+                    setTopN(1);
                 }
 
             } catch (err) {
@@ -421,6 +423,16 @@ const RankingsConsole = () => {
                                     setSelectedRoundId(round.id);
                                     setActiveTab('COMPILATION');
                                     setViewMode('COMPILATION_VIEW');
+                                    const cacheKey = `ranking_cache_${selectedContestId}_${round.id}`;
+                                    const savedCache = localStorage.getItem(cacheKey);
+                                    if (savedCache) {
+                                        const parsedCache = JSON.parse(savedCache);
+                                        setTopN(parsedCache.inputTopN || 1);
+                                        setCurrentCompiledTopN(parsedCache.compiledTopN || 1);
+                                    } else {
+                                        setTopN(1);
+                                        setCurrentCompiledTopN(1);
+                                    }
                                 };
 
                                 const goToSubmissions = (e) => {
@@ -560,17 +572,18 @@ const RankingsConsole = () => {
                                             type="number"
                                             className="top-n-input"
                                             value={topN}
-                                            min={1}
+                                            min={0}
                                             max={readinessData.summary.totalTeams}
                                             onKeyDown={(e) => {
                                                 if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
                                             }}
+                                            onWheel={(e) => e.target.blur()}// Chặn hành vi cuộn chuột làm nhảy số
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 if (!/^\d*$/.test(value)) return;
                                                 if (value === '') { setTopN(''); return; }
                                                 const num = Number(value);
-                                                if (num < 1) { setTopN(1); }
+                                                if (num < 0) { setTopN(1); }
                                                 else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
                                                 else { setTopN(num); }
                                             }}
@@ -857,10 +870,6 @@ const RankingsConsole = () => {
                                     <div className="detail-timeline-item">
                                         <span className="detail-timeline-label">Submissions Deadline:</span>
                                         <span className="detail-timeline-val">{formatDate(selectedRound?.submissionDeadline)}</span>
-                                    </div>
-                                    <div className="detail-timeline-item">
-                                        <span className="detail-timeline-label">Registered Teams:</span>
-                                        <span className="detail-timeline-val">{selectedRound?.totalTeams || 10} Teams</span>
                                     </div>
                                 </div>
                                 <div className="upcoming-placeholder-box">

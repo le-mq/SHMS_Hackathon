@@ -42,7 +42,8 @@ const TeamRegistrationApproval = () => {
                 if (!canceled) {
                     setDashboardData(contestsData);
                     if (contestsData.length > 0) {
-                        setSelectedContestId(contestsData[0].id);
+                        const latestContest = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id))[0];
+                        setSelectedContestId(latestContest.id);
                     }
                 }
             }
@@ -57,7 +58,8 @@ const TeamRegistrationApproval = () => {
                     if (!canceled) {
                         setDashboardData(contestsData);
                         if (contestsData.length > 0) {
-                            setSelectedContestId(contestsData[0].id);
+                            const latestContest = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id))[0];
+                            setSelectedContestId(latestContest.id);
                         }
                     }
                 }
@@ -186,9 +188,12 @@ const TeamRegistrationApproval = () => {
                                 value={selectedContestId || ''}
                                 onChange={(e) => setSelectedContestId(e.target.value)}
                             >
-                                {dashboardData.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
+                                {[...dashboardData]
+                                    .sort((a, b) => Number(b.id) - Number(a.id))
+                                    .map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))
+                                }
                             </select>
                         )}
                         <div className="search-box-approval">
@@ -268,15 +273,13 @@ const TeamRegistrationApproval = () => {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
-                                                {(statusText === 'approved' || isCanceledOrRejected) && (
-                                                    <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
-                                                        style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
-                                                    >
-                                                        View Members
-                                                    </button>
-                                                )}
+                                                <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
+                                                    style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                    onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
+                                                    onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
+                                                >
+                                                    View Members
+                                                </button>
 
                                                 {isCanceledOrRejected ? (
                                                     <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
@@ -359,56 +362,68 @@ const TeamRegistrationApproval = () => {
             </div>
             {membersModal.isOpen && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '600px', maxWidth: '90%' }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#0f172a' }}>
+                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '650px', maxWidth: '95%', display: 'flex', flexDirection: 'column' }}>
+
+                        {/* Header của Modal */}
+                        <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#0f172a', fontWeight: '700' }}>
                             Members of {membersModal.teamName}
                         </h3>
-                        {membersModal.members && membersModal.members.length > 0 ? (
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>NAME</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STUDENT ID</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>UNIVERSITY</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>ROLE</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>STATUS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {membersModal.members.map((m, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.role || 'Member'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px' }}>
-                                                {m.status === 'APPROVED' ? (
-                                                    <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
-                                                ) : m.status === 'REJECTED' || m.status === 'CANCELED' ? (
-                                                    <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
-                                                ) : (
-                                                    <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>
-                                                )}
-                                            </td>
+
+                        {/* Vùng chứa bảng thành viên: Thêm chiều cao tối đa và bật thanh cuộn dọc tự động khi đông thành viên */}
+                        <div style={{ overflowY: 'auto', maxHeight: '60vh', paddingRight: '4px', borderBottom: '1px solid #e2e8f0' }}>
+                            {membersModal.members && membersModal.members.length > 0 ? (
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: '#f8fafc' }}>
+                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>NAME</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STUDENT ID</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>UNIVERSITY</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>ROLE</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STATUS</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '16px' }}>No members found.</div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+                                    </thead>
+                                    <tbody>
+                                        {membersModal.members.map((m, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.role || 'Member'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px' }}>
+                                                    {m.status === 'APPROVED' ? (
+                                                        <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
+                                                    ) : m.status === 'REJECTED' || m.status === 'CANCELED' ? (
+                                                        <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
+                                                    ) : (
+                                                        <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div style={{ color: '#64748b', fontSize: '14px', padding: '20px 0' }}>No members found.</div>
+                            )}
+                        </div>
+
+                        {/* Nút Đóng cố định ở góc dưới bên phải */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                             <button
                                 onClick={() => setMembersModal({ isOpen: false, teamName: '', members: [] })}
                                 style={{
-                                    padding: '8px 16px',
+                                    padding: '8px 20px',
                                     borderRadius: '6px',
                                     border: '1px solid #cbd5e1',
                                     background: 'white',
                                     color: '#475569',
                                     cursor: 'pointer',
-                                    fontWeight: '600'
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    transition: 'background-color 0.2s'
                                 }}
+                                onMouseOver={(e) => e.target.style.backgroundColor = '#f8fafc'}
+                                onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
                             >
                                 Close
                             </button>
@@ -416,8 +431,6 @@ const TeamRegistrationApproval = () => {
                     </div>
                 </div>
             )}
-
-
         </div>
     );
 };
