@@ -65,15 +65,18 @@ public class Round {
         if (this.state == RoundState.CLOSED) {
             return RoundState.CLOSED;
         }
-
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        if (this.submissionDeadline != null && now.isAfter(this.submissionDeadline)) {
+        java.time.LocalDateTime closeTime = this.publishResultAt;
+        if (closeTime == null) closeTime = this.gradingDeadlineAt;
+        if (closeTime == null) closeTime = this.submissionDeadline;
+
+        if (closeTime != null && now.isAfter(closeTime)) {
             return RoundState.CLOSED;
         }
         if (this.submissionOpen != null && now.isBefore(this.submissionOpen)) {
             return RoundState.UPCOMING;
         }
-        if (this.submissionOpen != null && this.submissionDeadline != null) {
+        if (this.submissionOpen != null) {
             return RoundState.ACTIVED;
         }
         return this.state != null ? this.state : RoundState.UPCOMING;

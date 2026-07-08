@@ -115,12 +115,12 @@ public class JudgeService {
                         .orElse(null);
 
                 boolean isEvaluated = false;
-                Integer totalScore = null;
+                Double totalScore = null;
                 if (latestSub != null) {
                     List<Score> scores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
                     if (scores != null && !scores.isEmpty()) {
                         isEvaluated = true;
-                        totalScore = scores.stream().mapToInt(sc -> sc.getPointsAwarded() != null ? sc.getPointsAwarded().intValue() : 0).sum();
+                        totalScore = scores.stream().mapToDouble(sc -> sc.getPointsAwarded() != null ? sc.getPointsAwarded() : 0.0).sum();
                     }
                 }
                 if (isEvaluated) {
@@ -181,7 +181,7 @@ public class JudgeService {
                             .id(r.getId())
                             .name(r.getPhaseName())
                             .format(r.getRoundFormat())
-                            .gradingDeadlineAt(r.getSubmissionDeadline())
+                            .gradingDeadlineAt(r.getGradingDeadlineAt())
                             .status(r.getState() != null ? r.getState().name() : null)
                             .build());
                 }

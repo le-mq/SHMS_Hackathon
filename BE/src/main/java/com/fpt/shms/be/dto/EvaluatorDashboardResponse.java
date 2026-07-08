@@ -49,6 +49,6 @@ public class EvaluatorDashboardResponse {
         private String themeClass;
         private java.time.LocalDateTime gradingDeadlineAt;
         private String roundFormat;
-        private Integer score;
+        private Double score;
     }
 }
