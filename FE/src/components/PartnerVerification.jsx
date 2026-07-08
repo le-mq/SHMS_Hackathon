@@ -192,7 +192,7 @@ const PartnerVerification = () => {
 
     const handleAddStudent = () => {
         if (!selectedStudentPartner) {
-            setStudentError('Please select a partner institution first.');
+            setTimeout(() => setStudentError('Please select a partner institution first.'), 3000);
             return;
         }
         setStudentError('');
@@ -350,8 +350,8 @@ const PartnerVerification = () => {
 
     return (
         <div className="admin-container">
-            <div className="config-wrapper">
-                <div className="config-header">
+            <div className="config-wrapperr">
+                <div className="config-headerr">
                     <h1 className="config-title">Partner Verification Settings</h1>
                     <p className="config-subtitle">Configure university code, domains, and student verification protocols globally.</p>
                 </div>
