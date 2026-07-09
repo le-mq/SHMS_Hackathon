@@ -930,7 +930,7 @@ const ProjectSubmission = () => {
 
                                     return (
                                         <div
-                                            key={r.id}
+                                            key={`${r.id}-${index}`}
                                             onClick={() => handleChange({ target: { name: 'roundId', value: r.id } })}
                                             style={{
                                                 display: 'flex',

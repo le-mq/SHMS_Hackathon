@@ -183,6 +183,11 @@ const StandingsFeedback = () => {
 
         const loadCompetitions = async () => {
             const sortLogic = (a, b) => {
+                const statusA = String(a.data?.status || '').toUpperCase();
+                const statusB = String(b.data?.status || '').toUpperCase();
+                if (statusA === 'APPROVED' && statusB !== 'APPROVED') return -1;
+                if (statusB === 'APPROVED' && statusA !== 'APPROVED') return 1;
+
                 const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
                 const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
                 if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) return dateB - dateA;
