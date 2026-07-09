@@ -291,9 +291,15 @@ const MentorCategory = () => {
                                                     {roundId && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setPreviewRoundId(roundId); }}
-                                                            style={{ padding: '4px 8px', background: isActive ? '#dbeafe' : '#f1f5f9', color: isActive ? '#1e40af' : '#475569', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.background = isActive ? '#bfdbfe' : '#e2e8f0'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.background = isActive ? '#dbeafe' : '#f1f5f9'}
+                                                            style={{ padding: '6px 12px', background: isActive ? '#3b82f6' : '#fff', color: isActive ? '#fff' : '#0f172a', border: `1px solid ${isActive ? '#2563eb' : '#cbd5e1'}`, borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = isActive ? '#2563eb' : '#f8fafc';
+                                                                e.currentTarget.style.borderColor = isActive ? '#1d4ed8' : '#94a3b8';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = isActive ? '#3b82f6' : '#fff';
+                                                                e.currentTarget.style.borderColor = isActive ? '#2563eb' : '#cbd5e1';
+                                                            }}
                                                         >
                                                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                             Req & Rubric

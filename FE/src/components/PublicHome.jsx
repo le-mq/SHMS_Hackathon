@@ -15,7 +15,10 @@ const fmtDateTime = (str) => {
 
 function progress(start, end) {
     if (!start || !end) return 0;
-    const now = Date.now(), s = new Date(start), e = new Date(end);
+    const now = Date.now();
+    const s = new Date(start).getTime();
+    const e = new Date(end).getTime();
+    if (isNaN(s) || isNaN(e)) return 0;
     if (now <= s) return 0;
     if (now >= e) return 100;
     return Math.round(((now - s) / (e - s)) * 100);
@@ -26,7 +29,9 @@ function ContestCard({ contest, onSelectContest }) {
     const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
     const compStart = validRounds.length ? new Date(Math.min(...validRounds.map(r => new Date(r.submissionOpen)))).toISOString() : null;
     const compEnd = validRounds.length ? new Date(Math.max(...validRounds.map(r => new Date(r.submissionDeadline)))).toISOString() : null;
-    const pct = progress(registrationStart, compEnd);
+    const cStart = registrationStart || contest.contestStartAt || contest.startDate;
+    const cEnd = contest.contestEndAt || contest.endDate || compEnd;
+    const pct = progress(cStart, cEnd);
 
     return (
         <div className="ph-contest-card">
