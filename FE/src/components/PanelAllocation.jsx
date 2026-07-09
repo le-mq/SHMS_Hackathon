@@ -65,23 +65,17 @@ const PanelAllocation = () => {
         }
         const getRounds = async () => {
             try {
-                // 1. Cố gắng fetch dữ liệu từ API Backend thực tế
                 const res = await fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds`, { headers });
                 if (!res.ok) throw new Error("API Rounds error");
                 const data = await res.json();
 
-                // Cập nhật state rounds từ backend
                 setRounds(data);
                 handleSelectRound(data);
             } catch (err) {
-                // 2. Nếu Backend lỗi, fallback gọi API từ file testFE.json tương tự như Contests/Experts
                 console.warn("Using mock data from testFE.json for rounds in PanelAllocation:", err);
                 try {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
-
-                    // Lọc lấy danh sách rounds thuộc contest hiện tại từ cấu trúc file testFE của bạn
-                    // (Giả định cấu trúc tương tự: localJson.panelAllocation?.rounds)
                     const localRounds = localJson.panelAllocation?.rounds || [];
 
                     setRounds(localRounds);
@@ -92,7 +86,6 @@ const PanelAllocation = () => {
             }
         };
 
-        // Hàm phụ trợ tách ra để tái sử dụng việc xử lý logic lựa chọn Round ID sau khi load dữ liệu
         const handleSelectRound = (roundsData) => {
             if (roundsData.length > 0) {
                 const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
@@ -134,21 +127,9 @@ const PanelAllocation = () => {
                     allocationsData = await allocationsRes.json() || {};
                 } catch (apiErr) {
                     console.warn("Using mock data for round data in PanelAllocation:", apiErr);
-                    if (Number(roundCategoryId) === 2) {
-                        teamsData = [
-                            { id: 3, name: "HackStorm" },
-                            { id: 4, name: "NextGen" }
-                        ];
-                    } else {
-                        teamsData = [
-                            { id: 1, name: "AI Warriors" },
-                            { id: 2, name: "Code Titans" },
-                            { id: 3, name: "Data Miners" },
-                            { id: 4, name: "NextGen" }
-                        ];
-                    }
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
+                    teamsData = localJson.panelAllocation?.teams || [];
                     allocationsData = localJson.panelAllocation?.allocations || {};
                 }
                 setAllTeams(teamsData);
@@ -484,21 +465,19 @@ const PanelAllocation = () => {
 
                     <div style={{ width: '1px', background: '#e2e8f0', margin: '0 8px' }}></div>
 
-                    {/* Round Selection badged list */}
                     <div style={{ flex: '3 1 500px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Select Competition Round</span>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                             {rounds.map((r, idx) => {
                                 const isActive = String(selectedRoundId) === String(r.roundId);
 
-                                // Hàm định dạng Style màu sắc cho từng loại trạng thái của Round
                                 const getRoundStatusStyles = (status) => {
                                     const s = status?.toUpperCase() || 'ACTIVE';
                                     switch (s) {
                                         case 'CLOSED':
                                             return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
                                         case 'UPCOMING':
-                                            return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' }; // Màu vàng cam cho Upcoming
+                                            return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
                                         case 'ACTIVE':
                                         case 'ACTIVED':
                                         default:
@@ -506,7 +485,7 @@ const PanelAllocation = () => {
                                     }
                                 };
 
-                                const statusText = r.status || 'ACTIVE';
+                                const statusText = r.status ? r.status.toUpperCase() : 'ACTIVE';
                                 const statusStyle = getRoundStatusStyles(statusText);
 
                                 return (
@@ -526,7 +505,7 @@ const PanelAllocation = () => {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '6px',
-                                            minWidth: '200px', // Tăng nhẹ min-width để chứa vừa badge trạng thái
+                                            minWidth: '200px', 
                                             boxShadow: isActive ? '0 4px 6px -1px rgba(37, 99, 235, 0.1)' : 'none',
                                             transition: 'all 0.2s ease',
                                             position: 'relative'
@@ -538,12 +517,10 @@ const PanelAllocation = () => {
                                             if (!isActive) e.currentTarget.style.borderColor = '#cbd5e1';
                                         }}
                                     >
-                                        {/* Hàng chứa Tên Round và Badge Trạng thái */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                                             <div style={{ fontSize: '14px', fontWeight: 700, color: isActive ? '#1e3a8a' : '#1e293b', lineHeight: '1.2' }}>
                                                 {r.roundName}
                                             </div>
-                                            {/* Badge Trạng thái Round */}
                                             <span style={{
                                                 fontSize: '9px',
                                                 fontWeight: 800,
@@ -555,7 +532,7 @@ const PanelAllocation = () => {
                                                 textTransform: 'uppercase',
                                                 whiteSpace: 'nowrap'
                                             }}>
-                                                {statusText === 'ACTIVED' ? 'ACTIVE' : statusText}
+                                                {statusText}
                                             </span>
                                         </div>
 
@@ -567,7 +544,7 @@ const PanelAllocation = () => {
                                             borderRadius: '4px',
                                             fontWeight: 600,
                                             alignSelf: 'flex-start',
-                                            marginTop: 'auto' // Đẩy xuống đáy hộp nếu tên round dài ngắn khác nhau
+                                            marginTop: 'auto'
                                         }}>
                                             {r.categoryName || 'No Category'}
                                         </span>
@@ -583,7 +560,6 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
-                {/* Left panel: Expert Registry */}
                 <div className="left-panel">
                     <div className="panel-header">
                         <h2 className="panel-title">Expert Registry</h2>
@@ -613,7 +589,6 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
-                {/* Middle panel: Allocation Management Board */}
                 <div className="right-assignment-panel">
                     <div className="panel-header-custom">
                         <h2>Allocation Management Board</h2>
@@ -696,7 +671,6 @@ const PanelAllocation = () => {
                     )}
                 </div>
 
-                {/* Right panel: Live Status Overview */}
                 <div className="overview-panel">
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 className="panel-title overview-title" style={{ margin: 0 }}>Live Status Overview</h3>
