@@ -5,7 +5,8 @@ const API_BASE = "http://localhost:8080/api/v1";
 
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
-    const [selectedContestId, setSelectedContestId] = useState('');
+    const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('panelAllocSelectedContest') || '');
+    const [contestSearchQuery, setContestSearchQuery] = useState('');
     const [rounds, setRounds] = useState([]);
     const [selectedRoundId, setSelectedRoundId] = useState('');
     const [selectedRound, setSelectedRound] = useState(null);
@@ -46,10 +47,6 @@ const PanelAllocation = () => {
                 }
 
                 setContests(cData);
-                if (cData.length > 0) {
-                    const activeContest = cData.find(c => c.status === 'ACTIVED');
-                    setSelectedContestId(String(activeContest ? activeContest.id : cData[0].id));
-                }
                 setExperts(eData);
                 if (eData.length > 0) setSelectedExpertId(String(eData[0].userId));
             } catch (err) {
@@ -73,8 +70,15 @@ const PanelAllocation = () => {
                 const data = await res.json();
                 setRounds(data);
                 if (data.length > 0) {
-                    setSelectedRoundId(String(data[0].roundId));
-                    setSelectedRound(data[0]);
+                    const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
+                    const hasSavedRound = savedRoundId && data.some(r => String(r.roundId) === String(savedRoundId));
+                    if (hasSavedRound) {
+                        setSelectedRoundId(savedRoundId);
+                        setSelectedRound(data.find(r => String(r.roundId) === String(savedRoundId)));
+                    } else {
+                        setSelectedRoundId(String(data[0].roundId));
+                        setSelectedRound(data[0]);
+                    }
                 } else {
                     setSelectedRoundId('');
                     setSelectedRound(null);
@@ -96,8 +100,15 @@ const PanelAllocation = () => {
                     }
                 ];
                 setRounds(mockRounds);
-                setSelectedRoundId(String(mockRounds[0].roundId));
-                setSelectedRound(mockRounds[0]);
+                const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
+                const hasSavedRound = savedRoundId && mockRounds.some(r => String(r.roundId) === String(savedRoundId));
+                if (hasSavedRound) {
+                    setSelectedRoundId(savedRoundId);
+                    setSelectedRound(mockRounds.find(r => String(r.roundId) === String(savedRoundId)));
+                } else {
+                    setSelectedRoundId(String(mockRounds[0].roundId));
+                    setSelectedRound(mockRounds[0]);
+                }
             }
         };
         getRounds();
@@ -150,6 +161,7 @@ const PanelAllocation = () => {
         };
         fetchRoundData();
     }, [selectedContestId, selectedRoundId, rounds, headers, roundCategoryId]);
+
     const currentMentoredTeamIds = useMemo(() => {
         if (!allocations || !selectedExpertId) return [];
         const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
@@ -161,6 +173,7 @@ const PanelAllocation = () => {
         });
         return Array.from(ids);
     }, [allocations, selectedExpertId]);
+
     const isActingAsJudgeAnywhere = useMemo(() => {
         if (!allocations || !selectedExpertId) return false;
         const expertAlloc = allocations[String(selectedExpertId)] || allocations[Number(selectedExpertId)] || {};
@@ -301,51 +314,239 @@ const PanelAllocation = () => {
     const isJudgeForRound = allocations[String(selectedExpertId)]?.[roundCategoryId]?.isJudge || false;
     const isJudgeDisabled = !hasJudgeRole || currentMentoredTeamIds.length > 0;
 
+    if (!selectedContestId) {
+        return (
+            <div className="admin-container">
+                <div style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                        <div>
+                            <h1 className="config-title" style={{ fontSize: '32px' }}>Panel Allocation</h1>
+                            <p className="config-subtitle" style={{ fontSize: '15px', color: '#64748b' }}>Select a contest to manage expert panel allocations and track assignment progress.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '320px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                            <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search contests..."
+                                value={contestSearchQuery}
+                                onChange={(e) => setContestSearchQuery(e.target.value)}
+                                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                        {contests
+                            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+                            .sort((a, b) => {
+                                if (a.status === 'CLOSED' && b.status !== 'CLOSED') return 1;
+                                if (a.status !== 'CLOSED' && b.status === 'CLOSED') return -1;
+                                return 0;
+                            })
+                            .map(c => {
+                                const isClosed = c.status === 'CLOSED';
+                                return (
+                                    <div
+                                        key={c.id}
+                                        style={{
+                                            background: 'white',
+                                            padding: '28px',
+                                            borderRadius: '16px',
+                                            border: '1.5px solid #cbd5e1',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            minHeight: '160px'
+                                        }}
+                                        onClick={() => {
+                                            setSelectedContestId(c.id.toString());
+                                            sessionStorage.setItem('panelAllocSelectedContest', c.id.toString());
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.borderColor = '#2563eb';
+                                            e.currentTarget.style.transform = 'translateY(-3px)';
+                                            e.currentTarget.style.boxShadow = '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.borderColor = '#cbd5e1';
+                                            e.currentTarget.style.transform = 'none';
+                                            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
+                                                <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                    {c.status || 'ACTIVE'}
+                                                </span>
+                                            </div>
+                                            {c.year && (
+                                                <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+                                                    {c.season ? `${c.season} ` : ''}{c.year}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                                            <span style={{ color: '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Manage Allocations
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        }
+                        {contests.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                            <div style={{ gridColumn: '1 / -1', padding: '60px 40px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', color: '#64748b', fontWeight: '600', border: '1.5px dashed #cbd5e1' }}>
+                                No contests found matching your search query.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-container">
             <div className="allocation-wrapper">
-                <div className="header-flex">
+                <div className="header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gridColumn: '1 / -1' }}>
                     <div>
                         <h1 className="config-title">Panel Allocation Desk</h1>
                         <p className="config-subtitle">Assign judges and allocate mentors to teams per competition round.</p>
                     </div>
 
-                    <div className="header-selectors">
-                        <div className="selector-group">
-                            <label className="selector-label">Contest</label>
-                            <select className="form-select-styled" value={selectedContestId}
-                                onChange={e => setSelectedContestId(e.target.value)}
-                            >
-                                <option value="">-- Choose Contest --</option>
-                                {contests.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                            </select>
-                        </div>
+                    <button
+                        onClick={() => {
+                            setSelectedContestId('');
+                            setSelectedRoundId('');
+                            setSelectedRound(null);
+                            sessionStorage.removeItem('panelAllocSelectedContest');
+                            sessionStorage.removeItem('panelAllocSelectedRoundId');
+                        }}
+                        style={{
+                            padding: '8px 16px',
+                            background: 'white',
+                            border: '1.5px solid #cbd5e1',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            whiteSpace: 'nowrap',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.borderColor = '#94a3b8';
+                            e.currentTarget.style.background = '#f8fafc';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                            e.currentTarget.style.background = 'white';
+                        }}
+                    >
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Contests
+                    </button>
+                </div>
 
-                        <div className="selector-group">
-                            <label className="selector-label">Round</label>
-                            <select className="form-select-styled" value={selectedRoundId}
-                                onChange={e => setSelectedRoundId(e.target.value)}
-                                disabled={rounds.length === 0}
-                            >
-                                <option value="">-- Choose Round --</option>
-                                {rounds.map(r => (<option key={r.roundId} value={r.roundId}>{r.roundName}</option>))}
-                            </select>
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', width: '100%', background: 'white', padding: '24px', borderRadius: '16px', border: '1.5px solid #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', gridColumn: '1 / -1'}}>
+                    <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: 700, fontSize: '15px' }}>
+                            {contests.find(c => String(c.id) === String(selectedContestId))?.name || 'Selected Contest'}
                         </div>
-
-                        {selectedRound && (
-                            <div className="selector-group">
-                                <label className="selector-label">Category Focus</label>
-                                <div className="category-badge-readonly">
-                                    {selectedRound.categoryName
-                                        ? <><span className="cat-icon">🏷️</span> {selectedRound.categoryName}</>
-                                        : <span>Category not assigned</span>
-                                    }
+                        {(() => {
+                            const selectedC = contests.find(c => String(c.id) === String(selectedContestId));
+                            if (!selectedC) return null;
+                            const statusText = selectedC.status || 'ACTIVE';
+                            const badgeStyles = statusText === 'CLOSED' ? { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' } : { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+                            return (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', padding: '0 4px' }}>
+                                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Overall Status:</span>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyles.bg, color: badgeStyles.color, border: `1px solid ${badgeStyles.border}` }}>{statusText}</span>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
+                    </div>
+
+                    <div style={{ width: '1px', background: '#e2e8f0', margin: '0 8px' }}></div>
+
+                    {/* Round Selection badged list */}
+                    <div style={{ flex: '3 1 500px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Select Competition Round</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                            {rounds.map((r, idx) => {
+                                const isActive = String(selectedRoundId) === String(r.roundId);
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => {
+                                            setSelectedRoundId(String(r.roundId));
+                                            setSelectedRound(r);
+                                            sessionStorage.setItem('panelAllocSelectedRoundId', String(r.roundId));
+                                        }}
+                                        style={{
+                                            padding: '12px 16px',
+                                            borderRadius: '10px',
+                                            border: `2px solid ${isActive ? '#2563eb' : '#cbd5e1'}`,
+                                            background: isActive ? '#eff6ff' : 'white',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '6px',
+                                            minWidth: '160px',
+                                            boxShadow: isActive ? '0 4px 6px -1px rgba(37, 99, 235, 0.1)' : 'none',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!isActive) e.currentTarget.style.borderColor = '#94a3b8';
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!isActive) e.currentTarget.style.borderColor = '#cbd5e1';
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '14px', fontWeight: 700, color: isActive ? '#1e3a8a' : '#1e293b' }}>
+                                            {r.roundName}
+                                        </div>
+                                        <span style={{
+                                            fontSize: '11px',
+                                            background: isActive ? '#dbeafe' : '#f1f5f9',
+                                            color: isActive ? '#1e40af' : '#475569',
+                                            padding: '2px 8px',
+                                            borderRadius: '4px',
+                                            fontWeight: 600,
+                                            alignSelf: 'flex-start',
+                                            marginTop: '2px'
+                                        }}>
+                                            {r.categoryName || 'No Category'}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                            {rounds.length === 0 && (
+                                <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', padding: '12px 0' }}>
+                                    No Rounds found under this contest.
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
+                {/* Left panel: Expert Registry */}
                 <div className="left-panel">
                     <div className="panel-header">
                         <h2 className="panel-title">Expert Registry</h2>
@@ -375,6 +576,7 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
+                {/* Middle panel: Allocation Management Board */}
                 <div className="right-assignment-panel">
                     <div className="panel-header-custom">
                         <h2>Allocation Management Board</h2>
@@ -383,7 +585,7 @@ const PanelAllocation = () => {
 
                     {!selectedRoundId ? (
                         <div className="panel-empty-text">
-                            <p>Please define active Contest and Round targets to initiate allocation.</p>
+                            <p>Please define active Round target to initiate allocation.</p>
                         </div>
                     ) : (
                         <>
@@ -394,7 +596,7 @@ const PanelAllocation = () => {
                                     <div className="team-empty-box">
                                         <p>No active teams captured within this scope.</p>
                                     </div>
-                                ) : (
+                               ) : (
                                     <div className="global-teams-grid">
                                         {allTeams.map(team => {
                                             const isChecked = currentMentoredTeamIds.includes(String(team.id));
@@ -457,6 +659,7 @@ const PanelAllocation = () => {
                     )}
                 </div>
 
+                {/* Right panel: Live Status Overview */}
                 <div className="overview-panel">
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 className="panel-title overview-title" style={{ margin: 0 }}>Live Status Overview</h3>
