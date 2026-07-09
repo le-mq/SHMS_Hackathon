@@ -51,7 +51,7 @@ public class TeamService{
                 .build();
         team.generateTeamCode();
         team = teamRepository.save(team);
-        auditLogService.log("CREATE_TEAM", "Team", team.getName(), "NONE", team.getStatus(), "Created by: " + leaderUsername);
+        auditLogService.log("CREATE_TEAM", "Team", team.getName(), null, team.getStatus(), "Created by: " + leaderUsername);
 
         TeamMembership memberMembership = TeamMembership.builder()
                 .team(team)
@@ -216,7 +216,7 @@ public class TeamService{
         }
 
         teamMembershipRepository.delete(membership);
-        auditLogService.log("LEAVE_TEAM", "Team", team.getName(), "MEMBER", team.getStatus(), "User: " + username);
+        auditLogService.log("LEAVE_TEAM", "Team", team.getName(), null, team.getStatus(), "User: " + username);
     }
 
     @Transactional
@@ -321,7 +321,7 @@ public class TeamService{
         }
         team = teamRepository.save(team);
         String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty() ? " - Leader assigned: " + request.getLeaderStudentId() : "";
-        auditLogService.log("REGISTER_TEAM", "Team", team.getName(), "UNREGISTERED", team.getStatus(), "Registered by: " + username + leaderInfo);
+        auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
 
         if ("APPROVED".equals(team.getStatus()) || "PENDING".equals(team.getStatus())) {
             List<TeamMembership> currentMembers = teamMembershipRepository.findByTeamId(team.getId());
@@ -335,7 +335,7 @@ public class TeamService{
                             String otherTeamStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "FORMING";
                             if ("FORMING".equals(otherTeamStatus)) {
                                 teamMembershipRepository.delete(otherMembership);
-                                auditLogService.log("REMOVE_FROM_TEAM", "TeamMembership", otherTeam.getName(), "MEMBER", "DELETED",
+                                auditLogService.log("REMOVE_FROM_TEAM", "TeamMembership", otherTeam.getName(), null, "DELETED",
                                         "Removed user " + userId + " from forming team because they registered with team " + team.getId());
                             }
                         }
@@ -471,7 +471,7 @@ public class TeamService{
     }
 
     @Transactional
-    public void updateTeamStatus(Long teamId, String status) {
+    public void updateTeamStatus(Long teamId, String status, String reason) {
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
@@ -499,8 +499,9 @@ public class TeamService{
             auditLogService.logCancelTeam(team.getName(), currentStatus, "Team status cancelled by admin");
         }
 
+        List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
+
         if("APPROVED".equalsIgnoreCase(status)) {
-            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
             for (TeamMembership tm : memberships) {
                 if("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
@@ -519,7 +520,6 @@ public class TeamService{
                 }
             }
         } else if ("CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
-            List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
             for (TeamMembership tm : memberships) {
                 if("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
@@ -539,6 +539,15 @@ public class TeamService{
             }
         }
 
+        // Send email notification to all members
+        for (TeamMembership tm : memberships) {
+            User user = tm.getUser();
+            if (user != null && user.getEmail() != null) {
+                Student student = studentRepository.findByUser(user).orElse(null);
+                String fullName = (student != null) ? student.getFullName() : user.getUsername();
+                emailService.sendTeamStatusNotificationAsync(user.getEmail(), fullName, team.getName(), newStatus, reason);
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -856,7 +865,7 @@ public class TeamService{
                 .inviterUserId(inviter.getId())
                 .build();
         teamMembershipRepository.save(membership);
-        auditLogService.log("SEND_INVITATION", "TeamMembership", team.getName() + " -> " + invitedStudent.getStudentCode(), "UNINVITED", "PENDING",
+        auditLogService.log("SEND_INVITATION", "TeamMembership", team.getName() + " -> " + invitedStudent.getStudentCode(), null, "PENDING",
                 "Invited user " + request.getStudentUserId() + " to team " + team.getName());
 
         if (invitedStudent.getCorporateEmail() != null) {
@@ -1044,7 +1053,7 @@ public class TeamService{
             team.setPenaltyDetails(mapper.writeValueAsString(existingList));
             teamRepository.save(team);
 
-            auditLogService.log("APPLY_PENALTY", "Team", team.getName(), "NO_PENALTY", request.getPenaltyApplied(), "Penalty applied for rule: " + request.getPenaltyRule());
+            auditLogService.log("APPLY_PENALTY", "Team", team.getName(), null, request.getPenaltyApplied(), "Penalty applied for rule: " + request.getPenaltyRule());
         } catch (Exception e) {
             throw new RuntimeException("Error processing penalty details", e);
         }

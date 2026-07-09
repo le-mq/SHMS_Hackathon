@@ -111,4 +111,39 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendTeamStatusNotificationAsync(String toEmail, String fullName, String teamName, String status, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("SEAL Hackathon - Team Registration Update");
+
+            StringBuilder textContent = new StringBuilder();
+            textContent.append("Dear ").append(fullName != null ? fullName : "Participant").append(",\n\n");
+
+            if ("APPROVED".equalsIgnoreCase(status)) {
+                textContent.append("Great news! Your team '").append(teamName).append("' has been APPROVED for the SEAL Hackathon.\n\n");
+            } else if ("REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status)) {
+                textContent.append("We regret to inform you that the registration for your team '").append(teamName).append("' has been ").append(status.toUpperCase()).append(".\n\n");
+            } else {
+                textContent.append("The status of your team '").append(teamName).append("' has been updated to ").append(status.toUpperCase()).append(".\n\n");
+            }
+
+            if (reason != null && !reason.trim().isEmpty()) {
+                textContent.append("Reason provided by Admin:\n");
+                textContent.append(reason).append("\n\n");
+            }
+
+            textContent.append("If you have any questions, please contact the organizing committee.\n\n");
+            textContent.append("Best regards,\nSEAL Hackathon Organizing Committee");
+
+            message.setText(textContent.toString());
+
+            mailSender.send(message);
+            log.info("Sent team status notification email to: {} for team: {}", toEmail, teamName);
+        } catch (Exception e) {
+            log.error("Failed to send team status notification email to {}", toEmail, e);
+        }
+    }
 }
