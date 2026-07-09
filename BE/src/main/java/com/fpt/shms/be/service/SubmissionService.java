@@ -220,12 +220,16 @@ public class SubmissionService {
             return v2.compareTo(v1);
         });
 
-        String qualificationStatus = "QUALIFIED";
+        String qualificationStatus = null;
         List<RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
-        for (RankingResult rr : teamRankings) {
-            if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
-                qualificationStatus = "ELIMINATED";
-                break;
+        if (teamRankings != null && !teamRankings.isEmpty()) {
+            for (RankingResult rr : teamRankings) {
+                if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
+                    qualificationStatus = "ELIMINATED";
+                    break;
+                } else if (rr.getQualificationStatus() != null && !rr.getQualificationStatus().isEmpty()) {
+                    qualificationStatus = rr.getQualificationStatus();
+                }
             }
         }
 
@@ -462,14 +466,26 @@ public class SubmissionService {
                         .build());
             }
 
+            String qualificationStatus = null;
+            if (rankingResultRepository != null) {
+                java.util.List<com.fpt.shms.be.model.RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
+                for (com.fpt.shms.be.model.RankingResult rr : teamRankings) {
+                    if (rr.getRound() != null && rr.getRound().getId().equals(sub.getRound().getId())) {
+                        qualificationStatus = rr.getQualificationStatus();
+                        break;
+                    }
+                }
+            }
+
             roundScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto.builder()
                     .roundId(sub.getRound().getId())
                     .roundName(sub.getRound().getPhaseName())
                     .totalScore(isPublished && avgRoundScore != null ? Math.round(avgRoundScore * 100.0) / 100.0 : null)
-                    .hasSubmission(true)
+                    .hasSubmission(!"MISSED_DEADLINE".equals(sub.getStatus()))
                     .isGraded(isGraded)
                     .resultPublished(publishDate != null)
                     .publishResultAt(publishDate)
+                    .qualificationStatus(qualificationStatus)
                     .detailedScores(isPublished ? detailedScores : new ArrayList<>())
                     .build());
         }

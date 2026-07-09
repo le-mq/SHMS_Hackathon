@@ -612,34 +612,37 @@ INSERT INTO Admin (user_id, status)
 SELECT user_id, 'ACTIVE' FROM [User] WHERE username = 'admin2';
 GO
 
--- 0. SEMESTERS (3 Distinct Semesters for 3 Contests - No overlap!)
+-- 0. SEMESTERS (4 Distinct Semesters for 4 Contests)
 INSERT INTO Semester (term, [year], semester_code)
 VALUES
 ('Spring', 2025, 'SP25'),
 ('Fall', 2025, 'FA25'),
-('Summer', 2026, 'SU26');
+('Summer', 2026, 'SU26'),
+('Spring', 2026, 'SP26');
 GO
 
 -- 1. CONTESTS (Each Contest in a DIFFERENT Semester!)
 INSERT INTO Contest (semester_id, contest_name, theme, max_teams, min_team_members, max_team_members, status, registration_start, registration_end, contest_start_at, contest_end_at, location, compliance_rules, tiered_prize_structures, published_at)
 VALUES
-(1, 'National AI Challenge 2025', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-02-11 08:00:00', '2025-03-30 23:59:59', N'FPT University Hà Nội Campus, Khu Công nghệ cao Hòa Lạc', N'1. Mã nguồn tự phát triển 100%.\n2. Tuân thủ quy tắc đạo đức AI.', N'[{"rank":"Giải Nhất","amount":"50,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"30,000,000 VNĐ"},{"rank":"Giải Ba","amount":"15,000,000 VNĐ"}]', '2025-01-15 08:00:00'),
-(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-09-16 08:00:00', '2025-11-30 23:59:59', N'FPT University HCM Campus, Lô E2a-7, Đường D1, TP.Thủ Đức', N'1. Smart contract phải deploy trên Testnet hoặc Mainnet.\n2. Báo cáo kiểm định bảo mật.', N'[{"rank":"Giải Nhất","amount":"60,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"35,000,000 VNĐ"},{"rank":"Giải Ba","amount":"20,000,000 VNĐ"}]', '2025-08-15 08:00:00'),
-(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-15', '2026-07-16 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lô E2a-7, Đường D1, TP.Thủ Đức', N'1. Tất cả mã nguồn phải được phát triển trong thời gian diễn ra cuộc thi.\n2. Các đội thi phải tuân thủ quy tắc ứng xử và đạo đức sinh viên.\n3. Quyết định của Ban Giám khảo là quyết định cuối cùng.', N'[{"rank":"Giải Nhất","amount":"100,000,000 VNĐ"},{"rank":"Giải Nhì","amount":"50,000,000 VNĐ"},{"rank":"Giải Ba","amount":"25,000,000 VNĐ"},{"rank":"Giải Khuyến Khích","amount":"10,000,000 VNĐ"}]', '2026-04-15 08:00:00');
+(1, 'National AI Challenge 2025', 'Artificial Intelligence', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-02-11 08:00:00', '2025-03-30 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"All source code must be 100% self-developed during the competition.","penalty":"Disqualified"},{"rule":"All teams must comply with AI ethics and integrity guidelines.","penalty":"Minus 20 points"}]', N'[{"rank":"First Prize","amount":"50,000,000 VND"},{"rank":"Second Prize","amount":"30,000,000 VND"},{"rank":"Third Prize","amount":"15,000,000 VND"}]', '2025-01-15 08:00:00'),
+(2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-09-16 08:00:00', '2025-11-30 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"Smart contracts must be deployed and verified on Testnet or Mainnet.","penalty":"Disqualified"},{"rule":"Security audit and gas optimization report required prior to submission.","penalty":"Minus 15 points"}]', N'[{"rank":"First Prize","amount":"60,000,000 VND"},{"rank":"Second Prize","amount":"35,000,000 VND"},{"rank":"Third Prize","amount":"20,000,000 VND"}]', '2025-08-15 08:00:00'),
+(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-15', '2026-07-16 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"All source code must be developed within the official hackathon timeline.","penalty":"Disqualified"},{"rule":"Participating teams must strictly follow student conduct and academic integrity rules.","penalty":"Minus 20 points"},{"rule":"The decision of the Judging Panel is final and binding.","penalty":"Warning"}]', N'[{"rank":"First Prize","amount":"100,000,000 VND"},{"rank":"Second Prize","amount":"50,000,000 VND"},{"rank":"Third Prize","amount":"25,000,000 VND"},{"rank":"Consolation Prize","amount":"10,000,000 VND"}]', '2026-04-15 08:00:00'),
+(4, 'FPT Global Tech Championship 2026', 'Enterprise Cloud & Advanced AI', 200, 3, 6, 'CLOSED', '2026-02-01', '2026-02-15', '2026-02-16 08:00:00', '2026-04-25 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"Source code must be original and developed during the hackathon.","penalty":"Disqualified"},{"rule":"Teams must comply with IP and open-source regulations.","penalty":"Minus 15 points"}]', N'[{"rank":"Grand Prize","amount":"150,000,000 VND"},{"rank":"First Runner-Up","amount":"80,000,000 VND"},{"rank":"Second Runner-Up","amount":"40,000,000 VND"},{"rank":"Excellence Award","amount":"15,000,000 VND"}]', '2026-01-15 08:00:00');
 GO
 
 -- 2. CATEGORIES
 INSERT INTO Category (contest_id, category_name, description, status)
 VALUES
-    (1, 'Computer Vision', N'Nhận diện hình ảnh và Thị giác máy tính', 'ACTIVED'),
-    (1, 'NLP & LLMs', N'Xử lý ngôn ngữ tự nhiên và Mô hình ngôn ngữ lớn', 'ACTIVED'),
-    (1, 'Data Science & Predictive AI', N'Khoa học Dữ liệu và AI dự đoán', 'ACTIVED'),
-    (2, 'Smart Contracts & Security', N'Lập trình Hợp đồng thông minh và Bảo mật Web3', 'ACTIVED'),
-    (2, 'DeFi & Tokenomics', N'Tài chính phi tập trung và Mô hình kinh tế token', 'ACTIVED'),
-    (2, 'Web3 DApps', N'Phát triển Ứng dụng phi tập trung Web3', 'ACTIVED'),
-    (3, 'AI & Web3 Innovation', N'Sáng tạo ứng dụng kết hợp AI và Blockchain', 'ACTIVED'),
-    (3, 'Cloud & Big Data Architecture', N'Kiến trúc Cloud và Xử lý Dữ liệu lớn', 'ACTIVED'),
-    (3, 'Mobile & IoT Applications', N'Ứng dụng Di động thông minh và IoT', 'ACTIVED');
+    (1, 'Computer Vision', N'Image Recognition and Computer Vision Applications', 'ACTIVED'),
+    (1, 'NLP & LLMs', N'Natural Language Processing and Large Language Models', 'ACTIVED'),
+    (1, 'Data Science & Predictive AI', N'Data Science and Predictive AI Analytics', 'ACTIVED'),
+    (2, 'Smart Contracts & Security', N'Smart Contract Development and Web3 Security', 'ACTIVED'),
+    (2, 'DeFi & Tokenomics', N'Decentralized Finance and Tokenomics Modeling', 'ACTIVED'),
+    (2, 'Web3 DApps', N'Decentralized Web3 Application Development', 'ACTIVED'),
+    (3, 'AI & Web3 Innovation', N'Innovative Applications combining AI and Blockchain', 'ACTIVED'),
+    (3, 'Cloud & Big Data Architecture', N'Cloud Architecture and Big Data Processing Systems', 'ACTIVED'),
+    (3, 'Mobile & IoT Applications', N'Smart Mobile and Internet of Things Solutions', 'ACTIVED'),
+    (4, 'Enterprise Cloud & AI Mastery', N'Enterprise-scale Cloud Architecture and AI Systems', 'ACTIVED');
 GO
 
 -- 3. CONTEST UNIVERSITIES
@@ -649,50 +652,60 @@ INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 2, university_id FROM University;
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 3, university_id FROM University;
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT 4, university_id FROM University;
 GO
 
 -- 4. ANNOUNCEMENTS
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
 INSERT INTO Announcement (contest_id, user_id, title, content, announcement_type, status, published_at, target_roles)
 VALUES
-(1, @Admin1_ID, N'Công bố kết quả chung cuộc National AI Challenge 2025', N'Chúc mừng các đội thi AI Pioneers và Visionary Devs đã xuất sắc giành giải cao nhất!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00', 'STUDENT,MENTOR,JUDGE'),
-(2, @Admin1_ID, N'Tổng kết Global Blockchain Summit 2025', N'Đội thi Blockchain Masters đã giành giải Nhất với giải pháp DeFi đột phá.', 'GENERAL', 'PUBLISHED', '2025-12-01 09:00:00', 'STUDENT,MENTOR,JUDGE'),
-(3, @Admin1_ID, N'Chào mừng đến với SEAL Hackathon 2026', N'Cổng đăng ký thi đấu chính thức mở từ ngày 01/06/2026. Các đội thi vui lòng hoàn thiện đội hình!', 'REGULATION', 'PUBLISHED', '2026-06-01 08:00:00', 'STUDENT,MENTOR,JUDGE');
+(1, @Admin1_ID, N'Final Results Announcement: National AI Challenge 2025', N'Congratulations to AI Pioneers and Visionary Devs for winning the top awards!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00', 'STUDENT,MENTOR,JUDGE'),
+(2, @Admin1_ID, N'Summary of Global Blockchain Summit 2025', N'Blockchain Masters secured First Prize with their breakthrough DeFi solution.', 'GENERAL', 'PUBLISHED', '2025-12-01 09:00:00', 'STUDENT,MENTOR,JUDGE'),
+(3, @Admin1_ID, N'Welcome to SEAL Hackathon 2026', N'Official registration portal is now open. Please complete your team roster!', 'REGULATION', 'PUBLISHED', '2026-06-01 08:00:00', 'STUDENT,MENTOR,JUDGE'),
+(4, @Admin1_ID, N'Official Leaderboard & Winners of FPT Global Tech Championship 2026', N'Nexus AI emerged as Champion among 10 competing finalist teams in the Global Championship Round.', 'GENERAL', 'PUBLISHED', '2026-04-26 09:00:00', 'STUDENT,MENTOR,JUDGE');
 GO
 
 -- 5. RUBRICS & CRITERIA
 INSERT INTO RubricTemplate (category_id, template_name, description, status)
 VALUES
-(1, 'Standard AI Judging Rubric', N'Tiêu chí chấm thi chuẩn cho các dự án AI', 'ACTIVE'),
-(4, 'Web3 & Blockchain Rubric', N'Tiêu chí chấm thi chuẩn cho các dự án Blockchain', 'ACTIVE'),
-(7, 'SEAL Innovation Rubric 2026', N'Tiêu chí chấm thi toàn diện cho SEAL Hackathon', 'ACTIVE');
+(1, 'Standard AI Judging Rubric', N'Standard evaluation criteria for AI projects', 'ACTIVE'),
+(4, 'Web3 & Blockchain Rubric', N'Standard evaluation criteria for Web3/Blockchain projects', 'ACTIVE'),
+(7, 'SEAL Innovation Rubric 2026', N'Comprehensive evaluation criteria for SEAL Hackathon', 'ACTIVE'),
+(10, 'Enterprise Cloud & AI Rubric', N'Enterprise evaluation criteria for Cloud & Advanced AI solutions', 'ACTIVE');
 GO
 
 DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
 DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
 DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
+DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Enterprise Cloud & AI Rubric');
 
 INSERT INTO RubricTemplateCriteria (rubric_template_id, criteria_name, description, default_weight, max_score)
 VALUES
-(@Rubric1_ID, 'Innovation & Creativity', N'Tính sáng tạo và độc đáo của giải pháp AI', 30.00, 30.00),
-(@Rubric1_ID, 'Technical Complexity', N'Độ khó kỹ thuật và mô hình AI sử dụng', 30.00, 30.00),
-(@Rubric1_ID, 'Feasibility & Impact', N'Tính khả thi và tác động thực tế tới xã hội', 20.00, 20.00),
-(@Rubric1_ID, 'Presentation & Demo', N'Chất lượng thuyết trình và Demo sản phẩm', 20.00, 20.00),
+(@Rubric1_ID, 'Innovation & Creativity', N'Uniqueness and creative application of AI models', 30.00, 30.00),
+(@Rubric1_ID, 'Technical Complexity', N'Technical depth and algorithm sophistication', 30.00, 30.00),
+(@Rubric1_ID, 'Feasibility & Impact', N'Practical viability and real-world social impact', 20.00, 20.00),
+(@Rubric1_ID, 'Presentation & Demo', N'Presentation quality and smooth live product demo', 20.00, 20.00),
 
-(@Rubric2_ID, 'Smart Contract Security', N'Bảo mật tối ưu của Hợp đồng thông minh', 35.00, 35.00),
-(@Rubric2_ID, 'Decentralization & Utility', N'Tính phi tập trung và ứng dụng thực tế', 35.00, 35.00),
-(@Rubric2_ID, 'UI/UX & Web3 Integration', N'Trải nghiệm người dùng và kết nối ví Web3', 30.00, 30.00),
+(@Rubric2_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
+(@Rubric2_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
+(@Rubric2_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
 
-(@Rubric3_ID, 'Problem Solving & Innovation', N'Đột phá trong tư duy giải quyết vấn đề', 30.00, 30.00),
-(@Rubric3_ID, 'Engineering Excellence', N'Chất lượng kiến trúc và mã nguồn phần mềm', 30.00, 30.00),
-(@Rubric3_ID, 'Business Feasibility', N'Tiềm năng thương mại hóa và mở rộng', 20.00, 20.00),
-(@Rubric3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00);
+(@Rubric3_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
+(@Rubric3_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
+(@Rubric3_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
+(@Rubric3_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
+
+(@Rubric4_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
+(@Rubric4_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
+(@Rubric4_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
 GO
 
--- Create ContestRubric and ContestRubricDetails for Contest 1 (Cat 1), Contest 2 (Cat 4), Contest 3 (Cat 7)
+-- Create ContestRubric and ContestRubricDetails
 DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
 DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
 DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
+DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Enterprise Cloud & AI Rubric');
 
 INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_weight, status)
 VALUES
@@ -700,7 +713,8 @@ VALUES
 (@Rubric2_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric3_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric3_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric3_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE');
+(@Rubric3_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric4_ID, 10, 'Enterprise Cloud & AI Judging Rubric', 100.00, 'ACTIVE');
 GO
 
 DECLARE @CR1_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1);
@@ -708,30 +722,35 @@ DECLARE @CR2_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHER
 DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
 DECLARE @CR4_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
 DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 9);
+DECLARE @CR6_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 10);
 
 INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
 VALUES
-(@CR1_ID, 'Innovation & Creativity', N'Tính sáng tạo và độc đáo của giải pháp AI', 30.00, 30.00),
-(@CR1_ID, 'Technical Complexity', N'Độ khó kỹ thuật và mô hình AI sử dụng', 30.00, 30.00),
-(@CR1_ID, 'Feasibility & Impact', N'Tính khả thi và tác động thực tế tới xã hội', 20.00, 20.00),
-(@CR1_ID, 'Presentation & Demo', N'Chất lượng thuyết trình và Demo sản phẩm', 20.00, 20.00),
+(@CR1_ID, 'Innovation & Creativity', N'Uniqueness and creative application of AI models', 30.00, 30.00),
+(@CR1_ID, 'Technical Complexity', N'Technical depth and algorithm sophistication', 30.00, 30.00),
+(@CR1_ID, 'Feasibility & Impact', N'Practical viability and real-world social impact', 20.00, 20.00),
+(@CR1_ID, 'Presentation & Demo', N'Presentation quality and smooth live product demo', 20.00, 20.00),
 
-(@CR2_ID, 'Smart Contract Security', N'Bảo mật tối ưu của Hợp đồng thông minh', 35.00, 35.00),
-(@CR2_ID, 'Decentralization & Utility', N'Tính phi tập trung và ứng dụng thực tế', 35.00, 35.00),
-(@CR2_ID, 'UI/UX & Web3 Integration', N'Trải nghiệm người dùng và kết nối ví Web3', 30.00, 30.00),
+(@CR2_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
+(@CR2_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
+(@CR2_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
 
-(@CR3_ID, 'Problem Solving & Innovation', N'Đột phá trong tư duy giải quyết vấn đề', 30.00, 30.00),
-(@CR3_ID, 'Engineering Excellence', N'Chất lượng kiến trúc và mã nguồn phần mềm', 30.00, 30.00),
-(@CR3_ID, 'Business Feasibility', N'Tiềm năng thương mại hóa và mở rộng', 20.00, 20.00),
-(@CR3_ID, 'Live Demo & Q&A', N'Thuyết trình thực tế và trả lời phản biện', 20.00, 20.00),
+(@CR3_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
+(@CR3_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
+(@CR3_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
+(@CR3_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
 
-(@CR4_ID, 'Cloud Architecture & Scalability', N'Kiến trúc đám mây và khả năng mở rộng', 35.00, 35.00),
-(@CR4_ID, 'Big Data Processing', N'Xử lý dữ liệu lớn tối ưu', 35.00, 35.00),
-(@CR4_ID, 'System Reliability', N'Độ tin cậy và hiệu năng hệ thống', 30.00, 30.00),
+(@CR4_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
+(@CR4_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
+(@CR4_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
 
-(@CR5_ID, 'Mobile UX & Performance', N'Trải nghiệm người dùng và hiệu ứng di động', 35.00, 35.00),
-(@CR5_ID, 'IoT Hardware Integration', N'Kết nối thiết bị IoT và ổn định tín hiệu', 35.00, 35.00),
-(@CR5_ID, 'Practical Utility', N'Ứng dụng thực tiễn trong cuộc sống', 30.00, 30.00);
+(@CR5_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
+(@CR5_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
+(@CR5_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
+
+(@CR6_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
+(@CR6_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
+(@CR6_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
 GO
 
 -- 6. MENTOR & JUDGE ASSIGNMENTS
@@ -742,31 +761,39 @@ DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = '
 DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
 
 INSERT INTO MentorAssignment (category_id, user_id, status) VALUES
-(1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (7, @Mentor1_ID, 'ACTIVE'), (7, @Mentor2_ID, 'ACTIVE');
+(1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (7, @Mentor1_ID, 'ACTIVE'), (7, @Mentor2_ID, 'ACTIVE'), (10, @Mentor1_ID, 'ACTIVE'), (10, @Mentor2_ID, 'ACTIVE');
 
 INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
-(1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), (7, @Judge1_ID, 'ACTIVE'), (7, @Judge2_ID, 'ACTIVE'), (7, @JudgeMentor_ID, 'ACTIVE');
+(1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), 
+(7, @Judge1_ID, 'ACTIVE'), (7, @Judge2_ID, 'ACTIVE'), (7, @JudgeMentor_ID, 'ACTIVE'),
+(8, @Judge1_ID, 'ACTIVE'), (8, @Judge2_ID, 'ACTIVE'), (8, @JudgeMentor_ID, 'ACTIVE'),
+(9, @Judge1_ID, 'ACTIVE'), (9, @Judge2_ID, 'ACTIVE'), (9, @JudgeMentor_ID, 'ACTIVE'),
+(10, @Judge1_ID, 'ACTIVE'), (10, @Judge2_ID, 'ACTIVE'), (10, @JudgeMentor_ID, 'ACTIVE');
 GO
 
 -- 7. ROUNDS
 INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
-(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'CLOSED', N'Nộp link GitHub Repo và tài liệu tả kiến trúc', 'ONLINE'),
-(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Nộp Video Demo, Slide thuyết trình và Source code hoàn thiện', 'OFFLINE'),
-(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Nộp link Smart Contract trên Testnet và Whitepaper', 'ONLINE'),
-(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Nộp DApp hoàn chỉnh chạy trên Mainnet/Testnet và Video Demo', 'OFFLINE'),
-(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Mã nguồn (Source code), Video Demo và Slide thuyết trình AI/Web3', 'ONLINE'),
-(3, 8, 'Cloud & Big Data Architecture Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Kiến trúc Cloud/Big Data, Source code và Video Demo', 'ONLINE'),
-(3, 9, 'Mobile & IoT Solutions Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Nộp Ứng dụng Mobile/IoT, Source code và Video Demo', 'ONLINE');
+(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'CLOSED', N'Submit GitHub Repository link and Architecture Documentation', 'ONLINE'),
+(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Submit Demo Video, Presentation Slides, and Final Source Code', 'OFFLINE'),
+(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Submit Testnet Smart Contract link and Technical Whitepaper', 'ONLINE'),
+(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Submit Complete DApp running on Mainnet/Testnet and Demo Video', 'OFFLINE'),
+(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Source Code, Demo Video, and AI/Web3 Presentation Slides', 'ONLINE'),
+(3, 8, 'Cloud & Big Data Architecture Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Cloud/Big Data Architecture Diagram, Source Code, and Demo Video', 'ONLINE'),
+(3, 9, 'Mobile & IoT Solutions Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Mobile/IoT Application APK/Firmware, Source Code, and Demo Video', 'ONLINE'),
+(4, 10, 'Global Championship Round', 1, '2026-02-16 08:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-25 10:00:00', 'CLOSED', N'Submit Enterprise Architecture Diagram, Complete Source Code, and 5-minute Live Demo Video', 'ONLINE');
 GO
 
 -- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
 DECLARE @PastTeam1_ID BIGINT, @PastTeam2_ID BIGINT, @PastTeam3_ID BIGINT;
 DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT, @Team6_ID BIGINT;
+DECLARE @C4_T01_ID BIGINT, @C4_T02_ID BIGINT, @C4_T03_ID BIGINT, @C4_T04_ID BIGINT, @C4_T05_ID BIGINT;
+DECLARE @C4_T06_ID BIGINT, @C4_T07_ID BIGINT, @C4_T08_ID BIGINT, @C4_T09_ID BIGINT, @C4_T10_ID BIGINT;
+DECLARE @SEAL_T01_ID BIGINT, @SEAL_T02_ID BIGINT, @SEAL_T03_ID BIGINT, @SEAL_T04_ID BIGINT, @SEAL_T05_ID BIGINT, @SEAL_T06_ID BIGINT;
 
--- Historical Team 1: AI Pioneers (Contest 1, Category 1) - CLOSED
+-- Historical Team 1: AI Pioneers (Contest 1, Category 1) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST01', 'AI Pioneers', 1, 'CLOSED', '2026-02-05 10:00:00');
+VALUES ('PAST01', 'AI Pioneers', 1, 'APPROVED', '2026-02-05 10:00:00');
 SET @PastTeam1_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -774,9 +801,9 @@ SELECT @PastTeam1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20IT123457@st.huflit.edu.vn');
 
--- Historical Team 2: Visionary Devs (Contest 1, Category 1) - CLOSED
+-- Historical Team 2: Visionary Devs (Contest 1, Category 1) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST02', 'Visionary Devs', 1, 'CLOSED', '2026-02-06 10:00:00');
+VALUES ('PAST02', 'Visionary Devs', 1, 'APPROVED', '2026-02-06 10:00:00');
 SET @PastTeam2_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -784,9 +811,9 @@ SELECT @PastTeam2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com');
 
--- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - CLOSED
+-- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST03', 'Blockchain Masters', 2, 'CLOSED', '2025-09-05 10:00:00');
+VALUES ('PAST03', 'Blockchain Masters', 2, 'APPROVED', '2025-09-05 10:00:00');
 SET @PastTeam3_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -794,32 +821,133 @@ SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('Phamgiahan@hcmut.edu.vn', '20120002@student.hcmus.edu.vn');
 
--- Historical Team 4: Cyber Core (Contest 1, Category 1) - CLOSED
+-- Historical Team 4: Cyber Core (Contest 1, Category 1) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM01', 'Cyber Core', 1, 'CLOSED', '2026-02-07 10:00:00');
+VALUES ('TEAM01', 'Cyber Core', 1, 'APPROVED', '2026-02-07 10:00:00');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
--- Historical Team 5: Code Rangers (Contest 2, Category 4) - CLOSED
+-- Historical Team 5: Code Rangers (Contest 2, Category 4) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM02', 'Code Rangers', 2, 'CLOSED', '2025-09-06 10:00:00');
+VALUES ('TEAM02', 'Code Rangers', 2, 'APPROVED', '2025-09-06 10:00:00');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email = '20IT123456@st.huflit.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123457@st.huflit.edu.vn', 'nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com', 'Leduyphuc@hcmut.edu.vn');
 
--- Historical Team 6: Byte Wizards (Contest 2, Category 4) - CLOSED
+-- Historical Team 6: Byte Wizards (Contest 2, Category 4) - APPROVED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM03', 'Byte Wizards', 2, 'CLOSED', '2025-09-07 10:00:00');
+VALUES ('TEAM03', 'Byte Wizards', 2, 'APPROVED', '2025-09-07 10:00:00');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com');
+
+-- 10 TEAMS FOR CONTEST 4 (FPT Global Tech Championship 2026 - Category 10) - APPROVED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T01', 'Nexus AI', 4, 'APPROVED', '2026-02-05 10:00:00'); SET @C4_T01_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T02', 'Cloud Horizon', 4, 'APPROVED', '2026-02-05 10:00:00'); SET @C4_T02_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T03', 'Quantum Leap', 4, 'APPROVED', '2026-02-06 10:00:00'); SET @C4_T03_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T04', 'Cyber Synapse', 4, 'APPROVED', '2026-02-06 10:00:00'); SET @C4_T04_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T05', 'Vanguard Devs', 4, 'APPROVED', '2026-02-07 10:00:00'); SET @C4_T05_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T06', 'Apex Dynamics', 4, 'APPROVED', '2026-02-07 10:00:00'); SET @C4_T06_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T07', 'Byte Builders', 4, 'APPROVED', '2026-02-08 10:00:00'); SET @C4_T07_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T08', 'Spark Matrix', 4, 'APPROVED', '2026-02-08 10:00:00'); SET @C4_T08_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T09', 'Zero Latency', 4, 'APPROVED', '2026-02-09 10:00:00'); SET @C4_T09_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T10', 'Titan Coders', 4, 'APPROVED', '2026-02-09 10:00:00'); SET @C4_T10_ID = SCOPE_IDENTITY();
+
+-- Assign Members to Contest 4 Teams
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T01_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T02_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T03_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '20120001@student.hcmus.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T04_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '20120002@student.hcmus.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T05_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('09876543@st.hcmuaf.edu.vn', 'Phamgiahan@hcmut.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T06_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T07_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email = '20120001@student.hcmus.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T07_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email IN ('nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T08_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email = 'vuxuanbach2508@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T08_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T09_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T09_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', 'thuhien456@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T10_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email = '20120002@student.hcmus.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @C4_T10_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email IN ('12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn');
+
+-- 6 TEAMS FOR CONTEST 3 (SEAL Hackathon 2026 - Categories 7, 8, 9) - FORMING
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 3, 'FORMING', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T02', 'Web3 Vanguard', 3, 'FORMING', '2026-07-02 11:00:00'); SET @SEAL_T02_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T03', 'Cloud Architects', 3, 'FORMING', '2026-07-03 10:00:00'); SET @SEAL_T03_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T04', 'Data Synthesizers', 3, 'FORMING', '2026-07-03 14:00:00'); SET @SEAL_T04_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T05', 'IoT Innovators', 3, 'FORMING', '2026-07-04 09:00:00'); SET @SEAL_T05_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T06', 'Smart Mobility', 3, 'FORMING', '2026-07-04 15:00:00'); SET @SEAL_T06_ID = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T01_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T02_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T03_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '20120001@student.hcmus.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T04_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '20120002@student.hcmus.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T05_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email IN ('09876543@st.hcmuaf.edu.vn', 'Phamgiahan@hcmut.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T06_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
 
 -- Forming Team 4: Tech Titans (No contest yet) - FORMING
 INSERT INTO Team (team_code, team_name, status, created_at)
@@ -858,66 +986,246 @@ DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code =
 DECLARE @Team1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01');
 DECLARE @Team2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02');
 DECLARE @Team3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03');
+DECLARE @C4_T01_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T01');
+DECLARE @C4_T02_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T02');
+DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T03');
+DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
+DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
+DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 
 INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
-(@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'),
-(@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'),
-(@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
-(@Team1_ID, @Mentor1_ID, 1, 'ACTIVE'),
-(@Team2_ID, @Mentor2_ID, 4, 'ACTIVE'),
-(@Team3_ID, @Mentor1_ID, 4, 'ACTIVE');
+(@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'), (@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'), (@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
+(@Team1_ID, @Mentor1_ID, 1, 'ACTIVE'), (@Team2_ID, @Mentor2_ID, 4, 'ACTIVE'), (@Team3_ID, @Mentor1_ID, 4, 'ACTIVE'),
+(@C4_T01_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T02_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T03_ID, @Mentor1_ID, 10, 'ACTIVE'),
+(@C4_T04_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T05_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T06_ID, @Mentor2_ID, 10, 'ACTIVE'),
+(@C4_T07_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T08_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T09_ID, @Mentor1_ID, 10, 'ACTIVE'),
+(@C4_T10_ID, @Mentor2_ID, 10, 'ACTIVE'),
+((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T01'), @Mentor1_ID, 7, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T02'), @Mentor2_ID, 7, 'ACTIVE'),
+((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T03'), @Mentor1_ID, 8, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T04'), @Mentor2_ID, 8, 'ACTIVE'),
+((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T05'), @Mentor1_ID, 9, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T06'), @Mentor2_ID, 9, 'ACTIVE');
 GO
 
--- 9. SUBMISSIONS
+-- 9. SUBMISSIONS (Full Submissions across all completed & active rounds)
 DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
 DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
 DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
 DECLARE @Team1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01');
 DECLARE @Team2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02');
 DECLARE @Team3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03');
+DECLARE @C4_T01_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T01');
+DECLARE @C4_T02_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T02');
+DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T03');
+DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
+DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
+DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
 DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
 
 INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id)
 VALUES
-(@PastTeam1_ID, 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-qual","Documentation":"https://docs.google.com/aipioneers-qual"}', 1, '2026-02-18 14:00:00', 'GRADED', N'Ý tưởng rất tốt, cần chuẩn bị kỹ cho vòng Chung kết.', @Mentor1_ID),
-(@PastTeam1_ID, 2, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-final","Demo Video":"https://youtube.com/watch?v=demo1","Slide":"https://docs.google.com/presentation/d/ai-pioneers"}', 1, '2026-03-20 15:30:00', 'GRADED', N'Kiến trúc tuyệt vời, phần Demo cực kỳ mượt mà!', @Mentor1_ID),
-(@PastTeam2_ID, 1, N'{"Project Repository":"https://github.com/visionary/cv-qual","Documentation":"https://docs.google.com/visionary-qual"}', 1, '2026-02-19 10:00:00', 'GRADED', N'Cải thiện thêm độ chính xác của model nhé.', @Mentor2_ID),
-(@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2026-03-22 11:00:00', 'GRADED', N'Sản phẩm hoàn thiện rất tốt, thuyết trình rõ ràng.', @Mentor2_ID),
-(@PastTeam3_ID, 3, N'{"Project Repository":"https://github.com/blockchainmasters/defi-qual","Smart Contract":"0x71C...893"}', 1, '2025-10-10 16:00:00', 'GRADED', N'Smart contract viết chuẩn, gas fee tối ưu.', @Mentor1_ID),
-(@PastTeam3_ID, 4, N'{"Project Repository":"https://github.com/blockchainmasters/defi-final","Demo Video":"https://youtube.com/watch?v=demo3","DApp URL":"https://defi-masters.app"}', 1, '2025-11-20 09:30:00', 'GRADED', N'DApp chạy mượt, giao diện UI/UX rất đẳng cấp!', @Mentor1_ID),
-(@Team1_ID, 1, N'{"Project Repository":"https://github.com/cybercore/ai-app","Documentation":"https://docs.google.com/document/d/cybercore-doc"}', 1, '2026-02-15 14:00:00', 'SUBMITTED', N'Dự án chuẩn bị tốt, đã nộp vòng Qualification.', @Mentor1_ID),
-(@Team2_ID, 3, N'{"Project Repository":"https://github.com/coderangers/blockchain-web3","Whitepaper":"https://docs.google.com/document/d/coderangers-whitepaper"}', 1, '2025-09-20 10:00:00', 'SUBMITTED', N'Đã nộp link Smart Contract và Whitepaper.', @Mentor2_ID),
-(@Team3_ID, 3, N'{"Project Repository":"https://github.com/bytewizards/defi-dapp","Whitepaper":"https://docs.google.com/document/d/bytewizards-doc"}', 1, '2025-09-21 08:00:00', 'SUBMITTED', N'Đã hoàn thành bài nộp vòng Qualification.', @Mentor1_ID);
+-- Contest 1 Submissions (Round 1 & Round 2)
+(@PastTeam1_ID, 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-qual","Documentation":"https://docs.google.com/aipioneers-qual"}', 1, '2026-02-18 14:00:00', 'GRADED', N'Excellent core idea, well prepared for qualification stage.', @Mentor1_ID),
+(@PastTeam1_ID, 2, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-final","Demo Video":"https://youtube.com/watch?v=demo1","Slide":"https://docs.google.com/presentation/d/ai-pioneers"}', 1, '2026-03-20 15:30:00', 'GRADED', N'Outstanding architecture and extremely smooth live presentation!', @Mentor1_ID),
+(@PastTeam2_ID, 1, N'{"Project Repository":"https://github.com/visionary/cv-qual","Documentation":"https://docs.google.com/visionary-qual"}', 1, '2026-02-19 10:00:00', 'GRADED', N'Good model design, further improve validation accuracy.', @Mentor2_ID),
+(@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2026-03-22 11:00:00', 'GRADED', N'Well-rounded computer vision app with solid documentation.', @Mentor2_ID),
+(@Team1_ID, 1, N'{"Project Repository":"https://github.com/cybercore/ai-app","Documentation":"https://docs.google.com/document/d/cybercore-doc"}', 1, '2026-02-15 14:00:00', 'GRADED', N'Solid qualification submission, good technical foundation.', @Mentor1_ID),
+(@Team1_ID, 2, N'{"Project Repository":"https://github.com/cybercore/ai-app-final","Demo Video":"https://youtube.com/watch?v=demo_cybercore","Slide":"https://docs.google.com/presentation/d/cybercore-final"}', 1, '2026-03-23 10:00:00', 'GRADED', N'Good practical UI and solid backend AI pipeline.', @Mentor1_ID),
+
+-- Contest 2 Submissions (Round 3 & Round 4)
+(@PastTeam3_ID, 3, N'{"Project Repository":"https://github.com/blockchainmasters/defi-qual","Smart Contract":"0x71C...893"}', 1, '2025-10-10 16:00:00', 'GRADED', N'Flawless smart contract code with optimal gas usage.', @Mentor1_ID),
+(@PastTeam3_ID, 4, N'{"Project Repository":"https://github.com/blockchainmasters/defi-final","Demo Video":"https://youtube.com/watch?v=demo3","DApp URL":"https://defi-masters.app"}', 1, '2025-11-20 09:30:00', 'GRADED', N'Seamless DApp integration and industry-grade Web3 UX!', @Mentor1_ID),
+(@Team2_ID, 3, N'{"Project Repository":"https://github.com/coderangers/blockchain-web3","Whitepaper":"https://docs.google.com/document/d/coderangers-whitepaper"}', 1, '2025-09-20 10:00:00', 'GRADED', N'Well-structured smart contracts and clear whitepaper logic.', @Mentor2_ID),
+(@Team2_ID, 4, N'{"Project Repository":"https://github.com/coderangers/defi-app-final","Demo Video":"https://youtube.com/watch?v=demo_coderangers","DApp URL":"https://coderangers.dapp"}', 1, '2025-11-22 14:00:00', 'GRADED', N'High security standards and robust decentralized exchange logic.', @Mentor2_ID),
+(@Team3_ID, 3, N'{"Project Repository":"https://github.com/bytewizards/defi-dapp","Whitepaper":"https://docs.google.com/document/d/bytewizards-doc"}', 1, '2025-09-21 08:00:00', 'GRADED', N'Great tokenomics proposal and clean Solidity code.', @Mentor1_ID),
+(@Team3_ID, 4, N'{"Project Repository":"https://github.com/bytewizards/defi-dapp-final","Demo Video":"https://youtube.com/watch?v=demo_bytewizards","DApp URL":"https://bytewizards-dapp.io"}', 1, '2025-11-23 16:00:00', 'GRADED', N'Good staking pool architecture and smooth wallet connectivity.', @Mentor1_ID),
+
+-- Contest 4 Submissions (Round 8 - Global Championship Round - 10 Teams)
+(@C4_T01_ID, 8, N'{"Project Repository":"https://github.com/nexusai/enterprise-cloud","Architecture Diagram":"https://docs.google.com/drawings/nexus-ai","Demo Video":"https://youtube.com/watch?v=nexus_ai_demo"}', 1, '2026-04-10 10:00:00', 'GRADED', N'Exceptional enterprise AI platform with zero-latency cloud scaling.', @Mentor1_ID),
+(@C4_T02_ID, 8, N'{"Project Repository":"https://github.com/cloudhorizon/hybrid-mesh","Architecture Diagram":"https://docs.google.com/drawings/cloud-horizon","Demo Video":"https://youtube.com/watch?v=cloud_horizon"}', 1, '2026-04-10 11:30:00', 'GRADED', N'Brilliant cloud reliability engineering and fault tolerance architecture.', @Mentor2_ID),
+(@C4_T03_ID, 8, N'{"Project Repository":"https://github.com/quantumleap/neural-ops","Architecture Diagram":"https://docs.google.com/drawings/quantum-leap","Demo Video":"https://youtube.com/watch?v=quantum_leap"}', 1, '2026-04-11 09:00:00', 'GRADED', N'Highly innovative predictive maintenance system for cloud clusters.', @Mentor1_ID),
+(@C4_T04_ID, 8, N'{"Project Repository":"https://github.com/cybersynapse/cloud-guard","Architecture Diagram":"https://docs.google.com/drawings/cyber-synapse","Demo Video":"https://youtube.com/watch?v=cyber_synapse"}', 1, '2026-04-11 14:00:00', 'GRADED', N'Very strong security compliance and automated threat mitigation.', @Mentor2_ID),
+(@C4_T05_ID, 8, N'{"Project Repository":"https://github.com/vanguard/ai-analytics","Architecture Diagram":"https://docs.google.com/drawings/vanguard-devs","Demo Video":"https://youtube.com/watch?v=vanguard_devs"}', 1, '2026-04-12 10:30:00', 'GRADED', N'Solid big data processing pipeline and clear dashboard visualizer.', @Mentor1_ID),
+(@C4_T06_ID, 8, N'{"Project Repository":"https://github.com/apexdynamics/serverless-ai","Architecture Diagram":"https://docs.google.com/drawings/apex-dynamics","Demo Video":"https://youtube.com/watch?v=apex_dynamics"}', 1, '2026-04-12 15:00:00', 'GRADED', N'Good serverless design, optimize cold-start latency further.', @Mentor2_ID),
+(@C4_T07_ID, 8, N'{"Project Repository":"https://github.com/bytebuilders/cloud-monitor","Architecture Diagram":"https://docs.google.com/drawings/byte-builders","Demo Video":"https://youtube.com/watch?v=byte_builders"}', 1, '2026-04-13 09:30:00', 'GRADED', N'Reliable monitoring suite, improve UI responsiveness.', @Mentor1_ID),
+(@C4_T08_ID, 8, N'{"Project Repository":"https://github.com/sparkmatrix/data-flow","Architecture Diagram":"https://docs.google.com/drawings/spark-matrix","Demo Video":"https://youtube.com/watch?v=spark_matrix"}', 1, '2026-04-13 13:00:00', 'GRADED', N'Clean data ingestion architecture, enhance error handling.', @Mentor2_ID),
+(@C4_T09_ID, 8, N'{"Project Repository":"https://github.com/zerolatency/edge-cloud","Architecture Diagram":"https://docs.google.com/drawings/zero-latency","Demo Video":"https://youtube.com/watch?v=zero_latency"}', 1, '2026-04-14 10:00:00', 'GRADED', N'Interesting edge computing concept, documentation could be more detailed.', @Mentor1_ID),
+(@C4_T10_ID, 8, N'{"Project Repository":"https://github.com/titancoders/cloud-storage","Architecture Diagram":"https://docs.google.com/drawings/titan-coders","Demo Video":"https://youtube.com/watch?v=titan_coders"}', 1, '2026-04-14 16:00:00', 'GRADED', N'Solid storage utility, continue polishing performance.', @Mentor2_ID);
 GO
 
--- 10. SCORES & SCORE DETAILS (For Historical Finals)
-DECLARE @Sub_AI_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 2);
-DECLARE @Sub_Vis_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 2);
-DECLARE @Sub_Block_Final BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 4);
-
+-- 10. SCORES & SCORE DETAILS (Full Scores for ALL Completed Rounds across Contest 1, 2, and 4)
 DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
 DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
 DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
 
--- Score for AI Pioneers by Judge 1 & Judge 2
+-- Get Submissions for Contest 1 Round 1
+DECLARE @Sub_AI_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 1);
+DECLARE @Sub_Vis_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 1);
+DECLARE @Sub_Cyb_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM01') AND round_id = 1);
+
+-- Get Submissions for Contest 1 Round 2
+DECLARE @Sub_AI_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 2);
+DECLARE @Sub_Vis_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 2);
+DECLARE @Sub_Cyb_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM01') AND round_id = 2);
+
+-- Get Submissions for Contest 2 Round 3
+DECLARE @Sub_Block_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 3);
+DECLARE @Sub_Code_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM02') AND round_id = 3);
+DECLARE @Sub_Byte_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM03') AND round_id = 3);
+
+-- Get Submissions for Contest 2 Round 4
+DECLARE @Sub_Block_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 4);
+DECLARE @Sub_Code_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM02') AND round_id = 4);
+DECLARE @Sub_Byte_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'TEAM03') AND round_id = 4);
+
+-- Get Submissions for Contest 4 Round 8
+DECLARE @Sub_C4_T01 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T01') AND round_id = 8);
+DECLARE @Sub_C4_T02 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T02') AND round_id = 8);
+DECLARE @Sub_C4_T03 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T03') AND round_id = 8);
+DECLARE @Sub_C4_T04 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T04') AND round_id = 8);
+DECLARE @Sub_C4_T05 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T05') AND round_id = 8);
+DECLARE @Sub_C4_T06 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T06') AND round_id = 8);
+DECLARE @Sub_C4_T07 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T07') AND round_id = 8);
+DECLARE @Sub_C4_T08 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T08') AND round_id = 8);
+DECLARE @Sub_C4_T09 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T09') AND round_id = 8);
+DECLARE @Sub_C4_T10 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T10') AND round_id = 8);
+
 INSERT INTO Score (submission_id, user_id, total_score, general_feedback, status)
 VALUES
-(@Sub_AI_Final, @Judge1_ID, 93.00, N'Dự án xuất sắc, giải quyết đúng nỗi đau của xã hội.', 'PUBLISHED'),
-(@Sub_AI_Final, @Judge2_ID, 92.00, N'Kiến trúc thuật toán rất vững chắc và sáng tạo.', 'PUBLISHED'),
-(@Sub_Vis_Final, @Judge1_ID, 88.00, N'Sản phẩm tốt nhưng tính năng thương mại cần hoàn thiện thêm.', 'PUBLISHED'),
-(@Sub_Block_Final, @JudgeMentor_ID, 95.00, N'Giải pháp DeFi toàn diện, bảo mật cao và UI/UX tuyệt vời.', 'PUBLISHED');
+-- Contest 1 Round 1 Scores (Judges: Judge1, Judge2, JudgeMentor)
+(@Sub_AI_R1, @Judge1_ID, 91.50, N'Exceptional AI qualification proposal and architecture.', 'PUBLISHED'),
+(@Sub_AI_R1, @Judge2_ID, 90.00, N'Strong architecture, well thought out data models.', 'PUBLISHED'),
+(@Sub_AI_R1, @JudgeMentor_ID, 92.00, N'Great practical application of machine learning.', 'PUBLISHED'),
+(@Sub_Vis_R1, @Judge1_ID, 87.00, N'Very solid computer vision wireframe and prototype.', 'PUBLISHED'),
+(@Sub_Vis_R1, @Judge2_ID, 88.50, N'Solid visual detection pipeline and good performance metrics.', 'PUBLISHED'),
+(@Sub_Vis_R1, @JudgeMentor_ID, 86.50, N'Clear wireframe and realistic prototype design.', 'PUBLISHED'),
+(@Sub_Cyb_R1, @Judge1_ID, 84.00, N'Clear cybersecurity qualification documentation.', 'PUBLISHED'),
+(@Sub_Cyb_R1, @Judge2_ID, 83.50, N'Good technical foundation, clear qualification doc.', 'PUBLISHED'),
+(@Sub_Cyb_R1, @JudgeMentor_ID, 85.00, N'Solid threat analysis and mitigation strategies.', 'PUBLISHED'),
+
+-- Contest 1 Round 2 Scores (Judges: Judge1, Judge2, JudgeMentor)
+(@Sub_AI_R2, @Judge1_ID, 93.00, N'Outstanding project addressing key societal pain points.', 'PUBLISHED'),
+(@Sub_AI_R2, @Judge2_ID, 92.00, N'Algorithm architecture is highly robust and creative.', 'PUBLISHED'),
+(@Sub_AI_R2, @JudgeMentor_ID, 93.50, N'Exceptional final delivery and live demo execution.', 'PUBLISHED'),
+(@Sub_Vis_R2, @Judge1_ID, 88.00, N'Solid application, commercial readiness can be improved.', 'PUBLISHED'),
+(@Sub_Vis_R2, @Judge2_ID, 89.00, N'Clean real-time computer vision processing architecture.', 'PUBLISHED'),
+(@Sub_Vis_R2, @JudgeMentor_ID, 87.50, N'Good UI/UX with responsive detection feedback.', 'PUBLISHED'),
+(@Sub_Cyb_R2, @Judge1_ID, 85.00, N'Well structured network defense mechanism demo.', 'PUBLISHED'),
+(@Sub_Cyb_R2, @Judge2_ID, 84.00, N'Well-executed final presentation and working AI prototype.', 'PUBLISHED'),
+(@Sub_Cyb_R2, @JudgeMentor_ID, 84.50, N'Solid prototype, ensure scalability under high load.', 'PUBLISHED'),
+
+-- Contest 2 Round 3 Scores (Judges: Judge1, Judge2, JudgeMentor)
+(@Sub_Block_R3, @Judge1_ID, 93.50, N'Brilliant blockchain whitepaper and token design.', 'PUBLISHED'),
+(@Sub_Block_R3, @Judge2_ID, 94.50, N'Very clean consensus model and smart contract security.', 'PUBLISHED'),
+(@Sub_Block_R3, @JudgeMentor_ID, 94.00, N'Flawless smart contract qualification proposal and whitepaper.', 'PUBLISHED'),
+(@Sub_Code_R3, @Judge1_ID, 88.50, N'Good exchange architecture and low latency design.', 'PUBLISHED'),
+(@Sub_Code_R3, @Judge2_ID, 89.50, N'Very solid liquidity contract specifications.', 'PUBLISHED'),
+(@Sub_Code_R3, @JudgeMentor_ID, 89.00, N'Strong DeFi architecture and clean contract structure.', 'PUBLISHED'),
+(@Sub_Byte_R3, @Judge1_ID, 85.50, N'Clear DApp wireframes and solid integration layout.', 'PUBLISHED'),
+(@Sub_Byte_R3, @Judge2_ID, 84.50, N'Good wallet connection architecture and staking mechanics.', 'PUBLISHED'),
+(@Sub_Byte_R3, @JudgeMentor_ID, 85.00, N'Good DApp concept with realistic tokenomics.', 'PUBLISHED'),
+
+-- Contest 2 Round 4 Scores (Judges: Judge1, Judge2, JudgeMentor)
+(@Sub_Block_R4, @Judge1_ID, 94.50, N'Exceptional live smart contract execution and auditing report.', 'PUBLISHED'),
+(@Sub_Block_R4, @Judge2_ID, 95.50, N'World-class DeFi protocol with top security practices.', 'PUBLISHED'),
+(@Sub_Block_R4, @JudgeMentor_ID, 95.00, N'Comprehensive DeFi solution, maximum security and stellar UI/UX.', 'PUBLISHED'),
+(@Sub_Code_R4, @Judge1_ID, 90.00, N'Robust decentralized exchange with high transaction throughput.', 'PUBLISHED'),
+(@Sub_Code_R4, @Judge2_ID, 90.50, N'Clean order-book synchronization and fast settlement speed.', 'PUBLISHED'),
+(@Sub_Code_R4, @JudgeMentor_ID, 89.50, N'Strong final prototype, very responsive decentralized interface.', 'PUBLISHED'),
+(@Sub_Byte_R4, @Judge1_ID, 86.50, N'Great liquidity pool demonstration and clean UX.', 'PUBLISHED'),
+(@Sub_Byte_R4, @Judge2_ID, 86.00, N'Clean liquidity staking app with intuitive wallet connectivity.', 'PUBLISHED'),
+(@Sub_Byte_R4, @JudgeMentor_ID, 85.50, N'Solid staking reward mechanism and reliable smart contracts.', 'PUBLISHED'),
+
+-- Contest 4 Round 8 Scores (10 Teams Leaderboard - All 3 Judges evaluate every team)
+(@Sub_C4_T01, @Judge1_ID, 96.50, N'Masterpiece enterprise architecture, zero-latency scalability, and cutting-edge AI integration.', 'PUBLISHED'),
+(@Sub_C4_T01, @Judge2_ID, 96.00, N'Exceptional cloud mesh topology with zero downtime deployment.', 'PUBLISHED'),
+(@Sub_C4_T01, @JudgeMentor_ID, 97.00, N'Flawless system design and world-class technical execution.', 'PUBLISHED'),
+(@Sub_C4_T02, @Judge1_ID, 94.00, N'Outstanding fault-tolerant hybrid architecture with automated failover.', 'PUBLISHED'),
+(@Sub_C4_T02, @Judge2_ID, 94.20, N'World-class cloud reliability engineering, multi-region failover, and immaculate DevOps.', 'PUBLISHED'),
+(@Sub_C4_T02, @JudgeMentor_ID, 94.40, N'Highly reliable multi-cloud infrastructure and clean monitoring pipeline.', 'PUBLISHED'),
+(@Sub_C4_T03, @Judge1_ID, 91.80, N'Brilliant predictive AI maintenance pipeline with real-time cluster telemetry.', 'PUBLISHED'),
+(@Sub_C4_T03, @Judge2_ID, 91.50, N'Strong neural network integration for system anomaly detection.', 'PUBLISHED'),
+(@Sub_C4_T03, @JudgeMentor_ID, 92.10, N'Extremely practical enterprise utility with high accuracy prediction models.', 'PUBLISHED'),
+(@Sub_C4_T04, @Judge1_ID, 89.00, N'Solid zero-trust cloud security gateway and encryption standards.', 'PUBLISHED'),
+(@Sub_C4_T04, @Judge2_ID, 89.50, N'Bank-grade cloud security and automated threat defense mechanisms.', 'PUBLISHED'),
+(@Sub_C4_T04, @JudgeMentor_ID, 90.00, N'Comprehensive compliance framework and real-time threat response.', 'PUBLISHED'),
+(@Sub_C4_T05, @Judge1_ID, 86.80, N'Great data aggregation engine and fast analytical queries.', 'PUBLISHED'),
+(@Sub_C4_T05, @Judge2_ID, 87.20, N'Well-structured data processing pipeline with low latency insights.', 'PUBLISHED'),
+(@Sub_C4_T05, @JudgeMentor_ID, 87.00, N'Robust enterprise analytics platform with high data processing speed.', 'PUBLISHED'),
+(@Sub_C4_T06, @Judge1_ID, 84.50, N'Solid serverless microservices setup, optimize function cold-start slightly.', 'PUBLISHED'),
+(@Sub_C4_T06, @Judge2_ID, 84.80, N'Clean event-driven architecture using serverless cloud functions.', 'PUBLISHED'),
+(@Sub_C4_T06, @JudgeMentor_ID, 84.20, N'Good scalability metrics and clean code structure.', 'PUBLISHED'),
+(@Sub_C4_T07, @Judge1_ID, 81.80, N'Real-time cloud monitoring tool with insightful visualization graphs.', 'PUBLISHED'),
+(@Sub_C4_T07, @Judge2_ID, 82.00, N'Effective cloud infrastructure monitoring suite with good utility.', 'PUBLISHED'),
+(@Sub_C4_T07, @JudgeMentor_ID, 82.20, N'Useful resource tracking utility, continue polishing UI layout.', 'PUBLISHED'),
+(@Sub_C4_T08, @Judge1_ID, 79.20, N'Streamlined data ingestion flow and reliable buffer management.', 'PUBLISHED'),
+(@Sub_C4_T08, @Judge2_ID, 79.80, N'Good data pipeline architecture, improve error logging mechanisms.', 'PUBLISHED'),
+(@Sub_C4_T08, @JudgeMentor_ID, 79.50, N'Clean data ingestion system, error recovery can be polished further.', 'PUBLISHED'),
+(@Sub_C4_T09, @Judge1_ID, 76.00, N'Promising edge cloud architecture, presentation and docs need more depth.', 'PUBLISHED'),
+(@Sub_C4_T09, @Judge2_ID, 76.50, N'Good edge computing concept with low latency data transmission.', 'PUBLISHED'),
+(@Sub_C4_T09, @JudgeMentor_ID, 75.50, N'Solid prototype, expand documentation and architectural diagrams.', 'PUBLISHED'),
+(@Sub_C4_T10, @Judge1_ID, 72.80, N'Decent cloud storage utility with encrypted file transfer support.', 'PUBLISHED'),
+(@Sub_C4_T10, @Judge2_ID, 72.50, N'Functional cloud storage utility, UI and read/write speeds require optimization.', 'PUBLISHED'),
+(@Sub_C4_T10, @JudgeMentor_ID, 72.20, N'Good baseline storage app, further enhance throughput and error handling.', 'PUBLISHED');
 GO
 
--- 11. RANKING RESULTS (For Leaderboards & My Teams)
+-- 11. RANKING RESULTS (Complete Leaderboards for ALL Completed Rounds & 10-Team Championship)
 DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
 DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
 DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
+DECLARE @Team1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01');
+DECLARE @Team2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02');
+DECLARE @Team3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03');
+DECLARE @C4_T01_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T01');
+DECLARE @C4_T02_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T02');
+DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T03');
+DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
+DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
+DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
 
 INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at)
 VALUES
+-- Contest 1 Round 1 (Qualification) Ranking
+(1, 1, @PastTeam1_ID, @Admin1_ID, 1, 91.50, 'QUALIFIED', '2026-02-26 10:00:00'),
+(1, 1, @PastTeam2_ID, @Admin1_ID, 2, 87.00, 'QUALIFIED', '2026-02-26 10:00:00'),
+(1, 1, @Team1_ID, @Admin1_ID, 3, 83.50, 'QUALIFIED', '2026-02-26 10:00:00'),
+
+-- Contest 1 Round 2 (Final Presentation) Ranking
 (2, 1, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
 (2, 1, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
-(4, 4, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00');
+(2, 1, @Team1_ID, @Admin1_ID, 3, 84.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+
+-- Contest 2 Round 3 (Qualification) Ranking
+(3, 4, @PastTeam3_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-10-21 10:00:00'),
+(3, 4, @Team2_ID, @Admin1_ID, 2, 89.00, 'QUALIFIED', '2025-10-21 10:00:00'),
+(3, 4, @Team3_ID, @Admin1_ID, 3, 85.00, 'QUALIFIED', '2025-10-21 10:00:00'),
+
+-- Contest 2 Round 4 (Final Presentation) Ranking
+(4, 4, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 4, @Team2_ID, @Admin1_ID, 2, 90.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 4, @Team3_ID, @Admin1_ID, 3, 86.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+
+-- Contest 4 Round 8 (Global Championship Round - 10-Team Leaderboard)
+(8, 10, @C4_T01_ID, @Admin1_ID, 1, 96.50, 'QUALIFIED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T02_ID, @Admin1_ID, 2, 94.20, 'QUALIFIED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T03_ID, @Admin1_ID, 3, 91.80, 'QUALIFIED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T04_ID, @Admin1_ID, 4, 89.50, 'QUALIFIED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T05_ID, @Admin1_ID, 5, 87.00, 'QUALIFIED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T07_ID, @Admin1_ID, 7, 82.00, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T08_ID, @Admin1_ID, 8, 79.50, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T09_ID, @Admin1_ID, 9, 76.00, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T10_ID, @Admin1_ID, 10, 72.50, 'ELIMINATED', '2026-04-25 10:00:00');
 GO

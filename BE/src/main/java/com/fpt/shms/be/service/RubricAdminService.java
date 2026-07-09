@@ -61,7 +61,6 @@ public class RubricAdminService {
 
         template = rubricTemplateRepository.save(template);
 
-
         ContestRubric contestRubric = ContestRubric.builder()
                 .category(category)
                 .rubricTemplate(template)
@@ -72,10 +71,9 @@ public class RubricAdminService {
 
         contestRubric = contestRubricRepository.save(contestRubric);
         syncContestRubricDetails(contestRubric, template.getCriteria());
-        auditLogService.log("CREATE_CONTEST_RUBRIC", "ContestRubric", category.getName() + " Rubric", null, contestRubric.getStatus(), "Created rubric for category: " + category.getName());
+        auditLogService.log("CREATE_CONTEST_RUBRIC", "ContestRubric", category.getName() + " Rubric", "NONE", contestRubric.getStatus(), "Created rubric for category: " + category.getName());
         return contestRubric;
     }
-
 
     @Transactional
     public RubricTemplate createTemplateOnly(CreateRubricRequest request) {
@@ -112,7 +110,7 @@ public class RubricAdminService {
             template.getCriteria().add(crit);
         }
         RubricTemplate savedTemplate = rubricTemplateRepository.save(template);
-        auditLogService.log("CREATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), null, savedTemplate.getStatus(), "Created template: " + savedTemplate.getName());
+        auditLogService.log("CREATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), "NONE", savedTemplate.getStatus(), "Created template: " + savedTemplate.getName());
         return savedTemplate;
     }
 
@@ -162,7 +160,7 @@ public class RubricAdminService {
                 .collect(Collectors.toList());
         cloned.setCriteria(clonedCriteria);
         RubricTemplate clonedTemplate = rubricTemplateRepository.save(cloned);
-        auditLogService.log("CLONE_RUBRIC_TEMPLATE", "RubricTemplate", clonedTemplate.getName(), null, clonedTemplate.getStatus(), "Cloned from template: " + original.getName());
+        auditLogService.log("CLONE_RUBRIC_TEMPLATE", "RubricTemplate", clonedTemplate.getName(), "NONE", clonedTemplate.getStatus(), "Cloned from template: " + original.getName());
         return clonedTemplate;
     }
 
@@ -192,7 +190,7 @@ public class RubricAdminService {
             template.getCriteria().add(crit);
         }
         RubricTemplate savedTemplate = rubricTemplateRepository.save(template);
-        auditLogService.log("UPDATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), null, savedTemplate.getStatus(), "Updated template: " + savedTemplate.getName());
+        auditLogService.log("UPDATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), "OLD_DATA", savedTemplate.getStatus(), "Updated template: " + savedTemplate.getName());
 
         List<ContestRubric> contestRubrics = contestRubricRepository.findByRubricTemplateId(id);
         for (ContestRubric cr : contestRubrics) {

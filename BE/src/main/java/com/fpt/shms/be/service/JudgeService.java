@@ -326,7 +326,7 @@ public class JudgeService {
                     .build();
             latestSubmission = submissionRepository.save(latestSubmission);
 
-            auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Submission", null, "CREATED", "Judge opened evaluation for non-submitted team");
+            auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission", latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Submission", "NO_SUBMISSION", "CREATED", "Judge opened evaluation for non-submitted team");
         }
 
         List<EvaluationDataResponse.CriteriaDto> criteriaDtos = new ArrayList<>();
@@ -366,10 +366,10 @@ public class JudgeService {
                 .teamName(team.getName())
                 .status(latestSubmission.getStatus())
                 .submissionRequirements(latestSubmission.getRound() != null ? latestSubmission.getRound().getSubmissionRequirements() : null)
+                .contestRules(team.getContest() != null ? team.getContest().getComplianceRules() : null)
                 .criteria(criteriaDtos)
                 .build();
     }
-
 
     @Transactional
     public void submitScore(String username, SubmitScoreRequest request) {
@@ -428,7 +428,12 @@ public class JudgeService {
         score.setTotalScore(total);
         score.setGeneralFeedback(String.join("\n", feedback));
         scoreRepository.save(score);
-        auditLogService.log("SUBMIT_SCORE", "Submission", submission.getTeam() != null ? submission.getTeam().getName() : "Submission", null, "FINALIZED", "Total Score: " + total);
+        String oldValue = "UNGRADED";
+        String newValue = String.valueOf(total);
+        String reasonLog = "MISSED_DEADLINE".equalsIgnoreCase(submission.getStatus())
+                ? "Forced evaluation (missed deadline)"
+                : "Standard evaluation";
+        auditLogService.log("SUBMIT_SCORE", "Score", submission.getTeam() != null ? submission.getTeam().getName() : "Submission", oldValue, newValue, reasonLog);
     }
 
     @Transactional

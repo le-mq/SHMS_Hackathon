@@ -101,8 +101,7 @@ public class AllocationAdminService {
                 judgeAssignmentRepository.save(judgeAssignment);
             }
         }
-
-        auditLogService.log("ALLOCATE_EXPERT", "User", user.getUsername(), null, "ALLOCATED", "Assigned expert to track/team");
+        auditLogService.log("ALLOCATE_EXPERT", "User", user.getUsername(), "UNALLOCATED", "ALLOCATED", "Assigned expert to track/team");
     }
 
     @Transactional(readOnly = true)
