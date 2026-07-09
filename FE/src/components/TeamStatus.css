@@ -515,22 +515,52 @@
 }
 
 .team-card-approved,
-.team-card-pending,
-.team-card-forming {
-    background: #f0fdfa;
-    border-color: #5eead4;
+.team-card-active,
+.team-card-actived {
+    background: #f0fdf4;
+    border-color: #86efac;
 }
 
 .team-card-approved .tc-header,
-.team-card-pending .tc-header,
-.team-card-forming .tc-header {
-    background: #ccfbf1;
-    border-bottom-color: #99f6e4;
+.team-card-active .tc-header,
+.team-card-actived .tc-header {
+    background: #dcfce7;
+    border-bottom-color: #bbf7d0;
 }
 
 .team-card-approved .tc-footer,
-.team-card-pending .tc-footer,
+.team-card-active .tc-footer,
+.team-card-actived .tc-footer {
+    background: #f0fdf4;
+    border-top-color: #bbf7d0;
+}
+
+.team-card-pending {
+    background: #fffbeb;
+    border-color: #fcd34d;
+}
+
+.team-card-pending .tc-header {
+    background: #fef3c7;
+    border-bottom-color: #fde68a;
+}
+
+.team-card-pending .tc-footer {
+    background: #fffbeb;
+    border-top-color: #fde68a;
+}
+
+.team-card-forming {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.team-card-forming .tc-header {
+    background: #dbeafe;
+    border-bottom-color: #bfdbfe;
+}
+
 .team-card-forming .tc-footer {
-    background: #f0fdfa;
-    border-top-color: #99f6e4;
+    background: #eff6ff;
+    border-top-color: #bfdbfe;
 }
