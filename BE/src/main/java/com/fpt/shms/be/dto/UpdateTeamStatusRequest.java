@@ -10,4 +10,6 @@ public class UpdateTeamStatusRequest {
 
     @NotBlank
     private String status; // "APPROVED" or "REJECTED"
+
+    private String reason;
 }

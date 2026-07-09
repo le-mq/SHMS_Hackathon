@@ -423,7 +423,7 @@ public class AdminController {
     public ResponseEntity<?> updateTeamStatus(HttpServletRequest request,
                                               @Valid @RequestBody UpdateTeamStatusRequest statusRequest) {
         try {
-            teamService.updateTeamStatus(statusRequest.getTeamId(), statusRequest.getStatus());
+            teamService.updateTeamStatus(statusRequest.getTeamId(), statusRequest.getStatus(), statusRequest.getReason());
             return ResponseEntity.ok(Map.of("message", "Team status updated to " + statusRequest.getStatus()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
