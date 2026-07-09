@@ -761,13 +761,10 @@ DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = '
 DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
 
 INSERT INTO MentorAssignment (category_id, user_id, status) VALUES
-(1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (7, @Mentor1_ID, 'ACTIVE'), (7, @Mentor2_ID, 'ACTIVE'), (10, @Mentor1_ID, 'ACTIVE'), (10, @Mentor2_ID, 'ACTIVE');
+(1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (10, @Mentor1_ID, 'ACTIVE'), (10, @Mentor2_ID, 'ACTIVE');
 
 INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
 (1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), 
-(7, @Judge1_ID, 'ACTIVE'), (7, @Judge2_ID, 'ACTIVE'), (7, @JudgeMentor_ID, 'ACTIVE'),
-(8, @Judge1_ID, 'ACTIVE'), (8, @Judge2_ID, 'ACTIVE'), (8, @JudgeMentor_ID, 'ACTIVE'),
-(9, @Judge1_ID, 'ACTIVE'), (9, @Judge2_ID, 'ACTIVE'), (9, @JudgeMentor_ID, 'ACTIVE'),
 (10, @Judge1_ID, 'ACTIVE'), (10, @Judge2_ID, 'ACTIVE'), (10, @JudgeMentor_ID, 'ACTIVE');
 GO
 
@@ -791,9 +788,9 @@ DECLARE @C4_T01_ID BIGINT, @C4_T02_ID BIGINT, @C4_T03_ID BIGINT, @C4_T04_ID BIGI
 DECLARE @C4_T06_ID BIGINT, @C4_T07_ID BIGINT, @C4_T08_ID BIGINT, @C4_T09_ID BIGINT, @C4_T10_ID BIGINT;
 DECLARE @SEAL_T01_ID BIGINT, @SEAL_T02_ID BIGINT, @SEAL_T03_ID BIGINT, @SEAL_T04_ID BIGINT, @SEAL_T05_ID BIGINT, @SEAL_T06_ID BIGINT;
 
--- Historical Team 1: AI Pioneers (Contest 1, Category 1) - APPROVED
+-- Historical Team 1: AI Pioneers (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST01', 'AI Pioneers', 1, 'APPROVED', '2026-02-05 10:00:00');
+VALUES ('PAST01', 'AI Pioneers', 1, 'CLOSED', '2026-02-05 10:00:00');
 SET @PastTeam1_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -801,9 +798,9 @@ SELECT @PastTeam1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20IT123457@st.huflit.edu.vn');
 
--- Historical Team 2: Visionary Devs (Contest 1, Category 1) - APPROVED
+-- Historical Team 2: Visionary Devs (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST02', 'Visionary Devs', 1, 'APPROVED', '2026-02-06 10:00:00');
+VALUES ('PAST02', 'Visionary Devs', 1, 'CLOSED', '2026-02-06 10:00:00');
 SET @PastTeam2_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -811,9 +808,9 @@ SELECT @PastTeam2_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-06 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam2_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-06 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'phuonguyen@gmail.com');
 
--- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - APPROVED
+-- Historical Team 3: Blockchain Masters (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('PAST03', 'Blockchain Masters', 2, 'APPROVED', '2025-09-05 10:00:00');
+VALUES ('PAST03', 'Blockchain Masters', 2, 'CLOSED', '2025-09-05 10:00:00');
 SET @PastTeam3_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -821,44 +818,44 @@ SELECT @PastTeam3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FRO
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] u WHERE u.email IN ('Phamgiahan@hcmut.edu.vn', '20120002@student.hcmus.edu.vn');
 
--- Historical Team 4: Cyber Core (Contest 1, Category 1) - APPROVED
+-- Historical Team 4: Cyber Core (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM01', 'Cyber Core', 1, 'APPROVED', '2026-02-07 10:00:00');
+VALUES ('TEAM01', 'Cyber Core', 1, 'CLOSED', '2026-02-07 10:00:00');
 SET @Team1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn', 'Leduyphuc@hcmut.edu.vn');
 
--- Historical Team 5: Code Rangers (Contest 2, Category 4) - APPROVED
+-- Historical Team 5: Code Rangers (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM02', 'Code Rangers', 2, 'APPROVED', '2025-09-06 10:00:00');
+VALUES ('TEAM02', 'Code Rangers', 2, 'CLOSED', '2025-09-06 10:00:00');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email = '20IT123456@st.huflit.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123457@st.huflit.edu.vn', 'nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com', 'Leduyphuc@hcmut.edu.vn');
 
--- Historical Team 6: Byte Wizards (Contest 2, Category 4) - APPROVED
+-- Historical Team 6: Byte Wizards (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
-VALUES ('TEAM03', 'Byte Wizards', 2, 'APPROVED', '2025-09-07 10:00:00');
+VALUES ('TEAM03', 'Byte Wizards', 2, 'CLOSED', '2025-09-07 10:00:00');
 SET @Team3_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @Team3_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-07 10:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com');
 
--- 10 TEAMS FOR CONTEST 4 (FPT Global Tech Championship 2026 - Category 10) - APPROVED
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T01', 'Nexus AI', 4, 'APPROVED', '2026-02-05 10:00:00'); SET @C4_T01_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T02', 'Cloud Horizon', 4, 'APPROVED', '2026-02-05 10:00:00'); SET @C4_T02_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T03', 'Quantum Leap', 4, 'APPROVED', '2026-02-06 10:00:00'); SET @C4_T03_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T04', 'Cyber Synapse', 4, 'APPROVED', '2026-02-06 10:00:00'); SET @C4_T04_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T05', 'Vanguard Devs', 4, 'APPROVED', '2026-02-07 10:00:00'); SET @C4_T05_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T06', 'Apex Dynamics', 4, 'APPROVED', '2026-02-07 10:00:00'); SET @C4_T06_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T07', 'Byte Builders', 4, 'APPROVED', '2026-02-08 10:00:00'); SET @C4_T07_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T08', 'Spark Matrix', 4, 'APPROVED', '2026-02-08 10:00:00'); SET @C4_T08_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T09', 'Zero Latency', 4, 'APPROVED', '2026-02-09 10:00:00'); SET @C4_T09_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T10', 'Titan Coders', 4, 'APPROVED', '2026-02-09 10:00:00'); SET @C4_T10_ID = SCOPE_IDENTITY();
+-- 10 TEAMS FOR CONTEST 4 (FPT Global Tech Championship 2026 - Category 10) - CLOSED
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T01', 'Nexus AI', 4, 'CLOSED', '2026-02-05 10:00:00'); SET @C4_T01_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T02', 'Cloud Horizon', 4, 'CLOSED', '2026-02-05 10:00:00'); SET @C4_T02_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T03', 'Quantum Leap', 4, 'CLOSED', '2026-02-06 10:00:00'); SET @C4_T03_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T04', 'Cyber Synapse', 4, 'CLOSED', '2026-02-06 10:00:00'); SET @C4_T04_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T05', 'Vanguard Devs', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T05_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T06', 'Apex Dynamics', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T06_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T07', 'Byte Builders', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T07_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T08', 'Spark Matrix', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T08_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T09', 'Zero Latency', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T09_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T10', 'Titan Coders', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T10_ID = SCOPE_IDENTITY();
 
 -- Assign Members to Contest 4 Teams
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -911,13 +908,13 @@ SELECT @C4_T10_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-09 10:00:00' FROM [
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @C4_T10_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email IN ('12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn');
 
--- 6 TEAMS FOR CONTEST 3 (SEAL Hackathon 2026 - Categories 7, 8, 9) - FORMING
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 3, 'FORMING', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T02', 'Web3 Vanguard', 3, 'FORMING', '2026-07-02 11:00:00'); SET @SEAL_T02_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T03', 'Cloud Architects', 3, 'FORMING', '2026-07-03 10:00:00'); SET @SEAL_T03_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T04', 'Data Synthesizers', 3, 'FORMING', '2026-07-03 14:00:00'); SET @SEAL_T04_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T05', 'IoT Innovators', 3, 'FORMING', '2026-07-04 09:00:00'); SET @SEAL_T05_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T06', 'Smart Mobility', 3, 'FORMING', '2026-07-04 15:00:00'); SET @SEAL_T06_ID = SCOPE_IDENTITY();
+-- 6 TEAMS IN FORMING STATUS (Not yet enrolled into any specific contest)
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 'FORMING', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T02', 'Web3 Vanguard', 'FORMING', '2026-07-02 11:00:00'); SET @SEAL_T02_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T03', 'Cloud Architects', 'FORMING', '2026-07-03 10:00:00'); SET @SEAL_T03_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T04', 'Data Synthesizers', 'FORMING', '2026-07-03 14:00:00'); SET @SEAL_T04_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T05', 'IoT Innovators', 'FORMING', '2026-07-04 09:00:00'); SET @SEAL_T05_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T06', 'Smart Mobility', 'FORMING', '2026-07-04 15:00:00'); SET @SEAL_T06_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T01_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
@@ -1003,10 +1000,7 @@ INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
 (@C4_T01_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T02_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T03_ID, @Mentor1_ID, 10, 'ACTIVE'),
 (@C4_T04_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T05_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T06_ID, @Mentor2_ID, 10, 'ACTIVE'),
 (@C4_T07_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T08_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T09_ID, @Mentor1_ID, 10, 'ACTIVE'),
-(@C4_T10_ID, @Mentor2_ID, 10, 'ACTIVE'),
-((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T01'), @Mentor1_ID, 7, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T02'), @Mentor2_ID, 7, 'ACTIVE'),
-((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T03'), @Mentor1_ID, 8, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T04'), @Mentor2_ID, 8, 'ACTIVE'),
-((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T05'), @Mentor1_ID, 9, 'ACTIVE'), ((SELECT TOP 1 team_id FROM Team WHERE team_code = 'SEAL_T06'), @Mentor2_ID, 9, 'ACTIVE');
+(@C4_T10_ID, @Mentor2_ID, 10, 'ACTIVE');
 GO
 
 -- 9. SUBMISSIONS (Full Submissions across all completed & active rounds)
