@@ -35,78 +35,201 @@ const Register = () => {
         fetchUniversities();
     }, []);
 
-    const validateRegex = {
-        username: /^[a-zA-Z0-9_]{4,20}$/,
-        password: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => {
-                const newErr = { ...prev };
-                delete newErr[name];
-                return newErr;
-            });
-        }
-    };
+        const updatedFormData = { ...formData, [name]: value };
+        setFormData(updatedFormData);
 
-    const validateForm = () => {
-        let newErrors = {};
-        if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
-        if (!validateRegex.username.test(formData.username)) {
-            newErrors.username = 'Username must be 4-20 chars (alphanumeric or underscore)';
+        let newErrors = { ...errors };
+        if (name === 'fullName') {
+            const fullName = value;
+            if (!fullName) {
+                newErrors.fullName = 'Full Name is required';
+            } else if (fullName.length < 2 || fullName.length > 100) {
+                newErrors.fullName = 'Full Name must be between 2 and 100 characters';
+            } else if (!/^[\p{L} '-]+$/u.test(fullName)) {
+                newErrors.fullName = "Full Name can only contain letters, spaces, apostrophes, and hyphens";
+            } else {
+                delete newErrors.fullName;
+            }
         }
-        if (!validateRegex.password.test(formData.password)) {
-            newErrors.password = 'Password minimum 8 characters, at least one letter and one number';
+        if (name === 'username') {
+            const username = value;
+            if (!username) {
+                newErrors.username = 'Username is required';
+            } else if (username.length < 4 || username.length > 30) {
+                newErrors.username = 'Username must be between 4 and 30 characters';
+            } else if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+                newErrors.username = 'Username can only contain alphanumeric characters, underscores, and dots';
+            } else {
+                delete newErrors.username;
+            }
         }
-        if (!formData.targetUniversity) {
-            newErrors.targetUniversity = 'Please select a University';
+        if (name === 'password') {
+            const password = value;
+            if (!password) {
+                newErrors.password = 'Password is required';
+            } else if (password.length < 8 || password.length > 32) {
+                newErrors.password = 'Password must be between 8 and 32 characters';
+            } else if (/\s/.test(password)) {
+                newErrors.password = 'Password must not contain spaces';
+            } else if (!/[a-z]/.test(password)) {
+                newErrors.password = 'Password must contain at least one lowercase letter';
+            } else if (!/[A-Z]/.test(password)) {
+                newErrors.password = 'Password must contain at least one uppercase letter';
+            } else if (!/\d/.test(password)) {
+                newErrors.password = 'Password must contain at least one number';
+            } else if (!/[^a-zA-Z\d\s]/.test(password)) {
+                newErrors.password = 'Password must contain at least one special character';
+            } else {
+                delete newErrors.password;
+            }
         }
-        const selectedUni = universities.find(u => u.name === formData.targetUniversity);
-        if (selectedUni) {
-            if (selectedUni.studentCodeRegex) {
+        if (name === 'targetUniversity') {
+            if (!value) {
+                newErrors.targetUniversity = 'Please select a University';
+            } else {
+                delete newErrors.targetUniversity;
+            }
+        }
+        if (name === 'studentCode' || name === 'targetUniversity') {
+            const codeVal = name === 'studentCode' ? value : formData.studentCode;
+            const uniVal = name === 'targetUniversity' ? value : formData.targetUniversity;
+            const selectedUni = universities.find(u => u.name === uniVal);
+            if (!codeVal) {
+                newErrors.studentCode = 'Student Identification Number is required';
+            } else if (selectedUni && selectedUni.studentCodeRegex) {
                 try {
                     const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
-                    if (!formData.studentCode.trim()) {
-                        newErrors.studentCode = 'Student Identification Number is required';
-                    } else if (!studentCodePattern.test(formData.studentCode)) {
+                    if (!studentCodePattern.test(codeVal)) {
                         newErrors.studentCode = 'Invalid student code format';
+                    } else {
+                        delete newErrors.studentCode;
                     }
-                } catch (e) {
-                    console.error('Invalid student code regex pattern', e);
-                }
+                } catch (e) {}
             } else {
-                if (!formData.studentCode.trim()) newErrors.studentCode = 'Student Identification Number is required';
-            }
-            if (selectedUni.emailRegex) {
-                try {
-                    const emailPattern = new RegExp(selectedUni.emailRegex);
-                    if (!formData.corporateEmail.trim()) {
-                        newErrors.corporateEmail = 'Email is required';
-                    } else if (!emailPattern.test(formData.corporateEmail)) {
-                        newErrors.corporateEmail = 'Invalid university email format';
-                    }
-                } catch (e) {
-                    console.error('Invalid email regex pattern', e);
-                }
-            } else {
-                if (!formData.corporateEmail.trim()) {
-                    newErrors.corporateEmail = 'Email is required';
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
-                    newErrors.corporateEmail = 'Invalid Email format';
-                }
-            }
-        } else {
-            if (!formData.studentCode.trim()) newErrors.studentCode = 'Student Identification Number is required';
-            if (!formData.corporateEmail.trim()) {
-                newErrors.corporateEmail = 'Email is required';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.corporateEmail)) {
-                newErrors.corporateEmail = 'Invalid Email format';
+                delete newErrors.studentCode;
             }
         }
-        if (!formData.major.trim()) newErrors.major = 'Major is required';
+        if (name === 'corporateEmail' || name === 'targetUniversity') {
+            const emailVal = name === 'corporateEmail' ? value : formData.corporateEmail;
+            const uniVal = name === 'targetUniversity' ? value : formData.targetUniversity;
+            const selectedUni = universities.find(u => u.name === uniVal);
+            if (!emailVal) {
+                newErrors.corporateEmail = 'Email is required';
+            } else if (!/^[^\s@]+@[^\s@]+$/.test(emailVal)) {
+                newErrors.corporateEmail = 'Email must have exactly one @, with a name before and a domain after';
+            } else if (selectedUni && selectedUni.emailRegex) {
+                try {
+                    const emailPattern = new RegExp(selectedUni.emailRegex);
+                    if (!emailPattern.test(emailVal)) {
+                        newErrors.corporateEmail = 'Invalid university email format';
+                    } else {
+                        delete newErrors.corporateEmail;
+                    }
+                } catch (e) {}
+            } else {
+                delete newErrors.corporateEmail;
+            }
+        }
+        if (name === 'major') {
+            if (!value) {
+                newErrors.major = 'Major is required';
+            } else {
+                delete newErrors.major;
+            }
+        }
+        setErrors(newErrors);
+    };
+
+    const isFormInvalid = !formData.fullName || !formData.username || !formData.password || 
+                          !formData.targetUniversity || !formData.studentCode || !formData.corporateEmail || 
+                          !formData.major || Object.keys(errors).length > 0;
+
+    const validateForm = (data) => {
+        let newErrors = {};
+
+        // Full Name
+        const fullName = data.fullName;
+        if (!fullName) {
+            newErrors.fullName = 'Full Name is required';
+        } else if (fullName.length < 2 || fullName.length > 100) {
+            newErrors.fullName = 'Full Name must be between 2 and 100 characters';
+        } else if (!/^[\p{L} '-]+$/u.test(fullName)) {
+            newErrors.fullName = "Full Name can only contain letters, spaces, apostrophes, and hyphens";
+        }
+
+        // Username
+        const username = data.username;
+        if (!username) {
+            newErrors.username = 'Username is required';
+        } else if (username.length < 4 || username.length > 30) {
+            newErrors.username = 'Username must be between 4 and 30 characters';
+        } else if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+            newErrors.username = 'Username can only contain alphanumeric characters, underscores, and dots';
+        }
+
+        // Password
+        const password = data.password;
+        if (!password) {
+            newErrors.password = 'Password is required';
+        } else if (password.length < 8 || password.length > 32) {
+            newErrors.password = 'Password must be between 8 and 32 characters';
+        } else if (/\s/.test(password)) {
+            newErrors.password = 'Password must not contain spaces';
+        } else if (!/[a-z]/.test(password)) {
+            newErrors.password = 'Password must contain at least one lowercase letter';
+        } else if (!/[A-Z]/.test(password)) {
+            newErrors.password = 'Password must contain at least one uppercase letter';
+        } else if (!/\d/.test(password)) {
+            newErrors.password = 'Password must contain at least one number';
+        } else if (!/[^a-zA-Z\d\s]/.test(password)) {
+            newErrors.password = 'Password must contain at least one special character';
+        }
+
+        // University
+        if (!data.targetUniversity) {
+            newErrors.targetUniversity = 'Please select a University';
+        }
+
+        // Student Code & Email
+        const selectedUni = universities.find(u => u.name === data.targetUniversity);
+        const studentCode = data.studentCode;
+        const email = data.corporateEmail;
+
+        if (!studentCode) {
+            newErrors.studentCode = 'Student Identification Number is required';
+        } else if (selectedUni && selectedUni.studentCodeRegex) {
+            try {
+                const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
+                if (!studentCodePattern.test(studentCode)) {
+                    newErrors.studentCode = 'Invalid student code format';
+                }
+            } catch (e) {
+                console.error('Invalid student code regex pattern', e);
+            }
+        }
+
+        if (!email) {
+            newErrors.corporateEmail = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+$/.test(email)) {
+            newErrors.corporateEmail = 'Email must have exactly one @, with a name before and a domain after';
+        } else if (selectedUni && selectedUni.emailRegex) {
+            try {
+                const emailPattern = new RegExp(selectedUni.emailRegex);
+                if (!emailPattern.test(email)) {
+                    newErrors.corporateEmail = 'Invalid university email format';
+                }
+            } catch (e) {
+                console.error('Invalid email regex pattern', e);
+            }
+        }
+
+        // Major
+        if (!data.major) {
+            newErrors.major = 'Major is required';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -115,30 +238,43 @@ const Register = () => {
         e.preventDefault();
         setServerError('');
         setSuccessMsg('');
-        if (!validateForm()) return;
+
+        const cleanedData = {
+            fullName: formData.fullName.trim().replace(/\s+/g, ' '),
+            username: formData.username.trim(),
+            password: formData.password,
+            targetUniversity: formData.targetUniversity.trim(),
+            studentCode: formData.studentCode.trim(),
+            corporateEmail: formData.corporateEmail.trim(),
+            major: formData.major.trim()
+        };
+
+        setFormData(cleanedData);
+
+        if (!validateForm(cleanedData)) return;
         setIsLoading(true);
         try {
             const response = await fetch(API_BASE + '/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(cleanedData)
             });
             const data = await response.json();
             if (!response.ok) {
-                const errorStr = (data.error || "").toLowerCase();
+                const errorStr = (data.error || data.message || "").toLowerCase();
                 let fieldErrors = {};
                 let hasMappedField = false;
 
                 if (errorStr.includes("username")) {
-                    fieldErrors.username = data.error;
+                    fieldErrors.username = data.error || data.message;
                     hasMappedField = true;
                 }
                 if (errorStr.includes("email")) {
-                    fieldErrors.corporateEmail = data.error;
+                    fieldErrors.corporateEmail = data.error || data.message;
                     hasMappedField = true;
                 }
-                if (errorStr.includes("studentCode")) {
-                    fieldErrors.studentCode = data.error;
+                if (errorStr.includes("studentcode")) {
+                    fieldErrors.studentCode = data.error || data.message;
                     hasMappedField = true;
                 }
 
@@ -146,14 +282,14 @@ const Register = () => {
                     setErrors(prev => ({ ...prev, ...fieldErrors }));
                     setServerError("Registration failed. Please check the fields above.");
                 } else {
-                    setServerError(data.error || "Registration failed");
+                    setServerError(data.message || data.error || "Registration failed");
                 }
                 return;
             }
 
             setSuccessMsg(data.message || 'Registration successful! Redirecting to email verification...');
             setTimeout(() => {
-                navigate('/verify-email', { state: { username: formData.username } });
+                navigate('/verify-email', { state: { username: cleanedData.username } });
             }, 1500);
 
         } catch (err) {
@@ -234,7 +370,7 @@ const Register = () => {
                                 <input type="text" name="major" className={`form-input ${errors.major ? 'is-invalid' : ''}`} placeholder="e.g. Software Engineering" value={formData.major} onChange={handleChange} />
                                 {errors.major && <div className="invalid-feedback">{errors.major}</div>}
                             </div>
-                            <button type="submit" className="register-btn" disabled={isLoading}>
+                            <button type="submit" className="register-btn" disabled={isLoading || isFormInvalid}>
                                 {isLoading ? 'Registering...' : 'Register Account'}
                             </button>
                             {serverError ? (<div className="alert-error">{serverError}</div>

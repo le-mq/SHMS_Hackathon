@@ -92,45 +92,130 @@ const ExpertProfile = () => {
         reader.readAsDataURL(file);
     };
 
-    const handleSave = async () => {
-        if (form.newPassword && form.newPassword !== form.confirmPassword) {
-            setMsg({ text: 'New passwords do not match.', type: 'error' }); return;
+    const isFormInvalid = () => {
+        const { fullName, telephoneNumber, currentPassword, newPassword, confirmPassword } = form;
+        const trimmedName = fullName.trim().replace(/\s+/g, ' ');
+        if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 100 || !/^[\p{L} '-]+$/u.test(trimmedName)) {
+            return true;
         }
-        if (form.newPassword && form.newPassword.length < 12) {
-            setMsg({ text: 'New password must be at least 12 characters.', type: 'error' }); return;
+        const trimmedPhone = telephoneNumber.trim();
+        if (trimmedPhone) {
+            if (!/^(03|05|07|08|09)\d{8}$/.test(trimmedPhone)) {
+                return true;
+            }
+        }
+        if (currentPassword || newPassword || confirmPassword) {
+            if (!currentPassword) return true;
+            if (!newPassword) return true;
+            if (newPassword.length < 8 || newPassword.length > 32 || /\s/.test(newPassword)) return true;
+            if (!/[a-z]/.test(newPassword)) return true;
+            if (!/[A-Z]/.test(newPassword)) return true;
+            if (!/\d/.test(newPassword)) return true;
+            if (!/[^a-zA-Z\d\s]/.test(newPassword)) return true;
+            if (newPassword !== confirmPassword) return true;
+        }
+        return false;
+    };
+
+    const handleSave = async () => {
+        setMsg({ text: '', type: '' });
+
+        const cleanedName = form.fullName.trim().replace(/\s+/g, ' ');
+        if (!cleanedName) {
+            setMsg({ text: 'Full Name is required', type: 'error' });
+            return;
+        }
+        if (cleanedName.length < 2 || cleanedName.length > 100) {
+            setMsg({ text: 'Full Name must be between 2 and 100 characters', type: 'error' });
+            return;
+        }
+        if (!/^[\p{L} '-]+$/u.test(cleanedName)) {
+            setMsg({ text: "Full Name can only contain letters, spaces, apostrophes, and hyphens", type: 'error' });
+            return;
+        }
+
+        const cleanedPhone = form.telephoneNumber.trim();
+        if (cleanedPhone) {
+            if (!/^(03|05|07|08|09)\d{8}$/.test(cleanedPhone)) {
+                setMsg({ text: 'Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09', type: 'error' });
+                return;
+            }
+        }
+
+        const payload = {
+            fullName: cleanedName,
+            telephoneNumber: cleanedPhone,
+            avatarBase64: avatarPreview,
+        };
+
+        if (form.newPassword || form.currentPassword) {
+            if (!form.currentPassword) {
+                setMsg({ text: 'Current password is required to change password', type: 'error' });
+                return;
+            }
+            if (!form.newPassword) {
+                setMsg({ text: 'New password is required to change password', type: 'error' });
+                return;
+            }
+
+            const newPwd = form.newPassword;
+            if (newPwd.length < 8 || newPwd.length > 32) {
+                setMsg({ text: 'New password must be between 8 and 32 characters', type: 'error' });
+                return;
+            }
+            if (/\s/.test(newPwd)) {
+                setMsg({ text: 'New password must not contain spaces', type: 'error' });
+                return;
+            }
+            if (!/[a-z]/.test(newPwd)) {
+                setMsg({ text: 'New password must contain at least one lowercase letter', type: 'error' });
+                return;
+            }
+            if (!/[A-Z]/.test(newPwd)) {
+                setMsg({ text: 'New password must contain at least one uppercase letter', type: 'error' });
+                return;
+            }
+            if (!/\d/.test(newPwd)) {
+                setMsg({ text: 'New password must contain at least one number', type: 'error' });
+                return;
+            }
+            if (!/[^a-zA-Z\d\s]/.test(newPwd)) {
+                setMsg({ text: 'New password must contain at least one special character', type: 'error' });
+                return;
+            }
+            if (form.newPassword !== form.confirmPassword) {
+                setMsg({ text: 'New password and confirm password do not match', type: 'error' });
+                return;
+            }
+
+            payload.currentPassword = form.currentPassword;
+            payload.newPassword = newPwd;
         }
 
         setIsLoading(true);
-        setMsg({ text: '', type: '' });
+        setForm(prev => ({
+            ...prev,
+            fullName: cleanedName,
+            telephoneNumber: cleanedPhone
+        }));
+
         try {
             const token = localStorage.getItem('shms_token');
-            const payload = {
-                telephoneNumber: form.telephoneNumber,
-                avatarBase64: avatarPreview,
-                ...(form.currentPassword && form.newPassword && {
-                    currentPassword: form.currentPassword,
-                    newPassword: form.newPassword
-                })
-            };
             const response = await fetch(apiEndpoint, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
+            const data = await response.json();
             if (response.ok) {
                 setMsg({ text: 'Profile updated successfully.', type: 'success' });
-                localStorage.setItem('shms_fullname_' + username, form.fullName);
+                localStorage.setItem('shms_fullname_' + username, cleanedName);
                 setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
             } else {
-                // Ignore API errors for demo and simulate success
-                setMsg({ text: 'Profile updated successfully.', type: 'success' });
-                localStorage.setItem('shms_fullname_' + username, form.fullName);
-                setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
+                setMsg({ text: data.error || 'Failed to update profile.', type: 'error' });
             }
         } catch {
-            setMsg({ text: 'Profile updated successfully.', type: 'success' });
-            localStorage.setItem('shms_fullname_' + username, form.fullName);
-            setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }));
+            setMsg({ text: 'Failed to connect to the server.', type: 'error' });
         } finally {
             setIsLoading(false);
         }
@@ -189,6 +274,11 @@ const ExpertProfile = () => {
                                     <div className="op-field">
                                         <label className="op-label">Full Name</label>
                                         <input className="op-input" name="fullName" value={form.fullName} onChange={handleChange} />
+                                        {form.fullName && (form.fullName.trim().length < 2 || form.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(form.fullName.trim())) && (
+                                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="op-field">
                                         <label className="op-label">Email</label>
@@ -221,6 +311,11 @@ const ExpertProfile = () => {
                                             </span>
                                             <input className="op-input with-icon" name="telephoneNumber" value={form.telephoneNumber} onChange={handleChange} />
                                         </div>
+                                        {form.telephoneNumber && !/^(03|05|07|08|09)\d{8}$/.test(form.telephoneNumber.trim()) && (
+                                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -247,7 +342,12 @@ const ExpertProfile = () => {
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showNew ? "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" : "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"} /></svg>
                                             </button>
                                         </div>
-                                        <p className="op-password-hint">Must be at least 12 characters long and include a number and symbol.</p>
+                                        {form.newPassword && (form.newPassword.length < 8 || form.newPassword.length > 32 || /\s/.test(form.newPassword) || !/[a-z]/.test(form.newPassword) || !/[A-Z]/.test(form.newPassword) || !/\d/.test(form.newPassword) || !/[^a-zA-Z\d\s]/.test(form.newPassword)) && (
+                                            <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
+                                                Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                            </div>
+                                        )}
+                                        <p className="op-password-hint">Must be 8-32 characters long, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).</p>
                                     </div>
                                 </div>
 
@@ -260,12 +360,17 @@ const ExpertProfile = () => {
                                             </span>
                                             <input className="op-input with-icon" type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} placeholder="Re-enter new password" />
                                         </div>
+                                        {form.confirmPassword && form.newPassword !== form.confirmPassword && (
+                                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                Confirm password does not match new password.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="op-form-footer" style={{ marginTop: 24 }}>
                                     {msg.text && <p className={`op-msg ${msg.type}`}>{msg.text}</p>}
-                                    <button className="op-save-btn" onClick={handleSave} disabled={isLoading}>
+                                    <button className="op-save-btn" onClick={handleSave} disabled={isLoading || isFormInvalid()}>
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                         {isLoading ? 'Saving...' : 'Save Profile Changes'}
                                     </button>

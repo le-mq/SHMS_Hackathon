@@ -181,8 +181,9 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.execute-btn {
+.execute-btn-v {
     width: 272.44px;
+    height: 70px;
     background: #0f172a;
     color: white;
     border: none;
@@ -199,7 +200,7 @@
     margin-bottom: 12px;
 }
 
-.execute-btn.processing {
+.execute-btn-v.processing {
     background: #1d4ed8;
 }
 
