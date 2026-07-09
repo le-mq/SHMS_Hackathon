@@ -339,6 +339,7 @@ const ProjectSubmission = () => {
         workspaceData?.teamStatus ||
         'FORMING'
     ).toUpperCase();
+    const qualificationStatus = (pageData?.qualificationStatus || 'QUALIFIED').toUpperCase();
     const hasRegisteredContest = ['PENDING', 'APPROVED'].includes(teamStatus);
     const isNotRegistered = ['FORMING', 'NO TEAM', 'REJECTED'].includes(teamStatus);
     const contestName = hasRegisteredContest
@@ -849,15 +850,15 @@ const ProjectSubmission = () => {
                                 </div>
 
                                 <div className="submission-status-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    Team Status: 
+                                    Qualification Status: 
                                     <span style={{
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '6px',
                                         padding: '4px 12px',
                                         borderRadius: '20px',
-                                        backgroundColor: teamStatus === 'APPROVED' ? '#dcfce3' : '#f1f5f9',
-                                        color: teamStatus === 'APPROVED' ? '#166534' : '#475569',
+                                        backgroundColor: qualificationStatus === 'QUALIFIED' ? '#dcfce3' : '#fef2f2',
+                                        color: qualificationStatus === 'QUALIFIED' ? '#166534' : '#dc2626',
                                         fontSize: '15px',
                                         fontWeight: '700'
                                     }}>
@@ -865,9 +866,9 @@ const ProjectSubmission = () => {
                                             width: '8px',
                                             height: '8px',
                                             borderRadius: '50%',
-                                            backgroundColor: teamStatus === 'APPROVED' ? '#16a34a' : '#94a3b8'
+                                            backgroundColor: qualificationStatus === 'QUALIFIED' ? '#16a34a' : '#ef4444'
                                         }}></span>
-                                        {teamStatus}
+                                        {qualificationStatus}
                                     </span>
                                 </div>
                             </div>
