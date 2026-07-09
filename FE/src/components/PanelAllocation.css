@@ -18,12 +18,11 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 24px;
     grid-column: 1 / -1;
 }
 
 .allocation-wrapper {
-    padding: 40px;
+    padding: 30px;
     max-width: 1600px;
     margin: 0 auto;
     display: grid;

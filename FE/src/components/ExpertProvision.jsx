@@ -372,7 +372,7 @@ const ExpertProvisioning = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Full Name</label>
-                                    <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} />
+                                    <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} autoComplete="one-time-code"/>
                                     {formData.fullName && (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(formData.fullName.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
@@ -381,7 +381,7 @@ const ExpertProvisioning = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Professional Email</label>
-                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} />
+                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} autoComplete="one-time-code"/>
                                     {formData.professionalEmail && (/\s/.test(formData.professionalEmail) || !/^[^\s@]+@[^\s@]+$/.test(formData.professionalEmail.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Email must not contain spaces and must be a valid format (e.g. name@domain.com).
@@ -393,7 +393,7 @@ const ExpertProvisioning = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Username</label>
-                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} />
+                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} autoComplete="one-time-code"/>
                                     {formData.username && (formData.username.trim().length < 4 || formData.username.trim().length > 30 || /\s/.test(formData.username) || !/^[a-zA-Z0-9._]+$/.test(formData.username.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Username must be 4-30 characters, no spaces, and only alphanumeric, underscores, or dots.
@@ -410,6 +410,7 @@ const ExpertProvisioning = () => {
                                             placeholder="Enter secure password"
                                             value={formData.password}
                                             onChange={handleChange}
+                                            autoComplete="one-time-code"
                                             style={{ paddingRight: '40px', width: '100%' }}
                                         />
                                         <button
@@ -434,9 +435,6 @@ const ExpertProvisioning = () => {
                                             Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
                                         </div>
                                     )}
-                                    <p className="form-hint" style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
-                                        Must be 8-32 characters long, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
-                                    </p>
                                 </div>
                             </div>
 
@@ -472,7 +470,6 @@ const ExpertProvisioning = () => {
                             )}
                         </div>
 
-                        {/* ===== MANAGE EXPERTS ===== */}
                         <div className="form-card-v" style={{ marginTop: '24px' }}>
                             <div className="form-header">
                                 <div className="form-title">Manage Experts</div>
@@ -507,7 +504,6 @@ const ExpertProvisioning = () => {
 
                                     return (
                                         <div key={exp.userId} className="expert-manage-card">
-                                            {/* Card Header */}
                                             <div className="expert-card-header">
                                                 <div className="expert-avatar">{initials}</div>
                                                 <div className="expert-card-info">
@@ -525,7 +521,6 @@ const ExpertProvisioning = () => {
                                                 )}
                                             </div>
 
-                                            {/* Roles Block */}
                                             <div className="expert-roles-block">
                                                 <span className="expert-roles-label">Manage Roles</span>
                                                 <div className="expert-roles-checkboxes">
