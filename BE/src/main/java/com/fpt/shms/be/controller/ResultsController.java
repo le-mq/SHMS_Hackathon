@@ -3,7 +3,13 @@ package com.fpt.shms.be.controller;
 import com.fpt.shms.be.repository.TeamRepository;
 import com.fpt.shms.be.repository.ScoreRepository;
 import com.fpt.shms.be.repository.SubmissionRepository;
+import com.fpt.shms.be.repository.TeamMembershipRepository;
+import com.fpt.shms.be.repository.TeamMentorRepository;
+import com.fpt.shms.be.repository.JudgeAssignmentRepository;
 import com.fpt.shms.be.model.Team;
+import com.fpt.shms.be.model.TeamMembership;
+import com.fpt.shms.be.model.TeamMentor;
+import com.fpt.shms.be.model.JudgeAssignment;
 import com.fpt.shms.be.model.Submission;
 import com.fpt.shms.be.model.Score;
 import com.fpt.shms.be.model.ScoreDetail;
@@ -19,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +39,9 @@ public class ResultsController {
     private final TeamRepository teamRepository;
     private final SubmissionRepository submissionRepository;
     private final ScoreRepository scoreRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
+    private final TeamMentorRepository teamMentorRepository;
+    private final JudgeAssignmentRepository judgeAssignmentRepository;
 
     @PostMapping("/publish")
     @Operation(summary = "Publish Results", description = "Publishes the standings to the public leaderboard for a specific contest.")
@@ -66,41 +76,104 @@ public class ResultsController {
             List<Team> teams = teamRepository.findByContestId(contestId);
 
             if ("teams".equalsIgnoreCase(type)) {
-                writer.println("Team Name,Enrolled Category");
+                writer.println("Team ID,Team Code,Team Name,Status,Leader Student Code,Leader Name,Leader Email,Total Members,Enrolled Category,Assigned Mentor,Registration Date");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 for (Team team : teams) {
-                    writer.println(String.format("\"%s\",\"%s\"", team.getName(), "All Categories"));
+                    List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
+                    String leaderUsername = "";
+                    String leaderName = "";
+                    String leaderEmail = "";
+                    long totalMembers = 0;
+                    for (TeamMembership tm : memberships) {
+                        if (tm.getStatus() != null && (tm.getStatus().equalsIgnoreCase("APPROVED") || tm.getStatus().equalsIgnoreCase("ACTIVE") || tm.getStatus().equalsIgnoreCase("PENDING"))) {
+                            totalMembers++;
+                        }
+                        if (tm.getRole() != null && tm.getRole().equalsIgnoreCase("LEADER") && tm.getUser() != null) {
+                            leaderUsername = tm.getUser().getUsername() != null ? tm.getUser().getUsername() : "";
+                            leaderName = tm.getUser().getFullName() != null ? tm.getUser().getFullName() : "";
+                            leaderEmail = tm.getUser().getEmail() != null ? tm.getUser().getEmail() : "";
+                        }
+                    }
+                    if (leaderUsername.isEmpty() && !memberships.isEmpty() && memberships.get(0).getUser() != null) {
+                        leaderUsername = memberships.get(0).getUser().getUsername() != null ? memberships.get(0).getUser().getUsername() : "";
+                        leaderName = memberships.get(0).getUser().getFullName() != null ? memberships.get(0).getUser().getFullName() : "";
+                        leaderEmail = memberships.get(0).getUser().getEmail() != null ? memberships.get(0).getUser().getEmail() : "";
+                    }
+
+                    List<TeamMentor> teamMentors = teamMentorRepository.findByTeamId(team.getId());
+                    String categoryName = "All Categories";
+                    String mentorInfo = "Unassigned";
+                    if (!teamMentors.isEmpty()) {
+                        TeamMentor tm = teamMentors.get(0);
+                        if (tm.getCategory() != null && tm.getCategory().getName() != null) {
+                            categoryName = tm.getCategory().getName();
+                        }
+                        if (tm.getMentor() != null && tm.getMentor().getUser() != null) {
+                            String mName = tm.getMentor().getUser().getFullName();
+                            String mEmail = tm.getMentor().getUser().getEmail();
+                            mentorInfo = mName != null ? mName + (mEmail != null ? " (" + mEmail + ")" : "") : (mEmail != null ? mEmail : "Mentor ID " + tm.getMentor().getId());
+                        }
+                    }
+
+                    String teamIdStr = team.getId() != null ? String.valueOf(team.getId()) : "";
+                    String teamCodeStr = team.getTeamCode() != null ? team.getTeamCode() : "";
+                    String teamNameStr = escapeCsv(team.getName());
+                    String statusStr = team.getStatus() != null ? team.getStatus() : "";
+                    String createdAtStr = team.getCreatedAt() != null ? team.getCreatedAt().format(formatter) : "";
+
+                    writer.println(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\",\"%s\",\"%s\"",
+                            teamIdStr, teamCodeStr, teamNameStr, statusStr, escapeCsv(leaderUsername), escapeCsv(leaderName), escapeCsv(leaderEmail),
+                            totalMembers, escapeCsv(categoryName), escapeCsv(mentorInfo), createdAtStr));
                 }
             } else if ("scores".equalsIgnoreCase(type)) {
                 writer.println("Team Name,Category,Submission Data,Judge,Criteria,Points,Feedback");
                 for (Team team : teams) {
+                    String teamCategoryName = "General Track / All Categories";
+                    List<TeamMentor> teamMentors = teamMentorRepository.findByTeamId(team.getId());
+                    if (!teamMentors.isEmpty() && teamMentors.get(0).getCategory() != null && teamMentors.get(0).getCategory().getName() != null) {
+                        teamCategoryName = teamMentors.get(0).getCategory().getName();
+                    }
+
                     List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
                     for (Submission sub : submissions) {
                         List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
                         for (Score sc : scores) {
                             String judgeName = sc.getJudge() != null ? "Judge ID " + sc.getJudge().getId() : "Unknown";
-                            String subDataCsv = sub.getSubmissionData() != null ? sub.getSubmissionData().replace("\"", "\"\"").replace("\n", " ") : "";
+                            String judgeCategoryName = teamCategoryName;
+                            if (sc.getJudge() != null && sc.getJudge().getId() != null) {
+                                List<JudgeAssignment> jas = judgeAssignmentRepository.findByUserId(sc.getJudge().getId());
+                                if (!jas.isEmpty() && jas.get(0).getCategory() != null && jas.get(0).getCategory().getName() != null) {
+                                    judgeCategoryName = jas.get(0).getCategory().getName();
+                                }
+                            }
+
+                            String subDataCsv = escapeCsv(sub.getSubmissionData());
 
                             if (sc.getDetails() != null && !sc.getDetails().isEmpty()) {
                                 for (ScoreDetail sd : sc.getDetails()) {
 
-                                    String judgedCategoryName = "Unknown";
+                                    String judgedCategoryName = teamCategoryName;
                                     if (sd.getContestRubricDetail() != null &&
                                             sd.getContestRubricDetail().getContestRubric() != null &&
-                                            sd.getContestRubricDetail().getContestRubric().getCategory() != null) {
+                                            sd.getContestRubricDetail().getContestRubric().getCategory() != null &&
+                                            sd.getContestRubricDetail().getContestRubric().getCategory().getName() != null) {
                                         judgedCategoryName = sd.getContestRubricDetail().getContestRubric().getCategory().getName();
+                                    } else if (!"General Track / All Categories".equals(judgeCategoryName)) {
+                                        judgedCategoryName = judgeCategoryName;
                                     }
 
-                                    String critName = sd.getContestRubricDetail() != null ? sd.getContestRubricDetail().getCriteriaName() : "Unknown";
-                                    String feedback = sd.getFeedback() != null ? sd.getFeedback().replace("\"", "\"\"").replace("\n", " ") : "";
+                                    String critName = sd.getContestRubricDetail() != null ? sd.getContestRubricDetail().getCriteriaName() : "Overall Score";
+                                    String feedback = escapeCsv(sd.getFeedback());
 
                                     writer.println(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%f,\"%s\"",
-                                            team.getName(), judgedCategoryName, subDataCsv, judgeName, critName, sd.getRawScore(), feedback));
+                                            escapeCsv(team.getName()), escapeCsv(judgedCategoryName), subDataCsv, escapeCsv(judgeName), escapeCsv(critName), sd.getRawScore(), feedback));
                                 }
                             } else {
 
-                                String feedback = sc.getGeneralFeedback() != null ? sc.getGeneralFeedback().replace("\"", "\"\"").replace("\n", " ") : "";
+                                String feedback = escapeCsv(sc.getGeneralFeedback());
+                                String judgedCategoryName = !"General Track / All Categories".equals(judgeCategoryName) ? judgeCategoryName : teamCategoryName;
                                 writer.println(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%f,\"%s\"",
-                                        team.getName(), "Unknown", subDataCsv, judgeName, "Overall Score", sc.getTotalScore(), feedback));
+                                        escapeCsv(team.getName()), escapeCsv(judgedCategoryName), subDataCsv, escapeCsv(judgeName), "Overall Score", sc.getTotalScore(), feedback));
                             }
                         }
                     }
@@ -114,5 +187,10 @@ public class ResultsController {
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private String escapeCsv(String input) {
+        if (input == null) return "";
+        return input.replace("\"", "\"\"").replace("\r", " ").replace("\n", " ");
     }
 }
