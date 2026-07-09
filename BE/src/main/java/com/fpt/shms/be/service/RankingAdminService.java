@@ -105,24 +105,41 @@ public class RankingAdminService {
 
         Set<User> judges = assignments.stream().map(JudgeAssignment::getUser).collect(Collectors.toSet());
 
+        List<Team> participatingTeams = getParticipatingTeams(round);
+        Set<Long> participatingTeamIds = participatingTeams.stream().map(Team::getId).collect(Collectors.toSet());
+
+        long officialSubCount = allSubmissions.stream()
+                .filter(s -> s.getStatus() != null &&
+                        ("OFFICIAL".equalsIgnoreCase(s.getStatus()) ||
+                                "SUBMITTED".equalsIgnoreCase(s.getStatus()) ||
+                                "EVALUATED".equalsIgnoreCase(s.getStatus())) &&
+                        s.getTeam() != null && participatingTeamIds.contains(s.getTeam().getId()))
+                .count();
+
+        boolean allTeamsSubmitted = (officialSubCount == participatingTeams.size() && !participatingTeams.isEmpty());
+        boolean deadlinePassed = round.getSubmissionDeadline() != null && LocalDateTime.now().isAfter(round.getSubmissionDeadline());
+        boolean submissionPhaseDone = deadlinePassed || allTeamsSubmitted;
+
         List<RankingReadinessResponse.Evaluator> evaluatorList = new ArrayList<>();
-        boolean allReady = true;
+        boolean allReady = submissionPhaseDone;
 
         for (User judge : judges) {
-            List<Submission> assignedSubmissions = allSubmissions;
-
-            boolean judgeReady = true;
-            for (Submission s : assignedSubmissions) {
-                if ("MISSED_DEADLINE".equals(s.getStatus()) || "DRAFT".equals(s.getStatus())) {
-                    continue;
-                }
-                if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {
-                    judgeReady = false;
-                    break;
+            boolean judgeReady = submissionPhaseDone;
+            if (judgeReady) {
+                for (Submission s : allSubmissions) {
+                    if (s.getStatus() != null &&
+                            ("MISSED_DEADLINE".equalsIgnoreCase(s.getStatus()) ||
+                                    "DRAFT".equalsIgnoreCase(s.getStatus()))) {
+                        continue;
+                    }
+                    if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {
+                        judgeReady = false;
+                        break;
+                    }
                 }
             }
 
-            if (!judgeReady && !assignedSubmissions.isEmpty()) {
+            if (!judgeReady) {
                 allReady = false;
             }
 
@@ -135,7 +152,6 @@ public class RankingAdminService {
                     .build());
         }
 
-        List<Team> participatingTeams = getParticipatingTeams(round);
         Map<Team, Double> teamScores = new HashMap<>();
         for (Team team : participatingTeams) {
             teamScores.put(team, 0.0);
