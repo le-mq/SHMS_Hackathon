@@ -339,7 +339,7 @@ const ProjectSubmission = () => {
         workspaceData?.teamStatus ||
         'FORMING'
     ).toUpperCase();
-    const qualificationStatus = (pageData?.qualificationStatus || '').toUpperCase();
+    const qualificationStatus = (selectedRound?.qualificationStatus || pageData?.qualificationStatus || '').toUpperCase();
     const hasRegisteredContest = ['PENDING', 'APPROVED'].includes(teamStatus);
     const isNotRegistered = ['FORMING', 'NO TEAM', 'REJECTED'].includes(teamStatus);
     const contestName = hasRegisteredContest
@@ -913,8 +913,18 @@ const ProjectSubmission = () => {
                         <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                             <label>Select Round</label>
                             <div className="rounds-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
-                                {pageData?.rounds?.map((r, index) => {
-                                    const statusLabel = getRoundStatusLabel(r);
+                                {(() => {
+                                    const visibleRounds = [];
+                                    if (pageData?.rounds) {
+                                        for (const r of pageData.rounds) {
+                                            visibleRounds.push(r);
+                                            if (String(r.qualificationStatus || '').toUpperCase() === 'ELIMINATED') {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    return visibleRounds.map((r, index) => {
+                                        const statusLabel = getRoundStatusLabel(r);
                                     const isActive = statusLabel === 'ACTIVED';
                                     const isSelected = String(formData.roundId) === String(r.id);
 
@@ -955,7 +965,8 @@ const ProjectSubmission = () => {
                                             </div>
                                         </div>
                                     );
-                                })}
+                                    });
+                                })()}
                             </div>
                         </div>
                         {selectedRound && getRoundStatusLabel(selectedRound) === 'UPCOMING' && (

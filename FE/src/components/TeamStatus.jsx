@@ -110,8 +110,13 @@ const TeamStatus = () => {
                     });
                 }
 
-                // Sort teams by most recent contest
+                // Sort teams prioritizing APPROVED status, then by most recent contest
                 joinedTeams.sort((a, b) => {
+                    const statusA = String(a.data?.status || '').toUpperCase();
+                    const statusB = String(b.data?.status || '').toUpperCase();
+                    if (statusA === 'APPROVED' && statusB !== 'APPROVED') return -1;
+                    if (statusB === 'APPROVED' && statusA !== 'APPROVED') return 1;
+
                     if (a.contest?.id === 'forming') return -1;
                     if (b.contest?.id === 'forming') return 1;
                     
@@ -150,6 +155,11 @@ const TeamStatus = () => {
                     }
                     
                     mockJoinedTeams.sort((a, b) => {
+                        const statusA = String(a.data?.status || '').toUpperCase();
+                        const statusB = String(b.data?.status || '').toUpperCase();
+                        if (statusA === 'APPROVED' && statusB !== 'APPROVED') return -1;
+                        if (statusB === 'APPROVED' && statusA !== 'APPROVED') return 1;
+
                         if (a.contest?.id === 'forming') return -1;
                         if (b.contest?.id === 'forming') return 1;
                         

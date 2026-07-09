@@ -633,11 +633,7 @@ const StandingsFeedback = () => {
                             </button>
                         </div>
 
-                        {selectedDetail.hasSubmission === false ? (
-                            <div style={{ padding: '40px 0', textAlign: 'center', color: '#ef4444', fontWeight: '600', fontSize: '16px' }}>
-                                Did not submit before deadline.
-                            </div>
-                        ) : selectedDetail.detailedScores && selectedDetail.detailedScores.length > 0 ? (
+                        {selectedDetail.detailedScores && selectedDetail.detailedScores.length > 0 ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                                 <thead>
                                     <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
@@ -669,6 +665,10 @@ const StandingsFeedback = () => {
                                     ))}
                                 </tbody>
                             </table>
+                        ) : selectedDetail.hasSubmission === false ? (
+                            <div style={{ padding: '40px 0', textAlign: 'center', color: '#ef4444', fontWeight: '600', fontSize: '16px' }}>
+                                Did not submit before deadline.
+                            </div>
                         ) : (
                             <div style={{ padding: '40px 0', textAlign: 'center', color: '#64748b' }}>
                                 No detailed scores available yet.
