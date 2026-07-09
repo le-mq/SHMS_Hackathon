@@ -21,6 +21,7 @@ public class TeamRegistrationDashboardResponse {
     public static class ContestData {
         private Long id;
         private String name;
+        private String status;
         private int pendingReview;
         private int approved;
         private int rejectedAndCancelled;
