@@ -339,7 +339,7 @@ const ProjectSubmission = () => {
         workspaceData?.teamStatus ||
         'FORMING'
     ).toUpperCase();
-    const qualificationStatus = (pageData?.qualificationStatus || 'QUALIFIED').toUpperCase();
+    const qualificationStatus = (pageData?.qualificationStatus || '').toUpperCase();
     const hasRegisteredContest = ['PENDING', 'APPROVED'].includes(teamStatus);
     const isNotRegistered = ['FORMING', 'NO TEAM', 'REJECTED'].includes(teamStatus);
     const contestName = hasRegisteredContest
@@ -851,25 +851,27 @@ const ProjectSubmission = () => {
 
                                 <div className="submission-status-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     Qualification Status: 
-                                    <span style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        padding: '4px 12px',
-                                        borderRadius: '20px',
-                                        backgroundColor: qualificationStatus === 'QUALIFIED' ? '#dcfce3' : '#fef2f2',
-                                        color: qualificationStatus === 'QUALIFIED' ? '#166534' : '#dc2626',
-                                        fontSize: '15px',
-                                        fontWeight: '700'
-                                    }}>
+                                    {qualificationStatus && (
                                         <span style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
-                                            backgroundColor: qualificationStatus === 'QUALIFIED' ? '#16a34a' : '#ef4444'
-                                        }}></span>
-                                        {qualificationStatus}
-                                    </span>
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#dcfce3' : '#fef2f2',
+                                            color: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#166534' : '#dc2626',
+                                            fontSize: '15px',
+                                            fontWeight: '700'
+                                        }}>
+                                            <span style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#16a34a' : '#ef4444'
+                                            }}></span>
+                                            {qualificationStatus}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
