@@ -216,9 +216,35 @@ const EvaluationWorkspace = () => {
                                 {evalData?.contestRules && (
                                     <div>
                                         <div className="pid-label" style={{ marginBottom: '8px' }}>Compliance Rules</div>
-                                        <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
-                                            {evalData.contestRules}
-                                        </div>
+                                        {(() => {
+                                            try {
+                                                const rules = JSON.parse(evalData.contestRules);
+                                                if (Array.isArray(rules) && rules.length > 0) {
+                                                    return (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                            {rules.map((r, i) => (
+                                                                <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px' }}>
+                                                                    <div style={{ fontSize: '13px', color: '#1e293b', fontWeight: 500, marginBottom: r.penalty ? '8px' : '0', lineHeight: '1.5' }}>
+                                                                        {r.rule}
+                                                                    </div>
+                                                                    {r.penalty && (
+                                                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fee2e2', color: '#b91c1c', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                                                            Penalty: {r.penalty}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    );
+                                                }
+                                            } catch(e) {}
+                                            return (
+                                                <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                                    {evalData.contestRules}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 )}
                             </div>

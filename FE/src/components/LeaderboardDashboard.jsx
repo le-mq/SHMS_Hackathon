@@ -54,18 +54,26 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
         if (!isFinalRound) return null;
         let amount = "";
         const prizeStructs = currentBoard?.data?.prizeStructures;
+        let hasConfiguredPrize = false;
         if (prizeStructs && Array.isArray(prizeStructs)) {
             // Usually the array is sorted (0: First Prize, 1: Second Prize)
             const found = prizeStructs[rank - 1];
-            if (found && found.amount) {
-                amount = ` - ${found.amount}`;
+            if (found) {
+                hasConfiguredPrize = true;
+                if (found.amount) {
+                    amount = ` - ${found.amount}`;
+                }
             }
         }
 
         if (rank === 1) return `First Prize${amount}`;
         if (rank === 2) return `Second Prize${amount}`;
         if (rank === 3) return `Third Prize${amount}`;
-        return `Consolation Prize${amount}`;
+
+        if (rank === 4 || hasConfiguredPrize) {
+            return `Consolation Prize${amount}`;
+        }
+        return null;
     };
     return (
         <div className="leader-content">
@@ -185,8 +193,9 @@ function processLeaderboardData(rawData) {
             return board;
         })
         .sort((a, b) => {
-            if (Number(b.contestId) !== Number(a.contestId)) return Number(b.contestId) - Number(a.contestId);
-            return new Date(b.publishedAt) - new Date(a.publishedAt);
+            const timeDiff = new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0);
+            if (timeDiff !== 0) return timeDiff;
+            return Number(b.contestId) - Number(a.contestId);
         });
 }
 
