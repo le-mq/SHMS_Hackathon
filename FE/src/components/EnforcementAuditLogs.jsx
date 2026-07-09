@@ -4,37 +4,32 @@ import './EnforcementAuditLogs.css';
 const ACTION_TYPE_STYLES = {
     CREATE: 'at-create',
     UPDATE: 'at-update',
-    UPDATE_CATEGORY: 'at-update',
-    UPDATE_CONTEST: 'at-update',
     DELETE: 'at-delete',
-    DISQUALIFICATION: 'at-disqualify',
-    PENALTY: 'at-penalty',
     BAN: 'at-ban',
-    SCORE_REVOCATION: 'at-revoke',
-    SYSTEM_CONFIG: 'at-default',
-    ACCESS_GRANT: 'at-access',
-    PUBLISH_LEADERBOARD: 'at-publish',
-    ALLOCATE_EXPERT: 'at-allocate',
+    PUBLISH: 'at-publish',
+    ALLOCATE: 'at-allocate',
+    SUBMIT: 'at-access',
     DEFAULT: 'at-default'
 };
 
 const getActionStyle = (type) => {
     if (!type) return ACTION_TYPE_STYLES.DEFAULT;
     const t = type.toUpperCase();
-    if (ACTION_TYPE_STYLES[t]) return ACTION_TYPE_STYLES[t];
-    if (t.includes('CREATE') || t.includes('ADD')) return ACTION_TYPE_STYLES.CREATE;
-    if (t.includes('UPDATE') || t.includes('EDIT')) return ACTION_TYPE_STYLES.UPDATE;
-    if (t.includes('DELETE') || t.includes('REMOVE')) return ACTION_TYPE_STYLES.DELETE;
-    if (t.includes('PENALTY') || t.includes('BAN')) return ACTION_TYPE_STYLES.BAN;
+    if (t.includes('CREATE') || t.includes('REGISTER') || t.includes('ADD')) return ACTION_TYPE_STYLES.CREATE;
+    if (t.includes('UPDATE') || t.includes('EDIT') || t.includes('CHANGE')) return ACTION_TYPE_STYLES.UPDATE;
+    if (t.includes('DELETE') || t.includes('REMOVE') || t.includes('CANCEL') || t.includes('LEAVE') || t.includes('REVOKE') || t.includes('DISQUALIFY')) return ACTION_TYPE_STYLES.DELETE;
+    if (t.includes('PENALTY') || t.includes('FORCE') || t.includes('BAN')) return ACTION_TYPE_STYLES.BAN;
+    if (t.includes('PUBLISH')) return ACTION_TYPE_STYLES.PUBLISH;
+    if (t.includes('ALLOCATE')) return ACTION_TYPE_STYLES.ALLOCATE;
+    if (t.includes('SUBMIT')) return ACTION_TYPE_STYLES.SUBMIT;
     return ACTION_TYPE_STYLES.DEFAULT;
 };
 
-const ACTION_TYPE_LABELS = {
-    DISQUALIFICATION: 'DISQUALIFICATION',
-    SCORE_REVOCATION: 'SCORE REVOCATION',
-    SYSTEM_CONFIG: 'SYSTEM CONFIG',
-    ACCESS_GRANT: 'ACCESS GRANT',
+const formatActionLabel = (type) => {
+    if (!type) return 'UNKNOWN';
+    return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 };
+
 
 const EnforcementAuditLogs = () => {
     const [logs, setLogs] = useState([]);
@@ -143,14 +138,9 @@ const EnforcementAuditLogs = () => {
                                             onChange={e => { setFilters(f => ({ ...f, actionType: e.target.value })); setCurrentPage(1); }}
                                     >
                                         <option value="">All Types</option>
-                                        <option value="DISQUALIFICATION">Disqualify Team</option>
-                                        <option value="SCORE_REVOCATION">Revoke Score</option>
-                                        <option value="SYSTEM_CONFIG">System Config Change</option>
-                                        <option value="ACCESS_GRANT">Grant/Revoke Access</option>
-                                        <option value="UPDATE_CATEGORY">Update Category</option>
-                                        <option value="UPDATE_CONTEST">Update Contest</option>
-                                        <option value="PUBLISH_LEADERBOARD">Publish Leaderboard</option>
-                                        <option value="ALLOCATE_EXPERT">Allocate Expert</option>
+                                        {Array.from(new Set(logs.map(l => l.actionType))).sort().map(type => (
+                                            <option key={type} value={type}>{formatActionLabel(type)}</option>
+                                        ))}
                                     </select>
                                     <svg className="select-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -212,7 +202,7 @@ const EnforcementAuditLogs = () => {
                                         <td className="log-id">{log.id}</td>
                                         <td>
                                                 <span className={`action-type-badge ${getActionStyle(log.actionType)}`}>
-                                                    {ACTION_TYPE_LABELS[log.actionType] || log.actionType}
+                                                    {formatActionLabel(log.actionType)}
                                                 </span>
                                         </td>
                                         <td className="target-entity">{log.target}</td>
@@ -251,7 +241,7 @@ const EnforcementAuditLogs = () => {
                             <button onClick={() => setSelectedLog(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
                         </div>
                         <div style={{ marginBottom: '16px' }}>
-                            <p><strong>Action Type:</strong> {ACTION_TYPE_LABELS[selectedLog.actionType] || selectedLog.actionType}</p>
+                            <p><strong>Action Type:</strong> {formatActionLabel(selectedLog.actionType)}</p>
                             <p><strong>Entity Name:</strong> {selectedLog.target}</p>
                             <p><strong>Performer:</strong> {selectedLog.performer}</p>
                             <p><strong>Timestamp:</strong> {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString() : '-'}</p>
