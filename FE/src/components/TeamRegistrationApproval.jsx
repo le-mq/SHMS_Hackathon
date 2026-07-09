@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './TeamRegistrationApproval.css';
-import NavbarAdmin from './NavbarAdmin';
 import LatestAnnouncements from './LatestAnnouncements';
 
 const API_BASE = "http://localhost:8080/api/v1";
 
 const TeamRegistrationApproval = () => {
     const [dashboardData, setDashboardData] = useState([]);
-    const [selectedContestId, setSelectedContestId] = useState(null);
+    const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('teamApprovalSelectedContest') || '');
+    const [contestSearchQuery, setContestSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -41,10 +41,6 @@ const TeamRegistrationApproval = () => {
                 const contestsData = Array.isArray(json) ? json : (json.contests || json.data || []);
                 if (!canceled) {
                     setDashboardData(contestsData);
-                    if (contestsData.length > 0) {
-                        const latestContest = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id))[0];
-                        setSelectedContestId(latestContest.id);
-                    }
                 }
             }
             catch (error) {
@@ -57,10 +53,6 @@ const TeamRegistrationApproval = () => {
                     const contestsData = localJson.teamRegistrationApproval?.contests || [];
                     if (!canceled) {
                         setDashboardData(contestsData);
-                        if (contestsData.length > 0) {
-                            const latestContest = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id))[0];
-                            setSelectedContestId(latestContest.id);
-                        }
                     }
                 }
                 catch (localError) {
@@ -172,31 +164,150 @@ const TeamRegistrationApproval = () => {
     if (isLoading) return <div className="approval-container"><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
     if (error) return <div className="approval-container"><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
 
+    // 1. If no contest is selected, show contest list view
+    if (!selectedContestId) {
+        return (
+            <div className="approval-container">
+                <div style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
+                    <LatestAnnouncements style={{ width: '100%', marginBottom: '24px' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                        <div>
+                            <h1 className="approval-title" style={{ fontSize: '32px' }}>Team Registration Approval</h1>
+                            <p className="approval-subtitle" style={{ fontSize: '15px', color: '#64748b' }}>Select a contest to review and manage student team registration approvals.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '320px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                            <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search contests..."
+                                value={contestSearchQuery}
+                                onChange={(e) => setContestSearchQuery(e.target.value)}
+                                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                        {dashboardData
+                            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+                            .sort((a, b) => {
+                                const aActive = (a.status === 'ACTIVED' || a.status === 'ACTIVE' || !a.status);
+                                const bActive = (b.status === 'ACTIVED' || b.status === 'ACTIVE' || !b.status);
+                                if (aActive && !bActive) return -1;
+                                if (!aActive && bActive) return 1;
+                                return Number(b.id) - Number(a.id);
+                            })
+                            .map(c => {
+                                const isClosed = c.status === 'CLOSED';
+                                const isActive = c.status === 'ACTIVED' || c.status === 'ACTIVE' || !c.status;
+                                return (
+                                    <div
+                                        key={c.id}
+                                        style={{
+                                            background: isActive ? 'linear-gradient(to bottom right, #ffffff, #f0fdf4)' : 'white',
+                                            padding: '28px',
+                                            borderRadius: '16px',
+                                            border: isActive ? '2px solid #22c55e' : '1.5px solid #cbd5e1',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.05)' : '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            minHeight: '180px'
+                                        }}
+                                        onClick={() => {
+                                            setSelectedContestId(c.id.toString());
+                                            sessionStorage.setItem('teamApprovalSelectedContest', c.id.toString());
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.borderColor = isActive ? '#16a34a' : '#2563eb';
+                                            e.currentTarget.style.transform = 'translateY(-3px)';
+                                            e.currentTarget.style.boxShadow = isActive ? '0 10px 20px -3px rgba(34, 197, 94, 0.2)' : '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#cbd5e1';
+                                            e.currentTarget.style.transform = 'none';
+                                            e.currentTarget.style.boxShadow = isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1)' : '0 4px 6px -1px rgba(0,0,0,0.05)';
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4', flex: 1 }}>{c.name}</h3>
+                                                <span style={{
+                                                    fontSize: '11px',
+                                                    background: isClosed ? '#fee2e2' : '#dcfce7',
+                                                    color: isClosed ? '#ef4444' : '#166534',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: 700,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    border: `1px solid ${isClosed ? '#fecaca' : '#bbf7d0'}`,
+                                                    marginLeft: '12px',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {isActive && <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>}
+                                                    {isClosed ? 'CLOSED' : 'ACTIVE'}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>Pending Review:</span>
+                                                    <span style={{ fontWeight: 700, color: '#ca8a04' }}>{c.pendingReview || 0} Teams</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>Approved Teams:</span>
+                                                    <span style={{ fontWeight: 700, color: '#16a34a' }}>{c.approved || 0} Teams</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>Total Participants:</span>
+                                                    <span style={{ fontWeight: 700, color: '#2563eb' }}>{c.totalParticipants || 0} Students</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9', marginTop: '16px' }}>
+                                            <span style={{ color: isActive ? '#16a34a' : '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Manage Approvals
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        }
+                        {dashboardData.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                            <div style={{ gridColumn: '1 / -1', padding: '60px 40px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', color: '#64748b', fontWeight: '600', border: '1.5px dashed #cbd5e1' }}>
+                                No contests found matching your search query.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 2. If contest is selected, show details and approval workspace
     return (
         <div className="approval-container">
             <div className="approval-content">
                 <LatestAnnouncements style={{ marginTop: '32px', width: '100%' }} />
-                <div className="approval-header">
+
+                <div className="approval-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
                     <div className="approval-title-area">
                         <h1 className="approval-title">Team Registration Approval Desk</h1>
-                        <p className="approval-subtitle">Review and manage team applications for the Hackathon.</p>
+                        <p className="approval-subtitle">Review and manage team applications for the contest: <strong>{selectedContest?.name}</strong></p>
                     </div>
-                    <div className="approval-actions">
-                        {dashboardData.length > 0 && (
-                            <select
-                                className="filter-btn"
-                                value={selectedContestId || ''}
-                                onChange={(e) => setSelectedContestId(e.target.value)}
-                            >
-                                {[...dashboardData]
-                                    .sort((a, b) => Number(b.id) - Number(a.id))
-                                    .map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))
-                                }
-                            </select>
-                        )}
-                        <div className="search-box-approval">
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div className="search-box-approval" style={{ margin: 0 }}>
                             <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input
                                 type="text"
@@ -205,6 +316,42 @@ const TeamRegistrationApproval = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
+
+                        <button
+                            onClick={() => {
+                                setSelectedContestId('');
+                                sessionStorage.removeItem('teamApprovalSelectedContest');
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                background: 'white',
+                                border: '1.5px solid #cbd5e1',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                color: '#475569',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.borderColor = '#94a3b8';
+                                e.currentTarget.style.background = '#f8fafc';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.borderColor = '#cbd5e1';
+                                e.currentTarget.style.background = 'white';
+                            }}
+                        >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back to Contests
+                        </button>
                     </div>
                 </div>
 
@@ -230,7 +377,6 @@ const TeamRegistrationApproval = () => {
                         <div className="stat-value">{selectedContest ? selectedContest.totalParticipants : 0} Students</div>
                     </div>
                 </div>
-
 
                 <div className="table-section">
                     <table className="teams-table">
@@ -369,7 +515,7 @@ const TeamRegistrationApproval = () => {
                             Members of {membersModal.teamName}
                         </h3>
 
-                        {/* Vùng chứa bảng thành viên: Thêm chiều cao tối đa và bật thanh cuộn dọc tự động khi đông thành viên */}
+                        {/* Vùng chứa bảng thành viên */}
                         <div style={{ overflowY: 'auto', maxHeight: '60vh', paddingRight: '4px', borderBottom: '1px solid #e2e8f0' }}>
                             {membersModal.members && membersModal.members.length > 0 ? (
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -407,7 +553,7 @@ const TeamRegistrationApproval = () => {
                             )}
                         </div>
 
-                        {/* Nút Đóng cố định ở góc dưới bên phải */}
+                        {/* Nút Đóng */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                             <button
                                 onClick={() => setMembersModal({ isOpen: false, teamName: '', members: [] })}
