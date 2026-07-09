@@ -118,12 +118,6 @@ const RankingsConsole = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [viewSubmissionModal, setViewSubmissionModal] = useState({ isOpen: false, team: null });
 
-    const allEvaluatorsFinalized = useMemo(() => {
-    return readinessData.evaluators.length > 0 &&
-        readinessData.evaluators.every(ev => ev.status === 'Finalized');
-}, [readinessData.evaluators]);
-
-const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
     const enrichedRounds = useMemo(() => {
         return rounds
             .map(enrichRound)
@@ -376,7 +370,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
     }
 
     const handleGenerate = async () => {
-        if (!isReadyToGenerate || !isTopNValid) return;
+        if (!readinessData.allReady || !isTopNValid) return;
         setIsProcessing(true);
         try {
             const token = localStorage.getItem("shms_token");
@@ -589,7 +583,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                         onMouseEnter={e => {
                                             e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#2563eb';
                                             e.currentTarget.style.transform = 'translateY(-3px)';
-                                            e.currentTarget.style.boxShadow = isActive 
+                                            e.currentTarget.style.boxShadow = isActive
                                                 ? '0 12px 24px -4px rgba(34, 197, 94, 0.16)'
                                                 : '0 12px 24px -4px rgba(37, 99, 235, 0.16)';
                                         }}
@@ -612,14 +606,14 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                                 <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
-                                                <span style={{ 
-                                                    fontSize: '11px', 
-                                                    background: badgeBg, 
-                                                    color: badgeColor, 
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '6px', 
-                                                    fontWeight: 700, 
-                                                    textTransform: 'uppercase', 
+                                                <span style={{
+                                                    fontSize: '11px',
+                                                    background: badgeBg,
+                                                    color: badgeColor,
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: 700,
+                                                    textTransform: 'uppercase',
                                                     letterSpacing: '0.5px',
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
@@ -675,6 +669,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                 onClick={() => {
                                     setSelectedContestId('');
                                     setSelectedRoundId('');
+                                    setSelectedRound(null);
                                     sessionStorage.removeItem('rankingsSelectedContestId');
                                 }}
                             >
@@ -811,7 +806,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Back
+                            Back to Rounds Dashboard
                         </button>
 
                         <div className="rankings-page-header">
@@ -825,24 +820,6 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
 
                         {viewMode === 'COMPILATION_VIEW' && (
                             <>
-                                <div className={`readiness-banner ${isReadyToGenerate ? 'ready' : 'not-ready'}`}>
-                                    <div className="readiness-icon">
-                                        {isReadyToGenerate
-                                            ? <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                            : <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>
-                                        }
-                                    </div>
-                                    <div className="readiness-text">
-                                        <h3>{isReadyToGenerate ? 'Readiness Check Passed' : 'Readiness Check: Pending'}</h3>
-                                        <p>
-                                            {isReadyToGenerate
-                                                ? `All ${readinessData.evaluators.length}/${readinessData.evaluators.length} Evaluators have finalized their scores. Data is synchronized and ready for ranking compilation.`
-                                                : `${readinessData.evaluators.filter(e => e.status !== 'Finalized').length} evaluator(s) have not yet finalized scores. Ranking generation is locked until all panels are complete.`
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-
                                 <div className="rankings-grid">
                                     <div className="config-card">
                                         <h2 className="config-card-title">Promotion Configuration</h2>
@@ -857,7 +834,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                             onKeyDown={(e) => {
                                                 if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
                                             }}
-                                            onWheel={(e) => e.target.blur()}
+                                            onWheel={(e) => e.target.blur()}// Chặn hành vi cuộn chuột làm nhảy số
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 if (!/^\d*$/.test(value)) return;
@@ -871,7 +848,7 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                         <button
                                             id="btn-generate-ranking"
                                             className={`execute-btn-v ${isProcessing ? 'processing' : ''}`}
-                                            disabled={!isReadyToGenerate || isProcessing || !isTopNValid}
+                                            disabled={!readinessData.allReady || isProcessing || !isTopNValid}
                                             onClick={handleGenerate}
                                         >
                                             {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
@@ -917,6 +894,24 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                                 }}
                                             />
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div className={`readiness-banner ${readinessData.allReady ? 'ready' : 'not-ready'}`} style={{ marginTop: 24, marginBottom: 24 }}>
+                                    <div className="readiness-icon">
+                                        {readinessData.allReady
+                                            ? <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                            : <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>
+                                        }
+                                    </div>
+                                    <div className="readiness-text">
+                                        <h3>{readinessData.allReady ? 'Readiness Check Passed' : 'Readiness Check: Pending'}</h3>
+                                        <p>
+                                            {readinessData.allReady
+                                                ? `All ${readinessData.evaluators.length}/${readinessData.evaluators.length} Evaluators have finalized their scores. Data is synchronized and ready for ranking compilation.`
+                                                : `${readinessData.evaluators.filter(e => e.status !== 'Finalized').length} evaluator(s) have not yet finalized scores. Ranking generation is locked until all panels are complete.`
+                                            }
+                                        </p>
                                     </div>
                                 </div>
 
@@ -968,6 +963,26 @@ const isReadyToGenerate = readinessData.allReady && allEvaluatorsFinalized;
                                                 <div className="result-stat-val">{result.totalProcessed}</div>
                                             </div>
 
+                                            {prizes.length > 0 && (
+                                                <div style={{ marginTop: '20px', background: '#0f172a', padding: '16px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                                                    <div style={{ color: '#fbbf24', fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        🏆 Contest Prize Structure
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                                                        {prizes.map((p, idx) => (
+                                                            <div key={idx} style={{ background: '#1e293b', padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '13px' }}>#{idx + 1}</span>
+                                                                <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: '500' }}>{p.rank}</span>
+                                                                {p.amount && (
+                                                                    <span style={{ color: '#a7f3d0', fontSize: '12px', background: '#064e3b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                        {p.amount}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
