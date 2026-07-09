@@ -621,6 +621,7 @@ public class TeamService{
             contestDataList.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.ContestData.builder()
                     .id(contest.getId())
                     .name(contest.getName())
+                    .status(contest.getStatus() != null ? contest.getStatus().name() : "ACTIVED")
                     .pendingReview(pendingReview)
                     .approved(approved)
                     .rejectedAndCancelled(rejectedAndCancelled)
