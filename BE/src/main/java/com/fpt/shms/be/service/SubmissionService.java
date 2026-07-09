@@ -220,10 +220,20 @@ public class SubmissionService {
             return v2.compareTo(v1);
         });
 
+        String qualificationStatus = "QUALIFIED";
+        List<RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
+        for (RankingResult rr : teamRankings) {
+            if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
+                qualificationStatus = "ELIMINATED";
+                break;
+            }
+        }
+
         return SubmissionPageResponse.builder()
                 .internalRole(membership.getRole())
                 .contestName(contestName)
                 .contestStatus(contestStatus)
+                .qualificationStatus(qualificationStatus)
                 .rounds(roundDtos)
                 .history(historyDtos)
                 .build();
@@ -290,7 +300,7 @@ public class SubmissionService {
         }
 
         String previousRoundName = previousRound.getPhaseName() != null ? previousRound.getPhaseName() : "the previous round";
-        return new EligibilityResult(false, "Your team has not qualified from " + previousRoundName + " yet.");
+        return new EligibilityResult(false, "Your team has been eliminated from " + previousRoundName + ".");
     }
 
     private Comparator<Round> roundComparator() {

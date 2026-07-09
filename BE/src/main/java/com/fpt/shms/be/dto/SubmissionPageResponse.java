@@ -12,6 +12,7 @@ public class SubmissionPageResponse {
     private String internalRole;
     private String contestName;
     private String contestStatus;
+    private String qualificationStatus;
     private List<RoundDto> rounds;
     private List<HistoryDto> history;
 
