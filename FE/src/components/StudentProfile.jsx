@@ -79,25 +79,89 @@ const StudentProfile = () => {
         }
     };
 
-    const handleSave = async () => {
-        if (formData.newPassword && formData.newPassword !== formData.confirmNewPassword) {
-            setError('New password and confirm password do not match');
-            return;
+    const isFormInvalid = () => {
+        const { telephoneNumber, currentPassword, newPassword, confirmNewPassword } = formData;
+        const trimmedPhone = telephoneNumber.trim();
+        if (trimmedPhone) {
+            if (!/^(03|05|07|08|09)\d{8}$/.test(trimmedPhone)) {
+                return true;
+            }
         }
+        if (currentPassword || newPassword || confirmNewPassword) {
+            if (!currentPassword) return true;
+            if (!newPassword) return true;
+            if (newPassword.length < 8 || newPassword.length > 32 || /\s/.test(newPassword)) return true;
+            if (!/[a-z]/.test(newPassword)) return true;
+            if (!/[A-Z]/.test(newPassword)) return true;
+            if (!/\d/.test(newPassword)) return true;
+            if (!/[^a-zA-Z\d\s]/.test(newPassword)) return true;
+            if (newPassword !== confirmNewPassword) return true;
+        }
+        return false;
+    };
 
-        setIsLoading(true);
+    const handleSave = async () => {
         setError('');
         setSuccess('');
 
+        const cleanedPhone = formData.telephoneNumber.trim();
+        if (cleanedPhone) {
+            if (!/^(03|05|07|08|09)\d{8}$/.test(cleanedPhone)) {
+                setError('Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09');
+                return;
+            }
+        }
+
         const updateData = {
-            telephoneNumber: formData.telephoneNumber,
+            telephoneNumber: cleanedPhone,
             avatarBase64: avatarPreview
         };
 
-        if (formData.currentPassword && formData.newPassword) {
+        if (formData.newPassword || formData.currentPassword) {
+            if (!formData.currentPassword) {
+                setError('Current password is required to change password');
+                return;
+            }
+            if (!formData.newPassword) {
+                setError('New password is required to change password');
+                return;
+            }
+
+            const newPwd = formData.newPassword;
+            if (newPwd.length < 8 || newPwd.length > 32) {
+                setError('New password must be between 8 and 32 characters');
+                return;
+            }
+            if (/\s/.test(newPwd)) {
+                setError('New password must not contain spaces');
+                return;
+            }
+            if (!/[a-z]/.test(newPwd)) {
+                setError('New password must contain at least one lowercase letter');
+                return;
+            }
+            if (!/[A-Z]/.test(newPwd)) {
+                setError('New password must contain at least one uppercase letter');
+                return;
+            }
+            if (!/\d/.test(newPwd)) {
+                setError('New password must contain at least one digit');
+                return;
+            }
+            if (!/[^a-zA-Z\d\s]/.test(newPwd)) {
+                setError('New password must contain at least one special character');
+                return;
+            }
+            if (formData.newPassword !== formData.confirmNewPassword) {
+                setError('New password and confirm password do not match');
+                return;
+            }
+
             updateData.currentPassword = formData.currentPassword;
-            updateData.newPassword = formData.newPassword;
+            updateData.newPassword = newPwd;
         }
+
+        setIsLoading(true);
 
         try {
             const token = localStorage.getItem('shms_token');
@@ -271,6 +335,11 @@ const StudentProfile = () => {
                                 value={formData.telephoneNumber}
                                 onChange={handleChange}
                             />
+                            {formData.telephoneNumber && !/^(03|05|07|08|09)\d{8}$/.test(formData.telephoneNumber.trim()) && (
+                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                    Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -296,6 +365,11 @@ const StudentProfile = () => {
                                 value={formData.newPassword}
                                 onChange={handleChange}
                             />
+                            {formData.newPassword && (formData.newPassword.length < 8 || formData.newPassword.length > 32 || /\s/.test(formData.newPassword) || !/[a-z]/.test(formData.newPassword) || !/[A-Z]/.test(formData.newPassword) || !/\d/.test(formData.newPassword) || !/[^a-zA-Z\d\s]/.test(formData.newPassword)) && (
+                                <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
+                                    Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                </div>
+                            )}
                         </div>
                         <div className="form-group">
                             <label className="form-label">Confirm New Password</label>
@@ -307,6 +381,11 @@ const StudentProfile = () => {
                                 value={formData.confirmNewPassword}
                                 onChange={handleChange}
                             />
+                            {formData.confirmNewPassword && formData.newPassword !== formData.confirmNewPassword && (
+                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                    Confirm password does not match new password.
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -314,7 +393,7 @@ const StudentProfile = () => {
                         <button className="save-delete-btn" onClick={handleDeleteAccount} >
                             Delete Account
                         </button>
-                        <button className="save-profile-btn" onClick={handleSave} disabled={isLoading}>
+                        <button className="save-profile-btn" onClick={handleSave} disabled={isLoading || isFormInvalid()}>
                             {isLoading ? 'Saving...' : 'Save Profile Changes'}
                         </button>
                     </div>

@@ -93,23 +93,119 @@ const ExpertProvisioning = () => {
         fetchExperts();
     }, []);
 
+    const isFormInvalid = () => {
+        const { fullName, professionalEmail, username, password, roleSelection, accessExpiry } = formData;
+
+        if (!fullName || !professionalEmail || !username || !password || roleSelection.length === 0) {
+            return true;
+        }
+
+        const cleanedName = fullName.trim().replace(/\s+/g, ' ');
+        if (cleanedName.length < 2 || cleanedName.length > 100 || !/^[\p{L} '-]+$/u.test(cleanedName)) {
+            return true;
+        }
+
+        const cleanedEmail = professionalEmail.trim();
+        if (/\s/.test(cleanedEmail) || !/^[^\s@]+@[^\s@]+$/.test(cleanedEmail)) {
+            return true;
+        }
+
+        const cleanedUsername = username.trim();
+        if (cleanedUsername.length < 4 || cleanedUsername.length > 30 || /\s/.test(cleanedUsername) || !/^[a-zA-Z0-9._]+$/.test(cleanedUsername)) {
+            return true;
+        }
+
+        if (password.length < 8 || password.length > 32 || /\s/.test(password)) {
+            return true;
+        }
+        if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^a-zA-Z\d\s]/.test(password)) {
+            return true;
+        }
+
+        if (roleSelection.includes('Guest Judge') && !accessExpiry) {
+            return true;
+        }
+
+        return false;
+    };
+
     const handleGenerate = async () => {
+        clearAlerts();
         const { fullName, professionalEmail, username, password, roleSelection, accessExpiry } = formData;
 
         if (!fullName || !professionalEmail || !username || !password || roleSelection.length === 0) {
             setTempError('Please fill out all required fields and select at least one role.');
             return;
         }
+
+        const cleanedName = fullName.trim().replace(/\s+/g, ' ');
+        if (cleanedName.length < 2 || cleanedName.length > 100) {
+            setTempError('Full Name must be between 2 and 100 characters');
+            return;
+        }
+        if (!/^[\p{L} '-]+$/u.test(cleanedName)) {
+            setTempError("Full Name can only contain letters, spaces, apostrophes, and hyphens");
+            return;
+        }
+
+        const cleanedEmail = professionalEmail.trim();
+        if (/\s/.test(cleanedEmail)) {
+            setTempError('Professional email cannot contain spaces');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+$/.test(cleanedEmail)) {
+            setTempError('Professional email must have exactly one @, with a name before and a domain after');
+            return;
+        }
+
+        const cleanedUsername = username.trim();
+        if (cleanedUsername.length < 4 || cleanedUsername.length > 30) {
+            setTempError('Username must be between 4 and 30 characters');
+            return;
+        }
+        if (/\s/.test(cleanedUsername)) {
+            setTempError('Username cannot contain spaces');
+            return;
+        }
+        if (!/^[a-zA-Z0-9._]+$/.test(cleanedUsername)) {
+            setTempError('Username can only contain alphanumeric characters, underscores, and dots');
+            return;
+        }
+
+        if (password.length < 8 || password.length > 32) {
+            setTempError('Password must be between 8 and 32 characters');
+            return;
+        }
+        if (/\s/.test(password)) {
+            setTempError('Password must not contain spaces');
+            return;
+        }
+        if (!/[a-z]/.test(password)) {
+            setTempError('Password must contain at least one lowercase letter');
+            return;
+        }
+        if (!/[A-Z]/.test(password)) {
+            setTempError('Password must contain at least one uppercase letter');
+            return;
+        }
+        if (!/\d/.test(password)) {
+            setTempError('Password must contain at least one number');
+            return;
+        }
+        if (!/[^a-zA-Z\d\s]/.test(password)) {
+            setTempError('Password must contain at least one special character');
+            return;
+        }
+
         if (roleSelection.includes('Guest Judge') && !accessExpiry) {
             setTempError('Please provide an expiry date for the Guest Judge.');
             return;
         }
 
         setIsLoading(true);
-        clearAlerts();
 
         const expiryDateIso = roleSelection.includes('Guest Judge') ? formatExpiryDate(accessExpiry) : null;
-        const payload = { fullName, professionalEmail, username, password, roleSelection, accessExpiry: expiryDateIso };
+        const payload = { fullName: cleanedName, professionalEmail: cleanedEmail, username: cleanedUsername, password, roleSelection, accessExpiry: expiryDateIso };
 
         try {
             const response = await fetch(`${API_BASE}/admin/contests/experts/create`, {
@@ -253,7 +349,7 @@ const ExpertProvisioning = () => {
             (exp.username || '').toLowerCase().includes(searchQuery.toLowerCase())
         ));
     }, [experts, searchQuery]);
-    
+
     return (
         <div className="admin-container">
             <div className="config-wrapper">
@@ -277,10 +373,20 @@ const ExpertProvisioning = () => {
                                 <div className="form-group">
                                     <label className="form-label">Full Name</label>
                                     <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} />
+                                    {formData.fullName && (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(formData.fullName.trim())) && (
+                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                            Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Professional Email</label>
                                     <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} />
+                                    {formData.professionalEmail && (/\s/.test(formData.professionalEmail) || !/^[^\s@]+@[^\s@]+$/.test(formData.professionalEmail.trim())) && (
+                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                            Email must not contain spaces and must be a valid format (e.g. name@domain.com).
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -288,6 +394,11 @@ const ExpertProvisioning = () => {
                                 <div className="form-group">
                                     <label className="form-label">Username</label>
                                     <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} />
+                                    {formData.username && (formData.username.trim().length < 4 || formData.username.trim().length > 30 || /\s/.test(formData.username) || !/^[a-zA-Z0-9._]+$/.test(formData.username.trim())) && (
+                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                            Username must be 4-30 characters, no spaces, and only alphanumeric, underscores, or dots.
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Password</label>
@@ -318,6 +429,14 @@ const ExpertProvisioning = () => {
                                             )}
                                         </button>
                                     </div>
+                                    {formData.password && (formData.password.length < 8 || formData.password.length > 32 || /\s/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^a-zA-Z\d\s]/.test(formData.password)) && (
+                                        <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
+                                            Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                        </div>
+                                    )}
+                                    <p className="form-hint" style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
+                                        Must be 8-32 characters long, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                    </p>
                                 </div>
                             </div>
 
@@ -336,7 +455,7 @@ const ExpertProvisioning = () => {
                                                     {error || success}
                                                 </span>
                                             )}
-                                            <button className="generate-btn" onClick={handleGenerate} disabled={isLoading}>
+                                            <button className="generate-btn" onClick={handleGenerate} disabled={isLoading || isFormInvalid()}>
                                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                                                 {isLoading ? 'Generating...' : 'Generate Account Credentials'}
                                             </button>
@@ -415,19 +534,19 @@ const ExpertProvisioning = () => {
                                                         return (
                                                             <label key={r} className="expert-role-option">
                                                                 <input type="checkbox" checked={isChecked}
-                                                                       onChange={(e) => {
-                                                                           const checked = e.target.checked;
-                                                                           setManagedRoles(prev => {
-                                                                               let updated = [...(prev[exp.userId] || exp.roles || [])];
-                                                                               if (checked) {
-                                                                                   updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
-                                                                                   if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
-                                                                               } else {
-                                                                                   updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
-                                                                               }
-                                                                               return { ...prev, [exp.userId]: updated };
-                                                                           });
-                                                                       }}
+                                                                    onChange={(e) => {
+                                                                        const checked = e.target.checked;
+                                                                        setManagedRoles(prev => {
+                                                                            let updated = [...(prev[exp.userId] || exp.roles || [])];
+                                                                            if (checked) {
+                                                                                updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
+                                                                                if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
+                                                                            } else {
+                                                                                updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
+                                                                            }
+                                                                            return { ...prev, [exp.userId]: updated };
+                                                                        });
+                                                                    }}
                                                                 /> {r}
                                                             </label>
                                                         );
@@ -441,8 +560,8 @@ const ExpertProvisioning = () => {
                                                     <div className="expert-expiry-controls">
                                                         <label>{hasLifespan ? 'Extend Expiry:' : 'Set Expiry:'}</label>
                                                         <input type="date" className="form-input" min={todayStr}
-                                                               onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
-                                                               value={newExpiries[exp.userId] || ''}
+                                                            onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
+                                                            value={newExpiries[exp.userId] || ''}
                                                         />
                                                         <button className="expert-extend-btn" onClick={() => handleExtendSubmit(exp.userId)} disabled={!newExpiries[exp.userId] || extendLoading[exp.userId]}>
                                                             {extendLoading[exp.userId] ? 'Wait...' : (hasLifespan ? 'Extend' : 'Update Expiry')}
