@@ -587,21 +587,21 @@
 }
 
 .status-badge.upcoming {
-    background-color: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
+    background-color: #d5ea95;
+    color: #d5dc07;
+    border: 1px solid #ddf507;
 }
 
 .status-badge.actived {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    background-color: #b5fb96;
+    color: #1fe855;
+    border: 1px solid #00f441;
 }
 
 .status-badge.closed {
-    background-color: #f0fdf4;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+    background-color: #fbdcdc;
+    color: #ef4025;
+    border: 1px solid #ff0a0a;
 }
 
 /* Progress bar style */

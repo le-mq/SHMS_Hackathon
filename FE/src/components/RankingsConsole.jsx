@@ -493,6 +493,7 @@ const RankingsConsole = () => {
 
     const totalTeams = readinessData.summary.totalTeams;
     const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && Number(topN) <= totalTeams;
+    const isActionDisabled = !readinessData.allReady || isProcessing || !isTopNValid;
 
     if (!selectedContestId) {
         return (
@@ -806,7 +807,7 @@ const RankingsConsole = () => {
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Back to Rounds Dashboard
+                            Back
                         </button>
 
                         <div className="rankings-page-header">
@@ -848,7 +849,7 @@ const RankingsConsole = () => {
                                         <button
                                             id="btn-generate-ranking"
                                             className={`execute-btn-v ${isProcessing ? 'processing' : ''}`}
-                                            disabled={!readinessData.allReady || isProcessing || !isTopNValid}
+                                            disabled={isActionDisabled}
                                             onClick={handleGenerate}
                                         >
                                             {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
@@ -962,27 +963,6 @@ const RankingsConsole = () => {
                                                 <div className="result-stat-label">Total Processed</div>
                                                 <div className="result-stat-val">{result.totalProcessed}</div>
                                             </div>
-
-                                            {prizes.length > 0 && (
-                                                <div style={{ marginTop: '20px', background: '#0f172a', padding: '16px', borderRadius: '8px', border: '1px solid #1e293b' }}>
-                                                    <div style={{ color: '#fbbf24', fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        🏆 Contest Prize Structure
-                                                    </div>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                                                        {prizes.map((p, idx) => (
-                                                            <div key={idx} style={{ background: '#1e293b', padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '13px' }}>#{idx + 1}</span>
-                                                                <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: '500' }}>{p.rank}</span>
-                                                                {p.amount && (
-                                                                    <span style={{ color: '#a7f3d0', fontSize: '12px', background: '#064e3b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
-                                                                        {p.amount}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
@@ -992,7 +972,7 @@ const RankingsConsole = () => {
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                                     Download Full Rankings CSV
                                                 </button>
-                                                <button className="btn-primary" onClick={handlePublish} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px' }}>
+                                                <button className="btn-primary" onClick={handlePublish} disabled={isActionDisabled} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', opacity: isActionDisabled ? 0.5 : 1, cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}>
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                                                     Publish Results
                                                 </button>
