@@ -119,6 +119,7 @@ public class AdminController {
             map.put("roundId", r.getId());
             map.put("roundName", r.getPhaseName());
             map.put("submissionOpenAt", r.getSubmissionOpen());
+            map.put("status", r.getState() != null ? r.getState().name() : "UPCOMING");
             if (r.getCategory() != null) {
                 map.put("categoryId", r.getCategory().getId());
                 map.put("categoryName", r.getCategory().getName());
