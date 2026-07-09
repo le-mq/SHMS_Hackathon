@@ -30,6 +30,23 @@ const formatDateOnly = (dateStr) => {
     }
 };
 
+const parseRequirements = (reqString) => {
+    if (!reqString || reqString === '[]') return [];
+    try {
+        const formatted = reqString.replace(/'/g, '"');
+        const parsed = JSON.parse(formatted);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    try {
+        const parsed = JSON.parse(reqString);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    if (typeof reqString === 'string') {
+        return reqString.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+};
+
 const getRoundIcon = (name) => {
     const n = (name || '').toLowerCase();
     if (n.includes('final') && !n.includes('semi')) return '👑';
@@ -84,6 +101,7 @@ const RankingsConsole = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState('');
     const [selectedRoundId, setSelectedRoundId] = useState('');
+    const [contestDetails, setContestDetails] = useState(null);
 
     const [rounds, setRounds] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -112,6 +130,46 @@ const RankingsConsole = () => {
     const selectedRound = useMemo(() => {
         return enrichedRounds.find(r => String(r.id) === String(selectedRoundId)) || null;
     }, [enrichedRounds, selectedRoundId]);
+
+    const isFinalRound = useMemo(() => {
+        if (!selectedRound || enrichedRounds.length === 0) return false;
+        const lastRound = enrichedRounds[enrichedRounds.length - 1];
+        return String(selectedRound.id) === String(lastRound?.id);
+    }, [selectedRound, enrichedRounds]);
+
+    const prizes = useMemo(() => {
+        if (!isFinalRound) return [];
+        const rawPrizes = contestDetails?.tieredPrizeStructures;
+        if (!rawPrizes) return [];
+        try {
+            const parsed = JSON.parse(rawPrizes);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+            if (typeof rawPrizes === 'string') {
+                return rawPrizes.split('\n').map(line => {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        return {
+                            rank: parts[0].trim(),
+                            amount: parts.slice(1).join(':').trim()
+                        };
+                    }
+                    return { rank: line.trim(), amount: '' };
+                }).filter(p => p.rank);
+            }
+        }
+        return [];
+    }, [contestDetails, isFinalRound]);
+
+    const getPrizeForRank = (rankNum) => {
+        if (!prizes || prizes.length === 0) return null;
+        const index = rankNum - 1;
+        if (index >= 0 && index < prizes.length) {
+            const p = prizes[index];
+            return `${p.rank}${p.amount ? `: ${p.amount}` : ''}`;
+        }
+        return null;
+    };
 
     const getAssetUrl = (url) => {
         const trimmedUrl = String(url || '').trim();
@@ -178,6 +236,10 @@ const RankingsConsole = () => {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole.contests.data.find(c => c.id == selectedContestId);
+                }
+
+                if (data) {
+                    setContestDetails(data);
                 }
 
                 if (data && data.tracks) {
@@ -374,13 +436,21 @@ const RankingsConsole = () => {
     const handleDownloadCSV = () => {
         if (!result || !result.results) return;
 
+        const hasPrizes = prizes && prizes.length > 0;
         const headers = ['Rank', 'Team Name', 'Average Score', 'Status'];
+        if (hasPrizes) {
+            headers.push('Prize');
+        }
         const csvRows = [headers.join(',')];
 
         for (const row of result.results) {
             const isQualified = row.rank <= currentCompiledTopN;
             const csvStatus = isQualified ? 'QUALIFIED' : 'ELIMINATED';
             const values = [row.rank, `"${row.teamName}"`, row.averageScore, csvStatus];
+            if (hasPrizes) {
+                const prizeStr = getPrizeForRank(row.rank) || '';
+                values.push(`"${prizeStr}"`);
+            }
             csvRows.push(values.join(','));
         }
 
@@ -696,6 +766,27 @@ const RankingsConsole = () => {
                                                 <div className="result-stat-label">Total Processed</div>
                                                 <div className="result-stat-val">{result.totalProcessed}</div>
                                             </div>
+
+                                         {prizes.length > 0 && (
+                                             <div style={{ marginTop: '20px', background: '#0f172a', padding: '16px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                                                 <div style={{ color: '#fbbf24', fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                     🏆 Contest Prize Structure
+                                                 </div>
+                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                                                     {prizes.map((p, idx) => (
+                                                         <div key={idx} style={{ background: '#1e293b', padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                             <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '13px' }}>#{idx + 1}</span>
+                                                             <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: '500' }}>{p.rank}</span>
+                                                             {p.amount && (
+                                                                 <span style={{ color: '#a7f3d0', fontSize: '12px', background: '#064e3b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                     {p.amount}
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                     ))}
+                                                 </div>
+                                             </div>
+                                         )}
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
@@ -718,11 +809,13 @@ const RankingsConsole = () => {
                                                     <th style={{ color: '#0f172a' }}>Team Name</th>
                                                     <th style={{ color: '#0f172a' }}>Average Score</th>
                                                     <th style={{ color: '#0f172a' }}>Status</th>
+                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {result.results.map(r => {
                                                     const isQualified = r.rank <= currentCompiledTopN;
+                                                    const teamPrize = getPrizeForRank(r.rank);
                                                     return (
                                                         <tr key={r.rank}>
                                                             <td>#{r.rank}</td>
@@ -733,6 +826,17 @@ const RankingsConsole = () => {
                                                                     {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                                 </span>
                                                             </td>
+                                                            {prizes.length > 0 && (
+                                                                <td>
+                                                                    {teamPrize ? (
+                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                                            🏆 {teamPrize}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{ color: '#94a3b8' }}>—</span>
+                                                                    )}
+                                                                </td>
+                                                            )}
                                                         </tr>
                                                     );
                                                 })}
@@ -895,12 +999,16 @@ const RankingsConsole = () => {
                 {viewSubmissionModal.isOpen && viewSubmissionModal.team && (() => {
                     const team = viewSubmissionModal.team;
                     const reqsStr = roundProgress?.submissionRequirements;
-                    const isRequired = (key) => !reqsStr || reqsStr === '[]' || reqsStr.includes(key);
+                    const parsedReqs = parseRequirements(reqsStr);
+                    const activeRequirements = parsedReqs.length > 0
+                        ? parsedReqs
+                        : ['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl'];
+
                     const getAssetLinkClass = (url) => url ? 'asset-valid' : 'asset-missing';
-                    const renderModalAssetLink = (url, label, iconPath) => {
+                    const renderModalAssetLink = (url, label, iconPath, key) => {
                         const isValid = !!url;
                         return (
-                            <a href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
+                            <a key={key} href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
                                 target="_blank" rel="noreferrer"
                                 onClick={e => !isValid && e.preventDefault()}
                                 style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
@@ -917,6 +1025,58 @@ const RankingsConsole = () => {
                         );
                     };
 
+                    let parsedData = {};
+                    try {
+                        if (team.submissionData) {
+                            parsedData = JSON.parse(team.submissionData);
+                        }
+                    } catch (e) {
+                        console.error("Error parsing submissionData:", e);
+                    }
+
+                    const getAssetDetails = (reqKey) => {
+                        const key = String(reqKey).trim();
+                        if (key === 'githubUrl' || key === 'repoUrl') {
+                            return {
+                                label: 'GitHub Repository',
+                                iconPath: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+                                value: parsedData.githubUrl || parsedData.repoUrl || team.repoUrl || team.githubUrl || ''
+                            };
+                        }
+                        if (key === 'demoUrl') {
+                            return {
+                                label: 'Live Demo',
+                                iconPath: 'M13 10V3L4 14h7v7l9-11h-7z',
+                                value: parsedData.demoUrl || team.demoUrl || ''
+                            };
+                        }
+                        if (key === 'documentUrl' || key === 'docUrl') {
+                            return {
+                                label: 'Project Documentation',
+                                iconPath: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                                value: parsedData.documentUrl || parsedData.docUrl || team.docUrl || team.documentUrl || ''
+                            };
+                        }
+                        if (key === 'slideUrl') {
+                            return {
+                                label: 'Presentation Slides',
+                                iconPath: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12',
+                                value: parsedData.slideUrl || team.slideUrl || ''
+                            };
+                        }
+                        
+                        const formatLabel = (str) => {
+                            let result = str.replace(/([A-Z])/g, ' $1');
+                            result = result.replace(/[_-]/g, ' ');
+                            return result.trim().replace(/\b\w/g, c => c.toUpperCase());
+                        };
+                        return {
+                            label: formatLabel(key),
+                            iconPath: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
+                            value: parsedData[key] || team[key] || ''
+                        };
+                    };
+
                     return (
                         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                             <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '600px', maxWidth: '90%' }}>
@@ -928,10 +1088,10 @@ const RankingsConsole = () => {
                                         The following links are required for this round's submission. Missing links are marked in red.
                                     </p>
 
-                                    {isRequired('githubUrl') && renderModalAssetLink(team.repoUrl, 'GitHub Repository', 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4')}
-                                    {isRequired('demoUrl') && renderModalAssetLink(team.demoUrl, 'Live Demo', 'M13 10V3L4 14h7v7l9-11h-7z')}
-                                    {isRequired('documentUrl') && renderModalAssetLink(team.docUrl, 'Project Documentation', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z')}
-                                    {isRequired('slideUrl') && renderModalAssetLink(team.slideUrl, 'Presentation Slides', 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12')}
+                                    {activeRequirements.map((reqKey, idx) => {
+                                        const { label, iconPath, value } = getAssetDetails(reqKey);
+                                        return renderModalAssetLink(value, label, iconPath, idx);
+                                    })}
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                     <button
