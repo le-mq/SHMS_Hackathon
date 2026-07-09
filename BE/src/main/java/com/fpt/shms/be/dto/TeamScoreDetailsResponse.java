@@ -25,6 +25,7 @@ public class TeamScoreDetailsResponse {
         private Boolean isGraded;
         private Boolean resultPublished;
         private java.util.Date publishResultAt;
+        private String qualificationStatus;
         private List<RubricScoreDto> detailedScores;
     }
 

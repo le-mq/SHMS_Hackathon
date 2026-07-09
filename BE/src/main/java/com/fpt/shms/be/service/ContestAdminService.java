@@ -298,8 +298,9 @@ public class ContestAdminService {
 
         if (contestModified) {
             String action = isNewContest ? "CREATE_CONTEST" : "UPDATE_CONTEST";
-            auditLogService.log(action, "Contest", contest.getName(), oldStatus, contest.getStatus().name(),
-                    contest.getName());
+            String oldVal = isNewContest ? "NONE" : oldStatus;
+            auditLogService.log(action, "Contest", contest.getName(), oldVal, contest.getStatus().name(),
+                    isNewContest ? "Created Contest" : "Updated Contest");
         }
 
         contestUniversityRepository.deleteByContest(contest);
@@ -383,9 +384,9 @@ public class ContestAdminService {
 
         java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
                 : request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getId)
-                .filter(id -> id != null && id > 0)
-                .collect(java.util.stream.Collectors.toSet());
+                  .map(CreateTrackRoundRequest.RoundDto::getId)
+                  .filter(id -> id != null && id > 0)
+                  .collect(java.util.stream.Collectors.toSet());
 
         for (Round existing : existingRounds) {
             if (!requestedRoundIds.contains(existing.getId())) {
@@ -465,7 +466,7 @@ public class ContestAdminService {
         Category savedCategory = categoryRepository.save(category);
         if (categoryModified) {
             if (isNewCategory) {
-                auditLogService.log("CREATE_CATEGORY", "Category", savedCategory.getName(), null,
+                auditLogService.log("CREATE_CATEGORY", "Category", savedCategory.getName(), "NONE",
                         savedCategory.getStatus(), "Created new Category");
             } else if (!java.util.Objects.equals(oldName, savedCategory.getName())) {
                 auditLogService.log("UPDATE_CATEGORY", "Category", savedCategory.getName(), oldName,
