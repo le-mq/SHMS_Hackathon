@@ -204,6 +204,13 @@
     background: #1d4ed8;
 }
 
+.execute-btn-v:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border: 1px solid #e2e8f0;
+}
+
 .config-warning {
     display: flex;
     align-items: center;
@@ -596,6 +603,7 @@
     color: #15803d;
     border: 1px solid #bbf7d0;
 }
+
 /* Progress bar style */
 .round-progress-wrapper {
     margin: 16px 0;
