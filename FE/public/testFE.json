@@ -1258,6 +1258,7 @@
       {
         "id": 1,
         "name": "Summer Hackathon 2026",
+        "status": "ACTIVED",
         "pendingReview": 4,
         "approved": 8,
         "totalParticipants": 36,
@@ -1309,6 +1310,7 @@
       {
         "id": 2,
         "name": "Winter Hackathon 2026",
+        "status": "CLOSED",
         "pendingReview": 2,
         "approved": 5,
         "totalParticipants": 21,
