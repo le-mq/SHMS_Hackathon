@@ -560,11 +560,15 @@ const StandingsFeedback = () => {
                                                                                             </span>
                                                                                             <span style={{ fontSize: '20px', fontWeight: '600', color: '#94a3b8' }}>/ 100</span>
                                                                                         </div>
-                                                                                        {(effectiveScore === 0 || selectedResultRound.qualificationStatus === 'ELIMINATED') && (
-                                                                                            <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
-                                                                                                {selectedResultRound.hasSubmission === false ? `Eliminated (${effectiveScore} points) - No submission` : `Eliminated (${effectiveScore} points)`}
+                                                                                        {selectedResultRound.qualificationStatus === 'QUALIFIED' ? (
+                                                                                            <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#dcfce7', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
+                                                                                                Qualified
                                                                                             </div>
-                                                                                        )}
+                                                                                        ) : (effectiveScore === 0 || selectedResultRound.qualificationStatus === 'ELIMINATED') ? (
+                                                                                            <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
+                                                                                                {selectedResultRound.hasSubmission === false ? `Eliminated - No submission` : `Eliminated`}
+                                                                                            </div>
+                                                                                        ) : null}
                                                                                     </div>
                                                                                 )}
                                                                             </div>
@@ -641,33 +645,33 @@ const StandingsFeedback = () => {
                         {selectedDetail.detailedScores && selectedDetail.detailedScores.length > 0 ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                                 <thead>
-                                    <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
-                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '35%' }}>Criteria</th>
-                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '15%' }}>Weight</th>
-                                        <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '15%' }}>Points</th>
-                                        <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '35%' }}>Feedback</th>
-                                    </tr>
+                                <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase' }}>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '35%' }}>Criteria</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '15%' }}>Weight</th>
+                                    <th style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '15%' }}>Points</th>
+                                    <th style={{ textAlign: 'left', padding: '12px', borderBottom: '1px solid #e2e8f0', width: '35%' }}>Feedback</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedDetail.detailedScores.map((score, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b', wordBreak: 'break-word' }}>
-                                                {cleanCriteriaName(score.criteriaName || score.criterionName)}
-                                            </td>
+                                {selectedDetail.detailedScores.map((score, i) => (
+                                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '12px', fontWeight: '500', color: '#1e293b', wordBreak: 'break-word' }}>
+                                            {cleanCriteriaName(score.criteriaName || score.criterionName)}
+                                        </td>
 
-                                            <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>
-                                                {getCriteriaWeight(selectedDetail, score)}%
-                                            </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>
+                                            {getCriteriaWeight(selectedDetail, score)}%
+                                        </td>
 
-                                            <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#3b82f6' }}>
-                                                {score.pointsAwarded ?? score.points ?? score.score ?? 0}
-                                            </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#3b82f6' }}>
+                                            {score.pointsAwarded ?? score.points ?? score.score ?? 0}
+                                        </td>
 
-                                            <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
-                                                {score.feedback || 'No feedback provided.'}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        <td style={{ padding: '12px', color: '#475569', fontSize: '13px', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
+                                            {score.feedback || 'No feedback provided.'}
+                                        </td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         ) : selectedDetail.hasSubmission === false ? (
