@@ -404,3 +404,40 @@
         transform: translateY(0);
     }
 }
+
+.action-btn-text {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    outline: none;
+}
+
+.update-btn-text {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+
+.update-btn-text:hover {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.delete-btn-text {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
+
+.delete-btn-text:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
