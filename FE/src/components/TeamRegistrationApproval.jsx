@@ -281,7 +281,12 @@ const TeamRegistrationApproval = () => {
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                     <span>Total Participants:</span>
-                                                    <span style={{ fontWeight: 700, color: '#2563eb' }}>{c.totalParticipants || 0} Students</span>
+                                                    <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                                                        {Array.isArray(c.teams)
+                                                            ? c.teams.reduce((sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0), 0)
+                                                            : 0
+                                                        } Students
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>

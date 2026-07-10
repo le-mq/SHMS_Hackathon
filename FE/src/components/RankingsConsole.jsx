@@ -83,7 +83,7 @@ const enrichRound = (r) => {
     enriched.status = String(rawStatus).toUpperCase();
 
     if (enriched.status === "ACTIVED") {
-        enriched.status = "ACTIVE";
+        enriched.status = "ACTIVED";
     }
 
     enriched.submissionProgress = totalTeams > 0
@@ -536,7 +536,7 @@ const RankingsConsole = () => {
                                 let cardBg = 'white';
                                 let cardBorderColor = '#cbd5e1';
                                 let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                let statusText = 'ACTIVE';
+                                let statusText = 'ACTIVED';
                                 let badgeBg = '#dcfce7';
                                 let badgeColor = '#166534';
 
@@ -554,7 +554,7 @@ const RankingsConsole = () => {
                                     cardBg = 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)';
                                     cardBorderColor = '#86efac';
                                     glowShadow = '0 10px 20px -3px rgba(34, 197, 94, 0.08)';
-                                    statusText = 'ACTIVE';
+                                    statusText = 'ACTIVED';
                                     badgeBg = '#dcfce7';
                                     badgeColor = '#15803d';
                                 }
@@ -745,10 +745,16 @@ const RankingsConsole = () => {
 
                                             <div className="round-timeline">
                                                 {isUpcoming ? (
-                                                    <div className="timeline-row">
-                                                        <span className="timeline-label">Starts:</span>
-                                                        <span className="timeline-value">{formatDateOnly(round.submissionOpen)}</span>
-                                                    </div>
+                                                    <>
+                                                        <div className="timeline-row">
+                                                            <span className="timeline-label">Starts:</span>
+                                                            <span className="timeline-value">{formatDate(round.submissionOpen)}</span>
+                                                        </div>
+                                                        <div className="timeline-row">
+                                                            <span className="timeline-label">Deadline:</span>
+                                                            <span className="timeline-value">{formatDate(round.submissionDeadline)}</span>
+                                                        </div>
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <div className="timeline-row">
@@ -774,7 +780,7 @@ const RankingsConsole = () => {
                                                             className="round-progress-bar-fill"
                                                             style={{
                                                                 width: `${round.submissionProgress}%`,
-                                                                backgroundColor: '#3b82f6' /* Màu xanh dương chủ đạo cho vòng đang active */
+                                                                backgroundColor: '#3b82f6'
                                                             }}
                                                         />
                                                     </div>
