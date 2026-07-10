@@ -384,7 +384,22 @@ public class SubmissionService {
         Double overallTotalScore = 0.0;
         Integer overallRank = null;
 
-        List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
+        List<Submission> allSubmissions = submissionRepository.findByTeamId(team.getId());
+        java.util.Map<Long, Submission> latestSubByRound = new java.util.HashMap<>();
+        for (Submission s : allSubmissions) {
+            if (s.getRound() == null) continue;
+            Submission existing = latestSubByRound.get(s.getRound().getId());
+            if (existing == null) {
+                latestSubByRound.put(s.getRound().getId(), s);
+            } else if (s.getVersion() != null && existing.getVersion() != null) {
+                if (s.getVersion() > existing.getVersion()) {
+                    latestSubByRound.put(s.getRound().getId(), s);
+                } else if (s.getVersion().equals(existing.getVersion()) && s.getId() > existing.getId()) {
+                    latestSubByRound.put(s.getRound().getId(), s);
+                }
+            }
+        }
+        List<Submission> submissions = new ArrayList<>(latestSubByRound.values());
         List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto> roundScores = new ArrayList<>();
 
         for (Submission sub : submissions) {

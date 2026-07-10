@@ -151,6 +151,7 @@ public class ContestAdminService {
             trackMap.put("categoryName", c.getName());
             trackMap.put("trackDescription", c.getDescription() != null ? c.getDescription() : "");
             trackMap.put("guidelineUrl", c.getGuidelineUrl() != null ? c.getGuidelineUrl() : "");
+            trackMap.put("status", c.getStatus() != null ? c.getStatus() : "ACTIVED");
             trackMap.put("rounds", roundsList);
             trackMap.put("teams", teamMaps);
             return trackMap;
@@ -384,9 +385,9 @@ public class ContestAdminService {
 
         java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
                 : request.getRounds().stream()
-                  .map(CreateTrackRoundRequest.RoundDto::getId)
-                  .filter(id -> id != null && id > 0)
-                  .collect(java.util.stream.Collectors.toSet());
+                .map(CreateTrackRoundRequest.RoundDto::getId)
+                .filter(id -> id != null && id > 0)
+                .collect(java.util.stream.Collectors.toSet());
 
         for (Round existing : existingRounds) {
             if (!requestedRoundIds.contains(existing.getId())) {
