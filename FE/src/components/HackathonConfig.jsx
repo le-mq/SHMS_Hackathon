@@ -307,12 +307,30 @@ function HackathonConfig() {
 
     useEffect(() => {
         if (!selectedContestId) return;
+        let categoriesUpdated = false;
+        const newCategories = [...formik.values.categories];
         formik.values.rounds.forEach((round, idx) => {
             const computedRoundState = determineStatus(round.submissionOpen, round.submissionDeadline);
             if (round.state !== computedRoundState) {
                 formik.setFieldValue(`rounds[${idx}].state`, computedRoundState);
             }
         });
+
+        newCategories.forEach((category, idx) => {
+            const categoryRounds = formik.values.rounds.filter(r => String(r.categoryId) === String(category.id));
+            if (categoryRounds.length > 0) {
+                const allClosed = categoryRounds.every(r => determineStatus(r.submissionOpen, r.submissionDeadline) === 'CLOSED');
+                const computedCategoryStatus = allClosed ? 'CLOSED' : 'ACTIVED';
+                if (category.status !== computedCategoryStatus) {
+                    newCategories[idx].status = computedCategoryStatus;
+                    categoriesUpdated = true;
+                }
+            }
+        });
+
+        if (categoriesUpdated) {
+            formik.setFieldValue('categories', newCategories);
+        }
     }, [formik.values.rounds, selectedContestId]);
 
     useEffect(() => {

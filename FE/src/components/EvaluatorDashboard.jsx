@@ -31,6 +31,7 @@ const EvaluatorDashboard = () => {
     const [previewRoundId, setPreviewRoundId] = useState(null);
     const [previewContestId, setPreviewContestId] = useState(null);
     const [contestSearchQuery, setContestSearchQuery] = useState('');
+    const [teamFilter, setTeamFilter] = useState('ALL');
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -155,14 +156,24 @@ const EvaluatorDashboard = () => {
         const timer = setInterval(updateCountdown, 1000);
         return () => clearInterval(timer);
     }, [selectedRound, JSON.stringify(roundMap)]);
-    const filteredQueue = dashboardData.queue?.filter(t => {
+    const roundQueue = dashboardData.queue?.filter(t => {
         const rName = t.roundName || t.phaseName || t.round?.roundName;
         return rName === selectedRound;
     }) || [];
-    const notSubmittedCount = filteredQueue.filter(t => t.submissionState === 'Not Submitted' || t.submissionState === 'MISSED_DEADLINE').length || 0;
-    const effectiveTotalTeams = Math.max(0, filteredQueue.length - notSubmittedCount);
-    const evaluatedCount = filteredQueue.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length || 0;
+    const notSubmittedCount = roundQueue.filter(t => t.submissionState === 'Not Submitted' || t.submissionState === 'MISSED_DEADLINE').length || 0;
+    const effectiveTotalTeams = Math.max(0, roundQueue.length - notSubmittedCount);
+    const evaluatedCount = roundQueue.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length || 0;
     const remainingToGrade = Math.max(0, effectiveTotalTeams - evaluatedCount);
+
+    const filteredQueue = roundQueue.filter(t => {
+        if (teamFilter === 'ALL') return true;
+        const state = t.submissionState?.toUpperCase() || 'PENDING';
+        if (teamFilter === 'SUBMITTING') return state === 'PENDING';
+        if (teamFilter === 'NOT_SUBMITTED') return state === 'NOT SUBMITTED' || state === 'MISSED_DEADLINE';
+        if (teamFilter === 'WAITING') return state === 'SUBMITTED';
+        if (teamFilter === 'GRADED') return state === 'EVALUATED';
+        return true;
+    });
 
     return (
         <div className="evaluator-container">
@@ -263,10 +274,12 @@ const EvaluatorDashboard = () => {
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                             {allRounds.map((r, idx) => {
                                                 const statusText = r.status || 'UNKNOWN';
-                                                let badgeStyles = { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+                                                let badgeStyles = { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
 
                                                 if (statusText === 'CLOSED') {
-                                                    badgeStyles = { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
+                                                    badgeStyles = { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
+                                                } else if (statusText === 'UPCOMING') {
+                                                    badgeStyles = { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
                                                 }
                                                 const isActive = selectedRound === r.name;
                                                 return (
@@ -388,8 +401,15 @@ const EvaluatorDashboard = () => {
                         </div>
 
                         <div className="queue-section">
-                            <div className="queue-header">
+                            <div className="queue-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <h2 className="queue-title">Assigned Teams Queue</h2>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={() => setTeamFilter('ALL')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'ALL' ? '#3b82f6' : 'white', color: teamFilter === 'ALL' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>All</button>
+                                    <button onClick={() => setTeamFilter('SUBMITTING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'SUBMITTING' ? '#3b82f6' : 'white', color: teamFilter === 'SUBMITTING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Submitting</button>
+                                    <button onClick={() => setTeamFilter('NOT_SUBMITTED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'NOT_SUBMITTED' ? '#3b82f6' : 'white', color: teamFilter === 'NOT_SUBMITTED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Not Submitted</button>
+                                    <button onClick={() => setTeamFilter('WAITING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'WAITING' ? '#3b82f6' : 'white', color: teamFilter === 'WAITING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Waiting for Grading</button>
+                                    <button onClick={() => setTeamFilter('GRADED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'GRADED' ? '#3b82f6' : 'white', color: teamFilter === 'GRADED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Graded</button>
+                                </div>
                             </div>
                             <table className="queue-table">
                                 <thead>

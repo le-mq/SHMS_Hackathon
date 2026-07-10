@@ -5,8 +5,9 @@ import LatestAnnouncements from './LatestAnnouncements';
 import RoundDetailsModal from './RoundDetailsModal';
 
 const getRoundBadgeStyle = (state) => {
-    if (state === 'CLOSED') return { bg: '#f1f5f9', color: '#475569' };
-    return { bg: '#d1fae5', color: '#065f46' };
+    if (state === 'CLOSED') return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
+    if (state === 'UPCOMING') return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
+    return { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
 };
 
 const getProgressBadge = (status) => {
@@ -98,6 +99,7 @@ const MentorCategory = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [teamFilter, setTeamFilter] = useState('ALL');
     const [filterRound, setFilterRound] = useState(() => sessionStorage.getItem('mentorSelectedRound') || '');
     const [feedbackTeamId, setFeedbackTeamId] = useState(null);
     const [feedbackContent, setFeedbackContent] = useState('');
@@ -205,7 +207,13 @@ const MentorCategory = () => {
         const matchesRound = filterRound === 'All' ||
             (team.roundName && team.roundName.trim().toLowerCase() === filterRound.trim().toLowerCase());
 
-        return matchesSearch && matchesRound;
+        const progress = team.progressStatus || '';
+        let matchesStatus = true;
+        if (teamFilter === 'SUBMITTING') matchesStatus = progress === 'Draft';
+        else if (teamFilter === 'NOT_SUBMITTED') matchesStatus = progress !== 'Draft' && progress !== 'Submitted' && progress !== 'Official';
+        else if (teamFilter === 'WAITING') matchesStatus = progress === 'Submitted' && team.hasGivenFeedback === false;
+        else if (teamFilter === 'GRADED') matchesStatus = progress === 'Official' || team.hasGivenFeedback === true;
+        return matchesSearch && matchesRound && matchesStatus;
     });
 
     return (
@@ -285,7 +293,7 @@ const MentorCategory = () => {
                                             <div key={idx} onClick={() => { setFilterRound(r); sessionStorage.setItem('mentorSelectedRound', r); }} style={{ padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${isActive ? '#3b82f6' : '#cbd5e1'}`, background: isActive ? '#eff6ff' : 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '100px', boxShadow: isActive ? '0 0 0 1px #3b82f6' : 'none' }}>
                                                 <div style={{ fontSize: '13px', fontWeight: 600, color: isActive ? '#1e3a8a' : '#334155' }}>{r}</div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
-                                                    <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyle.bg, color: badgeStyle.color, alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                    <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.border}`, alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                         {roundStateMap[r]}
                                                     </span>
                                                     {roundId && (
@@ -316,14 +324,20 @@ const MentorCategory = () => {
                         <div className="teams-section">
                             <div className="teams-header">
                                 <h2 className="teams-title">Allocated Student Teams</h2>
-                                <div className="teams-actions">
+                                <div className="teams-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button onClick={() => setTeamFilter('ALL')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'ALL' ? '#3b82f6' : 'white', color: teamFilter === 'ALL' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>All</button>
+                                        <button onClick={() => setTeamFilter('SUBMITTING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'SUBMITTING' ? '#3b82f6' : 'white', color: teamFilter === 'SUBMITTING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Submitting</button>
+                                        <button onClick={() => setTeamFilter('NOT_SUBMITTED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'NOT_SUBMITTED' ? '#3b82f6' : 'white', color: teamFilter === 'NOT_SUBMITTED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Not Submitted</button>
+                                        <button onClick={() => setTeamFilter('WAITING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'WAITING' ? '#3b82f6' : 'white', color: teamFilter === 'WAITING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Waiting for Feedback</button>
+                                        <button onClick={() => setTeamFilter('GRADED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'GRADED' ? '#3b82f6' : 'white', color: teamFilter === 'GRADED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Reviewed</button>
+                                    </div>
                                     <div className="search-box">
                                         <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                         <input type="text" placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                                     </div>
-
                                 </div>
                             </div>
                             <div className="teams-table-container">
