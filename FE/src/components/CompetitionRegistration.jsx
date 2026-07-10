@@ -56,9 +56,9 @@ const renderComplianceRules = (rulesStr) => {
         return (
             <ul style={{ paddingLeft: '20px', margin: 0, color: '#475569', fontSize: '15px', lineHeight: '1.6' }}>
                 {rules.map((r, idx) => (
-                    <li key={idx} style={{ marginBottom: '6px' }}>
-                        <strong style={{ color: '#1e293b' }}>{r.rule}</strong>
-                        {r.penalty && <span style={{ color: '#ef4444', marginLeft: '6px', fontSize: '14px' }}>(Penalty: {r.penalty})</span>}
+                    <li key={idx} style={{ marginBottom: '12px' }}>
+                        <div style={{ color: '#1e293b', fontWeight: 'bold' }}>{r.rule}</div>
+                        {r.penalty && <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '4px' }}>(Penalty: {r.penalty})</div>}
                     </li>
                 ))}
             </ul>
