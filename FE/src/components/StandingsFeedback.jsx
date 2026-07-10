@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './StandingsFeedback.css';
 
-const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const API_STUDENT = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/student';
 const MOCK_DATA_URL = '/testFE.json';
 
 const toScoreNumber = (value) => {
@@ -234,7 +234,7 @@ const StandingsFeedback = () => {
 
         const loadLeaderboards = async () => {
             try {
-                const res = await fetch('http://localhost:8080/api/v1/public/leaderboards');
+                const res = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/public/leaderboards');
                 if (res.ok) {
                     const data = await res.json();
                     if (!cancelled) setPublicLeaderboards(data || []);

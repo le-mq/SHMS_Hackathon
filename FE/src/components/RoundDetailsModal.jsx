@@ -23,7 +23,7 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
             setLoading(true);
             try {
                 if (mode === 'contest' && contestId) {
-                    const res = await fetch(`http://localhost:8080/api/v1/public/home`);
+                    const res = await fetch(`import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/public/home`);
                     if (!res.ok) throw new Error('Failed to fetch public data');
                     const data = await res.json();
                     const c = (data.data?.contests || data.contests || []).find(x => x.id === parseInt(contestId));
@@ -45,7 +45,7 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
                 if (!roundId) throw new Error('No evaluation data available');
 
                 const token = localStorage.getItem('shms_token');
-                const fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/0?roundId=${roundId}`;
+                const fetchUrl = `import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/judge/evaluation-data/0?roundId=${roundId}`;
                 const response = await fetch(fetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

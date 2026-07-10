@@ -37,7 +37,7 @@ const EvaluatorDashboard = () => {
         const fetchDashboard = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                let url = 'http://localhost:8080/api/v1/judge/assigned-submissions';
+                let url = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/judge/assigned-submissions';
                 if (selectedContest) {
                     url += `?contestId=${selectedContest}`;
                 }

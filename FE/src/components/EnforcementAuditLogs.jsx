@@ -41,7 +41,7 @@ const EnforcementAuditLogs = () => {
         const fetchLogs = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const response = await fetch('http://localhost:8080/api/v1/admin/audit-logs', {
+                const response = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/admin/audit-logs', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -97,7 +97,7 @@ const EnforcementAuditLogs = () => {
     const handleExportCsv = async () => {
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch('http://localhost:8080/api/v1/admin/audit-logs/export-csv', {
+            const response = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/admin/audit-logs/export-csv', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

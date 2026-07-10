@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import NavbarHome from './NavbarHome.jsx';
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = "import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""";
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
