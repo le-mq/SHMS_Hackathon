@@ -131,6 +131,15 @@ public class TeamService{
 
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
+            Boolean isUnauthorized = false;
+            if ("REJECTED".equalsIgnoreCase(team.getStatus()) && student != null && team.getContest() != null) {
+                try {
+                    validateUniversityAllowed(student, team.getContest());
+                } catch (IllegalArgumentException e) {
+                    isUnauthorized = true;
+                }
+            }
+
             return TeamStatusResponse.MemberDto.builder()
                     .fullName(student != null ? student.getFullName() : m.getUser().getUsername())
                     .studentId(student != null ? student.getStudentId() : "N/A")
@@ -138,6 +147,7 @@ public class TeamService{
                     .internalRole(m.getRole())
                     .status(m.getStatus())
                     .universityName(student != null && student.getUniversity() != null ? student.getUniversity().getName() : "N/A")
+                    .isUnauthorized(isUnauthorized)
                     .build();
         }).toList();
 
@@ -158,6 +168,7 @@ public class TeamService{
             submissionData = latestSub.getSubmissionData();
         }
 
+        int minMembers = (team.getContest() != null && team.getContest().getMinTeamMembers() != null) ? team.getContest().getMinTeamMembers() : 3;
         int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
         long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
 
@@ -167,6 +178,7 @@ public class TeamService{
                 .teamCode(team.getTeamCode())
                 .categoryName("All Categories")
                 .status(team.getStatus() != null ? team.getStatus() : "FORMING")
+                .minMembers(minMembers)
                 .maxMembers(maxMembers)
                 .currentTotalMembers(currentTotalMembers)
                 .roster(memberDtos)
@@ -188,7 +200,7 @@ public class TeamService{
         List<TeamStatusResponse> responses = new java.util.ArrayList<>();
         for (TeamMembership m : memberships) {
             Team team = m.getTeam();
-            if (team != null && ("FORMING".equalsIgnoreCase(team.getStatus()) || team.getStatus() == null)) {
+            if (team != null) {
                 responses.add(buildTeamStatusResponse(team));
             }
         }
@@ -196,7 +208,7 @@ public class TeamService{
     }
 
     @Transactional
-    public void leaveTeam(String username) {
+    public void leaveTeam(String username, Long teamId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -206,9 +218,10 @@ public class TeamService{
         }
 
         TeamMembership membership = memberships.stream()
-                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
-                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
-                .orElse(memberships.get(0));
+                .filter(m -> m.getTeam() != null && m.getTeam().getId().equals(teamId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("You are not in the specified team."));
+
         Team team = membership.getTeam();
 
         if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
@@ -258,17 +271,28 @@ public class TeamService{
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .count();
 
-        int minMembers = contest != null && contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
-        int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
-
-        if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
-            throw new IllegalArgumentException("Team must have between " + minMembers + " and " + maxMembers + " approved members.");
-        }
-
         // Validate that all approved members are current students
         List<TeamMembership> approvedMembers = allMemberships.stream()
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .toList();
+
+        List<String> unauthorizedMembers = new java.util.ArrayList<>();
+        for (TeamMembership tm : approvedMembers) {
+            Student memberStudent = studentRepository.findByUser(tm.getUser()).orElse(null);
+            if (memberStudent != null) {
+                try {
+                    validateUniversityAllowed(memberStudent, contest);
+                } catch (IllegalArgumentException e) {
+                    unauthorizedMembers.add(e.getMessage());
+                }
+            }
+        }
+        if (!unauthorizedMembers.isEmpty()) {
+            team.setStatus("REJECTED");
+            teamRepository.save(team);
+            auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Unauthorized universities");
+            return new TeamRegistrationResponse("REJECTED", String.join("\n", unauthorizedMembers));
+        }
 
         List<String> invalidMembersInfo = new java.util.ArrayList<>();
         for (TeamMembership tm : approvedMembers) {
@@ -293,6 +317,17 @@ public class TeamService{
             }
             errorMsg.append("Please ask the administrator to update their student status before registering.");
             throw new IllegalArgumentException(errorMsg.toString());
+        }
+
+        // Check member count
+        int minMembers = contest != null && contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
+        int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
+
+        if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
+            team.setStatus("REJECTED");
+            teamRepository.save(team);
+            auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Invalid member count");
+            return new TeamRegistrationResponse("REJECTED", "Team must have between " + minMembers + " and " + maxMembers + " approved members.");
         }
 
         // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
@@ -333,10 +368,10 @@ public class TeamService{
                         Team otherTeam = otherMembership.getTeam();
                         if (otherTeam != null && !otherTeam.getId().equals(team.getId())) {
                             String otherTeamStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "FORMING";
-                            if ("FORMING".equals(otherTeamStatus)) {
+                            if ("FORMING".equals(otherTeamStatus) || "REJECTED".equals(otherTeamStatus)) {
                                 teamMembershipRepository.delete(otherMembership);
                                 auditLogService.log("REMOVE_FROM_TEAM", "TeamMembership", otherTeam.getName(), null, "DELETED",
-                                        "Removed user " + userId + " from forming team because they registered with team " + team.getId());
+                                        "Removed user " + userId + " from " + otherTeamStatus + " team because they registered with team " + team.getId());
                             }
                         }
                     }
@@ -351,11 +386,6 @@ public class TeamService{
                 if (leaderStudent != null) {
 
                     List<TeamMembership> teamMembers = teamMembershipRepository.findByTeamId(team.getId());
-
-                    for (TeamMembership tm : teamMembers) {
-                        Student memberStudent = requireStudent(tm.getUser());
-                        validateUniversityAllowed(memberStudent, team.getContest());
-                    }
 
                     for (TeamMembership tm : teamMembers) {
                         User mUser = tm.getUser();
