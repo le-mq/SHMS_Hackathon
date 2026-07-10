@@ -56,14 +56,17 @@ const getRoundIcon = (name) => {
 };
 
 const getRoundStatus = (round) => {
-    if (round.status) return round.status.toUpperCase();
+    if (round.state === 'CLOSED' || round.status === 'CLOSED') {
+        return 'CLOSED';
+    }
 
     const now = new Date();
     const openDate = round.submissionOpen ? new Date(round.submissionOpen) : null;
-    const deadlineDate = round.submissionDeadline ? new Date(round.submissionDeadline) : null;
 
+    const closeDate = round.publishResultAt ? new Date(round.publishResultAt) : null;
+
+    if (closeDate && now > closeDate) return "CLOSED";
     if (openDate && now < openDate) return "UPCOMING";
-    if (deadlineDate && now > deadlineDate) return "CLOSED";
     return "ACTIVED";
 };
 
@@ -79,12 +82,7 @@ const enrichRound = (r) => {
         submittedTeams,
     };
 
-    const rawStatus = r.state || r.status || getRoundStatus(enriched);
-    enriched.status = String(rawStatus).toUpperCase();
-
-    if (enriched.status === "ACTIVED") {
-        enriched.status = "ACTIVED";
-    }
+    enriched.status = getRoundStatus(enriched);
 
     enriched.submissionProgress = totalTeams > 0
         ? Math.round((submittedTeams / totalTeams) * 100)
