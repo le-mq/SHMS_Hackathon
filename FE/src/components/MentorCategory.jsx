@@ -145,7 +145,11 @@ const MentorCategory = () => {
         fetchMentorData();
     }, []);
     const handleSendFeedback = async () => {
-        if (!feedbackContent.trim() || !feedbackSubmissionId) return;
+        if (!feedbackContent.trim()) {
+            setFeedbackMessage('Please enter your feedback before sending.');
+            return;
+        }
+        if (!feedbackSubmissionId) return;
         setFeedbackLoading(true);
         setFeedbackMessage('');
         try {
@@ -209,10 +213,9 @@ const MentorCategory = () => {
 
         const progress = team.progressStatus || '';
         let matchesStatus = true;
-        if (teamFilter === 'SUBMITTING') matchesStatus = progress === 'Draft';
-        else if (teamFilter === 'NOT_SUBMITTED') matchesStatus = progress !== 'Draft' && progress !== 'Submitted' && progress !== 'Official';
-        else if (teamFilter === 'WAITING') matchesStatus = progress === 'Submitted' && team.hasGivenFeedback === false;
-        else if (teamFilter === 'GRADED') matchesStatus = progress === 'Official' || team.hasGivenFeedback === true;
+        if (teamFilter === 'NOT_SUBMITTED') matchesStatus = progress !== 'Draft' && progress !== 'Submitted' && progress !== 'Official';
+        else if (teamFilter === 'WAITING') matchesStatus = progress === 'Draft' && team.hasGivenFeedback === false;
+        else if (teamFilter === 'GRADED') matchesStatus = progress === 'Official' || progress === 'Submitted' || team.hasGivenFeedback === true;
         return matchesSearch && matchesRound && matchesStatus;
     });
 
@@ -327,7 +330,6 @@ const MentorCategory = () => {
                                 <div className="teams-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button onClick={() => setTeamFilter('ALL')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'ALL' ? '#3b82f6' : 'white', color: teamFilter === 'ALL' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>All</button>
-                                        <button onClick={() => setTeamFilter('SUBMITTING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'SUBMITTING' ? '#3b82f6' : 'white', color: teamFilter === 'SUBMITTING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Submitting</button>
                                         <button onClick={() => setTeamFilter('NOT_SUBMITTED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'NOT_SUBMITTED' ? '#3b82f6' : 'white', color: teamFilter === 'NOT_SUBMITTED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Not Submitted</button>
                                         <button onClick={() => setTeamFilter('WAITING')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'WAITING' ? '#3b82f6' : 'white', color: teamFilter === 'WAITING' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Waiting for Feedback</button>
                                         <button onClick={() => setTeamFilter('GRADED')} style={{ padding: '6px 12px', borderRadius: '20px', border: '1px solid #cbd5e1', background: teamFilter === 'GRADED' ? '#3b82f6' : 'white', color: teamFilter === 'GRADED' ? 'white' : '#475569', fontSize: '13px', cursor: 'pointer' }}>Reviewed</button>
@@ -355,7 +357,9 @@ const MentorCategory = () => {
                                     <tbody>
                                     {filteredTeams.map((team) => {
                                         const badge = getProgressBadge(team.progressStatus);
-                                        const canGiveFeedback = ['Submitted', 'Draft'].includes(team.progressStatus) && team.canGiveFeedback !== false;
+                                        const trackOverview = trackOverviews.find(t => t.trackName === team.trackName);
+                                        const deadlinePassed = trackOverview?.feedbackDeadline ? new Date() > new Date(trackOverview.feedbackDeadline) : false;
+                                        const canGiveFeedback = team.progressStatus === 'Draft' && team.canGiveFeedback !== false && !deadlinePassed;
                                         return (
                                             <tr key={team.teamId}>
                                                 <td>
@@ -448,7 +452,7 @@ const MentorCategory = () => {
                         <textarea value={feedbackContent} onChange={(e) => setFeedbackContent(e.target.value)} rows={6} placeholder="Enter your detailed feedback here..." style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '16px', fontFamily: 'inherit' }} />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                             <button onClick={() => { setFeedbackTeamId(null); setFeedbackMessage(''); setFeedbackContent(''); }} disabled={feedbackLoading} style={{ padding: '8px 16px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-                            <button onClick={handleSendFeedback} disabled={feedbackLoading} style={{ padding: '8px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>{feedbackLoading ? 'Sending...' : 'Send Feedback'}</button>
+                            <button onClick={handleSendFeedback} disabled={feedbackLoading || !feedbackContent.trim()} style={{ padding: '8px 16px', background: !feedbackContent.trim() ? '#94a3b8' : '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', cursor: !feedbackContent.trim() ? 'not-allowed' : 'pointer', fontWeight: 500 }}>{feedbackLoading ? 'Sending...' : 'Send Feedback'}</button>
                         </div>
                     </div>
                 </div>

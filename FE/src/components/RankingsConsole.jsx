@@ -83,7 +83,7 @@ const enrichRound = (r) => {
     enriched.status = String(rawStatus).toUpperCase();
 
     if (enriched.status === "ACTIVED") {
-        enriched.status = "ACTIVED";
+        enriched.status = "ACTIVE";
     }
 
     enriched.submissionProgress = totalTeams > 0
@@ -536,7 +536,7 @@ const RankingsConsole = () => {
                                 let cardBg = 'white';
                                 let cardBorderColor = '#cbd5e1';
                                 let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                let statusText = 'ACTIVED';
+                                let statusText = 'ACTIVE';
                                 let badgeBg = '#dcfce7';
                                 let badgeColor = '#166534';
 
@@ -554,7 +554,7 @@ const RankingsConsole = () => {
                                     cardBg = 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)';
                                     cardBorderColor = '#86efac';
                                     glowShadow = '0 10px 20px -3px rgba(34, 197, 94, 0.08)';
-                                    statusText = 'ACTIVED';
+                                    statusText = 'ACTIVE';
                                     badgeBg = '#dcfce7';
                                     badgeColor = '#15803d';
                                 }
@@ -745,16 +745,10 @@ const RankingsConsole = () => {
 
                                             <div className="round-timeline">
                                                 {isUpcoming ? (
-                                                    <>
-                                                        <div className="timeline-row">
-                                                            <span className="timeline-label">Starts:</span>
-                                                            <span className="timeline-value">{formatDate(round.submissionOpen)}</span>
-                                                        </div>
-                                                        <div className="timeline-row">
-                                                            <span className="timeline-label">Deadline:</span>
-                                                            <span className="timeline-value">{formatDate(round.submissionDeadline)}</span>
-                                                        </div>
-                                                    </>
+                                                    <div className="timeline-row">
+                                                        <span className="timeline-label">Starts:</span>
+                                                        <span className="timeline-value">{formatDateOnly(round.submissionOpen)}</span>
+                                                    </div>
                                                 ) : (
                                                     <>
                                                         <div className="timeline-row">
@@ -780,7 +774,7 @@ const RankingsConsole = () => {
                                                             className="round-progress-bar-fill"
                                                             style={{
                                                                 width: `${round.submissionProgress}%`,
-                                                                backgroundColor: '#3b82f6'
+                                                                backgroundColor: '#3b82f6' /* Màu xanh dương chủ đạo cho vòng đang active */
                                                             }}
                                                         />
                                                     </div>
@@ -816,13 +810,28 @@ const RankingsConsole = () => {
                             Back
                         </button>
 
-                        <div className="rankings-page-header">
+                        <div className="rankings-page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                             <div>
-                                <h1 className="rankings-title">{selectedRound?.phaseName}</h1>
-                                <p className="rankings-subtitle">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <h1 className="rankings-title" style={{ margin: 0 }}>{selectedRound?.phaseName}</h1>
+                                    {viewMode === 'SUBMISSIONS_VIEW' && roundProgress && (
+                                        <span style={{ padding: '6px 12px', background: roundProgress.roundStatus === 'OPEN' ? '#dcfce7' : '#f1f5f9', color: roundProgress.roundStatus === 'OPEN' ? '#16a34a' : '#475569', borderRadius: '20px', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                            {roundProgress.roundStatus}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="rankings-subtitle" style={{ marginTop: '8px' }}>
                                     Contest: {contests.find(c => String(c.id) === String(selectedContestId))?.name || 'Selected Contest'}
                                 </p>
                             </div>
+                            {viewMode === 'SUBMISSIONS_VIEW' && roundProgress && roundProgress.roundStatus !== 'CLOSED' && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4b5563', fontWeight: 600, background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    {roundProgress.timeRemaining}
+                                </div>
+                            )}
                         </div>
 
                         {viewMode === 'COMPILATION_VIEW' && (
@@ -925,29 +934,29 @@ const RankingsConsole = () => {
                                 <div className="eval-table-card">
                                     <table className="eval-table">
                                         <thead>
-                                            <tr>
-                                                <th>Evaluator Name</th>
-                                                <th>Department</th>
-                                                <th>Review Status</th>
-                                                <th>Finalized Date</th>
-                                            </tr>
+                                        <tr>
+                                            <th>Evaluator Name</th>
+                                            <th>Department</th>
+                                            <th>Review Status</th>
+                                            <th>Finalized Date</th>
+                                        </tr>
                                         </thead>
                                         <tbody>
-                                            {readinessData.evaluators.map((ev, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="eval-name">{ev.name}</td>
-                                                    <td>{ev.dept}</td>
-                                                    <td>{ev.status === 'Finalized'
-                                                        ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
-                                                        : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
-                                                    }
-                                                    </td>
-                                                    <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
-                                                </tr>
-                                            ))}
-                                            {readinessData.evaluators.length === 0 && (
-                                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
-                                            )}
+                                        {readinessData.evaluators.map((ev, idx) => (
+                                            <tr key={idx}>
+                                                <td className="eval-name">{ev.name}</td>
+                                                <td>{ev.dept}</td>
+                                                <td>{ev.status === 'Finalized'
+                                                    ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
+                                                    : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
+                                                }
+                                                </td>
+                                                <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
+                                            </tr>
+                                        ))}
+                                        {readinessData.evaluators.length === 0 && (
+                                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
+                                        )}
                                         </tbody>
                                     </table>
                                 </div>
@@ -986,42 +995,42 @@ const RankingsConsole = () => {
                                         </div>
                                         <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                                             <thead>
-                                                <tr>
-                                                    <th style={{ color: '#0f172a' }}>Rank</th>
-                                                    <th style={{ color: '#0f172a' }}>Team Name</th>
-                                                    <th style={{ color: '#0f172a' }}>Average Score</th>
-                                                    <th style={{ color: '#0f172a' }}>Status</th>
-                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
-                                                </tr>
+                                            <tr>
+                                                <th style={{ color: '#0f172a' }}>Rank</th>
+                                                <th style={{ color: '#0f172a' }}>Team Name</th>
+                                                <th style={{ color: '#0f172a' }}>Average Score</th>
+                                                <th style={{ color: '#0f172a' }}>Status</th>
+                                                {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
+                                            </tr>
                                             </thead>
                                             <tbody>
-                                                {result.results.map(r => {
-                                                    const isQualified = r.rank <= currentCompiledTopN;
-                                                    const teamPrize = getPrizeForRank(r.rank);
-                                                    return (
-                                                        <tr key={r.rank}>
-                                                            <td>#{r.rank}</td>
-                                                            <td>{r.teamName}</td>
-                                                            <td>{r.averageScore}</td>
-                                                            <td>
+                                            {result.results.map(r => {
+                                                const isQualified = r.rank <= currentCompiledTopN;
+                                                const teamPrize = getPrizeForRank(r.rank);
+                                                return (
+                                                    <tr key={r.rank}>
+                                                        <td>#{r.rank}</td>
+                                                        <td>{r.teamName}</td>
+                                                        <td>{r.averageScore}</td>
+                                                        <td>
                                                                 <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
                                                                     {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
                                                                 </span>
-                                                            </td>
-                                                            {prizes.length > 0 && (
-                                                                <td>
-                                                                    {teamPrize ? (
-                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                        </td>
+                                                        {prizes.length > 0 && (
+                                                            <td>
+                                                                {teamPrize ? (
+                                                                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
                                                                             🏆 {teamPrize}
                                                                         </span>
-                                                                    ) : (
-                                                                        <span style={{ color: '#94a3b8' }}>—</span>
-                                                                    )}
-                                                                </td>
-                                                            )}
-                                                        </tr>
-                                                    );
-                                                })}
+                                                                ) : (
+                                                                    <span style={{ color: '#94a3b8' }}>—</span>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                );
+                                            })}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1043,21 +1052,6 @@ const RankingsConsole = () => {
                                                 style={{ border: 'none', outline: 'none', fontSize: '13px', background: 'transparent', width: '100%', color: '#0f172a' }}
                                             />
                                         </div>
-
-                                        {roundProgress && (
-                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                                <span style={{ padding: '6px 12px', background: roundProgress.roundStatus === 'OPEN' ? '#dcfce7' : '#f1f5f9', color: roundProgress.roundStatus === 'OPEN' ? '#16a34a' : '#475569', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
-                                                    {roundProgress.roundStatus}
-                                                </span>
-                                                <span style={{ fontSize: '14px', color: '#4b5563', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    {roundProgress.roundStatus !== 'CLOSED' && (
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
-                                                    )} {roundProgress.roundStatus !== 'CLOSED' ? roundProgress.timeRemaining : ''}
-                                                </span>
-                                            </div>
-                                        )}
                                     </div>
 
                                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -1071,73 +1065,73 @@ const RankingsConsole = () => {
                                 <div className="eval-table-card">
                                     <table className="eval-table">
                                         <thead>
-                                            <tr>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Team Name</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Status</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Submitted At</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700, textAlign: 'right', paddingRight: '24px' }}>Action</th>
-                                            </tr>
+                                        <tr>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Team Name</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Status</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Submitted At</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700, textAlign: 'right', paddingRight: '24px' }}>Action</th>
+                                        </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredSubmissions.map(team => {
-                                                const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
-                                                const isNotSubmitted = team.submissionState === 'Not Submitted';
-                                                const isMissing = isAutoZero || isNotSubmitted;
+                                        {filteredSubmissions.map(team => {
+                                            const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
+                                            const isNotSubmitted = team.submissionState === 'Not Submitted';
+                                            const isMissing = isAutoZero || isNotSubmitted;
 
-                                                let displayText = team.submissionState;
-                                                let bgColor = '#dcfce7';
-                                                let textColor = '#15803d';
+                                            let displayText = team.submissionState;
+                                            let bgColor = '#dcfce7';
+                                            let textColor = '#15803d';
 
-                                                if (isMissing) {
-                                                    if (roundProgress && roundProgress.roundStatus === 'CLOSED') {
-                                                        displayText = 'Not Submitted (0 pts)';
-                                                        bgColor = '#fee2e2';
-                                                        textColor = '#b91c1c';
-                                                    } else {
-                                                        displayText = 'Awaiting Submission';
-                                                        bgColor = '#fef3c7';
-                                                        textColor = '#b45309';
-                                                    }
-                                                } else if (team.submissionState === 'OFFICIAL') {
-                                                    displayText = 'Submitted';
-                                                } else if (team.submissionState === 'DRAFT') {
-                                                    displayText = 'Draft';
-                                                    bgColor = '#f1f5f9';
-                                                    textColor = '#475569';
+                                            if (isMissing) {
+                                                if (roundProgress && roundProgress.roundStatus === 'CLOSED') {
+                                                    displayText = 'Not Submitted (0 pts)';
+                                                    bgColor = '#fee2e2';
+                                                    textColor = '#b91c1c';
+                                                } else {
+                                                    displayText = 'Awaiting Submission';
+                                                    bgColor = '#fef3c7';
+                                                    textColor = '#b45309';
                                                 }
+                                            } else if (team.submissionState === 'OFFICIAL') {
+                                                displayText = 'Submitted';
+                                            } else if (team.submissionState === 'DRAFT') {
+                                                displayText = 'Draft';
+                                                bgColor = '#f1f5f9';
+                                                textColor = '#475569';
+                                            }
 
-                                                return (
-                                                    <tr key={team.teamId}>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                <div style={{ width: '32px', height: '32px', background: '#0f172a', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>{team.teamName.substring(0, 2).toUpperCase()}</div>
-                                                                <span style={{ fontWeight: 700, color: '#0f172a' }}>{team.teamName}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db' }}>
+                                            return (
+                                                <tr key={team.teamId}>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                            <div style={{ width: '32px', height: '32px', background: '#0f172a', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>{team.teamName.substring(0, 2).toUpperCase()}</div>
+                                                            <span style={{ fontWeight: 700, color: '#0f172a' }}>{team.teamName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db' }}>
                                                             <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, background: bgColor, color: textColor }}>
                                                                 {displayText}
                                                             </span>
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db', color: '#4b5563', fontSize: '13px', fontWeight: 500 }}>
-                                                            {team.submittedAt || '--'}
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db', textAlign: 'right', paddingRight: '24px' }}>
-                                                            <button
-                                                                style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
-                                                                onClick={() => setViewSubmissionModal({ isOpen: true, team })}
-                                                            >
-                                                                View Submission Form
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            {filteredSubmissions.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#4b5563' }}>No submissions found</td>
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db', color: '#4b5563', fontSize: '13px', fontWeight: 500 }}>
+                                                        {team.submittedAt || '--'}
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db', textAlign: 'right', paddingRight: '24px' }}>
+                                                        <button
+                                                            style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                                                            onClick={() => setViewSubmissionModal({ isOpen: true, team })}
+                                                        >
+                                                            View Submission Form
+                                                        </button>
+                                                    </td>
                                                 </tr>
-                                            )}
+                                            );
+                                        })}
+                                        {filteredSubmissions.length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#4b5563' }}>No submissions found</td>
+                                            </tr>
+                                        )}
                                         </tbody>
                                     </table>
                                     <div style={{ padding: '16px 24px', fontSize: '13px', color: '#4b5563', fontWeight: 600 }}>
@@ -1191,9 +1185,9 @@ const RankingsConsole = () => {
                         const isValid = !!url;
                         return (
                             <a key={key} href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
-                                target="_blank" rel="noreferrer"
-                                onClick={e => !isValid && e.preventDefault()}
-                                style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
+                               target="_blank" rel="noreferrer"
+                               onClick={e => !isValid && e.preventDefault()}
+                               style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
                                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
