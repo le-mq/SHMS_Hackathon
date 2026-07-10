@@ -917,32 +917,32 @@ INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T05', 
 INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T06', 'Smart Mobility', 'FORMING', '2026-07-04 15:00:00'); SET @SEAL_T06_ID = SCOPE_IDENTITY();
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T01_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+SELECT @SEAL_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T02_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
+SELECT @SEAL_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email = 'vuthituanh123@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T03_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+SELECT @SEAL_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '20120001@student.hcmus.edu.vn');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T04_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
+SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '20120002@student.hcmus.edu.vn');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T05_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
+SELECT @SEAL_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email IN ('09876543@st.hcmuaf.edu.vn', 'Phamgiahan@hcmut.edu.vn');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T06_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
+SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
 
