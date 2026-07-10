@@ -113,6 +113,7 @@ public class StudentController {
                         map.put("description", c.getDescription());
                         map.put("location", c.getLocation());
                         map.put("tieredPrizeStructures", c.getTieredPrizeStructures());
+                        map.put("complianceRules", c.getComplianceRules());
                         java.util.List<String> categoryNames = categoryRepository.findByContestId(c.getId())
                                 .stream()
                                 .map(com.fpt.shms.be.model.Category::getName)

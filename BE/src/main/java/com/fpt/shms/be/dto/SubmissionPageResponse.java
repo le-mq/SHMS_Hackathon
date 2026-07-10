@@ -36,6 +36,7 @@ public class SubmissionPageResponse {
         private Double totalScore;
         private String submissionRequirements;
         private String roundFormat;
+        private String qualificationStatus;
     }
 
     @Data

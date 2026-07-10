@@ -134,15 +134,31 @@ public class SubmissionService {
         String contestName = team.getContest() != null ? team.getContest().getName() : "Not Registered";
         String contestStatus = team.getContest() != null ? team.getContest().getStatus().name() : "N/A";
 
+        List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
+        List<RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
+
         List<SubmissionPageResponse.RoundDto> roundDtos = new ArrayList<>();
         com.fpt.shms.be.model.Contest contest = team.getContest();
         if (contest != null) {
             List<Round> rounds = roundRepository.findByContestId(contest.getId());
             rounds.sort(roundComparator());
             for (Round r : rounds) {
-                Submission roundSubmission = submissionRepository.findByTeamIdAndRoundId(team.getId(), r.getId()).orElse(null);
+                Submission roundSubmission = submissions.stream()
+                        .filter(s -> s.getRound() != null && s.getRound().getId().equals(r.getId()))
+                        .max(java.util.Comparator.comparing(s -> s.getVersion() != null ? s.getVersion() : 1))
+                        .orElse(null);
                 ScoreSummary scoreSummary = getScoreSummary(roundSubmission);
                 EligibilityResult eligibility = getRoundEligibility(team, r, rounds);
+
+                String roundQualStatus = null;
+                if (teamRankings != null) {
+                    for (RankingResult rr : teamRankings) {
+                        if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {
+                            roundQualStatus = rr.getQualificationStatus();
+                            break;
+                        }
+                    }
+                }
 
                 roundDtos.add(SubmissionPageResponse.RoundDto.builder()
                         .id(r.getId())
@@ -156,11 +172,10 @@ public class SubmissionService {
                         .totalScore(scoreSummary.totalScore)
                         .submissionRequirements(r.getSubmissionRequirements())
                         .roundFormat(r.getRoundFormat())
+                        .qualificationStatus(roundQualStatus)
                         .build());
             }
         }
-
-        List<Submission> submissions = submissionRepository.findByTeamId(team.getId());
 
         List<SubmissionPageResponse.HistoryDto> historyDtos = new ArrayList<>();
         for (Submission s : submissions) {
@@ -221,7 +236,6 @@ public class SubmissionService {
         });
 
         String qualificationStatus = null;
-        List<RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
         if (teamRankings != null && !teamRankings.isEmpty()) {
             for (RankingResult rr : teamRankings) {
                 if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
