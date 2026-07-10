@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import './RubricConfig.css';
 
-const CONTEST_API = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/admin/contests';
-const CATEGORY_API = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/student/categories';
+const CONTEST_API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/admin/contests";
+const CATEGORY_API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/categories";
 const newCriterion = () => ({
     _localId: Date.now() + Math.random(),
     criteriaName: '', maxScore: 100, description: '', percentageWeight: ''

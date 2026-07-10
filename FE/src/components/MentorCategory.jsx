@@ -116,7 +116,7 @@ const MentorCategory = () => {
     const fetchMentorData = async () => {
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/mentor/assigned-teams', {
+            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/mentor/assigned-teams", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('API failed');
@@ -157,7 +157,7 @@ const MentorCategory = () => {
         setFeedbackMessage('');
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/mentor/feedbacks', {
+            const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/mentor/feedbacks", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ submissionId: feedbackSubmissionId, feedbackContent })

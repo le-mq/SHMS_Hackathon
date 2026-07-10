@@ -205,7 +205,7 @@ export const LeaderboardContent = ({ leaderboards }) => {
     useEffect(() => {
         async function getLeaderboard() {
             try {
-                const res = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/public/leaderboards');
+                const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/public/leaderboards");
                 if (!res.ok) throw new Error("API Failed");
                 const data = await res.json();
                 setFetchedLeaderboards(processLeaderboardData(data));
@@ -222,7 +222,7 @@ export const LeaderboardContent = ({ leaderboards }) => {
 
         async function getContests() {
             try {
-                const res = await fetch("import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/public/home");
+                const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/public/home");
                 if (res.ok) {
                     const data = await res.json();
                     setContestsInfo(data.contests || []);

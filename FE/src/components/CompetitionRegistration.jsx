@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import './CompetitionRegistration.css';
 
-const API_BASE = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/student';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
 
 const normalizeList = (json) => (Array.isArray(json) ? json : json?.data || []);
 const safeJson = async (res) => { try { return await res.json(); } catch { return {}; } };

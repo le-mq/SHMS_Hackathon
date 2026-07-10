@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './ProjectSubmission.css';
 import './LeaderWorkspace.css';
 
-const API_STUDENT = 'import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/student';
+const API_STUDENT = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
 const SUCCESS_MESSAGE_DURATION_MS = 5000;
 const SUCCESS_RELOAD_DELAY_MS = 5000;
 const ERROR_MESSAGE_DURATION_MS = 5000;

@@ -30,7 +30,7 @@ const NavbarJudge = () => {
     const handleSwitchRole = async (targetRole) => {
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch('import.meta.env.VITE_API_BASE_URL || "import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1""/auth/switch-role', {
+            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/auth/switch-role", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
