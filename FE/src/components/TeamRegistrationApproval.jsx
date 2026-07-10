@@ -76,7 +76,22 @@ const TeamRegistrationApproval = () => {
             t.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }
+    const allTeams = selectedContest?.teams || [];
+    const approvedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'APPROVED').length;
+    const canceledRejectedCount = allTeams.filter(t => {
+        const s = (t.status || '').toUpperCase();
+        return s === 'CANCELED' || s === 'REJECTED';
+    }).length;
 
+    const closedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CLOSED').length;
+    const pendingCount = Math.max(0, allTeams.length - approvedCount - canceledRejectedCount);
+    const totalTeamsCount = allTeams.length;
+    const totalParticipantsCount = allTeams.reduce(
+        (sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0),
+        0
+    );
+
+    const isContestClosed = selectedContest?.status === 'CLOSED';
     const handleOpenActionModal = (teamId, teamName, actionType) => {
         setCancelModal({
             isOpen: true,
@@ -202,6 +217,9 @@ const TeamRegistrationApproval = () => {
                             .map(c => {
                                 const isClosed = c.status === 'CLOSED';
                                 const isActive = c.status === 'ACTIVED' || c.status === 'ACTIVE' || !c.status;
+                                const totalTeams = Array.isArray(c.teams)
+                                    ? c.teams.length
+                                    : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
                                 return (
                                     <div
                                         key={c.id}
@@ -258,12 +276,8 @@ const TeamRegistrationApproval = () => {
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>Pending Review:</span>
-                                                    <span style={{ fontWeight: 700, color: '#ca8a04' }}>{c.pendingReview || 0} Teams</span>
-                                                </div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>Approved Teams:</span>
-                                                    <span style={{ fontWeight: 700, color: '#16a34a' }}>{c.approved || 0} Teams</span>
+                                                    <span>Total Teams:</span>
+                                                    <span style={{ fontWeight: 700, color: '#eab308' }}>{totalTeams} Teams</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                     <span>Total Participants:</span>
@@ -294,7 +308,6 @@ const TeamRegistrationApproval = () => {
         );
     }
 
-    // 2. If contest is selected, show details and approval workspace
     return (
         <div className="approval-container">
             <div className="approval-content">
@@ -355,26 +368,30 @@ const TeamRegistrationApproval = () => {
                     </div>
                 </div>
 
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-label">PENDING REVIEW</div>
-                        <div className="stat-value">{selectedContest ? selectedContest.pendingReview : 0} Teams</div>
-                    </div>
-                    <div className="stat-card">
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+                    <div className="stat-card" style={{ borderLeft: '4px solid #22c55e' }}>
                         <div className="stat-label">APPROVED</div>
-                        <div className="stat-value">{selectedContest ? selectedContest.approved : 0} Teams</div>
+                        <div className="stat-value">{approvedCount} Teams</div>
                     </div>
-                    <div className="stat-card" >
-                        <div className="stat-label" >REJECTED & CANCELED</div>
-                        <div className="stat-value">
-                            {filteredTeams.filter(t =>
-                                t.status === 'Canceled' || t.status === 'Rejected' || (t.status || '').toUpperCase() === 'CANCELED'
-                            ).length} Teams
-                        </div>
+
+                    <div className="stat-card" style={{ borderLeft: '4px solid #ef4444' }}>
+                        <div className="stat-label">REJECTED & CANCELED</div>
+                        <div className="stat-value">{canceledRejectedCount} Teams</div>
                     </div>
-                    <div className="stat-card">
+
+                    <div className="stat-card" style={{ borderLeft: '4px solid #64748b' }}>
+                        <div className="stat-label">CLOSED</div>
+                        <div className="stat-value">{closedCount} Teams</div>
+                    </div>
+
+                    <div className="stat-card" style={{ borderLeft: '4px solid #eab308' }}>
+                        <div className="stat-label">TOTAL TEAM</div>
+                        <div className="stat-value">{totalTeamsCount} Teams</div>
+                    </div>
+
+                    <div className="stat-card" style={{ borderLeft: '4px solid #3b82f6' }}>
                         <div className="stat-label">TOTAL PARTICIPANTS</div>
-                        <div className="stat-value">{selectedContest ? selectedContest.totalParticipants : 0} Students</div>
+                        <div className="stat-value">{totalParticipantsCount} Students</div>
                     </div>
                 </div>
 
@@ -427,22 +444,24 @@ const TeamRegistrationApproval = () => {
                                                     View Members
                                                 </button>
 
-                                                {isCanceledOrRejected ? (
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
-                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                ) : (
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
-                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
-                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                    >
-                                                        Cancel Team
-                                                    </button>
+                                                {!isContestClosed && (
+                                                    isCanceledOrRejected ? (
+                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                            style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                            onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
+                                                            onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                            style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                            onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
+                                                            onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
+                                                        >
+                                                            Cancel Team
+                                                        </button>
+                                                    )
                                                 )}
                                             </div>
                                         </td>
@@ -510,12 +529,10 @@ const TeamRegistrationApproval = () => {
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '650px', maxWidth: '95%', display: 'flex', flexDirection: 'column' }}>
 
-                        {/* Header của Modal */}
                         <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#0f172a', fontWeight: '700' }}>
                             Members of {membersModal.teamName}
                         </h3>
 
-                        {/* Vùng chứa bảng thành viên */}
                         <div style={{ overflowY: 'auto', maxHeight: '60vh', paddingRight: '4px', borderBottom: '1px solid #e2e8f0' }}>
                             {membersModal.members && membersModal.members.length > 0 ? (
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -553,7 +570,6 @@ const TeamRegistrationApproval = () => {
                             )}
                         </div>
 
-                        {/* Nút Đóng */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                             <button
                                 onClick={() => setMembersModal({ isOpen: false, teamName: '', members: [] })}

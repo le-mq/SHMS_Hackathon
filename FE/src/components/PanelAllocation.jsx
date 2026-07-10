@@ -66,51 +66,43 @@ const PanelAllocation = () => {
         const getRounds = async () => {
             try {
                 const res = await fetch(`${API_BASE}/admin/contests/${selectedContestId}/rounds`, { headers });
-                if (!res.ok) throw new Error();
+                if (!res.ok) throw new Error("API Rounds error");
                 const data = await res.json();
+
                 setRounds(data);
-                if (data.length > 0) {
-                    const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
-                    const hasSavedRound = savedRoundId && data.some(r => String(r.roundId) === String(savedRoundId));
-                    if (hasSavedRound) {
-                        setSelectedRoundId(savedRoundId);
-                        setSelectedRound(data.find(r => String(r.roundId) === String(savedRoundId)));
-                    } else {
-                        setSelectedRoundId(String(data[0].roundId));
-                        setSelectedRound(data[0]);
-                    }
-                } else {
-                    setSelectedRoundId('');
-                    setSelectedRound(null);
-                }
-            } catch {
-                console.warn("Using mock data for rounds in PanelAllocation");
-                const mockRounds = [
-                    {
-                        roundId: 1,
-                        roundName: "Phase 01: Screening",
-                        categoryId: 1,
-                        categoryName: "Artificial Intelligence"
-                    },
-                    {
-                        roundId: 2,
-                        roundName: "Phase 02: Final",
-                        categoryId: 2,
-                        categoryName: "Cyber Security"
-                    }
-                ];
-                setRounds(mockRounds);
-                const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
-                const hasSavedRound = savedRoundId && mockRounds.some(r => String(r.roundId) === String(savedRoundId));
-                if (hasSavedRound) {
-                    setSelectedRoundId(savedRoundId);
-                    setSelectedRound(mockRounds.find(r => String(r.roundId) === String(savedRoundId)));
-                } else {
-                    setSelectedRoundId(String(mockRounds[0].roundId));
-                    setSelectedRound(mockRounds[0]);
+                handleSelectRound(data);
+            } catch (err) {
+                console.warn("Using mock data from testFE.json for rounds in PanelAllocation:", err);
+                try {
+                    const localRes = await fetch("/testFE.json");
+                    const localJson = await localRes.json();
+                    const localRounds = localJson.panelAllocation?.rounds || [];
+
+                    setRounds(localRounds);
+                    handleSelectRound(localRounds);
+                } catch (localErr) {
+                    console.error("Failed to fetch from testFE.json as well:", localErr);
                 }
             }
         };
+
+        const handleSelectRound = (roundsData) => {
+            if (roundsData.length > 0) {
+                const savedRoundId = sessionStorage.getItem('panelAllocSelectedRoundId');
+                const hasSavedRound = savedRoundId && roundsData.some(r => String(r.roundId) === String(savedRoundId));
+                if (hasSavedRound) {
+                    setSelectedRoundId(savedRoundId);
+                    setSelectedRound(roundsData.find(r => String(r.roundId) === String(savedRoundId)));
+                } else {
+                    setSelectedRoundId(String(roundsData[0].roundId));
+                    setSelectedRound(roundsData[0]);
+                }
+            } else {
+                setSelectedRoundId('');
+                setSelectedRound(null);
+            }
+        };
+
         getRounds();
     }, [selectedContestId, headers]);
 
@@ -135,21 +127,9 @@ const PanelAllocation = () => {
                     allocationsData = await allocationsRes.json() || {};
                 } catch (apiErr) {
                     console.warn("Using mock data for round data in PanelAllocation:", apiErr);
-                    if (Number(roundCategoryId) === 2) {
-                        teamsData = [
-                            { id: 3, name: "HackStorm" },
-                            { id: 4, name: "NextGen" }
-                        ];
-                    } else {
-                        teamsData = [
-                            { id: 1, name: "AI Warriors" },
-                            { id: 2, name: "Code Titans" },
-                            { id: 3, name: "Data Miners" },
-                            { id: 4, name: "NextGen" }
-                        ];
-                    }
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
+                    teamsData = localJson.panelAllocation?.teams || [];
                     allocationsData = localJson.panelAllocation?.allocations || {};
                 }
                 setAllTeams(teamsData);
@@ -463,7 +443,7 @@ const PanelAllocation = () => {
                     </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', width: '100%', background: 'white', padding: '24px', borderRadius: '16px', border: '1.5px solid #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', gridColumn: '1 / -1'}}>
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', width: '100%', background: 'white', padding: '24px', borderRadius: '16px', border: '1.5px solid #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', gridColumn: '1 / -1' }}>
                     <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Contest</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: 700, fontSize: '15px' }}>
@@ -485,12 +465,29 @@ const PanelAllocation = () => {
 
                     <div style={{ width: '1px', background: '#e2e8f0', margin: '0 8px' }}></div>
 
-                    {/* Round Selection badged list */}
                     <div style={{ flex: '3 1 500px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Select Competition Round</span>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                             {rounds.map((r, idx) => {
                                 const isActive = String(selectedRoundId) === String(r.roundId);
+
+                                const getRoundStatusStyles = (status) => {
+                                    const s = status?.toUpperCase() || 'ACTIVE';
+                                    switch (s) {
+                                        case 'CLOSED':
+                                            return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
+                                        case 'UPCOMING':
+                                            return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
+                                        case 'ACTIVE':
+                                        case 'ACTIVED':
+                                        default:
+                                            return { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
+                                    }
+                                };
+
+                                const statusText = r.status ? r.status.toUpperCase() : 'ACTIVE';
+                                const statusStyle = getRoundStatusStyles(statusText);
+
                                 return (
                                     <div
                                         key={idx}
@@ -508,9 +505,10 @@ const PanelAllocation = () => {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '6px',
-                                            minWidth: '160px',
+                                            minWidth: '200px', 
                                             boxShadow: isActive ? '0 4px 6px -1px rgba(37, 99, 235, 0.1)' : 'none',
-                                            transition: 'all 0.2s ease'
+                                            transition: 'all 0.2s ease',
+                                            position: 'relative'
                                         }}
                                         onMouseEnter={e => {
                                             if (!isActive) e.currentTarget.style.borderColor = '#94a3b8';
@@ -519,9 +517,25 @@ const PanelAllocation = () => {
                                             if (!isActive) e.currentTarget.style.borderColor = '#cbd5e1';
                                         }}
                                     >
-                                        <div style={{ fontSize: '14px', fontWeight: 700, color: isActive ? '#1e3a8a' : '#1e293b' }}>
-                                            {r.roundName}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: 700, color: isActive ? '#1e3a8a' : '#1e293b', lineHeight: '1.2' }}>
+                                                {r.roundName}
+                                            </div>
+                                            <span style={{
+                                                fontSize: '9px',
+                                                fontWeight: 800,
+                                                padding: '2px 6px',
+                                                borderRadius: '6px',
+                                                background: statusStyle.bg,
+                                                color: statusStyle.color,
+                                                border: `1px solid ${statusStyle.border}`,
+                                                textTransform: 'uppercase',
+                                                whiteSpace: 'nowrap'
+                                            }}>
+                                                {statusText}
+                                            </span>
                                         </div>
+
                                         <span style={{
                                             fontSize: '11px',
                                             background: isActive ? '#dbeafe' : '#f1f5f9',
@@ -530,7 +544,7 @@ const PanelAllocation = () => {
                                             borderRadius: '4px',
                                             fontWeight: 600,
                                             alignSelf: 'flex-start',
-                                            marginTop: '2px'
+                                            marginTop: 'auto'
                                         }}>
                                             {r.categoryName || 'No Category'}
                                         </span>
@@ -546,7 +560,6 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
-                {/* Left panel: Expert Registry */}
                 <div className="left-panel">
                     <div className="panel-header">
                         <h2 className="panel-title">Expert Registry</h2>
@@ -576,7 +589,6 @@ const PanelAllocation = () => {
                     </div>
                 </div>
 
-                {/* Middle panel: Allocation Management Board */}
                 <div className="right-assignment-panel">
                     <div className="panel-header-custom">
                         <h2>Allocation Management Board</h2>
@@ -596,7 +608,7 @@ const PanelAllocation = () => {
                                     <div className="team-empty-box">
                                         <p>No active teams captured within this scope.</p>
                                     </div>
-                               ) : (
+                                ) : (
                                     <div className="global-teams-grid">
                                         {allTeams.map(team => {
                                             const isChecked = currentMentoredTeamIds.includes(String(team.id));
@@ -659,7 +671,6 @@ const PanelAllocation = () => {
                     )}
                 </div>
 
-                {/* Right panel: Live Status Overview */}
                 <div className="overview-panel">
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 className="panel-title overview-title" style={{ margin: 0 }}>Live Status Overview</h3>
