@@ -279,14 +279,15 @@ const StudentDashboard = () => {
     };
 
     return (
-        <div className="student-dash-container">
-            <div className="dashboard-announcements-row">
-                <LatestAnnouncements />
-            </div>
-
+        <div className="student-dash-container" style={{ paddingTop: '40px' }}>
             <div className="dash-grid">
-                <div className="dash-left">
+                <div className="dash-left" style={{ gridColumn: '1 / 2' }}>
+                    <div className="dashboard-announcements-row">
+                        <LatestAnnouncements />
+                    </div>
+                </div>
 
+                <div className="dash-left" style={{ gridColumn: '1 / 2' }}>
                     <div className="dash-cards-row">
                         {loadingContest ? (
                             <div className="info-card">
@@ -408,7 +409,7 @@ const StudentDashboard = () => {
                     )}
                 </div>
 
-                <div className="dash-right">
+                <div className="dash-right" style={{ gridColumn: '2 / 3', gridRow: '2 / 3' }}>
                     <div className="join-card join-card-highlighted">
                         <div style={{ marginBottom: 24 }}>
                             <svg width="24" height="24" fill="none" stroke="#2563eb" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>

@@ -55,13 +55,13 @@
 }
 
 .dashboard-announcements-row {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
+    margin: 0 20px;
 }
 
 .dashboard-announcements-row .latest-announcements-container {
-    margin: 0 0 24px 20px;
+    margin: 0 0 24px 0 !important;
+    width: 100% !important;
+    max-width: none !important;
 }
 
 .dash-left {
@@ -277,8 +277,8 @@
 
 .action-icon-bg {
     position: absolute;
-    right: -20px;
-    bottom: -20px;
+    right: 10px;
+    bottom: 10px;
     opacity: 0.1;
     width: 120px;
     height: 120px;
