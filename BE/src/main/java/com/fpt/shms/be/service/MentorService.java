@@ -120,14 +120,8 @@ public class MentorService {
                 }
 
                 String progressStatus = "Ideation";
-                if (latestSub != null) {
-                    if ("DRAFT".equalsIgnoreCase(latestSub.getStatus())) {
-                        progressStatus = "Draft";
-                    } else if ("SUBMITTED".equalsIgnoreCase(latestSub.getStatus())) {
-                        progressStatus = "Official";
-                    } else {
-                        progressStatus = "Submitted";
-                    }
+                if (latestSub != null && latestSub.getStatus() != null) {
+                    progressStatus = latestSub.getStatus();
                 }
 
                 if (latestSub != null) {

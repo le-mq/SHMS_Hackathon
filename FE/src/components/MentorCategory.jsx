@@ -11,10 +11,13 @@ const getRoundBadgeStyle = (state) => {
 };
 
 const getProgressBadge = (status) => {
-    if (status === 'Draft') return { bg: '#fef3c7', color: '#92400e', label: 'Draft' };
-    if (status === 'Official') return { bg: '#dcfce7', color: '#166534', label: 'Official' };
-    if (status === 'Submitted') return { bg: '#dbeafe', color: '#1e40af', label: 'Submitted' };
-    return { bg: '#fee2e2', color: '#991b1b', label: status && status !== 'Ideation' ? status : 'Not Submitted' };
+    if (!status || status.toUpperCase() === 'IDEATION') return { bg: '#fee2e2', color: '#991b1b', label: 'Not Submitted' };
+    const upper = status.toUpperCase();
+    const label = status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    if (upper === 'DRAFT') return { bg: '#fef3c7', color: '#92400e', label };
+    if (upper === 'SUBMITTED') return { bg: '#dcfce7', color: '#166534', label };
+    if (upper === 'EVALUATED') return { bg: '#dbeafe', color: '#1e40af', label };
+    return { bg: '#fee2e2', color: '#991b1b', label };
 };
 
 const TeamAssetLinks = ({ team }) => {
@@ -211,11 +214,11 @@ const MentorCategory = () => {
         const matchesRound = filterRound === 'All' ||
             (team.roundName && team.roundName.trim().toLowerCase() === filterRound.trim().toLowerCase());
 
-        const progress = team.progressStatus || '';
+        const progress = (team.progressStatus || '').toUpperCase();
         let matchesStatus = true;
-        if (teamFilter === 'NOT_SUBMITTED') matchesStatus = progress !== 'Draft' && progress !== 'Submitted' && progress !== 'Official';
-        else if (teamFilter === 'WAITING') matchesStatus = progress === 'Draft' && team.hasGivenFeedback === false;
-        else if (teamFilter === 'GRADED') matchesStatus = progress === 'Official' || progress === 'Submitted' || team.hasGivenFeedback === true;
+        if (teamFilter === 'NOT_SUBMITTED') matchesStatus = progress !== 'DRAFT' && progress !== 'SUBMITTED' && progress !== 'EVALUATED';
+        else if (teamFilter === 'WAITING') matchesStatus = progress === 'DRAFT' && team.hasGivenFeedback === false;
+        else if (teamFilter === 'GRADED') matchesStatus = progress === 'SUBMITTED' || progress === 'EVALUATED' || team.hasGivenFeedback === true;
         return matchesSearch && matchesRound && matchesStatus;
     });
 
@@ -359,7 +362,7 @@ const MentorCategory = () => {
                                         const badge = getProgressBadge(team.progressStatus);
                                         const trackOverview = trackOverviews.find(t => t.trackName === team.trackName);
                                         const deadlinePassed = trackOverview?.feedbackDeadline ? new Date() > new Date(trackOverview.feedbackDeadline) : false;
-                                        const canGiveFeedback = team.progressStatus === 'Draft' && team.canGiveFeedback !== false && !deadlinePassed;
+                                        const canGiveFeedback = team.progressStatus && team.progressStatus.toUpperCase() === 'DRAFT' && team.canGiveFeedback !== false && !deadlinePassed;
                                         return (
                                             <tr key={team.teamId}>
                                                 <td>
