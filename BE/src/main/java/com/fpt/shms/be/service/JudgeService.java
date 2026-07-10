@@ -216,26 +216,6 @@ public class JudgeService {
             if (round.getCategory() != null) {
                 List<ContestRubric> rubrics = contestRubricRepository.findByCategoryId(round.getCategory().getId());
                 rubric = rubrics.isEmpty() ? null : rubrics.get(0);
-            } else {
-                List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
-                Category fallbackCategory = assignments.stream()
-                        .map(JudgeAssignment::getCategory)
-                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(round.getContest().getId()))
-                        .findFirst()
-                        .orElse(null);
-                if (fallbackCategory != null) {
-                    rubric = contestRubricRepository.findFirstByCategoryId(fallbackCategory.getId()).orElse(null);
-                } else {
-                    List<TeamMentor> mentorAssignments = teamMentorRepository.findByMentorId(user.getId());
-                    Category fallbackMentorCat = mentorAssignments.stream()
-                            .map(TeamMentor::getCategory)
-                            .filter(c -> c.getContest() != null && c.getContest().getId().equals(round.getContest().getId()))
-                            .findFirst()
-                            .orElse(null);
-                    if (fallbackMentorCat != null) {
-                        rubric = contestRubricRepository.findFirstByCategoryId(fallbackMentorCat.getId()).orElse(null);
-                    }
-                }
             }
 
             if (rubric != null) {

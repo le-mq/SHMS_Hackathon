@@ -669,88 +669,174 @@ GO
 -- 5. RUBRICS & CRITERIA
 INSERT INTO RubricTemplate (category_id, template_name, description, status)
 VALUES
-(1, 'Standard AI Judging Rubric', N'Standard evaluation criteria for AI projects', 'ACTIVE'),
-(4, 'Web3 & Blockchain Rubric', N'Standard evaluation criteria for Web3/Blockchain projects', 'ACTIVE'),
-(7, 'SEAL Innovation Rubric 2026', N'Comprehensive evaluation criteria for SEAL Hackathon', 'ACTIVE'),
+(1, 'Standard AI - Computer Vision Rubric', N'Standard evaluation criteria for Computer Vision projects', 'ACTIVE'),
+(2, 'Standard AI - NLP & LLMs Rubric', N'Standard evaluation criteria for Natural Language & LLM projects', 'ACTIVE'),
+(3, 'Standard AI - Predictive Analytics Rubric', N'Standard evaluation criteria for Data Science & Predictive AI projects', 'ACTIVE'),
+(4, 'Web3 - Smart Contracts & Security Rubric', N'Standard evaluation criteria for Smart Contract & Security projects', 'ACTIVE'),
+(5, 'Web3 - DeFi & Tokenomics Rubric', N'Standard evaluation criteria for DeFi & Tokenomics modeling projects', 'ACTIVE'),
+(6, 'Web3 - Decentralized DApps Rubric', N'Standard evaluation criteria for Decentralized Web3 DApp projects', 'ACTIVE'),
+(7, 'SEAL AI & Web3 Innovation Rubric', N'Evaluation criteria for AI & Web3 Innovation category', 'ACTIVE'),
+(8, 'SEAL Cloud & Big Data Rubric', N'Evaluation criteria for Cloud & Big Data Architecture category', 'ACTIVE'),
+(9, 'SEAL Mobile & IoT Rubric', N'Evaluation criteria for Mobile & IoT Applications category', 'ACTIVE'),
 (10, 'Enterprise Cloud & AI Rubric', N'Enterprise evaluation criteria for Cloud & Advanced AI solutions', 'ACTIVE');
 GO
 
-DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
-DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
-DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
-DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Enterprise Cloud & AI Rubric');
+DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 1);
+DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 2);
+DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 3);
+DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 4);
+DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 5);
+DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
+DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
+DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
+DECLARE @Rubric9_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 9);
+DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO RubricTemplateCriteria (rubric_template_id, criteria_name, description, default_weight, max_score)
 VALUES
+-- Category 1
 (@Rubric1_ID, 'Innovation & Creativity', N'Uniqueness and creative application of AI models', 30.00, 30.00),
 (@Rubric1_ID, 'Technical Complexity', N'Technical depth and algorithm sophistication', 30.00, 30.00),
 (@Rubric1_ID, 'Feasibility & Impact', N'Practical viability and real-world social impact', 20.00, 20.00),
 (@Rubric1_ID, 'Presentation & Demo', N'Presentation quality and smooth live product demo', 20.00, 20.00),
 
-(@Rubric2_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
-(@Rubric2_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
-(@Rubric2_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
+-- Category 2
+(@Rubric2_ID, 'Model Accuracy & Prompt Engineering', N'Precision of NLP models and effectiveness of prompt architectures', 35.00, 35.00),
+(@Rubric2_ID, 'Contextual Understanding & Reasoning', N'Depth of language comprehension and logical inference capabilities', 35.00, 35.00),
+(@Rubric2_ID, 'Real-world Application & Scalability', N'Practical utility and scalability of language processing solutions', 30.00, 30.00),
 
-(@Rubric3_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
-(@Rubric3_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
-(@Rubric3_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
-(@Rubric3_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
+-- Category 3
+(@Rubric3_ID, 'Data Quality & Feature Engineering', N'Rigorous data preprocessing and predictive feature design', 35.00, 35.00),
+(@Rubric3_ID, 'Predictive Model Performance & Robustness', N'Statistical accuracy, generalization, and model robustness', 35.00, 35.00),
+(@Rubric3_ID, 'Business Insight & Actionability', N'Clarity of predictive insights and real-world decision impact', 30.00, 30.00),
 
-(@Rubric4_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
-(@Rubric4_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
-(@Rubric4_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
+-- Category 4
+(@Rubric4_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
+(@Rubric4_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
+(@Rubric4_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
+
+-- Category 5
+(@Rubric5_ID, 'Tokenomics Sustainability & Mathematical Rigor', N'Long-term economic viability and mathematical soundness of token models', 35.00, 35.00),
+(@Rubric5_ID, 'Liquidity & Yield Protocol Design', N'Efficiency of capital allocation and automated market mechanisms', 35.00, 35.00),
+(@Rubric5_ID, 'Regulatory Compliance & Risk Management', N'Systemic risk mitigation and security compliance design', 30.00, 30.00),
+
+-- Category 6
+(@Rubric6_ID, 'DApp User Experience & Wallet Seamlessness', N'Smooth decentralized interaction and intuitive wallet connectivity', 35.00, 35.00),
+(@Rubric6_ID, 'Decentralized Architecture & On-chain Integration', N'Robust smart contract integration and decentralized storage efficiency', 35.00, 35.00),
+(@Rubric6_ID, 'Innovation & Market Adoption Potential', N'Unique value proposition and readiness for mass user adoption', 30.00, 30.00),
+
+-- Category 7
+(@Rubric7_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
+(@Rubric7_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
+(@Rubric7_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
+(@Rubric7_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
+
+-- Category 8
+(@Rubric8_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
+(@Rubric8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
+(@Rubric8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
+
+-- Category 9
+(@Rubric9_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
+(@Rubric9_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
+(@Rubric9_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
+
+-- Category 10
+(@Rubric10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
+(@Rubric10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
+(@Rubric10_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
 GO
 
 -- Create ContestRubric and ContestRubricDetails
-DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Standard AI Judging Rubric');
-DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Web3 & Blockchain Rubric');
-DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'SEAL Innovation Rubric 2026');
-DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE template_name = 'Enterprise Cloud & AI Rubric');
+DECLARE @Rubric1_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 1);
+DECLARE @Rubric2_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 2);
+DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 3);
+DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 4);
+DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 5);
+DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
+DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
+DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
+DECLARE @Rubric9_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 9);
+DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_weight, status)
 VALUES
 (@Rubric1_ID, 1, 'Computer Vision Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric2_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric3_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric3_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric3_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric4_ID, 10, 'Enterprise Cloud & AI Judging Rubric', 100.00, 'ACTIVE');
+(@Rubric2_ID, 2, 'NLP & LLMs Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric3_ID, 3, 'Data Science & Predictive AI Rubric', 100.00, 'ACTIVE'),
+(@Rubric4_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric5_ID, 5, 'DeFi & Tokenomics Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric6_ID, 6, 'Web3 DApps Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric7_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric8_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric9_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE'),
+(@Rubric10_ID, 10, 'Enterprise Cloud & AI Judging Rubric', 100.00, 'ACTIVE');
 GO
 
 DECLARE @CR1_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1);
-DECLARE @CR2_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4);
-DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
-DECLARE @CR4_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
-DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 9);
-DECLARE @CR6_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 10);
+DECLARE @CR2_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 2);
+DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 3);
+DECLARE @CR4_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4);
+DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 5);
+DECLARE @CR6_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 6);
+DECLARE @CR7_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
+DECLARE @CR8_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
+DECLARE @CR9_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 9);
+DECLARE @CR10_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 10);
 
 INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
 VALUES
+-- Category 1
 (@CR1_ID, 'Innovation & Creativity', N'Uniqueness and creative application of AI models', 30.00, 30.00),
 (@CR1_ID, 'Technical Complexity', N'Technical depth and algorithm sophistication', 30.00, 30.00),
 (@CR1_ID, 'Feasibility & Impact', N'Practical viability and real-world social impact', 20.00, 20.00),
 (@CR1_ID, 'Presentation & Demo', N'Presentation quality and smooth live product demo', 20.00, 20.00),
 
-(@CR2_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
-(@CR2_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
-(@CR2_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
+-- Category 2
+(@CR2_ID, 'Model Accuracy & Prompt Engineering', N'Precision of NLP models and effectiveness of prompt architectures', 35.00, 35.00),
+(@CR2_ID, 'Contextual Understanding & Reasoning', N'Depth of language comprehension and logical inference capabilities', 35.00, 35.00),
+(@CR2_ID, 'Real-world Application & Scalability', N'Practical utility and scalability of language processing solutions', 30.00, 30.00),
 
-(@CR3_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
-(@CR3_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
-(@CR3_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
-(@CR3_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
+-- Category 3
+(@CR3_ID, 'Data Quality & Feature Engineering', N'Rigorous data preprocessing and predictive feature design', 35.00, 35.00),
+(@CR3_ID, 'Predictive Model Performance & Robustness', N'Statistical accuracy, generalization, and model robustness', 35.00, 35.00),
+(@CR3_ID, 'Business Insight & Actionability', N'Clarity of predictive insights and real-world decision impact', 30.00, 30.00),
 
-(@CR4_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
-(@CR4_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
-(@CR4_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
+-- Category 4
+(@CR4_ID, 'Smart Contract Security', N'Optimal security and vulnerability auditing of Smart Contracts', 35.00, 35.00),
+(@CR4_ID, 'Decentralization & Utility', N'Degree of decentralization and practical Web3 utility', 35.00, 35.00),
+(@CR4_ID, 'UI/UX & Web3 Integration', N'User experience and seamless wallet interaction', 30.00, 30.00),
 
-(@CR5_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
-(@CR5_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
-(@CR5_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
+-- Category 5
+(@CR5_ID, 'Tokenomics Sustainability & Mathematical Rigor', N'Long-term economic viability and mathematical soundness of token models', 35.00, 35.00),
+(@CR5_ID, 'Liquidity & Yield Protocol Design', N'Efficiency of capital allocation and automated market mechanisms', 35.00, 35.00),
+(@CR5_ID, 'Regulatory Compliance & Risk Management', N'Systemic risk mitigation and security compliance design', 30.00, 30.00),
 
-(@CR6_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
-(@CR6_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
-(@CR6_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
+-- Category 6
+(@CR6_ID, 'DApp User Experience & Wallet Seamlessness', N'Smooth decentralized interaction and intuitive wallet connectivity', 35.00, 35.00),
+(@CR6_ID, 'Decentralized Architecture & On-chain Integration', N'Robust smart contract integration and decentralized storage efficiency', 35.00, 35.00),
+(@CR6_ID, 'Innovation & Market Adoption Potential', N'Unique value proposition and readiness for mass user adoption', 30.00, 30.00),
+
+-- Category 7
+(@CR7_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
+(@CR7_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
+(@CR7_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
+(@CR7_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
+
+-- Category 8
+(@CR8_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
+(@CR8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
+(@CR8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
+
+-- Category 9
+(@CR9_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
+(@CR9_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
+(@CR9_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
+
+-- Category 10
+(@CR10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
+(@CR10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
+(@CR10_ID, 'Business Value & Security', N'Enterprise security compliance, ROI potential, and clear business value', 30.00, 30.00);
 GO
 
 -- 6. MENTOR & JUDGE ASSIGNMENTS
