@@ -111,7 +111,10 @@ public class JudgeService {
                 Submission latestSub = submissions.stream()
                         .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
                         .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
-                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .max((s1, s2) -> {
+                            int cmp = s1.getVersion().compareTo(s2.getVersion());
+                            return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
+                        })
                         .orElse(null);
 
                 boolean isEvaluated = false;
@@ -150,9 +153,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                          .map(Category::getName)
-                          .collect(Collectors.joining(", "));
+                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                        .map(Category::getName)
+                        .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -295,12 +298,18 @@ public class JudgeService {
                 latestSubmission = teamSubmissions.stream()
                         .filter(s -> s.getRound() != null && s.getRound().getId().equals(roundId))
                         .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
-                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .max((s1, s2) -> {
+                            int cmp = s1.getVersion().compareTo(s2.getVersion());
+                            return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
+                        })
                         .orElse(null);
             } else {
                 latestSubmission = teamSubmissions.stream()
                         .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
-                        .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
+                        .max((s1, s2) -> {
+                            int cmp = s1.getVersion().compareTo(s2.getVersion());
+                            return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
+                        })
                         .orElse(null);
             }
         }

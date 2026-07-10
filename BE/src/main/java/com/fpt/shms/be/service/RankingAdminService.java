@@ -86,15 +86,21 @@ public class RankingAdminService {
                 .filter(s -> s.getTeam() != null && s.getTeam().getContest() != null &&
                         s.getTeam().getContest().getId().equals(contestId) &&
                         "APPROVED".equals(s.getTeam().getStatus()) &&
-                        s.getRound().getId().equals(round.getId()))
+                        s.getRound().getId().equals(round.getId()) &&
+                        !"DRAFT".equalsIgnoreCase(s.getStatus()))
                 .toList();
 
         Map<Long, Submission> latestSubmissions = new HashMap<>();
         for (Submission s : allSubmissionsRaw) {
             Submission existing = latestSubmissions.get(s.getTeam().getId());
-            if (existing == null || (s.getVersion() != null && existing.getVersion() != null
-                    && s.getVersion() > existing.getVersion())) {
+            if (existing == null) {
                 latestSubmissions.put(s.getTeam().getId(), s);
+            } else if (s.getVersion() != null && existing.getVersion() != null) {
+                if (s.getVersion() > existing.getVersion()) {
+                    latestSubmissions.put(s.getTeam().getId(), s);
+                } else if (s.getVersion().equals(existing.getVersion()) && s.getId() > existing.getId()) {
+                    latestSubmissions.put(s.getTeam().getId(), s);
+                }
             }
         }
         List<Submission> allSubmissions = new ArrayList<>(latestSubmissions.values());
@@ -158,9 +164,7 @@ public class RankingAdminService {
         }
         for (Submission s : allSubmissions) {
             if (teamScores.containsKey(s.getTeam())) {
-                List<Score> scores = scoreRepository.findAll().stream()
-                        .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
-                        .toList();
+                List<Score> scores = scoreRepository.findBySubmissionId(s.getId());
 
                 double totalScore = scores.stream()
                         .mapToDouble(sc -> sc.getTotalScore() != null ? sc.getTotalScore() : 0.0).sum();
@@ -226,15 +230,21 @@ public class RankingAdminService {
                 .filter(s -> s.getTeam() != null && s.getTeam().getContest() != null &&
                         s.getTeam().getContest().getId().equals(contestId) &&
                         "APPROVED".equals(s.getTeam().getStatus()) &&
-                        s.getRound().getId().equals(round.getId()))
+                        s.getRound().getId().equals(round.getId()) &&
+                        !"DRAFT".equalsIgnoreCase(s.getStatus()))
                 .toList();
 
         Map<Long, Submission> latestSubmissions = new HashMap<>();
         for (Submission s : allSubmissionsRaw) {
             Submission existing = latestSubmissions.get(s.getTeam().getId());
-            if (existing == null || (s.getVersion() != null && existing.getVersion() != null
-                    && s.getVersion() > existing.getVersion())) {
+            if (existing == null) {
                 latestSubmissions.put(s.getTeam().getId(), s);
+            } else if (s.getVersion() != null && existing.getVersion() != null) {
+                if (s.getVersion() > existing.getVersion()) {
+                    latestSubmissions.put(s.getTeam().getId(), s);
+                } else if (s.getVersion().equals(existing.getVersion()) && s.getId() > existing.getId()) {
+                    latestSubmissions.put(s.getTeam().getId(), s);
+                }
             }
         }
         List<Submission> allSubmissions = new ArrayList<>(latestSubmissions.values());
@@ -246,9 +256,7 @@ public class RankingAdminService {
         }
         for (Submission s : allSubmissions) {
             if (teamScores.containsKey(s.getTeam())) {
-                List<Score> scores = scoreRepository.findAll().stream()
-                        .filter(sc -> sc.getSubmission().getId().equals(s.getId()))
-                        .toList();
+                List<Score> scores = scoreRepository.findBySubmissionId(s.getId());
 
                 double totalScore = scores.stream()
                         .mapToDouble(sc -> sc.getTotalScore() != null ? sc.getTotalScore() : 0.0).sum();
