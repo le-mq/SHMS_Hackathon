@@ -1084,7 +1084,7 @@ const RankingsConsole = () => {
 
                                             if (isMissing) {
                                                 if (roundProgress && roundProgress.roundStatus === 'CLOSED') {
-                                                    displayText = 'Not Submitted (0 pts)';
+                                                    displayText = 'Not Submitted';
                                                     bgColor = '#fee2e2';
                                                     textColor = '#b91c1c';
                                                 } else {
