@@ -1,16 +1,16 @@
-import {useState, useEffect, useMemo} from 'react';
-import {useFormik, FieldArray, FormikProvider} from 'formik';
+import { useState, useEffect, useMemo } from 'react';
+import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
-import {Form, Button} from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import './HackathonConfig.css';
 
 const API_BASE = "http://localhost:8080/api/v1";
 
 const RemoveButton = ({ onClick, title, style }) => (
     <button type="button" onClick={onClick} title={title}
-            style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, ...style }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+        style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, ...style }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+        onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
     >&#10005;</button>
 );
 
@@ -23,10 +23,10 @@ function HackathonConfig() {
     const [isLoading, setIsLoading] = useState(false);
     const [deletedCategories, setDeletedCategories] = useState([]);
     const [availableSubReqs, setAvailableSubReqs] = useState([
-        {value: 'Source Code URL', label: 'Source Code / GitHub Repository'},
-        {value: 'Live Demo URL', label: 'Live Demo / Video Link'},
-        {value: 'Documentation URL', label: 'Project Documentation'},
-        {value: 'Presentation Slide URL', label: 'Presentation Slides'}
+        { value: 'Source Code URL', label: 'Source Code / GitHub Repository' },
+        { value: 'Live Demo URL', label: 'Live Demo / Video Link' },
+        { value: 'Documentation URL', label: 'Project Documentation' },
+        { value: 'Presentation Slide URL', label: 'Presentation Slides' }
     ]);
     const [availableRoundFormats, setAvailableRoundFormats] = useState([
         'On-site Submission', 'Remote Submission', 'In-booth Presentation', 'Stage Presentation'
@@ -45,7 +45,7 @@ function HackathonConfig() {
     };
 
     const getStatusBadgeStyle = (status) => {
-        switch(status) {
+        switch (status) {
             case 'ACTIVED': return { background: '#dcfce7', color: '#166534' }; // Green
             case 'UPCOMING': return { background: '#dbeafe', color: '#1e40af' }; // Blue
             case 'CLOSED': return { background: '#f3f4f6', color: '#4b5563' }; // Gray
@@ -62,9 +62,9 @@ function HackathonConfig() {
     const getSemesterBounds = (term, year) => {
         const currentYear = year || new Date().getFullYear();
         const baseDates = {
-            SPRING: {startMonth: 1, endMonth: 4, endDay: 30, maxTime: '04-30T23:59'},
-            SUMMER: {startMonth: 5, endMonth: 8, endDay: 31, maxTime: '08-31T23:59'},
-            FALL: {startMonth: 9, endMonth: 12, endDay: 31, maxTime: '12-31T23:59'}
+            SPRING: { startMonth: 1, endMonth: 4, endDay: 30, maxTime: '04-30T23:59' },
+            SUMMER: { startMonth: 5, endMonth: 8, endDay: 31, maxTime: '08-31T23:59' },
+            FALL: { startMonth: 9, endMonth: 12, endDay: 31, maxTime: '12-31T23:59' }
         };
         const config = baseDates[term] || baseDates.SPRING;
         const startIso = `${currentYear}-${String(config.startMonth).padStart(2, '0')}-01T00:00`;
@@ -84,12 +84,12 @@ function HackathonConfig() {
 
     const fetchData = async (url, mockKey) => {
         try {
-            const res = await fetch(url, {headers: {Authorization: `Bearer ${localStorage.getItem('shms_token')}`}});
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } });
             if (res.ok) {
                 const data = await res.json();
                 if (Object.keys(data || {}).length > 0) return data;
             }
-        } catch (e) {}
+        } catch (e) { }
         const mock = await (await fetch('/testFE.json')).json();
         return mockKey === 'uni' ? mock.hackathonConfig?.universities || []
             : mockKey === 'contests' ? mock.contests?.data || []
@@ -105,12 +105,14 @@ function HackathonConfig() {
         initialValues: {
             name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(),
             maximumAllowedTeams: 100, minTeamMembers: 3, maxTeamMembers: 5, registrationStart: '', registrationEnd: '', contestEndAt: '',
-            complianceRules: [{rule: '', penalty: ''}], tieredPrizeStructures: [{rank: '', amount: ''}], status: 'UNSAVED',
+            complianceRules: [{ rule: '', penalty: '' }], tieredPrizeStructures: [{ rank: '', amount: '' }], status: 'UNSAVED',
             location: '', contestStartAt: '', publishedAt: '', universities: [],
-            categories: [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'UNSAVED'}],
-            rounds: [{id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '',
+            categories: [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'UNSAVED' }],
+            rounds: [{
+                id: -1, phaseName: 'Round 1', categoryId: -1, submissionOpen: '', submissionDeadline: '',
                 gradingDeadlineAt: '', publishResultAt: '', state: 'UNSAVED',
-                submissionRequirements: [], roundFormat: ''}]
+                submissionRequirements: [], roundFormat: ''
+            }]
         },
         validationSchema: Yup.object().shape({
             name: Yup.string().required('Event Name is required'),
@@ -118,34 +120,34 @@ function HackathonConfig() {
             year: Yup.number().required('Year is required'),
 
             maximumAllowedTeams: Yup.number().min(1, 'Must be at least 1').required('Required'),
-            minTeamMembers: Yup.number().min(1, 'Must be at least 1').required('Required').test('min-max-check', 'Min must be <= Max', function(val) {
+            minTeamMembers: Yup.number().min(1, 'Must be at least 1').required('Required').test('min-max-check', 'Min must be <= Max', function (val) {
                 const max = this.parent.maxTeamMembers;
                 if (!val || !max) return true;
                 return val <= max;
             }),
-            maxTeamMembers: Yup.number().min(1, 'Must be at least 1').required('Required').test('max-min-check', 'Max must be >= Min', function(val) {
+            maxTeamMembers: Yup.number().min(1, 'Must be at least 1').required('Required').test('max-min-check', 'Max must be >= Min', function (val) {
                 const min = this.parent.minTeamMembers;
                 if (!val || !min) return true;
                 return val >= min;
             }),
             location: Yup.string().required('Location is required'),
-            contestStartAt: Yup.date().required('Contest Start Time is required').test('is-after-reg', 'Start time must be on or after Registration End', function(val) {
+            contestStartAt: Yup.date().required('Contest Start Time is required').test('is-after-reg', 'Start time must be on or after Registration End', function (val) {
                 const regEnd = this.parent.registrationEnd;
                 if (!val || !regEnd) return true;
-                const startOfDay = new Date(regEnd); startOfDay.setHours(0,0,0,0);
+                const startOfDay = new Date(regEnd); startOfDay.setHours(0, 0, 0, 0);
                 return new Date(val) >= startOfDay;
             }),
             publishedAt: Yup.date().required('Publish Info Time is required'),
             registrationStart: Yup.date().required('Registration Start is required'),
             registrationEnd: Yup.date().required('Registration End is required').min(Yup.ref('registrationStart'), 'Must be after start date'),
-            contestEndAt: Yup.date().required('Contest End Time is required').test('is-after-reg', 'Contest End Time must be after Registration End', function(val) {
+            contestEndAt: Yup.date().required('Contest End Time is required').test('is-after-reg', 'Contest End Time must be after Registration End', function (val) {
                 const regEnd = this.parent.registrationEnd;
                 if (!val || !regEnd) return true;
                 const endOfDayReg = new Date(regEnd); endOfDayReg.setHours(23, 59, 59, 999);
                 return new Date(val) > endOfDayReg;
             }),
             universities: Yup.array().min(1, 'Add at least one university'),
-            categories: Yup.array().of(Yup.object().shape({trackName: Yup.string().required('Category Name is required')})).min(1, 'Add at least one category'),
+            categories: Yup.array().of(Yup.object().shape({ trackName: Yup.string().required('Category Name is required') })).min(1, 'Add at least one category'),
             rounds: Yup.array().of(
                 Yup.object().shape({
                     phaseName: Yup.string().required('Phase Name is required'),
@@ -154,46 +156,46 @@ function HackathonConfig() {
                         return this.from[1].value.rounds.filter(r => String(r.categoryId) === String(val)).length <= 1;
                     }),
                     submissionOpen: Yup.date().required('Open time is required')
-                        .test('is-after-reg', 'Must be after Registration End', function(val) {
+                        .test('is-after-reg', 'Must be after Registration End', function (val) {
                             const regEnd = this.from[1].value.registrationEnd;
                             if (!val || !regEnd) return true;
-                            const startOfDay = new Date(regEnd); startOfDay.setHours(0,0,0,0);
+                            const startOfDay = new Date(regEnd); startOfDay.setHours(0, 0, 0, 0);
                             return new Date(val) > startOfDay;
                         })
-                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function (val) {
                             const contestEnd = this.from[1].value.contestEndAt;
                             return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
                         }),
                     submissionDeadline: Yup.date().required('Deadline is required')
-                        .test('is-after-sub', 'Must be after Open time', function(val) {
+                        .test('is-after-sub', 'Must be after Open time', function (val) {
                             return (!val || !this.parent.submissionOpen) || new Date(val) > new Date(this.parent.submissionOpen);
                         })
-                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function (val) {
                             const contestEnd = this.from[1].value.contestEndAt;
                             return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
                         }),
                     gradingDeadlineAt: Yup.date().required('Grading Deadline is required')
-                        .test('is-after-sub-dl', 'Must be after Submission Deadline', function(val) {
+                        .test('is-after-sub-dl', 'Must be after Submission Deadline', function (val) {
                             return (!val || !this.parent.submissionDeadline) || new Date(val) > new Date(this.parent.submissionDeadline);
                         })
-                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function (val) {
                             const contestEnd = this.from[1].value.contestEndAt;
                             return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
                         }),
                     publishResultAt: Yup.date().required('Publish Result time is required')
-                        .test('is-after-grad-dl', 'Must be after Grading Deadline', function(val) {
+                        .test('is-after-grad-dl', 'Must be after Grading Deadline', function (val) {
                             return (!val || !this.parent.gradingDeadlineAt) || new Date(val) > new Date(this.parent.gradingDeadlineAt);
                         })
-                        .test('is-before-contest-end', 'Must be before Contest End Time', function(val) {
+                        .test('is-before-contest-end', 'Must be before Contest End Time', function (val) {
                             const contestEnd = this.from[1].value.contestEndAt;
                             return (!val || !contestEnd) || new Date(val) < new Date(contestEnd);
                         })
                 })
             ).min(1, 'Add at least one round')
         }),
-        onSubmit: async (values, {setSubmitting, setStatus}) => {
+        onSubmit: async (values, { setSubmitting, setStatus }) => {
             const computedContestStatus = determineStatus(values.registrationStart, values.contestEndAt);
-            if (computedContestStatus === 'CLOSED') return setStatus({error: "Cannot modify or save a closed contest."}), setSubmitting(false);
+            if (computedContestStatus === 'CLOSED') return setStatus({ error: "Cannot modify or save a closed contest." }), setSubmitting(false);
 
             const bounds = getSemesterBounds(values.term, values.year);
             const startLimit = bounds.start.getTime();
@@ -204,7 +206,7 @@ function HackathonConfig() {
                 return (d1 && (d1 < startLimit || d1 > endLimit)) || (d2 && (d2 < startLimit || d2 > endLimit));
             });
             if (outOfBound) {
-                setStatus({error: `Cannot save! ${outOfBound.phaseName} contains dates out of the ${values.term} ${values.year} season.`});
+                setStatus({ error: `Cannot save! ${outOfBound.phaseName} contains dates out of the ${values.term} ${values.year} season.` });
                 setSubmitting(false);
                 return;
             }
@@ -212,7 +214,7 @@ function HackathonConfig() {
                 const prevDeadline = values.rounds[i - 1].submissionDeadline ? new Date(values.rounds[i - 1].submissionDeadline).getTime() : 0;
                 const currOpen = values.rounds[i].submissionOpen ? new Date(values.rounds[i].submissionOpen).getTime() : 0;
                 if (currOpen && prevDeadline && currOpen <= prevDeadline) {
-                    setStatus({error: `${values.rounds[i].phaseName} Open time must be after ${values.rounds[i - 1].phaseName} Deadline.`});
+                    setStatus({ error: `${values.rounds[i].phaseName} Open time must be after ${values.rounds[i - 1].phaseName} Deadline.` });
                     setSubmitting(false);
                     return;
                 }
@@ -224,8 +226,9 @@ function HackathonConfig() {
                 let currentContestId = selectedContestId;
                 const response = await fetch(`${API_BASE}/admin/contests`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                    body: JSON.stringify({ ...values, id: currentContestId || null, status: computedContestStatus,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        ...values, id: currentContestId || null, status: computedContestStatus,
                         allowedCorporateDomains: values.universities.join(','),
                         complianceRules: JSON.stringify(values.complianceRules.filter(r => r.rule.trim() !== '')),
                         tieredPrizeStructures: JSON.stringify(values.tieredPrizeStructures.filter(p => p.rank.trim() !== '' || p.amount.trim() !== '')),
@@ -247,7 +250,7 @@ function HackathonConfig() {
                     const categoryRounds = values.rounds.filter(r => String(r.categoryId) === String(category.id));
                     const trackRes = await fetch(`${API_BASE}/admin/contests/rounds-tracks`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
                             contestId: currentContestId,
                             categoryName: category.trackName,
@@ -262,7 +265,7 @@ function HackathonConfig() {
                                 submissionDeadline: (r.submissionDeadline && r.submissionDeadline.length === 16) ? r.submissionDeadline + ':00' : (r.submissionDeadline || null),
                                 gradingDeadlineAt: (r.gradingDeadlineAt && r.gradingDeadlineAt.length === 16) ? r.gradingDeadlineAt + ':00' : (r.gradingDeadlineAt || null),
                                 publishResultAt: (r.publishResultAt && r.publishResultAt.length === 16) ? r.publishResultAt + ':00' : (r.publishResultAt || null),
-                                state: computedContestStatus === 'CLOSED' ? 'CLOSED' : determineStatus(r.submissionOpen, r.submissionDeadline),
+                                state: (computedContestStatus === 'CLOSED' || (r.state === 'CLOSED' && !(r.publishResultAt && new Date(r.publishResultAt).getTime() > new Date().getTime()))) ? 'CLOSED' : determineStatus(r.submissionOpen, r.publishResultAt),
                                 submissionRequirements: Array.isArray(r.submissionRequirements) ? r.submissionRequirements.join(',') : r.submissionRequirements || '',
                                 roundFormat: r.roundFormat || ''
                             }))
@@ -277,7 +280,7 @@ function HackathonConfig() {
                     if (delCat.id && delCat.id > 0) {
                         const delRes = await fetch(`${API_BASE}/admin/contests/tracks/${delCat.id}`, {
                             method: 'DELETE',
-                            headers: {'Authorization': `Bearer ${token}`}
+                            headers: { 'Authorization': `Bearer ${token}` }
                         });
                         if (!delRes.ok) {
                             const errData = await delRes.json().catch(() => ({}));
@@ -286,10 +289,10 @@ function HackathonConfig() {
                     }
                 }
                 setDeletedCategories([]);
-                setStatus({success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!'});
+                setStatus({ success: selectedContestId ? 'Season Hackathon configuration saved successfully!' : 'Season Hackathon initialized successfully!' });
                 fetchContests();
             } catch (err) {
-                setStatus({error: err.message || 'Failed to connect to the server'});
+                setStatus({ error: err.message || 'Failed to connect to the server' });
             } finally {
                 setIsLoading(false);
                 setSubmitting(false);
@@ -310,7 +313,9 @@ function HackathonConfig() {
         let categoriesUpdated = false;
         const newCategories = [...formik.values.categories];
         formik.values.rounds.forEach((round, idx) => {
-            const computedRoundState = determineStatus(round.submissionOpen, round.submissionDeadline);
+            const isPublishInFuture = round.publishResultAt && new Date(round.publishResultAt).getTime() > new Date().getTime();
+            if (round.state === 'CLOSED' && !isPublishInFuture) return;
+            const computedRoundState = determineStatus(round.submissionOpen, round.publishResultAt);
             if (round.state !== computedRoundState) {
                 formik.setFieldValue(`rounds[${idx}].state`, computedRoundState);
             }
@@ -319,7 +324,7 @@ function HackathonConfig() {
         newCategories.forEach((category, idx) => {
             const categoryRounds = formik.values.rounds.filter(r => String(r.categoryId) === String(category.id));
             if (categoryRounds.length > 0) {
-                const allClosed = categoryRounds.every(r => determineStatus(r.submissionOpen, r.submissionDeadline) === 'CLOSED');
+                const allClosed = categoryRounds.every(r => determineStatus(r.submissionOpen, r.publishResultAt) === 'CLOSED');
                 const computedCategoryStatus = allClosed ? 'CLOSED' : 'ACTIVED';
                 if (category.status !== computedCategoryStatus) {
                     newCategories[idx].status = computedCategoryStatus;
@@ -367,7 +372,7 @@ function HackathonConfig() {
                 const fetchedCategories = data.tracks?.length ? data.tracks.map((t, idx) => ({
                     id: t.id || -(idx + 1), trackName: t.categoryName || '', trackDescription: t.trackDescription || '',
                     guidelineUrl: t.guidelineUrl || '', status: t.status || 'ACTIVED'
-                })) : [{id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVED'}];
+                })) : [{ id: -1, trackName: '', trackDescription: '', guidelineUrl: '', status: 'ACTIVED' }];
                 let fetchedRounds = [];
                 if (data.tracks?.length) {
                     const roundMap = new Map();
@@ -396,7 +401,7 @@ function HackathonConfig() {
                                             let changed = false;
                                             rReqs.forEach(req => {
                                                 if (!next.some(p => p.value === req)) {
-                                                    next.push({value: req, label: req});
+                                                    next.push({ value: req, label: req });
                                                     changed = true;
                                                 }
                                             });
@@ -433,8 +438,8 @@ function HackathonConfig() {
                     registrationStart: data.registrationStart ? data.registrationStart.slice(0, 10) : '',
                     registrationEnd: data.registrationEnd ? data.registrationEnd.slice(0, 10) : '',
                     contestEndAt: data.contestEndAt ? data.contestEndAt.slice(0, 16) : '',
-                    complianceRules: data.complianceRules ? (() => { try { return JSON.parse(data.complianceRules); } catch(e) { return [{rule: '', penalty: ''}]; } })() : [{rule: '', penalty: ''}],
-                    tieredPrizeStructures: data.tieredPrizeStructures ? (() => { try { return JSON.parse(data.tieredPrizeStructures); } catch(e) { return [{rank: '', amount: ''}]; } })() : [{rank: '', amount: ''}],
+                    complianceRules: data.complianceRules ? (() => { try { return JSON.parse(data.complianceRules); } catch (e) { return [{ rule: '', penalty: '' }]; } })() : [{ rule: '', penalty: '' }],
+                    tieredPrizeStructures: data.tieredPrizeStructures ? (() => { try { return JSON.parse(data.tieredPrizeStructures); } catch (e) { return [{ rank: '', amount: '' }]; } })() : [{ rank: '', amount: '' }],
                     location: data.location || '',
                     contestStartAt: data.contestStartAt ? data.contestStartAt.slice(0, 16) : '',
                     publishedAt: data.publishedAt ? data.publishedAt.slice(0, 16) : '',
@@ -442,10 +447,10 @@ function HackathonConfig() {
                     categories: fetchedCategories, rounds: fetchedRounds
                 });
             } else {
-                formik.setStatus({error: 'Failed to fetch contest details'});
+                formik.setStatus({ error: 'Failed to fetch contest details' });
             }
         } catch (err) {
-            formik.setStatus({error: 'Failed to connect to the server'});
+            formik.setStatus({ error: 'Failed to connect to the server' });
         } finally {
             setIsLoading(false);
         }
@@ -475,36 +480,36 @@ function HackathonConfig() {
             <div className="config-wrapper">
                 <div className="config-header">
                     <h1 className="config-title">Hackathon Event Configuration</h1>
-                    <p style={{fontSize: '14px', color: '#6b7280'}}>Define core parameters and regulatory frameworks for the upcoming season, or adjust timelines for an existing one.</p>
+                    <p style={{ fontSize: '14px', color: '#6b7280' }}>Define core parameters and regulatory frameworks for the upcoming season, or adjust timelines for an existing one.</p>
                 </div>
-                <div className="config-card" style={{marginBottom: '24px'}}>
+                <div className="config-card" style={{ marginBottom: '24px' }}>
                     <h3 className="card-title">Select Existing Contest to Edit</h3>
                     <div className="search-box">
-                        <input type="text" style={{width: '100%'}} placeholder="Search by contest name or season" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
+                        <input type="text" style={{ width: '100%' }} placeholder="Search by contest name or season" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                     {searchQuery && (
                         <div className="partner-table-container mt-4">
                             <table className="partner-table">
                                 <thead>
-                                <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody>
-                                {filteredContests.length > 0 ? (filteredContests.map(c => {
-                                    const liveStatus = determineStatus(c.registrationStart, c.contestEndAt);
-                                    return (
-                                        <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
-                                            <td><div className="uni-name">{c.name}</div></td>
-                                            <td><div className="uni-domain">{c.season} {c.year}</div></td>
-                                            <td><span className="status-badge">{liveStatus}</span></td>
-                                            <td><button type="button" className={selectedContestId === c.id ? "delete-btn" : "edit-btn"}
-                                                        onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
-                                                {selectedContestId === c.id ? 'Deselect' : liveStatus === 'CLOSED' ? 'View details' : 'Select to Edit'}
-                                            </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })) : (<tr><td colSpan="4" style={{textAlign: 'center'}}>No contests found</td></tr>)}
+                                    {filteredContests.length > 0 ? (filteredContests.map(c => {
+                                        const liveStatus = determineStatus(c.registrationStart, c.contestEndAt);
+                                        return (
+                                            <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
+                                                <td><div className="uni-name">{c.name}</div></td>
+                                                <td><div className="uni-domain">{c.season} {c.year}</div></td>
+                                                <td><span className="status-badge">{liveStatus}</span></td>
+                                                <td><button type="button" className={selectedContestId === c.id ? "delete-btn" : "edit-btn"}
+                                                    onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
+                                                    {selectedContestId === c.id ? 'Deselect' : liveStatus === 'CLOSED' ? 'View details' : 'Select to Edit'}
+                                                </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
                                 </tbody>
                             </table>
                         </div>
@@ -515,80 +520,80 @@ function HackathonConfig() {
                         <div className="config-grid">
                             <div>
                                 <div className="config-card">
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-                                        <h3 className="card-title" style={{marginBottom: 0}}>Core Settings</h3>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                        <h3 className="card-title" style={{ marginBottom: 0 }}>Core Settings</h3>
                                         <div style={{ ...getStatusBadgeStyle(formik.values.status), padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{formik.values.status}</div>
                                     </div>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Event Name <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="text" name="name" className="form-input" value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.name && !!formik.errors.name} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Event Name <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="text" name="name" className="form-input" value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.name && !!formik.errors.name} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.name}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Theme <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="text" name="theme" className="form-input" value={formik.values.theme} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.theme && !!formik.errors.theme} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Theme <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="text" name="theme" className="form-input" value={formik.values.theme} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.theme && !!formik.errors.theme} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.theme}</Form.Control.Feedback>
                                     </Form.Group>
-                                    <div className="form-row mb-3" style={{display: 'flex', gap: '16px', width: '100%'}}>
-                                        <Form.Group style={{flex: 1}}>
-                                            <Form.Label className="form-label">Term <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="text" className="form-input bg-light text-muted" value={formik.values.term} disabled/>
+                                    <div className="form-row mb-3" style={{ display: 'flex', gap: '16px', width: '100%' }}>
+                                        <Form.Group style={{ flex: 1 }}>
+                                            <Form.Label className="form-label">Term <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="text" className="form-input bg-light text-muted" value={formik.values.term} disabled />
                                         </Form.Group>
-                                        <Form.Group style={{flex: 1}}>
-                                            <Form.Label className="form-label">Year <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="number" name="year" className="form-input bg-light text-muted" value={formik.values.year} disabled/>
+                                        <Form.Group style={{ flex: 1 }}>
+                                            <Form.Label className="form-label">Year <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="number" name="year" className="form-input bg-light text-muted" value={formik.values.year} disabled />
                                             <Form.Control.Feedback type="invalid">{formik.errors.year}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>
-                                    <div className="form-row mb-3" style={{display: 'flex', flexDirection: 'column', gap: '16px', width: '100%'}}>
+                                    <div className="form-row mb-3" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Registration Start <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={formik.handleChange} onBlur={formik.handleBlur} min={selectedContestId ? undefined : todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} disabled={isClosedContest}/>
+                                            <Form.Label className="form-label">Registration Start <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="date" name="registrationStart" className="form-input" value={formik.values.registrationStart} onChange={formik.handleChange} onBlur={formik.handleBlur} min={selectedContestId ? undefined : todayStr} isInvalid={formik.touched.registrationStart && !!formik.errors.registrationStart} disabled={isClosedContest} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationStart}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Registration End <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="date" name="registrationEnd" className="form-input" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationStart || (selectedContestId ? undefined : todayStr)} disabled={!formik.values.registrationStart || isClosedContest} isInvalid={formik.touched.registrationEnd && !!formik.errors.registrationEnd}/>
+                                            <Form.Label className="form-label">Registration End <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="date" name="registrationEnd" className="form-input" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationStart || (selectedContestId ? undefined : todayStr)} disabled={!formik.values.registrationStart || isClosedContest} isInvalid={formik.touched.registrationEnd && !!formik.errors.registrationEnd} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.registrationEnd}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Contest Start Time <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="datetime-local" name="contestStartAt" className="form-input" value={formik.values.contestStartAt} onChange={handleContestStartAtChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : ''} isInvalid={formik.touched.contestStartAt && !!formik.errors.contestStartAt} disabled={isClosedContest}/>
+                                            <Form.Label className="form-label">Contest Start Time <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="datetime-local" name="contestStartAt" className="form-input" value={formik.values.contestStartAt} onChange={handleContestStartAtChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : ''} isInvalid={formik.touched.contestStartAt && !!formik.errors.contestStartAt} disabled={isClosedContest} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.contestStartAt}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Contest End Time <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="datetime-local" name="contestEndAt" className="form-input" value={formik.values.contestEndAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : ''} isInvalid={formik.touched.contestEndAt && !!formik.errors.contestEndAt} disabled={isClosedContest}/>
+                                            <Form.Label className="form-label">Contest End Time <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="datetime-local" name="contestEndAt" className="form-input" value={formik.values.contestEndAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : ''} isInvalid={formik.touched.contestEndAt && !!formik.errors.contestEndAt} disabled={isClosedContest} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.contestEndAt}</Form.Control.Feedback>
                                         </Form.Group>
                                         <Form.Group>
-                                            <Form.Label className="form-label">Publish Info At <span style={{color: 'red'}}>*</span></Form.Label>
-                                            <Form.Control type="datetime-local" name="publishedAt" className="form-input" value={formik.values.publishedAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={selectedContestId ? undefined : todayStr + 'T00:00'} isInvalid={formik.touched.publishedAt && !!formik.errors.publishedAt} disabled={isClosedContest}/>
+                                            <Form.Label className="form-label">Publish Info At <span style={{ color: 'red' }}>*</span></Form.Label>
+                                            <Form.Control type="datetime-local" name="publishedAt" className="form-input" value={formik.values.publishedAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={selectedContestId ? undefined : todayStr + 'T00:00'} isInvalid={formik.touched.publishedAt && !!formik.errors.publishedAt} disabled={isClosedContest} />
                                             <Form.Control.Feedback type="invalid">{formik.errors.publishedAt}</Form.Control.Feedback>
                                         </Form.Group>
                                     </div>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Location <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="text" name="location" className="form-input" placeholder="e.g. FPT University, Campus HCM" value={formik.values.location} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.location && !!formik.errors.location} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Location <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="text" name="location" className="form-input" placeholder="e.g. FPT University, Campus HCM" value={formik.values.location} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.location && !!formik.errors.location} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.location}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Maximum Allowed Teams <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="number" name="maximumAllowedTeams" className="form-input" value={formik.values.maximumAllowedTeams} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.maximumAllowedTeams && !!formik.errors.maximumAllowedTeams} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Maximum Allowed Teams <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="number" name="maximumAllowedTeams" className="form-input" value={formik.values.maximumAllowedTeams} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.maximumAllowedTeams && !!formik.errors.maximumAllowedTeams} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.maximumAllowedTeams}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Min Team Members <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="number" name="minTeamMembers" className="form-input" value={formik.values.minTeamMembers} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.minTeamMembers && !!formik.errors.minTeamMembers} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Min Team Members <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="number" name="minTeamMembers" className="form-input" value={formik.values.minTeamMembers} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.minTeamMembers && !!formik.errors.minTeamMembers} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.minTeamMembers}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Max Team Members <span style={{color: 'red'}}>*</span></Form.Label>
-                                        <Form.Control type="number" name="maxTeamMembers" className="form-input" value={formik.values.maxTeamMembers} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.maxTeamMembers && !!formik.errors.maxTeamMembers} disabled={isClosedContest}/>
+                                        <Form.Label className="form-label">Max Team Members <span style={{ color: 'red' }}>*</span></Form.Label>
+                                        <Form.Control type="number" name="maxTeamMembers" className="form-input" value={formik.values.maxTeamMembers} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.maxTeamMembers && !!formik.errors.maxTeamMembers} disabled={isClosedContest} />
                                         <Form.Control.Feedback type="invalid">{formik.errors.maxTeamMembers}</Form.Control.Feedback>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="form-label">Participating Universities <span style={{color: 'red'}}>*</span></Form.Label>
+                                        <Form.Label className="form-label">Participating Universities <span style={{ color: 'red' }}>*</span></Form.Label>
                                         <div style={{ display: isClosedContest ? 'none' : 'flex', gap: '8px', marginBottom: '8px' }}>
                                             <Form.Select value={selectedUniToAdd} onChange={(e) => setSelectedUniToAdd(e.target.value)} className="form-select flex-grow-1">
                                                 <option value="">-- Select a University --</option>
@@ -602,29 +607,29 @@ function HackathonConfig() {
                                                 }
                                             }}>Add</Button>
                                         </div>
-                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                             {formik.values.universities.map(uni => (
                                                 <span key={uni} style={{ background: '#dbeafe', color: '#1e40af', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>{uni}
-                                                    {!isClosedContest && <button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{background: 'rgba(30, 64, 175, 0.1)', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '2px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', fontSize: '10px' }} title="Remove">&#10005;</button>}
+                                                    {!isClosedContest && <button type="button" onClick={() => formik.setFieldValue('universities', formik.values.universities.filter(u => u !== uni))} style={{ background: 'rgba(30, 64, 175, 0.1)', border: 'none', color: '#1e40af', cursor: 'pointer', padding: '2px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', fontSize: '10px' }} title="Remove">&#10005;</button>}
                                                 </span>
                                             ))}
                                         </div>
-                                        {formik.touched.universities && typeof formik.errors.universities === 'string' && <div className="text-danger mt-1" style={{fontSize: '14px'}}>{formik.errors.universities}</div>}
+                                        {formik.touched.universities && typeof formik.errors.universities === 'string' && <div className="text-danger mt-1" style={{ fontSize: '14px' }}>{formik.errors.universities}</div>}
                                     </Form.Group>
                                 </div>
                             </div>
 
                             <div>
-                                <div className="config-card" style={{marginBottom: '24px'}}>
+                                <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Category Definition</h3>
                                         {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: selectedContestId ? 'ACTIVED' : 'UNSAVED' }])}>
-                                            <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Category
+                                            <svg style={{ marginBottom: '3px' }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" /></svg> Add Category
                                         </Button>}
                                     </div>
                                     <FieldArray name="categories">
                                         {() => (
-                                            <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                                 {formik.values.categories.map((t, index) => (
                                                     <div key={t.id} style={{ background: '#f8fafc', border: '1px solid #9ca3af', boxShadow: '4px 4px 12px rgba(0,0,0,0.03)', borderRadius: '10px', padding: '20px', position: 'relative' }}>
                                                         {formik.values.categories.length > 1 && !isClosedContest && formik.values.rounds.filter(r => String(r.categoryId) === String(t.id)).every(r => r.state === 'UPCOMING') && (
@@ -638,18 +643,18 @@ function HackathonConfig() {
                                                             }} />
                                                         )}
                                                         <Form.Group className="mb-3">
-                                                            <Form.Label className="form-label">Category Name <span style={{color: 'red'}}>*</span></Form.Label>
-                                                            <Form.Control type="text" name={`categories[${index}].trackName`} className="form-input" value={t.trackName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.categories?.[index]?.trackName && !!formik.errors.categories?.[index]?.trackName} disabled={isClosedContest}/>
+                                                            <Form.Label className="form-label">Category Name <span style={{ color: 'red' }}>*</span></Form.Label>
+                                                            <Form.Control type="text" name={`categories[${index}].trackName`} className="form-input" value={t.trackName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={formik.touched.categories?.[index]?.trackName && !!formik.errors.categories?.[index]?.trackName} disabled={isClosedContest} />
                                                             <Form.Control.Feedback type="invalid">{formik.errors.categories?.[index]?.trackName}</Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group className="mb-3">
                                                             <Form.Label className="form-label">Description</Form.Label>
-                                                            <Form.Control as="textarea" name={`categories[${index}].trackDescription`} className="form-textarea" value={t.trackDescription} onChange={formik.handleChange} disabled={isClosedContest}/>
+                                                            <Form.Control as="textarea" name={`categories[${index}].trackDescription`} className="form-textarea" value={t.trackDescription} onChange={formik.handleChange} disabled={isClosedContest} />
                                                         </Form.Group>
                                                         <div className="row g-3 mb-3">
                                                             <Form.Group className="col-md-8 col-sm-10">
                                                                 <Form.Label className="form-label">Guideline URL</Form.Label>
-                                                                <Form.Control type="text" name={`categories[${index}].guidelineUrl`} className="form-input" value={t.guidelineUrl} onChange={formik.handleChange} disabled={isClosedContest}/>
+                                                                <Form.Control type="text" name={`categories[${index}].guidelineUrl`} className="form-input" value={t.guidelineUrl} onChange={formik.handleChange} disabled={isClosedContest} />
                                                             </Form.Group>
                                                             <Form.Group className="col-md-4 col-sm-2">
                                                                 <Form.Label className="form-label">Status</Form.Label>
@@ -661,34 +666,34 @@ function HackathonConfig() {
                                             </div>
                                         )}
                                     </FieldArray>
-                                    {typeof formik.errors.categories === 'string' && <div className="text-danger mt-3" style={{fontSize: '14px'}}>{formik.errors.categories}</div>}
+                                    {typeof formik.errors.categories === 'string' && <div className="text-danger mt-3" style={{ fontSize: '14px' }}>{formik.errors.categories}</div>}
                                 </div>
-                                <div className="config-card" style={{marginBottom: '24px'}}>
+                                <div className="config-card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <h3 className="card-title">Rounds Sequence</h3>
                                         {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('rounds', [...formik.values.rounds, { id: -Date.now(), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: formik.values.categories[formik.values.categories.length - 1]?.id || '', submissionOpen: '', submissionDeadline: '', gradingDeadlineAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: '', roundFormat: '' }])}>
-                                            <svg style={{marginBottom: '3px'}} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Round
+                                            <svg style={{ marginBottom: '3px' }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" /></svg> Add Round
                                         </Button>}
                                     </div>
                                     <FieldArray name="rounds">
                                         {() => (
-                                            <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                 {formik.values.rounds.map((round, index) => {
                                                     const roundTouched = formik.touched.rounds?.[index];
                                                     const roundErrors = formik.errors.rounds?.[index];
                                                     return (
                                                         <div key={round.id} style={{ background: '#f8fafc', border: '1px solid #9ca3af', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', borderRadius: '10px', padding: '20px', position: 'relative' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                                                <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} disabled={isClosedContest}/>
+                                                                <Form.Control type="text" name={`rounds[${index}].phaseName`} className="phase-title-input w-50" value={round.phaseName} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.phaseName && !!roundErrors?.phaseName} disabled={isClosedContest} />
                                                                 {index !== 0 && !isClosedContest && round.state === 'UPCOMING' && (
                                                                     <RemoveButton title="Delete Round" onClick={() => formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== index))} />
                                                                 )}
                                                             </div>
-                                                            {roundTouched?.phaseName && roundErrors?.phaseName && <div className="text-danger mb-2" style={{fontSize: '12px'}}>{roundErrors.phaseName}</div>}
+                                                            {roundTouched?.phaseName && roundErrors?.phaseName && <div className="text-danger mb-2" style={{ fontSize: '12px' }}>{roundErrors.phaseName}</div>}
 
-                                                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px'}}>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Category</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Category</Form.Label>
                                                                     <Form.Select name={`rounds[${index}].categoryId`} className="form-select" value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} isInvalid={roundTouched?.categoryId && !!roundErrors?.categoryId} disabled={isClosedContest}>
                                                                         <option value="">-- Select Category --</option>
                                                                         {formik.values.categories.map(c => {
@@ -696,48 +701,48 @@ function HackathonConfig() {
                                                                             return (<option key={c.id} value={c.id} disabled={isSelectedByOther}>{c.trackName || 'Unnamed Category'}</option>);
                                                                         })}
                                                                     </Form.Select>
-                                                                    {roundTouched?.categoryId && roundErrors?.categoryId && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.categoryId}</div>}
+                                                                    {roundTouched?.categoryId && roundErrors?.categoryId && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.categoryId}</div>}
                                                                 </Form.Group>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Status</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Status</Form.Label>
                                                                     <div style={{ ...getStatusBadgeStyle(round.state), padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{round.state}</div>
                                                                 </Form.Group>
                                                             </div>
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Submission Open <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} disabled={isClosedContest}/>
-                                                                    {roundTouched?.submissionOpen && roundErrors?.submissionOpen && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.submissionOpen}</div>}
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Open <span style={{ color: 'red' }}>*</span></Form.Label>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionOpen`} className="form-input" value={round.submissionOpen} onChange={formik.handleChange} onBlur={formik.handleBlur} min={formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.submissionOpen && !!roundErrors?.submissionOpen} disabled={isClosedContest} />
+                                                                    {roundTouched?.submissionOpen && roundErrors?.submissionOpen && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionOpen}</div>}
                                                                 </Form.Group>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Submission Deadline <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={formik.values.contestEndAt || bounds.max} disabled={!round.submissionOpen || isClosedContest} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline}/>
-                                                                    {roundTouched?.submissionDeadline && roundErrors?.submissionDeadline && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.submissionDeadline}</div>}
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Deadline <span style={{ color: 'red' }}>*</span></Form.Label>
+                                                                    <Form.Control type="datetime-local" name={`rounds[${index}].submissionDeadline`} className="form-input" value={round.submissionDeadline} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionOpen || bounds.min} max={formik.values.contestEndAt || bounds.max} disabled={!round.submissionOpen || isClosedContest} isInvalid={roundTouched?.submissionDeadline && !!roundErrors?.submissionDeadline} />
+                                                                    {roundTouched?.submissionDeadline && roundErrors?.submissionDeadline && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.submissionDeadline}</div>}
                                                                 </Form.Group>
                                                             </div>
                                                             <div className="form-group mt-3">
-                                                                <Form.Label style={{fontSize: '12px'}}>Grading Deadline <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.submissionDeadline || isClosedContest}/>
-                                                                {roundTouched?.gradingDeadlineAt && roundErrors?.gradingDeadlineAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.gradingDeadlineAt}</div>}
+                                                                <Form.Label style={{ fontSize: '12px' }}>Grading Deadline <span style={{ color: 'red' }}>*</span></Form.Label>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].gradingDeadlineAt`} className="form-input" value={round.gradingDeadlineAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.submissionDeadline || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.gradingDeadlineAt && !!roundErrors?.gradingDeadlineAt} disabled={!round.submissionDeadline || isClosedContest} />
+                                                                {roundTouched?.gradingDeadlineAt && roundErrors?.gradingDeadlineAt && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.gradingDeadlineAt}</div>}
                                                             </div>
                                                             <div className="form-group mt-3">
-                                                                <Form.Label style={{fontSize: '12px'}}>Publish Result At <span style={{color: 'red'}}>*</span></Form.Label>
-                                                                <Form.Control type="datetime-local" name={`rounds[${index}].publishResultAt`} className="form-input" value={round.publishResultAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingDeadlineAt || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.publishResultAt && !!roundErrors?.publishResultAt} disabled={!round.gradingDeadlineAt || isClosedContest}/>
-                                                                {roundTouched?.publishResultAt && roundErrors?.publishResultAt && <div className="text-danger mt-1" style={{fontSize: '12px'}}>{roundErrors.publishResultAt}</div>}
+                                                                <Form.Label style={{ fontSize: '12px' }}>Publish Result At <span style={{ color: 'red' }}>*</span></Form.Label>
+                                                                <Form.Control type="datetime-local" name={`rounds[${index}].publishResultAt`} className="form-input" value={round.publishResultAt} onChange={formik.handleChange} onBlur={formik.handleBlur} min={round.gradingDeadlineAt || bounds.min} max={formik.values.contestEndAt || bounds.max} isInvalid={roundTouched?.publishResultAt && !!roundErrors?.publishResultAt} disabled={!round.gradingDeadlineAt || isClosedContest} />
+                                                                {roundTouched?.publishResultAt && roundErrors?.publishResultAt && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{roundErrors.publishResultAt}</div>}
                                                             </div>
                                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Round Format</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Round Format</Form.Label>
                                                                     {!isClosedContest && (
-                                                                        <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
-                                                                            <Form.Control type="text" placeholder="Custom format..." value={customFormatInput[index] || ''} onChange={(e) => setCustomFormatInput({...customFormatInput, [index]: e.target.value})} style={{fontSize: '12px'}}/>
+                                                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                                                            <Form.Control type="text" placeholder="Custom format..." value={customFormatInput[index] || ''} onChange={(e) => setCustomFormatInput({ ...customFormatInput, [index]: e.target.value })} style={{ fontSize: '12px' }} />
                                                                             <Button variant="secondary" size="sm" onClick={() => {
                                                                                 const val = customFormatInput[index]?.trim();
                                                                                 if (val && !availableRoundFormats.includes(val)) {
                                                                                     setAvailableRoundFormats([...availableRoundFormats, val]);
                                                                                     formik.setFieldValue(`rounds[${index}].roundFormat`, val);
                                                                                 }
-                                                                                setCustomFormatInput({...customFormatInput, [index]: ''});
+                                                                                setCustomFormatInput({ ...customFormatInput, [index]: '' });
                                                                             }}>Add</Button>
                                                                         </div>
                                                                     )}
@@ -749,20 +754,20 @@ function HackathonConfig() {
                                                                     </Form.Select>
                                                                 </Form.Group>
                                                                 <Form.Group>
-                                                                    <Form.Label style={{fontSize: '12px'}}>Submission Requirements</Form.Label>
+                                                                    <Form.Label style={{ fontSize: '12px' }}>Submission Requirements</Form.Label>
                                                                     {!isClosedContest && (
-                                                                        <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
-                                                                            <Form.Control type="text" placeholder="New requirement..." value={customSubReqInput[index] || ''} onChange={(e) => setCustomSubReqInput({...customSubReqInput, [index]: e.target.value})} style={{fontSize: '12px'}}/>
+                                                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                                                            <Form.Control type="text" placeholder="New requirement..." value={customSubReqInput[index] || ''} onChange={(e) => setCustomSubReqInput({ ...customSubReqInput, [index]: e.target.value })} style={{ fontSize: '12px' }} />
                                                                             <Button variant="secondary" size="sm" onClick={() => {
                                                                                 const val = customSubReqInput[index]?.trim();
                                                                                 if (val && !availableSubReqs.some(r => r.value === val)) {
-                                                                                    setAvailableSubReqs([...availableSubReqs, {value: val, label: val}]);
+                                                                                    setAvailableSubReqs([...availableSubReqs, { value: val, label: val }]);
                                                                                 }
-                                                                                setCustomSubReqInput({...customSubReqInput, [index]: ''});
+                                                                                setCustomSubReqInput({ ...customSubReqInput, [index]: '' });
                                                                             }}>Add</Button>
                                                                         </div>
                                                                     )}
-                                                                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                                         {availableSubReqs.map(req => (
                                                                             <Form.Check
                                                                                 key={req.value} type="checkbox" label={req.label}
@@ -771,7 +776,7 @@ function HackathonConfig() {
                                                                                 checked={Array.isArray(round.submissionRequirements) && round.submissionRequirements.includes(req.value)}
                                                                                 onChange={formik.handleChange}
                                                                                 disabled={isClosedContest}
-                                                                                style={{fontSize: '13px'}}
+                                                                                style={{ fontSize: '13px' }}
                                                                             />
                                                                         ))}
                                                                     </div>
@@ -784,22 +789,22 @@ function HackathonConfig() {
                                         )}
                                     </FieldArray>
 
-                                    {typeof formik.errors.rounds === 'string' && <div className="text-danger mt-3" style={{fontSize: '14px'}}>{formik.errors.rounds}</div>}
+                                    {typeof formik.errors.rounds === 'string' && <div className="text-danger mt-3" style={{ fontSize: '14px' }}>{formik.errors.rounds}</div>}
                                 </div>
                                 <div className="config-card">
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                        <div className="section-label" style={{marginBottom: 0}}>Compliance Rules</div>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('complianceRules', [...formik.values.complianceRules, {rule: '', penalty: ''}])}>
+                                        <div className="section-label" style={{ marginBottom: 0 }}>Compliance Rules</div>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('complianceRules', [...formik.values.complianceRules, { rule: '', penalty: '' }])}>
                                             + Add Rule
                                         </Button>}
                                     </div>
                                     <FieldArray name="complianceRules">
                                         {() => (
-                                            <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                 {formik.values.complianceRules.map((item, idx) => (
-                                                    <div key={idx} style={{display: 'flex', gap: '8px'}}>
-                                                        <Form.Control type="text" name={`complianceRules[${idx}].rule`} className="form-input" value={item.rule} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Rule Description ${idx + 1}`}/>
-                                                        <Form.Control type="text" name={`complianceRules[${idx}].penalty`} className="form-input" value={item.penalty} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Default Penalty (Optional)`}/>
+                                                    <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                                                        <Form.Control type="text" name={`complianceRules[${idx}].rule`} className="form-input" value={item.rule} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Rule Description ${idx + 1}`} />
+                                                        <Form.Control type="text" name={`complianceRules[${idx}].penalty`} className="form-input" value={item.penalty} onChange={formik.handleChange} disabled={isClosedContest} placeholder={`Default Penalty (Optional)`} />
                                                         {formik.values.complianceRules.length > 1 && !isClosedContest && (
                                                             <RemoveButton title="Delete Rule" style={{ marginTop: '5px' }} onClick={() => formik.setFieldValue('complianceRules', formik.values.complianceRules.filter((_, i) => i !== idx))} />
                                                         )}
@@ -811,18 +816,18 @@ function HackathonConfig() {
                                 </div>
                                 <div className="config-card">
                                     <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                        <div className="section-label" style={{marginBottom: 0}}>Tiered Prize Structures</div>
-                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('tieredPrizeStructures', [...formik.values.tieredPrizeStructures, {rank: '', amount: ''}])}>
+                                        <div className="section-label" style={{ marginBottom: 0 }}>Tiered Prize Structures</div>
+                                        {!isClosedContest && <Button type="button" variant="light" size="sm" onClick={() => formik.setFieldValue('tieredPrizeStructures', [...formik.values.tieredPrizeStructures, { rank: '', amount: '' }])}>
                                             + Add Prize Tier
                                         </Button>}
                                     </div>
                                     <FieldArray name="tieredPrizeStructures">
                                         {() => (
-                                            <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                 {formik.values.tieredPrizeStructures.map((prize, idx) => (
-                                                    <div key={idx} style={{display: 'flex', gap: '8px'}}>
-                                                        <Form.Control type="text" name={`tieredPrizeStructures[${idx}].rank`} className="form-input" value={prize.rank} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. First Prize"/>
-                                                        <Form.Control type="text" name={`tieredPrizeStructures[${idx}].amount`} className="form-input" value={prize.amount} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. $5000"/>
+                                                    <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                                                        <Form.Control type="text" name={`tieredPrizeStructures[${idx}].rank`} className="form-input" value={prize.rank} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. First Prize" />
+                                                        <Form.Control type="text" name={`tieredPrizeStructures[${idx}].amount`} className="form-input" value={prize.amount} onChange={formik.handleChange} disabled={isClosedContest} placeholder="e.g. $5000" />
                                                         {formik.values.tieredPrizeStructures.length > 1 && !isClosedContest && (
                                                             <RemoveButton title="Delete Prize Tier" style={{ marginTop: '5px' }} onClick={() => formik.setFieldValue('tieredPrizeStructures', formik.values.tieredPrizeStructures.filter((_, i) => i !== idx))} />
                                                         )}
@@ -834,7 +839,7 @@ function HackathonConfig() {
                                 </div>
                             </div>
                         </div>
-                        <div className="action-bar-container" style={{marginTop: '24px'}}>
+                        <div className="action-bar-container" style={{ marginTop: '24px' }}>
                             <div className="action-bar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
                                 {formik.status?.error ? (
                                     <div className="alert-error" style={{ margin: 0, padding: '8px 16px', borderRadius: '6px', fontSize: '13px', background: '#fee2e2', color: '#991b1b' }}>{formik.status.error}</div>
@@ -845,7 +850,7 @@ function HackathonConfig() {
                                 ) : null}
 
                                 {!isClosedContest && (
-                                    <Button type="submit" className="submit-btn" disabled={formik.isSubmitting} style={{margin: 0}}>{formik.isSubmitting ? 'Saving...' : selectedContestId ? 'Save Configuration' : 'Initialize Season Hackathon'}</Button>
+                                    <Button type="submit" className="submit-btn" disabled={formik.isSubmitting} style={{ margin: 0 }}>{formik.isSubmitting ? 'Saving...' : selectedContestId ? 'Save Configuration' : 'Initialize Season Hackathon'}</Button>
                                 )}
                                 {isClosedContest && (
                                     <div style={{ color: '#6b7280', fontSize: '14px', fontStyle: 'italic', fontWeight: '500' }}>This past contest has been closed and cannot be modified.</div>
