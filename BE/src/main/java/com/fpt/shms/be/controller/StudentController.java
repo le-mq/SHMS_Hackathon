@@ -210,6 +210,10 @@ public class StudentController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             TeamRegistrationResponse response = teamService.registerOfficialTeam(registrationRequest, username);
 
+            if ("REJECTED".equals(response.getStatus())) {
+                return ResponseEntity.badRequest().body(Map.of("error", response.getMessage()));
+            }
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -249,11 +253,13 @@ public class StudentController {
 
 
     @DeleteMapping("/teams/leave")
-    @Operation(summary = "Leave Team", description = "Allows a member to voluntarily leave their current team before registration.")
-    public ResponseEntity<?> leaveTeam(HttpServletRequest request) {
+    @Operation(summary = "Leave Team", description = "Allows a member to voluntarily leave a specific team before registration.")
+    public ResponseEntity<?> leaveTeam(@RequestParam Long teamId, HttpServletRequest request) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            teamService.leaveTeam(username);
+
+
+            teamService.leaveTeam(username, teamId);
 
             return ResponseEntity.ok(Map.of("message", "Successfully left the team"));
         } catch (IllegalArgumentException e) {

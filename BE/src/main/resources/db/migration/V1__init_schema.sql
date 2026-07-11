@@ -858,9 +858,9 @@ GO
 INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
 (1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'CLOSED', N'Submit GitHub Repository link and Architecture Documentation', 'ONLINE'),
-(1, 1, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Submit Demo Video, Presentation Slides, and Final Source Code', 'OFFLINE'),
+(1, 2, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Submit Demo Video, Presentation Slides, and Final Source Code', 'OFFLINE'),
 (2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Submit Testnet Smart Contract link and Technical Whitepaper', 'ONLINE'),
-(2, 4, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Submit Complete DApp running on Mainnet/Testnet and Demo Video', 'OFFLINE'),
+(2, 5, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Submit Complete DApp running on Mainnet/Testnet and Demo Video', 'OFFLINE'),
 (3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Source Code, Demo Video, and AI/Web3 Presentation Slides', 'ONLINE'),
 (3, 8, 'Cloud & Big Data Architecture Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Cloud/Big Data Architecture Diagram, Source Code, and Demo Video', 'ONLINE'),
 (3, 9, 'Mobile & IoT Solutions Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Mobile/IoT Application APK/Firmware, Source Code, and Demo Video', 'ONLINE'),
@@ -1283,9 +1283,9 @@ VALUES
 (1, 1, @Team1_ID, @Admin1_ID, 3, 83.50, 'QUALIFIED', '2026-02-26 10:00:00'),
 
 -- Contest 1 Round 2 (Final Presentation) Ranking
-(2, 1, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
-(2, 1, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
-(2, 1, @Team1_ID, @Admin1_ID, 3, 84.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 2, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'QUALIFIED', '2026-03-30 10:00:00'),
 
 -- Contest 2 Round 3 (Qualification) Ranking
 (3, 4, @PastTeam3_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-10-21 10:00:00'),
@@ -1293,9 +1293,9 @@ VALUES
 (3, 4, @Team3_ID, @Admin1_ID, 3, 85.00, 'QUALIFIED', '2025-10-21 10:00:00'),
 
 -- Contest 2 Round 4 (Final Presentation) Ranking
-(4, 4, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
-(4, 4, @Team2_ID, @Admin1_ID, 2, 90.00, 'QUALIFIED', '2025-11-30 10:00:00'),
-(4, 4, @Team3_ID, @Admin1_ID, 3, 86.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 5, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 5, @Team2_ID, @Admin1_ID, 2, 90.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 5, @Team3_ID, @Admin1_ID, 3, 86.00, 'QUALIFIED', '2025-11-30 10:00:00'),
 
 -- Contest 4 Round 8 (Global Championship Round - 10-Team Leaderboard)
 (8, 10, @C4_T01_ID, @Admin1_ID, 1, 96.50, 'QUALIFIED', '2026-04-25 10:00:00'),

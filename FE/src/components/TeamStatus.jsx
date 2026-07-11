@@ -97,15 +97,13 @@ const TeamStatus = () => {
                 if (res.ok && Array.isArray(formingTeams)) {
                     formingTeams.forEach(data => {
                         const fallbackStatus = String(data.status || '').toUpperCase();
-                        if (['FORMING', 'PENDING'].includes(fallbackStatus)) {
-                            // Make sure we don't duplicate if it already matches one
-                            const exists = joinedTeams.some(item => getTeamIdentity(item.data) === getTeamIdentity(data));
-                            if (!exists) {
-                                joinedTeams = [
-                                    { contest: { id: 'forming', name: 'Not Registered' }, data },
-                                    ...joinedTeams,
-                                ];
-                            }
+                        // Make sure we don't duplicate if it already matches one
+                        const exists = joinedTeams.some(item => getTeamIdentity(item.data) === getTeamIdentity(data));
+                        if (!exists) {
+                            joinedTeams = [
+                                { contest: { id: 'forming', name: 'Not Registered' }, data },
+                                ...joinedTeams,
+                            ];
                         }
                     });
                 }
@@ -114,8 +112,18 @@ const TeamStatus = () => {
                 joinedTeams.sort((a, b) => {
                     const statusA = String(a.data?.status || '').toUpperCase();
                     const statusB = String(b.data?.status || '').toUpperCase();
-                    if (statusA === 'APPROVED' && statusB !== 'APPROVED') return -1;
-                    if (statusB === 'APPROVED' && statusA !== 'APPROVED') return 1;
+                    
+                    const getRank = (status) => {
+                        if (status === 'APPROVED') return 1;
+                        if (status === 'REJECTED') return 2;
+                        if (status === 'CLOSED') return 4;
+                        return 3; 
+                    };
+                    
+                    const rankA = getRank(statusA);
+                    const rankB = getRank(statusB);
+                    
+                    if (rankA !== rankB) return rankA - rankB;
 
                     if (a.contest?.id === 'forming') return -1;
                     if (b.contest?.id === 'forming') return 1;
@@ -216,7 +224,7 @@ const TeamStatus = () => {
         if (!window.confirm('Are you sure you want to leave this team?')) return;
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch(`${API_BASE}/teams/leave`, {
+            const response = await fetch(`${API_BASE}/teams/leave?teamId=${selectedTeamData.data.teamId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -410,6 +418,30 @@ const TeamStatus = () => {
                 </div>
             </div>
 
+            {status === 'REJECTED' && roster.some(m => m.isUnauthorized) && (
+                <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span>This team was rejected because some members are not from the allowed university for this contest. Please review the highlighted members below.</span>
+                </div>
+            )}
+            
+            {status === 'REJECTED' && !roster.some(m => m.isUnauthorized) && (
+                (() => {
+                    const approvedCount = roster.filter(m => m.status === 'APPROVED').length;
+                    const min = selectedTeamData.data.minMembers || 3;
+                    const max = selectedTeamData.data.maxMembers || 5;
+                    if (approvedCount < min || approvedCount > max) {
+                        return (
+                            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>This team was rejected because it must have between {min} and {max} approved members.</span>
+                            </div>
+                        );
+                    }
+                    return null;
+                })()
+            )}
+
             <div className="roster-section">
                 <div className="roster-header">
                     <h2 className="roster-title">Member Roster</h2>
@@ -430,11 +462,14 @@ const TeamStatus = () => {
                             const displayRole = isPending ? 'PENDING' : member.internalRole;
 
                             return (
-                                <tr key={idx} style={{ opacity: isPending ? 0.6 : 1 }}>
+                                <tr key={idx} style={{ opacity: isPending ? 0.6 : 1, backgroundColor: member.isUnauthorized ? '#fef2f2' : 'transparent' }}>
                                     <td>
                                         <div className="member-name-col">
                                             <div className="member-avatar">{getInitials(member.fullName)}</div>
-                                            <span className="member-name">{member.fullName}</span>
+                                            <span className="member-name" style={{ color: member.isUnauthorized ? '#ef4444' : 'inherit' }}>
+                                                {member.fullName}
+                                                {member.isUnauthorized && <span style={{fontSize: '12px', marginLeft: '6px', fontWeight: 500}}>(Your university is not allowed to participate in this competition)</span>}
+                                            </span>
                                         </div>
                                     </td>
                                     <td><span className="member-id">{member.studentId}</span></td>

@@ -81,7 +81,23 @@ public class ContestAdminService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    public List<Round> getAndSyncRoundsForContest(Long contestId) {
+        List<Round> rounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        boolean anyChanged = false;
+        for (Round r : rounds) {
+            if (r.checkAndSyncState()) {
+                roundRepository.save(r);
+                anyChanged = true;
+            }
+        }
+        if (anyChanged) {
+            roundRepository.flush();
+        }
+        return rounds;
+    }
+
+    @Transactional
     public Map<String, Object> getContestDetails(Long contestId) {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
@@ -90,7 +106,7 @@ public class ContestAdminService {
         List<String> domains = universities.stream().map(ContestUniversity::getCorporateDomain).toList();
 
         List<Category> categories = categoryRepository.findByContestId(contestId);
-        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        List<Round> contestRounds = getAndSyncRoundsForContest(contestId);
 
         List<Map<String, Object>> tracks = categories.stream().map(c -> {
             List<Map<String, Object>> roundsList = contestRounds.stream()
@@ -385,9 +401,9 @@ public class ContestAdminService {
 
         java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
                 : request.getRounds().stream()
-                .map(CreateTrackRoundRequest.RoundDto::getId)
-                .filter(id -> id != null && id > 0)
-                .collect(java.util.stream.Collectors.toSet());
+                  .map(CreateTrackRoundRequest.RoundDto::getId)
+                  .filter(id -> id != null && id > 0)
+                  .collect(java.util.stream.Collectors.toSet());
 
         for (Round existing : existingRounds) {
             if (!requestedRoundIds.contains(existing.getId())) {

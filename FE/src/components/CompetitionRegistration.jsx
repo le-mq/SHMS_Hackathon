@@ -76,6 +76,8 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
         team.contestName === comp.name && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase())
     );
 
+    const isRegistrationExpired = comp.registrationEnd && new Date(comp.registrationEnd) < new Date();
+
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
             <div className="comp-card-banner">
@@ -112,10 +114,11 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
                 ) : (
                     <button
                         className="btn-primary"
-                        disabled={!isOpen}
+                        disabled={!isOpen || isRegistrationExpired}
+                        style={isRegistrationExpired ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
                         onClick={() => onRegister(comp)}
                     >
-                        {isOpen ? 'Register' : 'Closed'}
+                        {isRegistrationExpired ? 'Registration Closed' : (isOpen ? 'Register' : 'Closed')}
                     </button>
                 )}
             </div>
@@ -179,7 +182,7 @@ const CompetitionDetailModal = ({ comp, onClose }) => {
     );
 };
 
-const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, selectedLeaderId, onSelectLeader }) => {
+const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, selectedLeaderId, onSelectLeader, error }) => {
     if (!myTeams || myTeams.length === 0) {
         return (
             <div className="empty-teams-msg">
@@ -219,7 +222,9 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                         {isSelected && roster.length > 0 && (
                             <div className="ts-member-list" style={{ marginTop: '16px', borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
                                 <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Team Leader:</p>
-                                {roster.map(member => (
+                                {roster.map(member => {
+                                    const isErrorMember = (error && member.fullName && error.includes(member.fullName)) || member.isUnauthorized === true;
+                                    return (
                                     <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
                                         <input
                                             type="radio"
@@ -228,11 +233,12 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                                             checked={selectedLeaderId === member.studentId}
                                             onChange={() => onSelectLeader(member.studentId)}
                                         />
-                                        <span style={{ fontSize: '14px', color: '#475569' }}>
-                                            {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''}
+                                        <span style={{ fontSize: '14px', color: isErrorMember ? '#ef4444' : '#475569', fontWeight: isErrorMember ? '600' : 'normal' }}>
+                                            {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''}
                                         </span>
                                     </label>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -255,9 +261,9 @@ const CompetitionRegistration = () => {
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedLeaderId, setSelectedLeaderId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const loadData = async () => {
+    const loadData = async (silent = false) => {
         try {
-            setIsLoading(true);
+            if (!silent) setIsLoading(true);
             const token = localStorage.getItem('shms_token');
 
             const contestsRes = await fetch(`${API_BASE}/contests`, { headers: { Authorization: `Bearer ${token}` } });
@@ -348,14 +354,6 @@ const CompetitionRegistration = () => {
         if (!leader) { setError('Team has no leader.'); return; }
         if (!selectedLeaderId) { setError('Please select a team leader from the list.'); return; }
 
-        const allowed = registeringComp.allowedUniversities || [];
-        if (allowed.length > 0) {
-            const ineligible = roster.filter(m => !allowed.includes(m.universityName));
-            if (ineligible.length > 0) {
-                setError(`Members (${ineligible.map(m => m.fullName).join(', ')}) are not eligible.`); return;
-            }
-        }
-
         try {
             setIsSubmitting(true);
             const token = localStorage.getItem('shms_token');
@@ -372,11 +370,14 @@ const CompetitionRegistration = () => {
             setError('');
             setRegisteringComp(null);
             setSelectedTeamId('');
-            loadData();
+            loadData(true);
 
             setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
         } catch (err) {
             setError(err.message || 'Registration failed.');
+            setTimeout(() => {
+                loadData(true);
+            }, 5000);
         } finally {
             setIsSubmitting(false);
         }
@@ -451,6 +452,7 @@ const CompetitionRegistration = () => {
                                     registeringComp={registeringComp}
                                     selectedLeaderId={selectedLeaderId}
                                     onSelectLeader={setSelectedLeaderId}
+                                    error={error}
                                 />
                             </div>
 

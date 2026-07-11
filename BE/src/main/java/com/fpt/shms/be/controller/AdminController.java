@@ -113,7 +113,7 @@ public class AdminController {
     @GetMapping("/contests/{contestId}/rounds")
     @Operation(summary = "Get Rounds for a Contest", description = "Returns rounds ordered by submission_open_at ASC.")
     public ResponseEntity<?> getRoundsForContest(HttpServletRequest request, @PathVariable Long contestId) {
-        List<Round> rounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        List<Round> rounds = contestAdminService.getAndSyncRoundsForContest(contestId);
         List<Map<String, Object>> response = rounds.stream().map(r -> {
             Map<String, Object> map = new HashMap<>();
             map.put("roundId", r.getId());

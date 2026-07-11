@@ -12,6 +12,7 @@ public class TeamStatusResponse {
     private String teamCode;
     private String categoryName;
     private String status;
+    private Integer minMembers;
     private Integer maxMembers;
     private Long currentTotalMembers;
     private List<MemberDto> roster;
@@ -29,5 +30,6 @@ public class TeamStatusResponse {
         private String internalRole; // "LEADER", "MEMBER"
         private String status;
         private String universityName;
+        private Boolean isUnauthorized;
     }
 }
