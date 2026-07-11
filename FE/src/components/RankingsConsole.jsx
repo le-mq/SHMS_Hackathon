@@ -4,7 +4,7 @@ import { Bar } from 'react-chartjs-2';
 import './RankingsConsole.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const API_BASE = "http://localhost:8080/api/v1/admin";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/admin";
 
 const formatDate = (dateStr) => {
     if (!dateStr) return "--";

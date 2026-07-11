@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './PartnerVerification.css';
 import { AddPartnerModal, AddStudentModal, ConfirmDialog } from './PartnerVerificationModals';
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 const PartnerVerification = () => {
     const [partners, setPartners] = useState([]);
