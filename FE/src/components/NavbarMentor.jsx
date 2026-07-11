@@ -29,7 +29,7 @@ const NavbarMentor = () => {
     const handleSwitchRole = async (targetRole) => {
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/auth/switch-role", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/switch-role", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ const NavbarMentor = () => {
                 <div className="mentor-nav-links">
                     {MENTOR_LINKS.map(link => (
                         <div key={link.path} className={`mentor-nav-link ${location.pathname === link.path ? 'active' : ''}`}
-                            onClick={() => handleNav(link.path)} style={{cursor:'pointer'}}
+                             onClick={() => handleNav(link.path)} style={{cursor:'pointer'}}
                         >
                             {link.label}
                         </div>

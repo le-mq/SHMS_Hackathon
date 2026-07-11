@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './PanelAllocation.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
@@ -20,7 +20,6 @@ const PanelAllocation = () => {
     const [isSendingMail, setIsSendingMail] = useState(false);
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
-
     const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
     const hasMentorRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('mentor')) ?? false, [activeExpert]);
     const hasJudgeRole = useMemo(() => activeExpert?.roles?.some(r => r.toLowerCase().includes('judge')) ?? false, [activeExpert]);
@@ -505,7 +504,7 @@ const PanelAllocation = () => {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '6px',
-                                            minWidth: '200px', 
+                                            minWidth: '200px',
                                             boxShadow: isActive ? '0 4px 6px -1px rgba(37, 99, 235, 0.1)' : 'none',
                                             transition: 'all 0.2s ease',
                                             position: 'relative'
@@ -567,15 +566,15 @@ const PanelAllocation = () => {
                     </div>
                     <div className="search-inner-wrapper">
                         <input type="text" className="search-input"
-                            placeholder="Search experts..." value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
+                               placeholder="Search experts..." value={searchQuery}
+                               onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
                     <div className="expert-list">
                         {filteredExperts.map(expert => (
                             <div key={expert.userId}
-                                className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
-                                onClick={() => setSelectedExpertId(expert.userId)}
+                                 className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
+                                 onClick={() => setSelectedExpertId(expert.userId)}
                             >
                                 <div className="expert-info">
                                     <div className="expert-avatar">{expert.fullName?.charAt(0).toUpperCase()}</div>
@@ -617,8 +616,8 @@ const PanelAllocation = () => {
                                             return (
                                                 <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
                                                     <input type="checkbox" checked={isChecked}
-                                                        onChange={() => handleGlobalTeamToggle(team.id)}
-                                                        disabled={isMentorDisabled}
+                                                           onChange={() => handleGlobalTeamToggle(team.id)}
+                                                           disabled={isMentorDisabled}
                                                     />
                                                     <div className="team-name-text">
                                                         {team.name}
@@ -637,23 +636,23 @@ const PanelAllocation = () => {
                                 {roundCategoryId ? (
                                     <table className="judge-pure-table judge-table-width">
                                         <thead>
-                                            <tr>
-                                                <th>Target Track Category</th>
-                                                <th className="center judge-table-center-th">Grading Authority</th>
-                                            </tr>
+                                        <tr>
+                                            <th>Target Track Category</th>
+                                            <th className="center judge-table-center-th">Grading Authority</th>
+                                        </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td><strong>{selectedRound?.categoryName}</strong></td>
-                                                <td className="center">
-                                                    <label className="ui-switch-blue">
-                                                        <input type="checkbox" checked={isJudgeForRound}
-                                                            onChange={handleJudgeToggle} disabled={isJudgeDisabled}
-                                                        />
-                                                        <span className="slider"></span>
-                                                    </label>
-                                                </td>
-                                            </tr>
+                                        <tr>
+                                            <td><strong>{selectedRound?.categoryName}</strong></td>
+                                            <td className="center">
+                                                <label className="ui-switch-blue">
+                                                    <input type="checkbox" checked={isJudgeForRound}
+                                                           onChange={handleJudgeToggle} disabled={isJudgeDisabled}
+                                                    />
+                                                    <span className="slider"></span>
+                                                </label>
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 ) : <p className="judge-missing-track">Missing target track focus.</p>}
@@ -724,35 +723,35 @@ const PanelAllocation = () => {
                     ) : (
                         <table className="judge-pure-table overview-table">
                             <thead>
-                                <tr>
-                                    <th>Role</th>
-                                    <th>Identity</th>
-                                    <th>Scope</th>
-                                </tr>
+                            <tr>
+                                <th>Role</th>
+                                <th>Identity</th>
+                                <th>Scope</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {overviewJudges.map((judge, idx) => (
-                                    <tr key={`judge-${judge.userId}-${idx}`}>
-                                        <td><span className="badge-judge">JUDGE</span></td>
-                                        <td><strong>{judge.fullName || judge.username}</strong></td>
-                                        <td><span className="scope-judge">All teams</span></td>
-                                    </tr>
-                                ))}
-                                {overviewMentors.map((mentorData, idx) => (
-                                    <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
-                                        <td><span className="badge-mentor">MENTOR</span></td>
-                                        <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
-                                        <td>
-                                            <div className="mentor-teams-badge-wrap">
-                                                {mentorData.teams.map((teamName, tIdx) => (
-                                                    <span key={tIdx} className="scope-mentor-tag">
+                            {overviewJudges.map((judge, idx) => (
+                                <tr key={`judge-${judge.userId}-${idx}`}>
+                                    <td><span className="badge-judge">JUDGE</span></td>
+                                    <td><strong>{judge.fullName || judge.username}</strong></td>
+                                    <td><span className="scope-judge">All teams</span></td>
+                                </tr>
+                            ))}
+                            {overviewMentors.map((mentorData, idx) => (
+                                <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
+                                    <td><span className="badge-mentor">MENTOR</span></td>
+                                    <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
+                                    <td>
+                                        <div className="mentor-teams-badge-wrap">
+                                            {mentorData.teams.map((teamName, tIdx) => (
+                                                <span key={tIdx} className="scope-mentor-tag">
                                                         {teamName}
                                                     </span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     )}

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import NavbarHome from './NavbarHome.jsx';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -140,8 +140,8 @@ const Login = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 <input type="text" name="username" className="form-input-with-icon"
-                                    placeholder="Enter your username" value={formData.username}
-                                    onChange={handleChange}
+                                       placeholder="Enter your username" value={formData.username}
+                                       onChange={handleChange}
                                 />
                             </div>
                         </div>
@@ -154,9 +154,9 @@ const Login = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                                 <input type={showPassword ? "text" : "password"}
-                                    name="password" className="form-input-with-icon"
-                                    placeholder="••••••••" value={formData.password}
-                                    onChange={handleChange}
+                                       name="password" className="form-input-with-icon"
+                                       placeholder="••••••••" value={formData.password}
+                                       onChange={handleChange}
                                 />
                                 <button type="button" className="password-toggle" onClick={togglePasswordVisibility}>
                                     {showPassword ? (

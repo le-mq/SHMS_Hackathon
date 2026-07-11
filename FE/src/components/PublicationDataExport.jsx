@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './PublicationDataExport.css';
 
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const ANNOUNCEMENT_TYPES = [
     'General Update',
     'Deadline Reminder',
@@ -94,7 +94,7 @@ const PublicationDataExport = () => {
 
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/admin/contests/announcements", {
+            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/admin/contests/announcements", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ const PublicationDataExport = () => {
     const handleExport = (type) => {
         const token = localStorage.getItem('shms_token');
         const contestParam = formData.contestId ? `&contestId=${formData.contestId}` : '';
-        window.open(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+`/admin/results/export-csv?type=${type}${contestParam}&token=${token}`, '_blank');
+        window.open((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/admin/results/export-csv?type=${type}${contestParam}&token=${token}`, '_blank');
     };
 
     return (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './PartnerVerification.css';
 import { AddPartnerModal, AddStudentModal, ConfirmDialog } from './PartnerVerificationModals';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
 const PartnerVerification = () => {
     const [partners, setPartners] = useState([]);
@@ -71,7 +71,7 @@ const PartnerVerification = () => {
             if (!response.ok)
                 throw new Error();
             const data = await response.json();
-            
+
             const sorted = [...data].sort((a, b) => {
                 const aNew = currentNewPartners.includes(a.name);
                 const bNew = currentNewPartners.includes(b.name);
@@ -85,7 +85,7 @@ const PartnerVerification = () => {
         catch {
             const localRes = await fetch("/testFE.json");
             const localJson = await localRes.json();
-            
+
             const sorted = [...localJson.universities].sort((a, b) => {
                 const aNew = currentNewPartners.includes(a.name);
                 const bNew = currentNewPartners.includes(b.name);
@@ -122,7 +122,7 @@ const PartnerVerification = () => {
             const localRes = await fetch("/testFE.json");
             const localJson = await localRes.json();
             const mockStudents = localJson.students.filter(s => s.university === partners.find(p => String(p.ui_id) === String(partnerId))?.name);
-            
+
             const sorted = [...mockStudents].sort((a, b) => {
                 const aNew = currentNewStudents.includes(a.studentCode);
                 const bNew = currentNewStudents.includes(b.studentCode);
@@ -231,7 +231,7 @@ const PartnerVerification = () => {
                     localStorage.setItem("universities", JSON.stringify(updatedPartners));
                     setShowAddPartnerModal(false);
                     showToast("Saved locally (Mock API)");
-                    
+
                     const sorted = [...updatedPartners].sort((a, b) => {
                         const aNew = nextNewPartners.includes(a.name);
                         const bNew = nextNewPartners.includes(b.name);
@@ -335,7 +335,7 @@ const PartnerVerification = () => {
                     localStorage.setItem(`students_${partnerName}`, JSON.stringify(updatedStudents));
                     setShowAddStudentModal(false);
                     showToast("Saved student directory locally (Mock API)");
-                    
+
                     const sorted = [...updatedStudents].sort((a, b) => {
                         const aNew = nextNewStudents.includes(a.studentCode);
                         const bNew = nextNewStudents.includes(b.studentCode);
@@ -430,54 +430,54 @@ const PartnerVerification = () => {
 
                     <table className="partners-table">
                         <thead>
-                            <tr>
-                                <th>Institution</th>
-                                <th>Code (ID)</th>
-                                <th>Email Regex</th>
-                                <th>ID Regex</th>
-                                <th style={{ textAlign: 'center' }}>Actions</th>
-                            </tr>
+                        <tr>
+                            <th>Institution</th>
+                            <th>Code (ID)</th>
+                            <th>Email Regex</th>
+                            <th>ID Regex</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {partners.map(p => (
-                                <tr key={p.ui_id}>
-                                    <td>
-                                        <div className="institution-cell">
-                                            <div className="institution-avatar">
-                                                {p.name ? p.name.charAt(0).toUpperCase() : 'U'}
-                                            </div>
-                                            <span style={{ fontWeight: '600', color: '#1f2937' }}>{p.name}</span>
+                        {partners.map(p => (
+                            <tr key={p.ui_id}>
+                                <td>
+                                    <div className="institution-cell">
+                                        <div className="institution-avatar">
+                                            {p.name ? p.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
-                                    </td>
-                                    <td>
+                                        <span style={{ fontWeight: '600', color: '#1f2937' }}>{p.name}</span>
+                                    </div>
+                                </td>
+                                <td>
                                         <span style={{ fontWeight: '500', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
                                             {p.universityCode}
                                         </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace' }}>
-                                            {p.emailRegex}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace' }}>
-                                            {p.studentCodeRegex}
-                                        </div>
-                                    </td>
-                                    <td className="actions-td">
-                                        <div className="actions-cell">
-                                            <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdatePartnerClick(p)} title="Update Partner">
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                Update
-                                            </button>
-                                            <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeletePartnerClick(p.ui_id)} title="Delete Partner">
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                </td>
+                                <td>
+                                    <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace' }}>
+                                        {p.emailRegex}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace' }}>
+                                        {p.studentCodeRegex}
+                                    </div>
+                                </td>
+                                <td className="actions-td">
+                                    <div className="actions-cell">
+                                        <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdatePartnerClick(p)} title="Update Partner">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            Update
+                                        </button>
+                                        <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeletePartnerClick(p.ui_id)} title="Delete Partner">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
@@ -514,57 +514,57 @@ const PartnerVerification = () => {
                         <form onSubmit={(e) => e.preventDefault()}>
                             <table className="partners-table">
                                 <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Student ID</th>
-                                        <th>Full Name</th>
-                                        <th>Email</th>
-                                        <th>Major</th>
-                                        <th style={{ textAlign: 'center' }}>Current</th>
-                                        <th style={{ textAlign: 'center' }}>Actions</th>
-                                    </tr>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Major</th>
+                                    <th style={{ textAlign: 'center' }}>Current</th>
+                                    <th style={{ textAlign: 'center' }}>Actions</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {students.map((s, index) => (
-                                        <tr key={s.ui_id}>
-                                            <td>{index + 1}</td>
-                                            <td style={{ fontWeight: '600', color: '#1f2937' }}>{s.studentCode}</td>
-                                            <td style={{ fontWeight: '500', color: '#374151' }}>{s.fullName}</td>
-                                            <td style={{ color: '#4b5563' }}>{s.corporateEmail}</td>
-                                            <td>
+                                {students.map((s, index) => (
+                                    <tr key={s.ui_id}>
+                                        <td>{index + 1}</td>
+                                        <td style={{ fontWeight: '600', color: '#1f2937' }}>{s.studentCode}</td>
+                                        <td style={{ fontWeight: '500', color: '#374151' }}>{s.fullName}</td>
+                                        <td style={{ color: '#4b5563' }}>{s.corporateEmail}</td>
+                                        <td>
                                                 <span style={{ fontWeight: '500', color: '#1e40af', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
                                                     {s.major}
                                                 </span>
-                                            </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={s.isCurrentStudent !== false}
-                                                    disabled
-                                                    style={{ width: '18px', height: '18px', cursor: 'default' }}
-                                                />
-                                            </td>
-                                            <td className="actions-td">
-                                                <div className="actions-cell">
-                                                    <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdateStudentClick(s)} title="Update Student">
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                        Update
-                                                    </button>
-                                                    <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeleteStudentClick(s.ui_id)} title="Delete Record">
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {students.length === 0 && (
-                                        <tr>
-                                            <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                                                No student records. Add a student to start.
-                                            </td>
-                                        </tr>
-                                    )}
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={s.isCurrentStudent !== false}
+                                                disabled
+                                                style={{ width: '18px', height: '18px', cursor: 'default' }}
+                                            />
+                                        </td>
+                                        <td className="actions-td">
+                                            <div className="actions-cell">
+                                                <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdateStudentClick(s)} title="Update Student">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                    Update
+                                                </button>
+                                                <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeleteStudentClick(s.ui_id)} title="Delete Record">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {students.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                                            No student records. Add a student to start.
+                                        </td>
+                                    </tr>
+                                )}
                                 </tbody>
                             </table>
                         </form>
@@ -584,24 +584,24 @@ const PartnerVerification = () => {
             </div>
 
             {/* Modal: Add/Edit Partner */}
-            <AddPartnerModal 
-                show={showAddPartnerModal} 
+            <AddPartnerModal
+                show={showAddPartnerModal}
                 onHide={() => {
                     setShowAddPartnerModal(false);
                     setEditPartner(null);
-                }} 
+                }}
                 onCreate={handleCreateOrUpdatePartner}
                 partners={partners}
                 editPartner={editPartner}
             />
 
             {/* Modal: Add/Edit Student */}
-            <AddStudentModal 
-                show={showAddStudentModal} 
+            <AddStudentModal
+                show={showAddStudentModal}
                 onHide={() => {
                     setShowAddStudentModal(false);
                     setEditStudent(null);
-                }} 
+                }}
                 onCreate={handleCreateOrUpdateStudent}
                 partners={partners}
                 selectedPartnerId={selectedStudentPartner}
@@ -609,7 +609,7 @@ const PartnerVerification = () => {
             />
 
             {/* Confirm Dialog */}
-            <ConfirmDialog 
+            <ConfirmDialog
                 show={confirmDialog.show}
                 title={confirmDialog.title}
                 message={confirmDialog.message}

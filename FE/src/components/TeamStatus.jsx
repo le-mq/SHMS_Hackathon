@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './TeamStatus.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
 
 const normalizeList = (json) => {
     if (Array.isArray(json)) return json;
@@ -112,29 +112,29 @@ const TeamStatus = () => {
                 joinedTeams.sort((a, b) => {
                     const statusA = String(a.data?.status || '').toUpperCase();
                     const statusB = String(b.data?.status || '').toUpperCase();
-                    
+
                     const getRank = (status) => {
                         if (status === 'APPROVED') return 1;
                         if (status === 'REJECTED') return 2;
                         if (status === 'CLOSED') return 4;
-                        return 3; 
+                        return 3;
                     };
-                    
+
                     const rankA = getRank(statusA);
                     const rankB = getRank(statusB);
-                    
+
                     if (rankA !== rankB) return rankA - rankB;
 
                     if (a.contest?.id === 'forming') return -1;
                     if (b.contest?.id === 'forming') return 1;
-                    
+
                     const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
                     const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
-                    
+
                     if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) {
                         return dateB - dateA;
                     }
-                    
+
                     const idA = parseInt(a.contest?.id) || 0;
                     const idB = parseInt(b.contest?.id) || 0;
                     return idB - idA;
@@ -161,7 +161,7 @@ const TeamStatus = () => {
                     if (mockJoinedTeams.length === 0 && mockContests.length > 0 && localJson.teamStatus?.data) {
                         mockJoinedTeams = [{ contest: mockContests[0], data: localJson.teamStatus.data }];
                     }
-                    
+
                     mockJoinedTeams.sort((a, b) => {
                         const statusA = String(a.data?.status || '').toUpperCase();
                         const statusB = String(b.data?.status || '').toUpperCase();
@@ -170,19 +170,19 @@ const TeamStatus = () => {
 
                         if (a.contest?.id === 'forming') return -1;
                         if (b.contest?.id === 'forming') return 1;
-                        
+
                         const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
                         const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
-                        
+
                         if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) {
                             return dateB - dateA;
                         }
-                        
+
                         const idA = parseInt(a.contest?.id) || 0;
                         const idB = parseInt(b.contest?.id) || 0;
                         return idB - idA;
                     });
-                    
+
                     if (!cancelled) setParticipatedTeams(mockJoinedTeams);
                 } catch (mockError) {
                     if (!cancelled) setError('Could not connect to server.');
@@ -424,7 +424,7 @@ const TeamStatus = () => {
                     <span>This team was rejected because some members are not from the allowed university for this contest. Please review the highlighted members below.</span>
                 </div>
             )}
-            
+
             {status === 'REJECTED' && !roster.some(m => m.isUnauthorized) && (
                 (() => {
                     const approvedCount = roster.filter(m => m.status === 'APPROVED').length;
@@ -449,45 +449,45 @@ const TeamStatus = () => {
 
                 <table className="roster-table">
                     <thead>
-                        <tr>
-                            <th>FULL NAME</th>
-                            <th>STUDENT ID</th>
-                            <th>EMAIL</th>
-                            <th>INTERNAL ROLE</th>
-                        </tr>
+                    <tr>
+                        <th>FULL NAME</th>
+                        <th>STUDENT ID</th>
+                        <th>EMAIL</th>
+                        <th>INTERNAL ROLE</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {roster.length > 0 ? roster.map((member, idx) => {
-                            const isPending = member.status === 'PENDING';
-                            const displayRole = isPending ? 'PENDING' : member.internalRole;
+                    {roster.length > 0 ? roster.map((member, idx) => {
+                        const isPending = member.status === 'PENDING';
+                        const displayRole = isPending ? 'PENDING' : member.internalRole;
 
-                            return (
-                                <tr key={idx} style={{ opacity: isPending ? 0.6 : 1, backgroundColor: member.isUnauthorized ? '#fef2f2' : 'transparent' }}>
-                                    <td>
-                                        <div className="member-name-col">
-                                            <div className="member-avatar">{getInitials(member.fullName)}</div>
-                                            <span className="member-name" style={{ color: member.isUnauthorized ? '#ef4444' : 'inherit' }}>
+                        return (
+                            <tr key={idx} style={{ opacity: isPending ? 0.6 : 1, backgroundColor: member.isUnauthorized ? '#fef2f2' : 'transparent' }}>
+                                <td>
+                                    <div className="member-name-col">
+                                        <div className="member-avatar">{getInitials(member.fullName)}</div>
+                                        <span className="member-name" style={{ color: member.isUnauthorized ? '#ef4444' : 'inherit' }}>
                                                 {member.fullName}
-                                                {member.isUnauthorized && <span style={{fontSize: '12px', marginLeft: '6px', fontWeight: 500}}>(Your university is not allowed to participate in this competition)</span>}
+                                            {member.isUnauthorized && <span style={{fontSize: '12px', marginLeft: '6px', fontWeight: 500}}>(Your university is not allowed to participate in this competition)</span>}
                                             </span>
-                                        </div>
-                                    </td>
-                                    <td><span className="member-id">{member.studentId}</span></td>
-                                    <td><span className="member-email">{member.email}</span></td>
-                                    <td>
+                                    </div>
+                                </td>
+                                <td><span className="member-id">{member.studentId}</span></td>
+                                <td><span className="member-email">{member.email}</span></td>
+                                <td>
                                         <span className={`role-badge ${displayRole === 'LEADER' ? 'role-leader' : (displayRole === 'PENDING' ? 'role-pending' : 'role-member')}`}>
                                             {displayRole}
                                         </span>
-                                    </td>
-                                </tr>
-                            );
-                        }) : (
-                            <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                    No team members available
                                 </td>
                             </tr>
-                        )}
+                        );
+                    }) : (
+                        <tr>
+                            <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                No team members available
+                            </td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -514,35 +514,35 @@ const TeamStatus = () => {
                             {searchResults.length > 0 && (
                                 <table className="invite-table">
                                     <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Code</th>
-                                            <th>Email</th>
-                                            <th>University</th>
-                                            <th style={{ textAlign: 'center', width: '100px' }}>Action</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Email</th>
+                                        <th>University</th>
+                                        <th style={{ textAlign: 'center', width: '100px' }}>Action</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {searchResults.map((s, idx) => {
-                                            const isAlreadyInTeam = roster.some(m => m.email === s.email);
-                                            return (
-                                                <tr key={idx}>
-                                                    <td>{s.fullName}</td>
-                                                    <td>{s.studentCode}</td>
-                                                    <td>{s.email}</td>
-                                                    <td>{s.universityName}</td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        {isAlreadyInTeam ? (
-                                                            <button disabled className="btn-invited">Invited</button>
-                                                        ) : (
-                                                            <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading} className="btn-invite">
-                                                                Invite
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                    {searchResults.map((s, idx) => {
+                                        const isAlreadyInTeam = roster.some(m => m.email === s.email);
+                                        return (
+                                            <tr key={idx}>
+                                                <td>{s.fullName}</td>
+                                                <td>{s.studentCode}</td>
+                                                <td>{s.email}</td>
+                                                <td>{s.universityName}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    {isAlreadyInTeam ? (
+                                                        <button disabled className="btn-invited">Invited</button>
+                                                    ) : (
+                                                        <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading} className="btn-invite">
+                                                            Invite
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                     </tbody>
                                 </table>
                             )}

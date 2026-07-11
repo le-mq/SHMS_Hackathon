@@ -136,7 +136,7 @@ export default function PublicHome() {
         let cancelled = false;
         async function fetchHome() {
             try {
-                const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/public/home");
+                const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/public/home");
                 if (!res.ok) throw new Error("API failed");
                 const json = await res.json();
                 if (!cancelled) setData(json);
