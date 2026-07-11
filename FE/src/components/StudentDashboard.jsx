@@ -4,8 +4,8 @@ import axios from 'axios';
 import './StudentDashboard.css';
 import LatestAnnouncements from './LatestAnnouncements';
 
-const API_PUBLIC = 'http://localhost:8080/api/v1/public';
-const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const API_PUBLIC = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/public";
+const API_STUDENT = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
 
 function getContestList(json) {
     if (Array.isArray(json)) {
@@ -204,7 +204,7 @@ const StudentDashboard = () => {
         const fetchPendingInvitations = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/pending`, {
+                const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/teams/invitations/pending", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -230,7 +230,7 @@ const StudentDashboard = () => {
     const handleRespondInvitation = async (invitationToken, action) => {
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/respond`, {
+            const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/teams/invitations/respond", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ invitationToken, action })

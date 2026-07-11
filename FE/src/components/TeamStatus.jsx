@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './TeamStatus.css';
 
-const API_BASE = 'http://localhost:8080/api/v1/student';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
 
 const normalizeList = (json) => {
     if (Array.isArray(json)) return json;

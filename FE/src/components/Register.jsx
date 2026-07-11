@@ -3,7 +3,7 @@ import './Register.css';
 import { Link, useNavigate } from 'react-router-dom';
 import NavbarHome from './NavbarHome';
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 const Register = () => {
     const navigate = useNavigate();

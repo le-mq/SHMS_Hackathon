@@ -13,7 +13,7 @@ export function useUnreadAnnouncements() {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
 
-                const res = await fetch('http://localhost:8080/api/v1/public/announcements', {
+                const res = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/public/announcements", {
                     method: 'GET',
                     headers: headers
                 });
