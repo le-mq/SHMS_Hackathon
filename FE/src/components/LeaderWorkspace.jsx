@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import './LeaderWorkspace.css';
 
-const API_STUDENT = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
+const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
 
 const LeaderWorkspace = () => {
     const [workspaceData, setWorkspaceData] = useState(null);

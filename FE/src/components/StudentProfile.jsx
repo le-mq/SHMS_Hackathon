@@ -28,7 +28,7 @@ const StudentProfile = () => {
             return;
         }
         try {
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/profile", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/profile", {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.status === 401) {
@@ -162,7 +162,7 @@ const StudentProfile = () => {
 
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/profile", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/profile", {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -195,7 +195,7 @@ const StudentProfile = () => {
         if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
 
         try {
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/profile", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/profile", {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('shms_token')}`

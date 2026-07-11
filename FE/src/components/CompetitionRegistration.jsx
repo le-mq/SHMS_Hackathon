@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import './CompetitionRegistration.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
 
 const normalizeList = (json) => (Array.isArray(json) ? json : json?.data || []);
 const safeJson = async (res) => { try { return await res.json(); } catch { return {}; } };
@@ -225,18 +225,18 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                                 {roster.map(member => {
                                     const isErrorMember = (error && member.fullName && error.includes(member.fullName)) || member.isUnauthorized === true;
                                     return (
-                                    <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
-                                        <input
-                                            type="radio"
-                                            name="leaderSelect"
-                                            value={member.studentId}
-                                            checked={selectedLeaderId === member.studentId}
-                                            onChange={() => onSelectLeader(member.studentId)}
-                                        />
-                                        <span style={{ fontSize: '14px', color: isErrorMember ? '#ef4444' : '#475569', fontWeight: isErrorMember ? '600' : 'normal' }}>
+                                        <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
+                                            <input
+                                                type="radio"
+                                                name="leaderSelect"
+                                                value={member.studentId}
+                                                checked={selectedLeaderId === member.studentId}
+                                                onChange={() => onSelectLeader(member.studentId)}
+                                            />
+                                            <span style={{ fontSize: '14px', color: isErrorMember ? '#ef4444' : '#475569', fontWeight: isErrorMember ? '600' : 'normal' }}>
                                             {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''}
                                         </span>
-                                    </label>
+                                        </label>
                                     );
                                 })}
                             </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OperatorProfile.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const AdminProfile = () => {
     const fileInputRef = useRef(null);
     const navigate = useNavigate();

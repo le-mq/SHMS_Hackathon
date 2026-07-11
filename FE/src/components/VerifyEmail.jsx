@@ -42,7 +42,7 @@ const VerifyEmail = () => {
         setIsResending(true);
 
         try {
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/auth/resend-otp", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/resend-otp", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username })
@@ -115,7 +115,7 @@ const VerifyEmail = () => {
         setIsResending(true);
 
         try {
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/auth/resend-otp", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/resend-otp", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username })
@@ -154,7 +154,7 @@ const VerifyEmail = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/auth/verify-email", {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/verify-email", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, otp: otpValue })
@@ -167,7 +167,7 @@ const VerifyEmail = () => {
             } else {
                 setError('');
                 setSuccess(data.message || 'Account activated successfully! Logging you in...');
-                
+
                 if (data.token) {
                     localStorage.setItem('shms_token', data.token);
                     if (data.role)
