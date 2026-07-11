@@ -675,11 +675,15 @@ public class TeamService{
                 .contests(contestDataList).build();
     }
 
+    @Transactional
     public RoundProgressResponse getRoundProgress(Long contestId, Long roundId) {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
         if (round.getContest() != null && !round.getContest().getId().equals(contestId)) {
             throw new IllegalArgumentException("Round does not belong to contest");
+        }
+        if (round.checkAndSyncState()) {
+            roundRepository.save(round);
         }
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();

@@ -34,7 +34,8 @@ public class RankingAdminService {
         }
         Long categoryId = round.getCategory().getId();
 
-        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId()).stream()
+        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
+                .stream()
                 .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
                 .sorted(Comparator.comparing(Round::getSubmissionOpen))
                 .toList();
@@ -118,12 +119,14 @@ public class RankingAdminService {
                 .filter(s -> s.getStatus() != null &&
                         ("OFFICIAL".equalsIgnoreCase(s.getStatus()) ||
                                 "SUBMITTED".equalsIgnoreCase(s.getStatus()) ||
-                                "EVALUATED".equalsIgnoreCase(s.getStatus())) &&
+                                "EVALUATED".equalsIgnoreCase(s.getStatus()))
+                        &&
                         s.getTeam() != null && participatingTeamIds.contains(s.getTeam().getId()))
                 .count();
 
         boolean allTeamsSubmitted = (officialSubCount == participatingTeams.size() && !participatingTeams.isEmpty());
-        boolean deadlinePassed = round.getSubmissionDeadline() != null && LocalDateTime.now().isAfter(round.getSubmissionDeadline());
+        boolean deadlinePassed = round.getSubmissionDeadline() != null
+                && LocalDateTime.now().isAfter(round.getSubmissionDeadline());
         boolean submissionPhaseDone = deadlinePassed || allTeamsSubmitted;
 
         List<RankingReadinessResponse.Evaluator> evaluatorList = new ArrayList<>();
@@ -133,9 +136,10 @@ public class RankingAdminService {
             boolean judgeReady = submissionPhaseDone;
             if (judgeReady) {
                 for (Submission s : allSubmissions) {
-                    if (s.getStatus() != null &&
-                            ("MISSED_DEADLINE".equalsIgnoreCase(s.getStatus()) ||
-                                    "DRAFT".equalsIgnoreCase(s.getStatus()))) {
+                    if (s.getStatus() != null && "DRAFT".equalsIgnoreCase(s.getStatus())) {
+                        continue;
+                    }
+                    if ("MISSED_DEADLINE".equalsIgnoreCase(s.getStatus()) && !scoreRepository.existsBySubmissionId(s.getId())) {
                         continue;
                     }
                     if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {
@@ -335,7 +339,8 @@ public class RankingAdminService {
             rr.setDatePublishedAt(LocalDateTime.now());
             rankingResultRepository.save(rr);
 
-            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult", rr.getTeam() != null ? rr.getTeam().getName() : "Leaderboard", "PENDING",
+            auditLogService.log("PUBLISH_LEADERBOARD", "RankingResult",
+                    rr.getTeam() != null ? rr.getTeam().getName() : "Leaderboard", "PENDING",
                     rr.getQualificationStatus(), "Published Leaderboard");
         }
     }
