@@ -27,18 +27,15 @@ const StudentProfile = () => {
             navigate('/login');
             return;
         }
-
         try {
             const response = await fetch(import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1"+"/student/profile", {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (response.status === 401) {
                 localStorage.removeItem('shms_token');
                 navigate('/login');
                 return;
             }
-
             const data = await response.json();
             setProfile(data);
             setFormData(prev => ({

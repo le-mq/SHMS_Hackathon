@@ -6,11 +6,11 @@ import NavbarHome from './NavbarHome.jsx';
 const VerifyEmail = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const username = location.state?.username || ''; // Passed from Register page
+    const username = location.state?.username || '';
     const canResendImmediately = location.state?.canResendImmediately === true;
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [timeLeft, setTimeLeft] = useState(canResendImmediately ? 0 : 180); // 3 minutes = 180 seconds
+    const [timeLeft, setTimeLeft] = useState(canResendImmediately ? 0 : 180);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
