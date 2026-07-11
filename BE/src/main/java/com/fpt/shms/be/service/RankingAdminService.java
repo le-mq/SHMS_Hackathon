@@ -327,6 +327,7 @@ public class RankingAdminService {
 
         if (round.getPublishResultAt() == null || round.getPublishResultAt().isAfter(LocalDateTime.now())) {
             round.setPublishResultAt(LocalDateTime.now());
+            round.setState(Round.RoundState.CLOSED);
             roundRepository.save(round);
         }
 
