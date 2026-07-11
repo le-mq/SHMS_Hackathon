@@ -56,14 +56,15 @@ const getRoundIcon = (name) => {
 };
 
 const getRoundStatus = (round) => {
-    if (round.state === 'CLOSED' || round.status === 'CLOSED') {
+    const now = new Date();
+    const closeDate = round.publishResultAt ? new Date(round.publishResultAt) : null;
+    const isPublishInFuture = closeDate && closeDate > now;
+
+    if ((round.state === 'CLOSED' || round.status === 'CLOSED') && !isPublishInFuture) {
         return 'CLOSED';
     }
 
-    const now = new Date();
     const openDate = round.submissionOpen ? new Date(round.submissionOpen) : null;
-
-    const closeDate = round.publishResultAt ? new Date(round.publishResultAt) : null;
 
     if (closeDate && now > closeDate) return "CLOSED";
     if (openDate && now < openDate) return "UPCOMING";
