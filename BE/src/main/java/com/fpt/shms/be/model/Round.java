@@ -81,4 +81,17 @@ public class Round {
         }
         return this.state != null ? this.state : RoundState.UPCOMING;
     }
+
+    public RoundState getRawState() {
+        return this.state;
+    }
+
+    public boolean checkAndSyncState() {
+        RoundState computed = this.getState();
+        if (this.state != computed) {
+            this.state = computed;
+            return true;
+        }
+        return false;
+    }
 }
