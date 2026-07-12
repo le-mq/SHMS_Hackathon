@@ -49,7 +49,26 @@ const StudentProfile = () => {
                 setAvatarPreview(data.avatarBase64);
             }
         } catch (err) {
-            setError('Failed to fetch profile data');
+            try {
+                const localRes = await fetch('/testFE.json');
+                if (localRes.ok) {
+                    const localJson = await localRes.json();
+                    const data = localJson.studentProfile;
+                    if (data) {
+                        setProfile(data);
+                        setFormData(prev => ({
+                            ...prev,
+                            telephoneNumber: data.telephoneNumber || ''
+                        }));
+                        if (data.avatarBase64) {
+                            setAvatarPreview(data.avatarBase64);
+                        }
+                    }
+                }
+            } catch (localErr) {
+                console.error("Profile synchronization error:", localErr);
+                setError('Failed to fetch profile data');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -236,7 +255,6 @@ const StudentProfile = () => {
             </div>
 
             <div className="profile-grid">
-                {/* Left Column - Avatar */}
                 <div className="profile-card avatar-section">
                     <div className="avatar-wrapper">
                         {avatarPreview ? (
@@ -266,7 +284,6 @@ const StudentProfile = () => {
                     <div className="upload-hint">JPEG or PNG, max 2MB.</div>
                 </div>
 
-                {/* Right Column - Info & Settings */}
                 <div className="profile-card">
                     <h2 className="section-title">Institutional Information</h2>
 
