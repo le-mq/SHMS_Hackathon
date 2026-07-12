@@ -318,8 +318,8 @@
     padding: 3px 10px;
     border-radius: 20px;
 }
-.ph-status-OPEN   { background: #dcfce7; color: #15803d; }
-.ph-status-SOON   { background: #fef3c7; color: #b45309; }
+.ph-status-OPEN, .ph-status-ACTIVE, .ph-status-ACTIVED { background: #dcfce7; color: #15803d; }
+.ph-status-SOON, .ph-status-UPCOMING { background: #fef3c7; color: #b45309; }
 .ph-status-CLOSED { background: #fee2e2; color: #b91c1c; }
 
 .ph-track-action {
