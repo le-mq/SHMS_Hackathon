@@ -52,7 +52,6 @@ public class AdminController {
     private final AllocationAdminService allocationAdminService;
     private final TeamService teamService;
     private final UserService userService;
-    private final RoundRepository  roundRepository;
     private final JudgeService judgeService;
 
     @GetMapping("/contests")
