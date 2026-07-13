@@ -100,8 +100,18 @@
 }
 
 .contest-card.selected {
-    border-color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    border-color: #2563eb; /* Blue border */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.active-contest-card {
+    background-color: #f0fdf4; /* Light green background */
+    border-color: #bbf7d0; /* Soft green border */
+}
+
+.active-contest-card.selected {
+    border-color: #2563eb; /* Blue border when selected */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .contest-card.selected .progress-bar-fill {
@@ -158,12 +168,22 @@
     border-radius: 3px;
     overflow: hidden;
     margin-top: auto;
+    position: relative;
 }
 
 .progress-bar-fill {
     height: 100%;
     background: #0f172a;
-    width: 60%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.progress-bar-fill.is-active {
+    background: linear-gradient(90deg, #1e88e5, #42a5f5);
+}
+
+.contest-card.selected .progress-bar-fill.is-active {
+    background: linear-gradient(90deg, #1e88e5, #42a5f5);
 }
 
 .milestones-card {

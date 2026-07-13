@@ -76,7 +76,12 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
         team.contestName === comp.name && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase())
     );
 
-    const isRegistrationExpired = comp.registrationEnd && new Date(comp.registrationEnd) < new Date();
+    let isRegistrationExpired = false;
+    if (comp.registrationEnd) {
+        const endDate = new Date(comp.registrationEnd);
+        endDate.setHours(23, 59, 59, 999);
+        isRegistrationExpired = endDate < new Date();
+    }
 
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
@@ -395,7 +400,12 @@ const CompetitionRegistration = () => {
 
     const selectedTeamFull = selectedTeamId ? myTeams.find(t => String(t.teamId) === String(selectedTeamId) || t.teamName === selectedTeamId) : null;
 
-    if (isLoading) return <div className="cr-loading"><div className="spinner"></div>Loading competitions...</div>;
+    if (isLoading) return (
+        <div className="global-loading">
+            <div className="global-spinner"></div>
+            <span>Loading competitions...</span>
+        </div>
+    );
 
     return (
         <div className="cr-page">
