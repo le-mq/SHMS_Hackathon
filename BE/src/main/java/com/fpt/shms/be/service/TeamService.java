@@ -171,12 +171,17 @@ public class TeamService{
         int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
         long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
 
+        String finalStatus = team.getStatus() != null ? team.getStatus() : "FORMING";
+        if (team.getContest() != null && com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(team.getContest().getStatus())) {
+            finalStatus = "CLOSED";
+        }
+
         return TeamStatusResponse.builder()
                 .teamId(team.getId())
                 .teamName(team.getName())
                 .teamCode(team.getTeamCode())
                 .categoryName("All Categories")
-                .status(team.getStatus() != null ? team.getStatus() : "FORMING")
+                .status(finalStatus)
                 .minMembers(minMembers)
                 .maxMembers(maxMembers)
                 .currentTotalMembers(currentTotalMembers)

@@ -93,22 +93,28 @@ public class JudgeService {
         final List<Category> finalCategories = categories;
         for (Team team : assignedTeams) {
             Long teamContestId = team.getContest().getId();
-            List<Round> cRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc)
-                    .stream()
+            List<Round> allContestRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc);
+            List<Round> activeRoundsForTeam = new ArrayList<>();
+
+            for (int i = 0; i < allContestRounds.size(); i++) {
+                Round round = allContestRounds.get(i);
+                if (i > 0) {
+                    Round previousRound = allContestRounds.get(i - 1);
+                    boolean isQualified = rankingResultRepository.existsByTeamIdAndRoundIdAndQualificationStatus(
+                            team.getId(), previousRound.getId(), "QUALIFIED");
+                    if (!isQualified) {
+                        break; // Team is eliminated or not qualified in previous round, cannot proceed to this or subsequent rounds
+                    }
+                }
+                activeRoundsForTeam.add(round);
+            }
+
+            List<Round> cRounds = activeRoundsForTeam.stream()
                     .filter(r -> r.getCategory() == null || finalCategories.stream().anyMatch(c -> c.getId().equals(r.getCategory().getId())))
                     .toList();
 
             for (int i = 0; i < cRounds.size(); i++) {
                 Round round = cRounds.get(i);
-
-                if (i > 0) {
-                    Round previousRound = cRounds.get(i - 1);
-                    boolean isQualified = rankingResultRepository.existsByTeamIdAndRoundIdAndQualificationStatus(
-                            team.getId(), previousRound.getId(), "QUALIFIED");
-                    if (!isQualified) {
-                        continue;
-                    }
-                }
 
                 Submission latestSub = submissions.stream()
                         .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
@@ -155,9 +161,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                          .map(Category::getName)
-                          .collect(Collectors.joining(", "));
+                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                        .map(Category::getName)
+                        .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())

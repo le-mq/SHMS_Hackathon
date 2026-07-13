@@ -322,9 +322,19 @@ public class SubmissionService {
             return new EligibilityResult(true, null);
         }
 
+        if (round.getCategory() == null) {
+            return new EligibilityResult(true, null);
+        }
+        Long categoryId = round.getCategory().getId();
+
+        List<Round> categoryRounds = contestRounds.stream()
+                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
+                .sorted(roundComparator())
+                .toList();
+
         int roundIndex = -1;
-        for (int i = 0; i < contestRounds.size(); i++) {
-            if (contestRounds.get(i).getId().equals(round.getId())) {
+        for (int i = 0; i < categoryRounds.size(); i++) {
+            if (categoryRounds.get(i).getId().equals(round.getId())) {
                 roundIndex = i;
                 break;
             }
@@ -334,9 +344,10 @@ public class SubmissionService {
             return new EligibilityResult(true, null);
         }
 
-        Round previousRound = contestRounds.get(roundIndex - 1);
+        Round previousRound = categoryRounds.get(roundIndex - 1);
         boolean qualified = rankingResultRepository.findQualifiedByRoundId(previousRound.getId())
                 .stream()
+                .filter(result -> result.getDatePublishedAt() != null)
                 .anyMatch(result -> result.getTeam() != null && result.getTeam().getId().equals(team.getId()));
 
         if (qualified) {
