@@ -58,7 +58,7 @@ const AdminProfile = () => {
                     }
                 }
                 catch (error) {
-                    console.error("Lỗi đồng bộ dữ liệu Profile:", error);
+                    console.error("Profile synchronization error:", error);
                 }
             }
         };

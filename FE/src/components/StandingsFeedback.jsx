@@ -313,13 +313,18 @@ const StandingsFeedback = () => {
     return (
         <div className="standings-container">
             <div className="standings-content">
-                {!selectedCompetition ? (
-                    <>
-                        <div className="standings-header">
-                            <h1 className="standings-title">Competition Results</h1>
-                        </div>
-                        {isCompLoading ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading competitions...</div>
+                  {!selectedCompetition ? (
+                      <>
+                          {!isCompLoading && (
+                              <div className="standings-header">
+                                  <h1 className="standings-title">Competition Results</h1>
+                              </div>
+                          )}
+                          {isCompLoading ? (
+                            <div className="global-loading">
+                                <div className="global-spinner"></div>
+                                <span>Loading competitions...</span>
+                            </div>
                         ) : joinedCompetitions.length > 0 ? (
                             <div className="results-grid">
                                 {joinedCompetitions.map((item, idx) => {
@@ -408,8 +413,9 @@ const StandingsFeedback = () => {
                                 return (
                                     <div style={{ marginTop: '16px' }}>
                                         {isLoading ? (
-                                            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                                Loading result data...
+                                            <div className="global-loading">
+                                                <div className="global-spinner"></div>
+                                                <span>Loading result data...</span>
                                             </div>
                                         ) : error ? (
                                             <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>

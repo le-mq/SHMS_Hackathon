@@ -768,13 +768,12 @@ const ProjectSubmission = () => {
     return (
         <div className="submission-container">
             <div className="submission-content">
-                {isLoading && (
-                    <p style={{ marginBottom: '16px', color: '#64748b' }}>
-                        Loading submission data...
-                    </p>
-                )}
-
-                {!hasRegisteredContest ? (
+                  {isLoading ? (
+                      <div className="global-loading">
+                          <div className="global-spinner"></div>
+                          <span>Loading submission data...</span>
+                      </div>
+                  ) : !hasRegisteredContest ? (
                     teamStatus === 'CLOSED' ? (
                         <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', textAlign: 'center', fontWeight: '500' }}>
                             This competition has been closed. You can no longer submit projects.

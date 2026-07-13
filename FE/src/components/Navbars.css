@@ -53,7 +53,8 @@
     padding: 0;
     margin: 0;
     flex: 1;
-    justify-content: center;
+    justify-content: flex-start;
+    justify-content: safe center;
     overflow-x: auto;
     white-space: nowrap;
 }
@@ -63,7 +64,24 @@
 .evaluator-nav-links::-webkit-scrollbar,
 .mentor-nav-links::-webkit-scrollbar,
 .public-nav-links::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+}
+
+.admin-nav-links::-webkit-scrollbar-track,
+.student-nav-links::-webkit-scrollbar-track,
+.evaluator-nav-links::-webkit-scrollbar-track,
+.mentor-nav-links::-webkit-scrollbar-track,
+.public-nav-links::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-nav-links::-webkit-scrollbar-thumb,
+.student-nav-links::-webkit-scrollbar-thumb,
+.evaluator-nav-links::-webkit-scrollbar-thumb,
+.mentor-nav-links::-webkit-scrollbar-thumb,
+.public-nav-links::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
 }
 
 .admin-nav-link,
