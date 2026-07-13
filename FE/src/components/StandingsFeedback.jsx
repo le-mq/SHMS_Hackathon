@@ -136,11 +136,12 @@ const normalizeScoreData = (payload) => {
                 const now = Date.now();
                 const isPubA = a.totalScore != null && (a.resultPublished === true || (a.resultPublished !== false && (timeA === 0 || now >= timeA)));
                 const isPubB = b.totalScore != null && (b.resultPublished === true || (b.resultPublished !== false && (timeB === 0 || now >= timeB)));
+                
                 if (isPubA && !isPubB) return -1;
                 if (!isPubA && isPubB) return 1;
-                if (isPubA && isPubB) {
-                    return timeB - timeA;
-                }
+                
+                if (timeA === 0 && timeB !== 0) return 1;
+                if (timeA !== 0 && timeB === 0) return -1;
                 return timeA - timeB;
             })
         : [fallbackRound];
@@ -406,7 +407,29 @@ const StandingsFeedback = () => {
                             </div>
 
                             {(() => {
-                                const shouldShowEmpty = !isLoading && !error && scoreData && rounds.length === 0;
+                                const visibleRounds = [];
+                                for (const r of rounds) {
+                                    const nowTime = new Date().getTime();
+                                    const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
+                                    const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
+                                    const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === r.roundName && lb.teamName === myTeamName);
+                                    const isPublishedOnLeaderboard = !!lbEntry;
+                                    const isPublished = r.resultPublished === true || isPublishedOnLeaderboard || (r.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
+                                    
+                                    if (r.hasSubmission === true || isPublished) {
+                                        visibleRounds.push(r);
+                                    }
+
+                                    const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
+                                    const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
+                                    const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED') || (effectiveScore === 0 && isPublished);
+                                    
+                                    if (isEliminated) {
+                                        break;
+                                    }
+                                }
+
+                                const shouldShowEmpty = !isLoading && !error && scoreData && visibleRounds.length === 0;
                                 if (shouldShowEmpty) {
                                     return (
                                         <div className="waiting-result-card">
@@ -434,10 +457,10 @@ const StandingsFeedback = () => {
                                             <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
                                                 {error}
                                             </div>
-                                        ) : rounds.length > 0 ? (
+                                        ) : visibleRounds.length > 0 ? (
                                             <>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                                                    {rounds.map((r, idx) => {
+                                                    {visibleRounds.map((r, idx) => {
                                                         const nowTime = new Date().getTime();
                                                         const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
                                                         const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
@@ -447,7 +470,8 @@ const StandingsFeedback = () => {
                                                         const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
                                                         const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
                                                         const isAvailable = isPublished && effectiveScore != null;
-                                                        const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED');
+                                                        
+                                                        const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED') || (effectiveScore === 0 && isPublished);
                                                         const isSelected = selectedResultRound === r;
                                                         const bgColor = isEliminated ? (isSelected ? '#fecaca' : '#fee2e2') : (isAvailable ? (isSelected ? '#bbf7d0' : '#dcfce7') : '#f1f5f9');
                                                         const borderColor = isEliminated ? '#ef4444' : (isAvailable ? '#22c55e' : '#cbd5e1');
@@ -458,7 +482,7 @@ const StandingsFeedback = () => {
                                                                 onClick={() => setSelectedResultRound(r)}
                                                                 style={{
                                                                     background: bgColor,
-                                                                    border: `2px solid ${isSelected ? (isAvailable ? '#16a34a' : '#94a3b8') : borderColor}`,
+                                                                    border: `2px solid ${isSelected ? (isEliminated ? '#991b1b' : '#16a34a') : borderColor}`,
                                                                     borderRadius: '8px',
                                                                     padding: '16px',
                                                                     cursor: 'pointer',
