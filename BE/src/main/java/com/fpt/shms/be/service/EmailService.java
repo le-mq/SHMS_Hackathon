@@ -92,10 +92,10 @@ public class EmailService {
 
             textContent.append("Assignment details:\n");
             if (isJudge) {
-                textContent.append("⚖️ Judging Task: Evaluate teams in Track ").append(trackName).append(".\n");
+                textContent.append("Judging Task: Evaluate teams in Track ").append(trackName).append(".\n");
             }
             if (mentoredTeams != null && !mentoredTeams.isEmpty()) {
-                textContent.append("🤝 Mentoring Task: Responsible for mentoring the following teams: ")
+                textContent.append("Mentoring Task: Responsible for mentoring the following teams: ")
                         .append(String.join(", ", mentoredTeams)).append(".\n");
             }
 

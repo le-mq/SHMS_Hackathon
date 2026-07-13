@@ -75,7 +75,9 @@ public class JudgeService {
 
         List<Team> assignedTeams = new ArrayList<>();
         for (Long cId : assignedContestIds) {
-            assignedTeams.addAll(teamRepository.findByContestId(cId));
+            assignedTeams.addAll(teamRepository.findByContestId(cId).stream()
+                    .filter(t -> "APPROVED".equalsIgnoreCase(t.getStatus()))
+                    .toList());
         }
 
         List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
@@ -152,9 +154,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                          .map(Category::getName)
+                          .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -260,6 +262,10 @@ public class JudgeService {
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+
+        if (!"APPROVED".equalsIgnoreCase(team.getStatus())) {
+            throw new IllegalArgumentException("Team is not eligible for evaluation");
+        }
 
         List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
 
@@ -367,6 +373,10 @@ public class JudgeService {
                 .orElseThrow(() -> new IllegalArgumentException("Judge profile not found"));
         Submission submission = submissionRepository.findById(request.getSubmissionId())
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+
+        if (submission.getTeam() == null || !"APPROVED".equalsIgnoreCase(submission.getTeam().getStatus())) {
+            throw new IllegalArgumentException("Team is not eligible for evaluation");
+        }
 
         if (scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), submission.getId())) {
             throw new IllegalArgumentException("You have already evaluated this submission");
