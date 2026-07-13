@@ -663,7 +663,7 @@ const PanelAllocation = () => {
                                                     />
                                                     <div className="team-name-text">
                                                         {team.name}
-                                                        {isTakenByAnother && <span className="team-assigned-tag"> (Assigned)</span>}
+                                                        {isTakenByAnother}
                                                     </div>
                                                 </label>
                                             );
