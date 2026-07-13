@@ -162,12 +162,20 @@ public class AllocationAdminService {
             return result;
         }
 
-        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
+                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
+                .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
+                .toList();
 
-        boolean isFirstRound = contestRounds.isEmpty() ||
-                contestRounds.get(0).getId().equals(round.getId());
+        int idx = -1;
+        for (int i = 0; i < categoryRounds.size(); i++) {
+            if (categoryRounds.get(i).getId().equals(round.getId())) {
+                idx = i;
+                break;
+            }
+        }
 
-        if (isFirstRound) {
+        if (idx <= 0) {
             List<Team> approvedTeams = teamRepository.findByContestId(contestId)
                     .stream()
                     .filter(t -> "APPROVED".equals(t.getStatus()))
@@ -181,27 +189,19 @@ public class AllocationAdminService {
                 result.add(tm);
             }
         } else {
-            Round previousRound = null;
-            for (int i = 1; i < contestRounds.size(); i++) {
-                if (contestRounds.get(i).getId().equals(round.getId())) {
-                    previousRound = contestRounds.get(i - 1);
-                    break;
-                }
-            }
+            Round previousRound = categoryRounds.get(idx - 1);
+            List<RankingResult> qualifiedResults = rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
+                    .filter(rr -> rr.getDatePublishedAt() != null)
+                    .toList();
 
-            if (previousRound != null) {
-                List<RankingResult> qualifiedResults =
-                        rankingResultRepository.findQualifiedByRoundId(previousRound.getId());
-
-                for (RankingResult rr : qualifiedResults) {
-                    Team team = rr.getTeam();
-                    Map<String, Object> tm = new HashMap<>();
-                    tm.put("id", team.getId());
-                    tm.put("name", team.getName());
-                    tm.put("status", "QUALIFIED");
-                    tm.put("previousRoundId", previousRound.getId());
-                    result.add(tm);
-                }
+            for (RankingResult rr : qualifiedResults) {
+                Team team = rr.getTeam();
+                Map<String, Object> tm = new HashMap<>();
+                tm.put("id", team.getId());
+                tm.put("name", team.getName());
+                tm.put("status", "QUALIFIED");
+                tm.put("previousRoundId", previousRound.getId());
+                result.add(tm);
             }
         }
 
