@@ -69,7 +69,9 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId())
-                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus())).toList();
+                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()))
+                .filter(m -> m.getTeam() == null || !"CANCELLED".equalsIgnoreCase(m.getTeam().getStatus()))
+                .toList();
         if (memberships.isEmpty()) {
             throw new IllegalArgumentException("User is not in any team");
         }
@@ -193,7 +195,9 @@ public class TeamService{
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         List<TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId())
-                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus())).toList();
+                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()))
+                .filter(m -> m.getTeam() == null || !"CANCELLED".equalsIgnoreCase(m.getTeam().getStatus()))
+                .toList();
 
         List<TeamStatusResponse> responses = new java.util.ArrayList<>();
         for (TeamMembership m : memberships) {
@@ -249,8 +253,8 @@ public class TeamService{
                         .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
 
-        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())) {
-            throw new IllegalArgumentException("Team registration is already pending or approved.");
+        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus()) || "CANCELLED".equals(team.getStatus())) {
+            throw new IllegalArgumentException("Team registration is already pending, approved, or cancelled.");
         }
 
         team.setName(request.getTeamName());
@@ -423,7 +427,7 @@ public class TeamService{
     }
 
     @Transactional(readOnly = true)
-    public WorkspaceResponse getWorkspaceData(String username) {
+    public WorkspaceResponse getWorkspaceData(String username, Long contestId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -436,10 +440,16 @@ public class TeamService{
                 .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
                 .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus())
                         || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
-                .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                .filter(m -> contestId == null || m.getTeam().getContest().getId().equals(contestId))
+                .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                        .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
+                        .thenComparing(m -> m.getTeam().getId()))
                 .orElseGet(() -> memberships.stream()
                         .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
-                        .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
+                        .filter(m -> contestId == null || (m.getTeam().getContest() != null && m.getTeam().getContest().getId().equals(contestId)))
+                        .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                                .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
+                                .thenComparing(m -> m.getTeam().getId()))
                         .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
 
