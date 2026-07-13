@@ -12,7 +12,7 @@ public class BeApplication {
 
     @jakarta.annotation.PostConstruct
     public void init() {
-        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Aisa/Ho_Chi_Minh"));
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
     }
 
     public static void main(String[] args) {
