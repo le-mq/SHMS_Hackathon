@@ -220,7 +220,14 @@ const StudentProfile = () => {
         }
     };
 
-    if (isLoading && !profile) return <div className="profile-container">Loading...</div>;
+    if (isLoading && !profile) return (
+        <div className="profile-container">
+            <div className="global-loading">
+                <div className="global-spinner"></div>
+                <span>Loading profile...</span>
+            </div>
+        </div>
+    );
 
     return (
         <div className="profile-container">
