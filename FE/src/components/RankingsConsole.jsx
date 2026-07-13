@@ -274,12 +274,9 @@ const RankingsConsole = () => {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole?.readiness || {
-                        summary: { totalTeams: 12, avgScore: 84.5, scoreRange: '70-98', bars: [0, 0, 1, 2, 3, 2, 2, 1, 1, 0] },
-                        evaluators: [
-                            { name: "Dr. John Doe", dept: "AI & Data Science", status: "Finalized", date: "Jul 05, 2026 14:30" },
-                            { name: "Prof. Jane Smith", dept: "Software Engineering", status: "Finalized", date: "Jul 05, 2026 15:45" }
-                        ],
-                        allReady: true
+                        summary: { totalTeams: 0, avgScore: 0.0, scoreRange: '0-0', bars: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                        evaluators: [],
+                        allReady: false
                     };
                 }
                 setReadinessData(data);
@@ -330,16 +327,11 @@ const RankingsConsole = () => {
                             setRoundProgress({
                                 roundStatus: "OPEN",
                                 timeRemaining: "2 days remaining",
-                                totalTeams: 4,
-                                submittedCount: 2,
-                                awaitingCount: 2,
+                                totalTeams: 0,
+                                submittedCount: 0,
+                                awaitingCount: 0,
                                 notSubmittedCount: 0,
-                                teams: [
-                                    { teamId: 1, teamName: "AI Warriors", submissionState: "SUBMITTED", submittedAt: "Jul 08, 2026 10:30" },
-                                    { teamId: 2, teamName: "Code Titans", submissionState: "SUBMITTED", submittedAt: "Jul 08, 2026 11:15" },
-                                    { teamId: 3, teamName: "Data Miners", submissionState: "Not Submitted", submittedAt: null },
-                                    { teamId: 4, teamName: "NextGen", submissionState: "Not Submitted", submittedAt: null }
-                                ]
+                                teams: []
                             });
                         }
                     } catch (mockErr) {
@@ -394,13 +386,8 @@ const RankingsConsole = () => {
                 const localJson = await localRes.json();
                 data = localJson.rankingConsole?.rankingResult || {
                     roundName: selectedRound?.phaseName || "Idea Submission",
-                    totalProcessed: 4,
-                    results: [
-                        { rank: 1, teamName: "AI Warriors", averageScore: 92.5 },
-                        { rank: 2, teamName: "Code Titans", averageScore: 88.0 },
-                        { rank: 3, teamName: "Data Miners", averageScore: 85.5 },
-                        { rank: 4, teamName: "NextGen", averageScore: 82.0 }
-                    ]
+                    totalProcessed: 0,
+                    results: []
                 };
             }
 
