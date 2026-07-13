@@ -116,6 +116,8 @@ const RankingsConsole = () => {
     const [submissionFilter, setSubmissionFilter] = useState('ALL');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewSubmissionModal, setViewSubmissionModal] = useState({ isOpen: false, team: null });
+    const [isRevalModalOpen, setIsRevalModalOpen] = useState(false);
+    const [revalData, setRevalData] = useState({ teamId: '', teamName: '', reason: '' });
 
     const enrichedRounds = useMemo(() => {
         return rounds
@@ -274,9 +276,12 @@ const RankingsConsole = () => {
                     const localRes = await fetch("/testFE.json");
                     const localJson = await localRes.json();
                     data = localJson.rankingConsole?.readiness || {
-                        summary: { totalTeams: 0, avgScore: 0.0, scoreRange: '0-0', bars: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                        evaluators: [],
-                        allReady: false
+                        summary: { totalTeams: 12, avgScore: 84.5, scoreRange: '70-98', bars: [0, 0, 1, 2, 3, 2, 2, 1, 1, 0] },
+                        evaluators: [
+                            { name: "Dr. John Doe", dept: "AI & Data Science", status: "Finalized", date: "Jul 05, 2026 14:30" },
+                            { name: "Prof. Jane Smith", dept: "Software Engineering", status: "Finalized", date: "Jul 05, 2026 15:45" }
+                        ],
+                        allReady: true
                     };
                 }
                 setReadinessData(data);
@@ -327,11 +332,16 @@ const RankingsConsole = () => {
                             setRoundProgress({
                                 roundStatus: "OPEN",
                                 timeRemaining: "2 days remaining",
-                                totalTeams: 0,
-                                submittedCount: 0,
-                                awaitingCount: 0,
+                                totalTeams: 4,
+                                submittedCount: 2,
+                                awaitingCount: 2,
                                 notSubmittedCount: 0,
-                                teams: []
+                                teams: [
+                                    { teamId: 1, teamName: "AI Warriors", submissionState: "SUBMITTED", submittedAt: "Jul 08, 2026 10:30" },
+                                    { teamId: 2, teamName: "Code Titans", submissionState: "SUBMITTED", submittedAt: "Jul 08, 2026 11:15" },
+                                    { teamId: 3, teamName: "Data Miners", submissionState: "Not Submitted", submittedAt: null },
+                                    { teamId: 4, teamName: "NextGen", submissionState: "Not Submitted", submittedAt: null }
+                                ]
                             });
                         }
                     } catch (mockErr) {
@@ -386,8 +396,13 @@ const RankingsConsole = () => {
                 const localJson = await localRes.json();
                 data = localJson.rankingConsole?.rankingResult || {
                     roundName: selectedRound?.phaseName || "Idea Submission",
-                    totalProcessed: 0,
-                    results: []
+                    totalProcessed: 4,
+                    results: [
+                        { rank: 1, teamName: "AI Warriors", averageScore: 92.5 },
+                        { rank: 2, teamName: "Code Titans", averageScore: 88.0 },
+                        { rank: 3, teamName: "Data Miners", averageScore: 85.5 },
+                        { rank: 4, teamName: "NextGen", averageScore: 82.0 }
+                    ]
                 };
             }
 
@@ -472,9 +487,39 @@ const RankingsConsole = () => {
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
         link.setAttribute("download", `Leaderboard_${result.roundName || 'Result'}.csv`);
-        document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleRequestReevaluation = async () => {
+        if (!revalData.reason.trim()) {
+            alert("Please provide the Reason for requesting re-evaluation!");
+            return;
+        }
+        try {
+            const token = localStorage.getItem('shms_token') || localStorage.getItem('token');
+            const res = await fetch(API_BASE + "/request-reevaluation", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    teamId: Number(revalData.teamId),
+                    roundId: Number(selectedRoundId),
+                    reason: revalData.reason.trim()
+                })
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(()=>({}));
+                throw new Error(errData.error || "An error occurred while requesting re-evaluation!");
+            }
+            alert("Re-evaluation requested successfully and recorded in the audit logs!");
+            setIsRevalModalOpen(false);
+            handleGenerate(); // Reload ranking data
+        } catch (error) {
+            alert(error.message || "An error occurred while requesting re-evaluation!");
+        }
     };
 
     const totalTeams = readinessData.summary.totalTeams;
@@ -993,6 +1038,7 @@ const RankingsConsole = () => {
                                                 <th style={{ color: '#0f172a' }}>Average Score</th>
                                                 <th style={{ color: '#0f172a' }}>Status</th>
                                                 {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
+                                                <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
                                             </tr>
                                             </thead>
                                             <tbody>
@@ -1020,6 +1066,18 @@ const RankingsConsole = () => {
                                                                 )}
                                                             </td>
                                                         )}
+                                                        <td style={{ textAlign: 'right', paddingRight: '16px' }}>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
+                                                                    setIsRevalModalOpen(true);
+                                                                }}
+                                                                style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontWeight: 600, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                                                                title="Request Re-evaluation"
+                                                            >
+                                                                ⚠️ Request Re-eval
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 );
                                             })}
@@ -1109,12 +1167,26 @@ const RankingsConsole = () => {
                                                         {team.submittedAt || '--'}
                                                     </td>
                                                     <td style={{ borderBottom: '1px solid #d1d5db', textAlign: 'right', paddingRight: '24px' }}>
-                                                        <button
-                                                            style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
-                                                            onClick={() => setViewSubmissionModal({ isOpen: true, team })}
-                                                        >
-                                                            View Submission Form
-                                                        </button>
+                                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                                            <button
+                                                                style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                                                                onClick={() => setViewSubmissionModal({ isOpen: true, team })}
+                                                            >
+                                                                View
+                                                            </button>
+                                                            {['SUBMITTED', 'OFFICIAL', 'EVALUATED'].includes(team.submissionState) && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setRevalData({ teamId: team.teamId, teamName: team.teamName, reason: '' });
+                                                                        setIsRevalModalOpen(true);
+                                                                    }}
+                                                                    style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontWeight: 600, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                                                                    title="Request Re-evaluation"
+                                                                >
+                                                                    ⚠️ Request Re-eval
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -1274,6 +1346,38 @@ const RankingsConsole = () => {
                     );
                 })()}
             </div>
+
+            {isRevalModalOpen && (
+                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+                    <div className="modal-content" style={{ background: 'white', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '500px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                🔄 Request Re-evaluation
+                            </h2>
+                            <button onClick={() => setIsRevalModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Team / Round (Read-only)</label>
+                            <input type="text" value={`${revalData.teamName} - ${selectedRound?.phaseName || 'Current Round'}`} readOnly style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#64748b', boxSizing: 'border-box', fontWeight: 500 }} />
+                        </div>
+
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#dc2626', marginBottom: '8px' }}>Reason for Re-evaluation (Mandatory)</label>
+                            <textarea required placeholder="Enter the reason for requesting judges to re-evaluate this submission..." value={revalData.reason} onChange={(e) => setRevalData({...revalData, reason: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                            <button onClick={() => setIsRevalModalOpen(false)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                            <button onClick={handleRequestReevaluation} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                ⚠️ Request Re-eval
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
