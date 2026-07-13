@@ -33,10 +33,23 @@ public class PublicHomeService {
     private final RankingResultRepository rankingResultRepository;
     private final com.fpt.shms.be.repository.TeamMembershipRepository teamMembershipRepository;
 
+    @Transactional
     public PublicHomeResponse getHomeData() {
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        List<Contest> allPublishedContests = contestRepository.findAll().stream()
+        List<Contest> allContests = contestRepository.findAll();
+        boolean anyChanged = false;
+        for (Contest c : allContests) {
+            if (c.checkAndSyncStatus()) {
+                contestRepository.save(c);
+                anyChanged = true;
+            }
+        }
+        if (anyChanged) {
+            contestRepository.flush();
+        }
+
+        List<Contest> allPublishedContests = allContests.stream()
                 .filter(c -> c.getPublishedAt() == null || !now.isBefore(c.getPublishedAt()))
                 .toList();
 

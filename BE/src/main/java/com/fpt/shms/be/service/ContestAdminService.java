@@ -34,8 +34,20 @@ public class ContestAdminService {
     private final SubmissionRepository submissionRepository;
     private final RankingResultRepository rankingResultRepository;
 
+    @Transactional
     public List<Contest> getAllContests() {
-        return contestRepository.findAll();
+        List<Contest> contests = contestRepository.findAll();
+        boolean anyChanged = false;
+        for (Contest c : contests) {
+            if (c.checkAndSyncStatus()) {
+                contestRepository.save(c);
+                anyChanged = true;
+            }
+        }
+        if (anyChanged) {
+            contestRepository.flush();
+        }
+        return contests;
     }
 
     private List<Team> getParticipatingTeamsForRound(Round round) {
@@ -101,6 +113,9 @@ public class ContestAdminService {
     public Map<String, Object> getContestDetails(Long contestId) {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+        if (contest.checkAndSyncStatus()) {
+            contestRepository.save(contest);
+        }
 
         List<ContestUniversity> universities = contestUniversityRepository.findByContestId(contestId);
         List<String> domains = universities.stream().map(ContestUniversity::getCorporateDomain).toList();
@@ -302,9 +317,10 @@ public class ContestAdminService {
                     }
                     teamRepository.saveAll(teams);
                 }
+                contest.setStatus(newStatus);
             } catch (IllegalArgumentException e) {}
         }
-
+        contest.checkAndSyncStatus();
         contest = contestRepository.save(contest);
 
         boolean contestModified = isNewContest ||
