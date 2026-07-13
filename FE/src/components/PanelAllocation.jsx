@@ -17,6 +17,18 @@ const getStatusStyles = (status) => {
     }
 };
 
+const getLiveStatus = (c) => {
+    if (!c) return 'ACTIVE';
+    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
+    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
+    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
+    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
+    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
+    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
+    return s;
+};
+
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('panelAllocSelectedContest') || '');
@@ -349,12 +361,15 @@ const PanelAllocation = () => {
                         {contests
                             .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
                             .sort((a, b) => {
-                                if (a.status === 'CLOSED' && b.status !== 'CLOSED') return 1;
-                                if (a.status !== 'CLOSED' && b.status === 'CLOSED') return -1;
+                                const aLiveStatus = getLiveStatus(a);
+                                const bLiveStatus = getLiveStatus(b);
+                                if (aLiveStatus === 'CLOSED' && bLiveStatus !== 'CLOSED') return 1;
+                                if (aLiveStatus !== 'CLOSED' && bLiveStatus === 'CLOSED') return -1;
                                 return 0;
                             })
                             .map(c => {
-                                const isClosed = c.status === 'CLOSED';
+                                const liveStatus = getLiveStatus(c);
+                                const isClosed = liveStatus === 'CLOSED';
                                 return (
                                     <div
                                         key={c.id}
@@ -390,7 +405,7 @@ const PanelAllocation = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                                 <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
                                                 {(() => {
-                                                    const contestStatus = c.status || 'ACTIVE';
+                                                    const contestStatus = getLiveStatus(c);
                                                     const contestStyles = getStatusStyles(contestStatus);
                                                     return (
                                                         <span style={{
@@ -496,7 +511,7 @@ const PanelAllocation = () => {
                         {(() => {
                             const contestsObj = contests.find(c => String(c.id) === String(selectedContestId));
                             if (!contestsObj) return null;
-                            const statusText = contestsObj.status || 'ACTIVE';
+                            const statusText = getLiveStatus(contestsObj);
                             const badgeStyles = getStatusStyles(statusText);
                             return (
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', padding: '0 4px' }}>
