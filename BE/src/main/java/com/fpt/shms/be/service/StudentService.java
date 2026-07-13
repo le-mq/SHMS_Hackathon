@@ -5,6 +5,7 @@ import com.fpt.shms.be.dto.UpdateProfileRequest;
 import com.fpt.shms.be.model.Student;
 import com.fpt.shms.be.model.User;
 import com.fpt.shms.be.repository.StudentRepository;
+import com.fpt.shms.be.repository.TeamMembershipRepository;
 import com.fpt.shms.be.repository.UserRepository;
 import com.fpt.shms.be.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class StudentService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final VerificationTokenRepository tokenRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
 
     public ProfileResponse getProfile(String username, String role) {
         User user = userRepository.findByUsername(username)
@@ -83,11 +85,19 @@ public class StudentService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Student student = studentRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("Student profile not found"));
+        java.util.List<com.fpt.shms.be.model.TeamMembership> memberships = teamMembershipRepository.findByUserId(user.getId());
+        for (com.fpt.shms.be.model.TeamMembership m : memberships) {
+            if ("APPROVED".equals(m.getStatus()) || "PENDING".equals(m.getStatus())) {
+                com.fpt.shms.be.model.Team team = m.getTeam();
+                if (team != null && team.getContest() != null) {
+                    if (com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(team.getContest().getStatus())) {
+                        throw new IllegalArgumentException("You are participating in an active contest and cannot delete your account.");
+                    }
+                }
+            }
+        }
 
-        tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
-        studentRepository.delete(student);
-        userRepository.delete(user);
+        user.setStatus(com.fpt.shms.be.model.User.UserStatus.INACTIVE);
+        userRepository.save(user);
     }
 }

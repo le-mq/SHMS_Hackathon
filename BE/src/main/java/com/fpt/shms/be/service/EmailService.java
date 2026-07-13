@@ -146,4 +146,35 @@ public class EmailService {
             log.error("Failed to send team status notification email to {}", toEmail, e);
         }
     }
+
+    @Async
+    public void sendReevaluationRequestEmailAsync(String toEmail, String judgeName, String teamName, String roundName, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("SEAL Hackathon - Re-evaluation Request");
+
+            StringBuilder textContent = new StringBuilder();
+            textContent.append("Dear ").append(judgeName != null ? judgeName : "Judge").append(",\n\n");
+
+            textContent.append("The Admin has requested a re-evaluation for the team '").append(teamName)
+                    .append("' in round '").append(roundName).append("'.\n\n");
+
+            if (reason != null && !reason.trim().isEmpty()) {
+                textContent.append("Reason for re-evaluation:\n");
+                textContent.append(reason).append("\n\n");
+            }
+
+            textContent.append("Please log in to the S-HMS system to re-evaluate this team.\n\n");
+            textContent.append("Best regards,\nSEAL Hackathon Organizing Committee");
+
+            message.setText(textContent.toString());
+
+            mailSender.send(message);
+            log.info("Sent re-evaluation request email to judge: {} for team: {}", toEmail, teamName);
+        } catch (Exception e) {
+            log.error("Failed to send re-evaluation request email to {}", toEmail, e);
+        }
+    }
 }
