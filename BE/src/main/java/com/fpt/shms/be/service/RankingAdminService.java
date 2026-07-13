@@ -49,24 +49,13 @@ public class RankingAdminService {
         }
 
         if (idx <= 0) {
-            List<Team> teams = new ArrayList<>(teamMentorRepository.findByCategoryId(categoryId).stream()
-                    .map(TeamMentor::getTeam)
+            return teamRepository.findByContestId(round.getContest().getId()).stream()
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
-                    .toList());
-
-            List<Submission> submissions = submissionRepository.findByRoundId(round.getId());
-            for (Submission sub : submissions) {
-                Team t = sub.getTeam();
-                if (t != null && "APPROVED".equals(t.getStatus())) {
-                    if (teams.stream().noneMatch(existing -> existing.getId().equals(t.getId()))) {
-                        teams.add(t);
-                    }
-                }
-            }
-            return teams;
+                    .toList();
         } else {
             Round previousRound = categoryRounds.get(idx - 1);
             return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
+                    .filter(rr -> rr.getDatePublishedAt() != null)
                     .map(RankingResult::getTeam)
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
                     .toList();
