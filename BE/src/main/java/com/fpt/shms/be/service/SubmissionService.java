@@ -122,13 +122,18 @@ public class SubmissionService {
 
         TeamMembership membership = memberships.stream()
                 .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
-                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus())
-                        || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
+                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus()))
                 .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
                 .orElseGet(() -> memberships.stream()
-                        .filter(m -> m.getTeam() != null)
+                        .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
+                        .filter(m -> !com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
                         .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
-                        .orElse(memberships.get(0)));
+                        .orElse(null));
+
+        if (membership == null) {
+            throw new IllegalArgumentException("User is not in any active or past contest for submission");
+        }
+
         Team team = membership.getTeam();
 
         String contestName = team.getContest() != null ? team.getContest().getName() : "Not Registered";

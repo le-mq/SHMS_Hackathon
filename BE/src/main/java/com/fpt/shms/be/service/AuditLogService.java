@@ -22,7 +22,6 @@ public class AuditLogService {
     public static final String ACTION_UPDATE_STUDENT_VERIFICATION = "UPDATE_STUDENT_VERIFICATION";
     public static final String ACTION_CANCEL_TEAM = "CANCEL_TEAM";
     public static final String ACTION_UPDATE_SUBMISSION_DEADLINE = "UPDATE_SUBMISSION_DEADLINE";
-    public static final String ACTION_EDIT_SUBMITTED_SCORE = "EDIT_SUBMITTED_SCORE";
 
     @Transactional
     public void log(String action, String entityType, String entityName, String oldValue, String newValue, String reason) {
@@ -95,16 +94,7 @@ public class AuditLogService {
         log(ACTION_UPDATE_SUBMISSION_DEADLINE, "Round", roundId != null ? String.valueOf(roundId) : null, oldDeadline, newDeadline, reason);
     }
 
-    @Transactional
-    public void logEditSubmittedScore(String scoreInfo, String oldScore, String newScore, String reason) {
-        log(ACTION_EDIT_SUBMITTED_SCORE, "Score", scoreInfo, oldScore, newScore, reason);
-    }
 
-    @Transactional
-    public void logEditSubmittedScore(Long scoreId, String oldScore, String newScore, String reason) {
-        log(ACTION_EDIT_SUBMITTED_SCORE, "Score", scoreId != null ? String.valueOf(scoreId) : null, oldScore, newScore, reason);
-    }
-    
     @Transactional(readOnly = true)
     public List<AuditLog> getAllLogs() {
         return auditLogRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "performedAt"));

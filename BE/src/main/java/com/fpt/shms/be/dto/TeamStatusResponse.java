@@ -18,6 +18,7 @@ public class TeamStatusResponse {
     private List<MemberDto> roster;
     private Double finalScore;
     private Integer rank;
+    private Long contestId;
     private String contestName;
     private String submissionData;
 

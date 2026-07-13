@@ -30,7 +30,6 @@ public class JudgeService {
     private final RoundRepository roundRepository;
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
-    private final TeamMentorRepository teamMentorRepository;
     private final EntityManager entityManager;
 
     @PostConstruct
@@ -426,14 +425,43 @@ public class JudgeService {
     }
 
     @Transactional
-    public void editSubmittedScore(Long scoreId, Double newTotalScore, String reason) {
-        Score score = scoreRepository.findById(scoreId)
-                .orElseThrow(() -> new IllegalArgumentException("Score record not found"));
-        Double oldTotal = score.getTotalScore();
-        score.setTotalScore(newTotalScore);
-        scoreRepository.save(score);
-        String targetName = score.getSubmission() != null && score.getSubmission().getTeam() != null ? score.getSubmission().getTeam().getName() : "Score";
-        auditLogService.logEditSubmittedScore(targetName, String.valueOf(oldTotal), String.valueOf(newTotalScore), reason != null ? reason : "Edited by judge/admin");
+    public void requestReevaluation(com.fpt.shms.be.dto.ReevaluationRequest request) {
+        if (request.getTeamId() != null && request.getRoundId() != null) {
+            List<Submission> submissions = submissionRepository.findByTeamId(request.getTeamId());
+            Submission latestSubmission = submissions.stream()
+                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(request.getRoundId()))
+                    .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
+                    .max((s1, s2) -> s1.getId().compareTo(s2.getId()))
+                    .orElseThrow(() -> new IllegalArgumentException("Submission not found for this team in the specified round"));
+
+            List<Score> scores = scoreRepository.findBySubmissionId(latestSubmission.getId());
+            if (scores.isEmpty()) {
+                throw new IllegalArgumentException("Team has not been evaluated yet.");
+            }
+
+            // Delete scores to reopen the evaluation for the judges
+            scoreRepository.deleteAll(scores);
+
+            String targetName = latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Team Score";
+            auditLogService.log("REQUEST_REEVALUATION", "Score", targetName, "FINALIZED", "PENDING", request.getReason() != null ? request.getReason() : "Requested re-evaluation by Admin");
+
+            // Check if grading deadline has passed
+            com.fpt.shms.be.model.Round round = latestSubmission.getRound();
+            if (round != null && round.getGradingDeadlineAt() != null) {
+                if (java.time.LocalDateTime.now().isAfter(round.getGradingDeadlineAt())) {
+                    throw new IllegalArgumentException("The grading deadline has passed. Please extend the grading deadline for this round in Contest Configuration before requesting a re-evaluation.");
+                }
+            }
+
+            // Also delete RankingResult if it exists, so the team gets removed from the leaderboard until re-evaluated
+            List<RankingResult> rankings = rankingResultRepository.findByRoundId(request.getRoundId());
+            RankingResult rr = rankings.stream().filter(r -> r.getTeam().getId().equals(request.getTeamId())).findFirst().orElse(null);
+            if (rr != null) {
+                rankingResultRepository.delete(rr);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid request. TeamId and RoundId are required.");
+        }
     }
 
     @Transactional(readOnly = true)

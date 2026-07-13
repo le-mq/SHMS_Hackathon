@@ -20,7 +20,6 @@ import com.fpt.shms.be.service.PartnerAdminService;
 import com.fpt.shms.be.service.ExpertAdminService;
 import com.fpt.shms.be.service.AllocationAdminService;
 import com.fpt.shms.be.service.JudgeService;
-import com.fpt.shms.be.dto.EditScoreRequest;
 import com.fpt.shms.be.service.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -485,15 +484,15 @@ public class AdminController {
         }
     }
 
-    @PutMapping("/edit-submitted-score")
-    @Operation(summary = "Admin Edit Submitted Score", description = "Admin edits an existing finalized score when requested by Judge or Council.")
-    public ResponseEntity<?> editSubmittedScore(@RequestBody EditScoreRequest request) {
+    @PostMapping("/request-reevaluation")
+    @Operation(summary = "Request Re-evaluation", description = "Admin requests judges to re-evaluate a team's submission.")
+    public ResponseEntity<?> requestReevaluation(@RequestBody com.fpt.shms.be.dto.ReevaluationRequest request) {
         try {
-            if (request.getScoreId() == null || request.getNewTotalScore() == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "scoreId and newTotalScore are required."));
+            if (request.getTeamId() == null || request.getRoundId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "teamId and roundId are required."));
             }
-            judgeService.editSubmittedScore(request.getScoreId(), request.getNewTotalScore(), request.getReason());
-            return ResponseEntity.ok(Map.of("message", "Score updated successfully by Admin and logged to audit trail."));
+            judgeService.requestReevaluation(request);
+            return ResponseEntity.ok(Map.of("message", "Re-evaluation requested successfully and logged to audit trail."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
