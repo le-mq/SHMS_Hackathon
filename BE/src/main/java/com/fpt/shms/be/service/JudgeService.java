@@ -31,6 +31,7 @@ public class JudgeService {
     private final RankingResultRepository rankingResultRepository;
     private final AuditLogService auditLogService;
     private final EntityManager entityManager;
+    private final EmailService emailService;
 
     @PostConstruct
     @Transactional
@@ -447,6 +448,28 @@ public class JudgeService {
             List<Score> scores = scoreRepository.findBySubmissionId(latestSubmission.getId());
             if (scores.isEmpty()) {
                 throw new IllegalArgumentException("Team has not been evaluated yet.");
+            }
+
+            // Get unique judges from scores before deleting them
+            java.util.Set<User> uniqueJudges = scores.stream()
+                    .map(Score::getJudge)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            String teamName = latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName() : "Unknown Team";
+            String roundName = latestSubmission.getRound() != null ? latestSubmission.getRound().getPhaseName() : "Unknown Round";
+
+            // Send emails to the judges
+            for (User judgeUser : uniqueJudges) {
+                if (judgeUser.getEmail() != null) {
+                    emailService.sendReevaluationRequestEmailAsync(
+                            judgeUser.getEmail(),
+                            judgeUser.getFullName(),
+                            teamName,
+                            roundName,
+                            request.getReason()
+                    );
+                }
             }
 
             // Delete scores to reopen the evaluation for the judges
