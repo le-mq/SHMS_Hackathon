@@ -182,21 +182,23 @@
 .audit-action-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border: 1px solid #cbd5e1;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
     border-radius: 6px;
-    background: white;
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
+    background: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .audit-action-btn:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
 }
 
 .audit-table {

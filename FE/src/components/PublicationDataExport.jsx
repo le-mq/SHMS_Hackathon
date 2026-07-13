@@ -248,7 +248,7 @@ const PublicationDataExport = () => {
                         </div>
                     </div>
 
-                    <div className="export-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                    <div className="export-grid">
                         <button className="export-btn" onClick={() => handleExport('teams')}>
                             <div className="export-btn-content">
                                 <h3>Team List</h3>

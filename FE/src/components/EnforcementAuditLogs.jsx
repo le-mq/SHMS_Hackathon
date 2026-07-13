@@ -36,7 +36,7 @@ const EnforcementAuditLogs = () => {
     const [selectedLog, setSelectedLog] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(15);
-    const [filters, setFilters] = useState({ actionType: '', performer: '', date: '' });
+    const [filters, setFilters] = useState({ actionType: '', performer: '', startDate: '', endDate: '' });
     useEffect(() => {
         const fetchLogs = async () => {
             try {
@@ -85,9 +85,14 @@ const EnforcementAuditLogs = () => {
                 match = false;
             }
         }
-        if (filters.date) {
+        if (filters.startDate) {
             const logDate = new Date(log.timestamp).toISOString().split('T')[0];
-            if (logDate !== filters.date) match = false;
+            if (logDate < filters.startDate) match = false;
+        }
+        const effectiveEndDate = filters.endDate || (filters.startDate ? new Date().toISOString().split('T')[0] : '');
+        if (effectiveEndDate) {
+            const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+            if (logDate > effectiveEndDate) match = false;
         }
         return match;
     });
@@ -97,7 +102,15 @@ const EnforcementAuditLogs = () => {
     const handleExportCsv = async () => {
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/admin/audit-logs/export-csv", {
+            let queryParams = [];
+            if (filters.startDate) queryParams.push(`startDate=${filters.startDate}`);
+            const effectiveEndDate = filters.endDate || (filters.startDate ? new Date().toISOString().split('T')[0] : '');
+            if (effectiveEndDate) queryParams.push(`endDate=${effectiveEndDate}`);
+            if (filters.actionType) queryParams.push(`actionType=${encodeURIComponent(filters.actionType)}`);
+            if (filters.performer) queryParams.push(`performer=${encodeURIComponent(filters.performer)}`);
+
+            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/admin/audit-logs/export-csv" + queryString, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -155,13 +168,19 @@ const EnforcementAuditLogs = () => {
                                 />
                             </div>
                             <div className="ef-field">
-                                <label className="ef-label">Date</label>
-                                <input type="date" className="ef-input" value={filters.date}
-                                       onChange={e => { setFilters(f => ({ ...f, date: e.target.value })); setCurrentPage(1); }}
+                                <label className="ef-label">From Date</label>
+                                <input type="date" className="ef-input" value={filters.startDate}
+                                       onChange={e => { setFilters(f => ({ ...f, startDate: e.target.value })); setCurrentPage(1); }}
+                                />
+                            </div>
+                            <div className="ef-field">
+                                <label className="ef-label">To Date</label>
+                                <input type="date" className="ef-input" value={filters.endDate}
+                                       onChange={e => { setFilters(f => ({ ...f, endDate: e.target.value })); setCurrentPage(1); }}
                                 />
                             </div>
                             <button className="execute-btn"
-                                    onClick={() => { setFilters({ actionType: '', performer: '', date: '' }); setCurrentPage(1); }}
+                                    onClick={() => { setFilters({ actionType: '', performer: '', startDate: '', endDate: '' }); setCurrentPage(1); }}
                                     style={{ background: '#e2e8f0', color: '#0f172a' }}
                             >Clear Filters</button>
                         </div>
@@ -301,7 +320,6 @@ const EnforcementAuditLogs = () => {
                 </div>
             )}
         </div>
-
     );
 };
 
