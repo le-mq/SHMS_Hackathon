@@ -3,6 +3,20 @@ import './PanelAllocation.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
+const getStatusStyles = (status) => {
+    const s = status?.toUpperCase() || 'ACTIVE';
+    switch (s) {
+        case 'CLOSED':
+            return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
+        case 'UPCOMING':
+            return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
+        case 'ACTIVE':
+        case 'ACTIVED':
+        default:
+            return { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
+    }
+};
+
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('panelAllocSelectedContest') || '');
@@ -360,9 +374,25 @@ const PanelAllocation = () => {
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                                 <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
-                                                <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                    {c.status || 'ACTIVE'}
-                                                </span>
+                                                {(() => {
+                                                    const contestStatus = c.status || 'ACTIVE';
+                                                    const contestStyles = getStatusStyles(contestStatus);
+                                                    return (
+                                                        <span style={{
+                                                            fontSize: '11px',
+                                                            background: contestStyles.bg,
+                                                            color: contestStyles.color,
+                                                            border: `1px solid ${contestStyles.border}`,
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontWeight: 700,
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px'
+                                                        }}>
+                                                            {contestStatus}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </div>
                                             {c.year && (
                                                 <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
@@ -452,7 +482,7 @@ const PanelAllocation = () => {
                             const selectedC = contests.find(c => String(c.id) === String(selectedContestId));
                             if (!selectedC) return null;
                             const statusText = selectedC.status || 'ACTIVE';
-                            const badgeStyles = statusText === 'CLOSED' ? { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' } : { bg: '#d1fae5', color: '#065f46', border: '#a7f3d0' };
+                            const badgeStyles = getStatusStyles(statusText);
                             return (
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', padding: '0 4px' }}>
                                     <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Overall Status:</span>
@@ -470,22 +500,8 @@ const PanelAllocation = () => {
                             {rounds.map((r, idx) => {
                                 const isActive = String(selectedRoundId) === String(r.roundId);
 
-                                const getRoundStatusStyles = (status) => {
-                                    const s = status?.toUpperCase() || 'ACTIVE';
-                                    switch (s) {
-                                        case 'CLOSED':
-                                            return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
-                                        case 'UPCOMING':
-                                            return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
-                                        case 'ACTIVE':
-                                        case 'ACTIVED':
-                                        default:
-                                            return { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
-                                    }
-                                };
-
                                 const statusText = r.status ? r.status.toUpperCase() : 'ACTIVE';
-                                const statusStyle = getRoundStatusStyles(statusText);
+                                const statusStyle = getStatusStyles(statusText);
 
                                 return (
                                     <div
