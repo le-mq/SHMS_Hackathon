@@ -176,7 +176,16 @@ const TeamRegistrationApproval = () => {
         }
     };
 
-    if (isLoading) return <div className="approval-container"><div style={{ padding: '40px' }}>Loading dashboard...</div></div>;
+    if (isLoading) {
+        return (
+            <div className="approval-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading registration approvals...</span>
+                </div>
+            </div>
+        );
+    }
     if (error) return <div className="approval-container"><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
 
     // 1. If no contest is selected, show contest list view

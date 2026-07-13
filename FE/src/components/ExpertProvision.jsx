@@ -76,6 +76,8 @@ const ExpertProvisioning = () => {
         });
     };
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     const fetchExperts = async () => {
         try {
             const res = await fetch(`${API_BASE}/admin/contests/experts`, { headers });
@@ -86,6 +88,8 @@ const ExpertProvisioning = () => {
             const localRes = await fetch("/testFE.json");
             const localJson = await localRes.json();
             setExperts(localJson.expertProvisioning?.experts || []);
+        } finally {
+            setInitialLoading(false);
         }
     };
 
@@ -349,6 +353,19 @@ const ExpertProvisioning = () => {
             (exp.username || '').toLowerCase().includes(searchQuery.toLowerCase())
         ));
     }, [experts, searchQuery]);
+
+    if (initialLoading) {
+        return (
+            <div className="admin-container">
+                <div className="config-wrapper">
+                    <div className="global-loading">
+                        <div className="global-spinner"></div>
+                        <span>Loading expert provisions...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-container">

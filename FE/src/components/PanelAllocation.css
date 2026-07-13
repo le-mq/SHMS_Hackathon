@@ -261,6 +261,7 @@
     background: #ffffff;
     user-select: none;
     transition: all 0.2s ease;
+    width: fit-content;
 }
 
 .team-card-global:hover {

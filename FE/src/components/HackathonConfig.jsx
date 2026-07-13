@@ -82,6 +82,8 @@ function HackathonConfig() {
         return 'FALL';
     };
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     const fetchData = async (url, mockKey) => {
         try {
             const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('shms_token')}` } });
@@ -98,8 +100,13 @@ function HackathonConfig() {
     const fetchContests = async () => setContests(await fetchData(`${API_BASE}/admin/contests`, 'contests'));
     const fetchAllUniversities = async () => setAllUniversities(await fetchData(`${API_BASE}/admin/universities`, 'uni'));
     useEffect(() => {
-        fetchContests();
-        fetchAllUniversities();
+        setInitialLoading(true);
+        Promise.all([
+            fetchContests(),
+            fetchAllUniversities()
+        ])
+        .catch(err => console.error("Initial load error in HackathonConfig", err))
+        .finally(() => setInitialLoading(false));
     }, []);
     const formik = useFormik({
         initialValues: {
@@ -474,6 +481,19 @@ function HackathonConfig() {
         formik.status.error.toLowerCase().includes('season') ||
         formik.status.error.toLowerCase().includes('round')
     );
+
+    if (initialLoading) {
+        return (
+            <div className="admin-container">
+                <div className="config-wrapper">
+                    <div className="global-loading">
+                        <div className="global-spinner"></div>
+                        <span>Loading hackathon configurations...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-container">
