@@ -35,7 +35,6 @@ const ExpertProfile = () => {
                 const token = localStorage.getItem('shms_token');
                 if (!token) throw new Error("No token found");
 
-                // ĐỔI ĐƯỜNG DẪN TỪ expert THÀNH judge TẠI ĐÂY
                 const response = await fetch(apiEndpoint, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -46,17 +45,15 @@ const ExpertProfile = () => {
 
                 const data = await response.json();
 
-                // Áp dụng đúng các trường dữ liệu trả về từ database
                 setForm(f => ({
                     ...f,
-                    fullName: data.full_name || data.fullName || '', // Đề phòng backend trả về snake_case theo DB
+                    fullName: data.full_name || data.fullName || '',
                     email: data.corporateEmail || '',
-                    telephoneNumber: data.phone || data.telephoneNumber || '' // DB lưu là 'phone'
+                    telephoneNumber: data.phone || data.telephoneNumber || ''
                 }));
 
             } catch (error) {
-                console.error("Lỗi kết nối API thật, dùng dữ liệu Mock:", error);
-                // Giữ nguyên phần đọc file local testFE.json của bạn ở đây...
+                console.error("Failed to connect to real API, using fallback data:", error);
                 const localRes = await fetch('/testFE.json');
                 if (localRes.ok) {
                     const localJson = await localRes.json();
@@ -238,7 +235,6 @@ const ExpertProfile = () => {
                 </div>
 
                 <div className="op-profile-grid">
-                    {/* Left: Avatar Panel */}
                     <div className="op-avatar-panel">
                         <div className="op-avatar-wrap" onClick={() => fileInputRef.current?.click()}>
                             {avatarPreview
@@ -259,9 +255,7 @@ const ExpertProfile = () => {
                         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
                     </div>
 
-                    {/* Right: Forms */}
                     <div className="op-forms-col">
-                        {/* Institutional Credentials */}
                         <div className="op-form-card">
                             <h2 className="op-card-title">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +286,6 @@ const ExpertProfile = () => {
                             </div>
                         </div>
 
-                        {/* Contact & Security */}
                         <div className="op-form-card">
                             <h2 className="op-card-title">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">

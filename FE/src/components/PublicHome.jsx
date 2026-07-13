@@ -37,7 +37,7 @@ function ContestCard({ contest, onSelectContest }) {
         <div className="ph-contest-card">
             <div className="ph-contest-card-header">
                 <span className={`ph-season-badge ph-season-${season}`}>{season} {year}</span>
-                <small>{status}</small>
+                <span className={`ph-status-badge ph-status-${status}`}>{status}</span>
             </div>
             <h3>{name}</h3>
             <div className="ph-contest-dates">

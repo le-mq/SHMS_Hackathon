@@ -290,7 +290,14 @@ const TeamStatus = () => {
     };
 
     if (isLoading) {
-        return <div className="status-container"><div className="loading-state">Loading your teams...</div></div>;
+        return (
+            <div className="status-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading your teams...</span>
+                </div>
+            </div>
+        );
     }
 
     if (viewMode === 'LIST') {
