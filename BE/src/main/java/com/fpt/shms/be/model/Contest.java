@@ -123,4 +123,40 @@ public class Contest {
     public ContestStatus getStatus() {
         return this.status;
     }
+
+    public boolean checkAndSyncStatus() {
+        if (this.status == ContestStatus.CANCELED || this.status == ContestStatus.CANCELLED) {
+            return false;
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        ContestStatus computed = this.status != null ? this.status : ContestStatus.UPCOMING;
+        if (this.contestEndAt != null && now.isAfter(this.contestEndAt)) {
+            computed = ContestStatus.CLOSED;
+        } else if (this.contestStartAt != null) {
+            if (now.isBefore(this.contestStartAt)) {
+                if (this.status != ContestStatus.CLOSED) {
+                    computed = ContestStatus.UPCOMING;
+                }
+            } else if (this.contestEndAt == null || !now.isAfter(this.contestEndAt)) {
+                if (this.status != ContestStatus.CLOSED) {
+                    computed = ContestStatus.ACTIVED;
+                }
+            }
+        } else if (this.registrationStart != null) {
+            if (now.toLocalDate().isBefore(this.registrationStart)) {
+                if (this.status != ContestStatus.CLOSED) {
+                    computed = ContestStatus.UPCOMING;
+                }
+            } else if (this.contestEndAt == null || !now.isAfter(this.contestEndAt)) {
+                if (this.status != ContestStatus.CLOSED) {
+                    computed = ContestStatus.ACTIVED;
+                }
+            }
+        }
+        if (computed != null && this.status != computed) {
+            this.status = computed;
+            return true;
+        }
+        return false;
+    }
 }
