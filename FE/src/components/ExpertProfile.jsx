@@ -17,8 +17,8 @@ const ExpertProfile = () => {
     });
 
     const apiEndpoint = currentRole === 'JUDGE'
-        ? 'http://localhost:8080/api/v1/judge/profile'
-        : 'http://localhost:8080/api/v1/mentor/profile';
+        ? (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/judge/profile"
+        : (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/mentor/profile";
 
     const [form, setForm] = useState({
         fullName: '',

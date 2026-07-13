@@ -19,9 +19,9 @@ const EvaluationWorkspace = () => {
                 const roundId = urlParams.get('roundId');
                 let fetchUrl = '';
                 if (teamId === 'preview' && roundId) {
-                    fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/0?roundId=${roundId}`;
+                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/judge/evaluation-data/0?roundId=${roundId}`;
                 } else {
-                    fetchUrl = `http://localhost:8080/api/v1/judge/evaluation-data/${teamId}`;
+                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/judge/evaluation-data/${teamId}`;
                     if (roundId) {
                         fetchUrl += `?roundId=${roundId}`;
                     }
@@ -112,7 +112,7 @@ const EvaluationWorkspace = () => {
         };
         try {
             const token = localStorage.getItem('shms_token');
-            const response = await fetch('http://localhost:8080/api/v1/judge/submit-score', {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/judge/submit-score", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

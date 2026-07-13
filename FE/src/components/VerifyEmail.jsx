@@ -6,11 +6,11 @@ import NavbarHome from './NavbarHome.jsx';
 const VerifyEmail = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const username = location.state?.username || ''; // Passed from Register page
+    const username = location.state?.username || '';
     const canResendImmediately = location.state?.canResendImmediately === true;
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [timeLeft, setTimeLeft] = useState(canResendImmediately ? 0 : 180); // 3 minutes = 180 seconds
+    const [timeLeft, setTimeLeft] = useState(canResendImmediately ? 0 : 180);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ const VerifyEmail = () => {
         setIsResending(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/resend-otp', {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/resend-otp", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username })
@@ -115,7 +115,7 @@ const VerifyEmail = () => {
         setIsResending(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/resend-otp', {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/resend-otp", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username })
@@ -154,7 +154,7 @@ const VerifyEmail = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/auth/verify-email', {
+            const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/auth/verify-email", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, otp: otpValue })
@@ -167,7 +167,7 @@ const VerifyEmail = () => {
             } else {
                 setError('');
                 setSuccess(data.message || 'Account activated successfully! Logging you in...');
-                
+
                 if (data.token) {
                     localStorage.setItem('shms_token', data.token);
                     if (data.role)

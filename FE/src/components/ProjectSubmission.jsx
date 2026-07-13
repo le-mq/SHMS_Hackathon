@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './ProjectSubmission.css';
 import './LeaderWorkspace.css';
 
-const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
 const SUCCESS_MESSAGE_DURATION_MS = 5000;
 const SUCCESS_RELOAD_DELAY_MS = 5000;
 const ERROR_MESSAGE_DURATION_MS = 5000;
@@ -794,306 +794,306 @@ const ProjectSubmission = () => {
                 ) : (
                     <>
                         <div className="submission-header">
-                    <div className="submission-header-left">
-                        <h1 className="submission-title">Project Submission Portal</h1>
-                        {contestName && (
-                            <div className="submission-contest" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
+                            <div className="submission-header-left">
+                                <h1 className="submission-title">Project Submission Portal</h1>
+                                {contestName && (
+                                    <div className="submission-contest" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
+                                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
 
-                                <span style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{contestName}</span>
-                                {contestStatus && (
-                                    <span className="active-badge" style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        ...(String(contestStatus).toUpperCase() === 'ACTIVED' ? { backgroundColor: '#dcfce3', color: '#166534' } : { backgroundColor: '#f1f5f9', color: '#475569' }),
-                                        fontSize: '13px',
-                                        padding: '4px 12px',
-                                        borderRadius: '16px',
-                                        fontWeight: '700',
-                                        marginLeft: '8px'
-                                    }}>
+                                        <span style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{contestName}</span>
+                                        {contestStatus && (
+                                            <span className="active-badge" style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                ...(String(contestStatus).toUpperCase() === 'ACTIVED' ? { backgroundColor: '#dcfce3', color: '#166534' } : { backgroundColor: '#f1f5f9', color: '#475569' }),
+                                                fontSize: '13px',
+                                                padding: '4px 12px',
+                                                borderRadius: '16px',
+                                                fontWeight: '700',
+                                                marginLeft: '8px'
+                                            }}>
                                         <span style={{
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
                                             backgroundColor: String(contestStatus).toUpperCase() === 'ACTIVED' ? '#16a34a' : '#94a3b8'
                                         }}></span>
-                                        {contestStatus}
+                                                {contestStatus}
                                     </span>
+                                        )}
+                                    </div>
                                 )}
-                            </div>
-                        )}
-                        <div className="submission-status-card">
-                            <div className="submission-status-icon">
-                                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={3}
-                                        d="M5 13l4 4L19 7"
-                                    />
-                                </svg>
-                            </div>
+                                <div className="submission-status-card">
+                                    <div className="submission-status-icon">
+                                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={3}
+                                                d="M5 13l4 4L19 7"
+                                            />
+                                        </svg>
+                                    </div>
 
-                            <div>
-                                <div className="submission-status-label">
-                                    SUBMISSION ELIGIBILITY
-                                </div>
+                                    <div>
+                                        <div className="submission-status-label">
+                                            SUBMISSION ELIGIBILITY
+                                        </div>
 
-                                <div className="submission-status-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    Qualification Status: 
-                                    {qualificationStatus && (
-                                        <span style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            padding: '4px 12px',
-                                            borderRadius: '20px',
-                                            backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#dcfce3' : '#fef2f2',
-                                            color: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#166534' : '#dc2626',
-                                            fontSize: '15px',
-                                            fontWeight: '700'
-                                        }}>
+                                        <div className="submission-status-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            Qualification Status:
+                                            {qualificationStatus && (
+                                                <span style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '20px',
+                                                    backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#dcfce3' : '#fef2f2',
+                                                    color: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#166534' : '#dc2626',
+                                                    fontSize: '15px',
+                                                    fontWeight: '700'
+                                                }}>
                                             <span style={{
                                                 width: '8px',
                                                 height: '8px',
                                                 borderRadius: '50%',
                                                 backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#16a34a' : '#ef4444'
                                             }}></span>
-                                            {qualificationStatus}
+                                                    {qualificationStatus}
                                         </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="submission-deadline-small">
+                                <div className="deadline-small-label">
+                                    {deadlineLabel}
+                                </div>
+
+                                <div className="deadline-small-name">
+                                    {deadlineName}
+                                </div>
+
+                                <div className={`deadline-small-body${timeLeft ? '' : ' no-countdown'}`}>
+                                    {timeLeft && (
+                                        <div className="deadline-small-time">
+                                            {timeLeft}
+                                        </div>
                                     )}
+                                    <div className="deadline-small-dates">
+                                        <div className="deadline-small-date">
+                                            {deadlineOpenText}
+                                            <span>{formattedOpenDate}</span>
+                                        </div>
+                                        <div className="deadline-small-date">
+                                            {deadlineCloseText}
+                                            <span>{formattedDeadline}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="submission-deadline-small">
-                        <div className="deadline-small-label">
-                            {deadlineLabel}
-                        </div>
 
-                        <div className="deadline-small-name">
-                            {deadlineName}
-                        </div>
-
-                        <div className={`deadline-small-body${timeLeft ? '' : ' no-countdown'}`}>
-                            {timeLeft && (
-                                <div className="deadline-small-time">
-                                    {timeLeft}
-                                </div>
-                            )}
-                            <div className="deadline-small-dates">
-                                <div className="deadline-small-date">
-                                    {deadlineOpenText}
-                                    <span>{formattedOpenDate}</span>
-                                </div>
-                                <div className="deadline-small-date">
-                                    {deadlineCloseText}
-                                    <span>{formattedDeadline}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="form-card">
+                        <div className="form-card">
                             <h2 className="form-title">Submit Project Assets</h2>
-                    <p className="form-subtitle">Ensure all links are public or accessible to judges. At least one link is recommended.</p>
+                            <p className="form-subtitle">Ensure all links are public or accessible to judges. At least one link is recommended.</p>
 
-                    <div className="form-grid">
-                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                            <label>Select Round</label>
-                            <div className="rounds-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
-                                {(() => {
-                                    const visibleRounds = [];
-                                    if (pageData?.rounds) {
-                                        for (const r of pageData.rounds) {
-                                            visibleRounds.push(r);
-                                            if (String(r.qualificationStatus || '').toUpperCase() === 'ELIMINATED') {
-                                                break;
+                            <div className="form-grid">
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label>Select Round</label>
+                                    <div className="rounds-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+                                        {(() => {
+                                            const visibleRounds = [];
+                                            if (pageData?.rounds) {
+                                                for (const r of pageData.rounds) {
+                                                    visibleRounds.push(r);
+                                                    if (String(r.qualificationStatus || '').toUpperCase() === 'ELIMINATED') {
+                                                        break;
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                    return visibleRounds.map((r, index) => {
-                                        const statusLabel = getRoundStatusLabel(r);
-                                    const isActive = statusLabel === 'ACTIVED';
-                                    const isSelected = String(formData.roundId) === String(r.id);
+                                            return visibleRounds.map((r, index) => {
+                                                const statusLabel = getRoundStatusLabel(r);
+                                                const isActive = statusLabel === 'ACTIVED';
+                                                const isSelected = String(formData.roundId) === String(r.id);
 
-                                    return (
-                                        <div
-                                            key={`${r.id}-${index}`}
-                                            onClick={() => handleChange({ target: { name: 'roundId', value: r.id } })}
-                                            style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: '12px 16px',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                backgroundColor: isActive ? '#dcfce3' : '#f1f5f9',
-                                                border: isSelected ? '2px solid #2563eb' : '1px solid transparent',
-                                                transition: 'all 0.2s ease-in-out'
-                                            }}
-                                        >
-                                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                                                {r.name}
-                                            </div>
-                                            <div style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                fontWeight: '700',
-                                                color: isActive ? '#166534' : '#64748b',
-                                                fontSize: '14px'
-                                            }}>
+                                                return (
+                                                    <div
+                                                        key={`${r.id}-${index}`}
+                                                        onClick={() => handleChange({ target: { name: 'roundId', value: r.id } })}
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            padding: '12px 16px',
+                                                            borderRadius: '8px',
+                                                            cursor: 'pointer',
+                                                            backgroundColor: isActive ? '#dcfce3' : '#f1f5f9',
+                                                            border: isSelected ? '2px solid #2563eb' : '1px solid transparent',
+                                                            transition: 'all 0.2s ease-in-out'
+                                                        }}
+                                                    >
+                                                        <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                                            {r.name}
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            fontWeight: '700',
+                                                            color: isActive ? '#166534' : '#64748b',
+                                                            fontSize: '14px'
+                                                        }}>
                                                 <span style={{
                                                     width: '6px',
                                                     height: '6px',
                                                     borderRadius: '50%',
                                                     backgroundColor: isActive ? '#16a34a' : '#94a3b8'
                                                 }}></span>
-                                                {statusLabel}
+                                                            {statusLabel}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
+                                </div>
+                                {selectedRound && getRoundStatusLabel(selectedRound) === 'UPCOMING' && (
+                                    <div style={{ gridColumn: '1 / -1', padding: '20px', textAlign: 'center', color: '#ef4444', fontStyle: 'italic', background: '#fef2f2', borderRadius: '8px', border: '1px dashed #fca5a5' }}>
+                                        It is not yet time to submit your assignment
+                                    </div>
+                                )}
+                                {isSelectedRoundEligible && selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && parseRequirements(selectedRound.submissionRequirements).map((req, idx) => {
+                                    return (
+                                        <div className="form-group" key={idx}>
+                                            <label className="form-group-label">
+                                                <GenericLinkIcon />
+                                                {req}
+                                            </label>
+                                            <div className="input-wrapper">
+                                                <input
+                                                    type="text"
+                                                    name={req}
+                                                    value={formData[req] || ''}
+                                                    onChange={handleChange}
+                                                    placeholder={`Enter your ${req}...`}
+                                                    disabled={isInputsDisabled}
+                                                    className="custom-input"
+                                                />
                                             </div>
                                         </div>
                                     );
-                                    });
-                                })()}
+                                })}
                             </div>
-                        </div>
-                        {selectedRound && getRoundStatusLabel(selectedRound) === 'UPCOMING' && (
-                            <div style={{ gridColumn: '1 / -1', padding: '20px', textAlign: 'center', color: '#ef4444', fontStyle: 'italic', background: '#fef2f2', borderRadius: '8px', border: '1px dashed #fca5a5' }}>
-                                It is not yet time to submit your assignment
-                            </div>
-                        )}
-                        {isSelectedRoundEligible && selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && parseRequirements(selectedRound.submissionRequirements).map((req, idx) => {
-                            return (
-                                <div className="form-group" key={idx}>
-                                    <label className="form-group-label">
-                                        <GenericLinkIcon />
-                                        {req}
-                                    </label>
-                                    <div className="input-wrapper">
-                                        <input
-                                            type="text"
-                                            name={req}
-                                            value={formData[req] || ''}
-                                            onChange={handleChange}
-                                            placeholder={`Enter your ${req}...`}
-                                            disabled={isInputsDisabled}
-                                            className="custom-input"
-                                        />
+
+                            {selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && (
+                                <div className="submit-action-row" style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'stretch' }}>
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'stretch' }}>
+                                        {submitFeedbackMessage && (
+                                            <p className={`submission-message ${submitFeedbackType} submit-feedback${submitFeedbackVariant}`} style={{ margin: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
+                                                {submitFeedbackMessage}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
+                                        <button type="button" className="submit-btn submit-btn-draft" onClick={() => handleSubmitClick('DRAFT')} disabled={isInputsDisabled}
+                                                style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', background: '#f8fafc', border: '2px solid #e2e8f0', fontWeight: '600' }}>
+                                            {isSubmitting ? 'Saving...' : 'Save Draft'}
+                                        </button>
+                                        <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmitClick('SUBMITTED')} disabled={isInputsDisabled}
+                                                style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {hasOfficialSubmission ? 'Already Submitted' : isSubmitting ? 'Submitting...' : 'Submit Project'}
+                                        </button>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    {selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && (
-                        <div className="submit-action-row" style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'stretch' }}>
-                            <div style={{ flex: 1, display: 'flex', alignItems: 'stretch' }}>
-                                {submitFeedbackMessage && (
-                                    <p className={`submission-message ${submitFeedbackType} submit-feedback${submitFeedbackVariant}`} style={{ margin: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
-                                        {submitFeedbackMessage}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
-                                <button type="button" className="submit-btn submit-btn-draft" onClick={() => handleSubmitClick('DRAFT')} disabled={isInputsDisabled}
-                                        style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', background: '#f8fafc', border: '2px solid #e2e8f0', fontWeight: '600' }}>
-                                    {isSubmitting ? 'Saving...' : 'Save Draft'}
-                                </button>
-                                <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmitClick('SUBMITTED')} disabled={isInputsDisabled}
-                                        style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {hasOfficialSubmission ? 'Already Submitted' : isSubmitting ? 'Submitting...' : 'Submit Project'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && (
-                    <div className="history-card">
-                        <div className="history-header">
-                            Submission History
-                            {formData.roundId && pageData?.rounds && (
-                                <span style={{ fontSize: '16px', fontWeight: 'normal', marginLeft: '8px', color: '#64748b' }}>
-                                    ({pageData.rounds.find(r => r.id == formData.roundId)?.name})
-                                </span>
                             )}
                         </div>
-                        <table className="sub-history-table">
-                            <thead>
-                            <tr>
-                                <th>VERSION</th>
-                                <th>TIMESTAMP</th>
-                                <th>ASSET LINKS</th>
-                                <th>MENTOR FEEDBACK</th>
-                                <th>STATUS</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                        No submissions found for this round.
-                                    </td>
-                                </tr>
-                            ) : (
-                                history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
-                                    const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                                    return (
-                                        <tr key={idx}>
-                                            <td className="version-col">
-                                                v{item.version}.0
-                                                <div style={{ marginTop: '4px' }}>
-                                                    {String(item.status || '').toUpperCase() === 'DRAFT' ? (
-                                                        <span style={{ fontSize: '11px', color: '#854d0e', background: '#fef08a', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Draft</span>
-                                                    ) : (
-                                                        <span style={{ fontSize: '11px', color: '#166534', background: '#dcfce3', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Final</span>
-                                                    )}
-                                                </div>
+
+                        {selectedRound && getRoundStatusLabel(selectedRound) !== 'UPCOMING' && (
+                            <div className="history-card">
+                                <div className="history-header">
+                                    Submission History
+                                    {formData.roundId && pageData?.rounds && (
+                                        <span style={{ fontSize: '16px', fontWeight: 'normal', marginLeft: '8px', color: '#64748b' }}>
+                                    ({pageData.rounds.find(r => r.id == formData.roundId)?.name})
+                                </span>
+                                    )}
+                                </div>
+                                <table className="sub-history-table">
+                                    <thead>
+                                    <tr>
+                                        <th>VERSION</th>
+                                        <th>TIMESTAMP</th>
+                                        <th>ASSET LINKS</th>
+                                        <th>MENTOR FEEDBACK</th>
+                                        <th>STATUS</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                                No submissions found for this round.
                                             </td>
-                                            <td>{formattedTime}</td>
-                                            <td>
-                                                <div className="asset-icons">
-                                                    {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
-                                                        if (!item[req]) return null;
-                                                        return renderAssetLink(item[req], req, <GenericLinkIcon width={16} height={16} />);
-                                                    })}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {item.mentorFeedback ? (
-                                                    <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                        View Feedback</button>
-                                                ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                            </td>
-                                            <td>
+                                        </tr>
+                                    ) : (
+                                        history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
+                                            const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                            return (
+                                                <tr key={idx}>
+                                                    <td className="version-col">
+                                                        v{item.version}.0
+                                                        <div style={{ marginTop: '4px' }}>
+                                                            {String(item.status || '').toUpperCase() === 'DRAFT' ? (
+                                                                <span style={{ fontSize: '11px', color: '#854d0e', background: '#fef08a', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Draft</span>
+                                                            ) : (
+                                                                <span style={{ fontSize: '11px', color: '#166534', background: '#dcfce3', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Final</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td>{formattedTime}</td>
+                                                    <td>
+                                                        <div className="asset-icons">
+                                                            {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
+                                                                if (!item[req]) return null;
+                                                                return renderAssetLink(item[req], req, <GenericLinkIcon width={16} height={16} />);
+                                                            })}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        {item.mentorFeedback ? (
+                                                            <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                                View Feedback</button>
+                                                        ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
+                                                    </td>
+                                                    <td>
                                                     <span className={`status-badge ${getSubmissionStatusClass(item)}`}>
                                                         {String(item.status).toUpperCase() !== 'ARCHIVED' && (
                                                             <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                                                         )}
                                                         {getSubmissionStatusLabel(item)}
                                                     </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </>
                 )}
             </div>

@@ -4,13 +4,13 @@ import * as Yup from 'yup';
 import { Form, Button } from 'react-bootstrap';
 import './HackathonConfig.css';
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
 const RemoveButton = ({ onClick, title, style }) => (
     <button type="button" onClick={onClick} title={title}
-        style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, ...style }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
-        onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+            style={{ color: '#ef4444', background: '#fee2e2', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s', fontSize: '12px', flexShrink: 0, ...style }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
     >&#10005;</button>
 );
 
@@ -491,25 +491,25 @@ function HackathonConfig() {
                         <div className="partner-table-container mt-4">
                             <table className="partner-table">
                                 <thead>
-                                    <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
+                                <tr><th>Contest Name</th><th>Season</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody>
-                                    {filteredContests.length > 0 ? (filteredContests.map(c => {
-                                        const liveStatus = determineStatus(c.registrationStart, c.contestEndAt);
-                                        return (
-                                            <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
-                                                <td><div className="uni-name">{c.name}</div></td>
-                                                <td><div className="uni-domain">{c.season} {c.year}</div></td>
-                                                <td><span className="status-badge">{liveStatus}</span></td>
-                                                <td><button type="button" className={selectedContestId === c.id ? "delete-btn" : "edit-btn"}
-                                                    onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
-                                                    {selectedContestId === c.id ? 'Deselect' : liveStatus === 'CLOSED' ? 'View details' : 'Select to Edit'}
-                                                </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
+                                {filteredContests.length > 0 ? (filteredContests.map(c => {
+                                    const liveStatus = determineStatus(c.registrationStart, c.contestEndAt);
+                                    return (
+                                        <tr key={c.id} className={selectedContestId === c.id ? 'selected-row' : ''}>
+                                            <td><div className="uni-name">{c.name}</div></td>
+                                            <td><div className="uni-domain">{c.season} {c.year}</div></td>
+                                            <td><span className="status-badge">{liveStatus}</span></td>
+                                            <td><button type="button" className={selectedContestId === c.id ? "delete-btn" : "edit-btn"}
+                                                        onClick={() => handleSelectContest(selectedContestId === c.id ? '' : c.id)}
+                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: selectedContestId === c.id ? '#ef4444' : '#1e40af' }}>
+                                                {selectedContestId === c.id ? 'Deselect' : liveStatus === 'CLOSED' ? 'View details' : 'Select to Edit'}
+                                            </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })) : (<tr><td colSpan="4" style={{ textAlign: 'center' }}>No contests found</td></tr>)}
                                 </tbody>
                             </table>
                         </div>

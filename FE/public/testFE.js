@@ -1,0 +1,1898 @@
+// {
+//   "universities": [
+//     {
+//       "id": 1,
+//       "name": "FPT University",
+//       "universityCode": "FPT",
+//       "emailRegex": "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$",
+//       "studentCodeRegex": "^[A-Z]{2}\\d{6}$"
+//     },
+//     {
+//       "id": 2,
+//       "name": "Hanoi University of Science and Technology",
+//       "universityCode": "HUST",
+//       "emailRegex": "^[a-zA-Z0-9._%+-]+@sis\\.hust\\.edu\\.vn$",
+//       "studentCodeRegex": "^\\d{8}$"
+//     },
+//     {
+//       "id": 3,
+//       "name": "National Economics University",
+//       "universityCode": "NEU",
+//       "emailRegex": "^[a-zA-Z0-9._%+-]+@neu\\.edu\\.vn$",
+//       "studentCodeRegex": "^\\d{8}$"
+//     }
+//   ],
+//   "users": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "username": "admin123",
+//         "email": "admin@shms.com",
+//         "role": "Admin",
+//         "fullName": "Nguyễn Văn Admin",
+//         "avatar": "https://via.placeholder.com/150",
+//         "status": "Active"
+//       },
+//       {
+//         "id": "2",
+//         "username": "student1",
+//         "email": "student1@fpt.edu.vn",
+//         "role": "Student",
+//         "fullName": "Trần Thị Sinh Viên",
+//         "university": "FPT University",
+//         "status": "Active"
+//       },
+//       {
+//         "id": "3",
+//         "username": "judge1",
+//         "email": "judge@tech.com",
+//         "role": "Judge",
+//         "fullName": "Lê Giám Khảo",
+//         "expertise": "AI, Web Development",
+//         "status": "Active"
+//       }
+//     ]
+//   },
+//   "contests": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "name": "FPT Hackathon Summer",
+//         "season": "SUMMER",
+//         "year": "2026",
+//         "status": "ACTIVE",
+//         "registrationStart": "2026-06-01",
+//         "registrationEnd": "2026-06-15",
+//         "competitionStart": "2026-06-18",
+//         "competitionEnd": "2026-06-30",
+//         "description": "Cuộc thi lập trình lớn nhất năm 2025 dành cho sinh viên.",
+//         "categories": [
+//           "Web",
+//           "Mobile"
+//         ],
+//         "rounds": [
+//           {
+//             "phaseName": "Idea Submission",
+//             "submissionOpen": "2026-06-18",
+//             "submissionDeadline": "2026-06-20"
+//           },
+//           {
+//             "phaseName": "Final Sprint",
+//             "submissionOpen": "2026-06-21",
+//             "submissionDeadline": "2026-06-30"
+//           }
+//         ]
+//       },
+//       {
+//         "id": "2",
+//         "name": "Techfest Fall",
+//         "season": "FALL",
+//         "year": "2026",
+//         "status": "ACTIVE",
+//         "registrationStart": "2026-07-01",
+//         "registrationEnd": "2026-07-15",
+//         "competitionStart": "2026-07-18",
+//         "competitionEnd": "2026-07-31",
+//         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
+//         "categories": [
+//           "Web",
+//           "Mobile"
+//         ],
+//         "rounds": [
+//           {
+//             "phaseName": "Idea Submission",
+//             "submissionOpen": "2026-02-01",
+//             "submissionDeadline": "2026-02-20"
+//           },
+//           {
+//             "phaseName": "Final Sprint",
+//             "submissionOpen": "2026-03-01",
+//             "submissionDeadline": "2026-03-15"
+//           }
+//         ]
+//       },
+//       {
+//         "id": "3",
+//         "name": "Techfest Spring",
+//         "season": "SPRING",
+//         "year": "2025",
+//         "status": "CLOSED",
+//         "registrationStart": "2025-03-01",
+//         "registrationEnd": "2025-03-15",
+//         "competitionStart": "2025-03-18",
+//         "competitionEnd": "2025-03-31",
+//         "description": "Cuộc thi sáng tạo công nghệ mùa hạ.",
+//         "categories": [
+//           "Web",
+//           "Mobile"
+//         ],
+//         "rounds": [
+//           {
+//             "phaseName": "Idea Submission",
+//             "submissionOpen": "2025-03-18",
+//             "submissionDeadline": "2025-03-20"
+//           },
+//           {
+//             "phaseName": "Final Sprint",
+//             "submissionOpen": "2026-03-21",
+//             "submissionDeadline": "2025-03-31"
+//           }
+//         ]
+//       }
+//     ]
+//   },
+//   "categories": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "name": "Web"
+//       },
+//       {
+//         "id": "2",
+//         "name": "Mobile"
+//       },
+//       {
+//         "id": "3",
+//         "name": "AI & Machine Learning Innovation"
+//       },
+//       {
+//         "id": "4",
+//         "name": "Design"
+//       }
+//     ]
+//   },
+//   "announcements": {
+//     "data": [
+//       {
+//         "id": 1,
+//         "title": "Registration is now open",
+//         "content": "Students can now register for the Summer Hackathon 2026. Please complete your team registration before the deadline.",
+//         "type": "GENERAL_UPDATE",
+//         "publishedAt": "2026-06-15T08:00:00"
+//       },
+//       {
+//         "id": 2,
+//         "title": "Submission deadline reminder",
+//         "content": "Round 1 submission will close at 23:59 on June 20, 2026. Late submissions will not be accepted.",
+//         "type": "DEADLINE_REMINDER",
+//         "publishedAt": "2026-06-14T10:30:00"
+//       },
+//       {
+//         "id": 3,
+//         "title": "Rule change announcement",
+//         "content": "Each team must have from 3 to 5 members. Teams outside this range will not be approved.",
+//         "type": "RULE_CHANGE",
+//         "publishedAt": "2026-06-13T14:00:00"
+//       },
+//       {
+//         "id": 4,
+//         "title": "Result announcement",
+//         "content": "The list of teams advancing to the next round will be published after judging is completed.",
+//         "type": "RESULT_ANNOUNCEMENT",
+//         "publishedAt": "2026-06-12T09:15:00"
+//       }
+//     ]
+//   },
+//   "leaderWorkspace": {
+//     "data": {
+//       "teamStatus": "APPROVED",
+//       "currentMembers": 4,
+//       "maxMembers": 5,
+//       "isSubmitted": false,
+//       "currentRank": null,
+//       "submissionDeadline": "2026-06-20T23:59:00+07:00",
+//       "announcements": [
+//         {
+//           "id": 1,
+//           "title": "Round 1 submission is now open",
+//           "category": "Submission",
+//           "datePosted": "2026-06-15T08:00:00+07:00"
+//         },
+//         {
+//           "id": 2,
+//           "title": "Workshop for team leaders",
+//           "category": "Workshop",
+//           "datePosted": "2026-06-16T09:00:00+07:00"
+//         }
+//       ]
+//     }
+//   },
+//   "teamStatus": {
+//     "data": {
+//       "teamName": "SEAL Mock Team",
+//       "invitationCode": "MOCK2026",
+//       "status": "APPROVED",
+//       "roster": [
+//         {
+//           "fullName": "Le Tien Dat",
+//           "studentId": "SE190001",
+//           "email": "letiendat@fpt.edu.vn",
+//           "internalRole": "LEADER"
+//         },
+//         {
+//           "fullName": "Nguyen Trung Anh",
+//           "studentId": "SE190002",
+//           "email": "trunganh@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         },
+//         {
+//           "fullName": "Tran Minh Quan",
+//           "studentId": "SE190003",
+//           "email": "minhquan@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         }
+//       ]
+//     }
+//   },
+//   "teamStatusContests": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "name": "SEAL Summer Hackathon 2026",
+//         "status": "ACTIVE"
+//       },
+//       {
+//         "id": "2",
+//         "name": "FPT Fall Innovation Challenge",
+//         "status": "ACTIVE"
+//       }
+//     ]
+//   },
+//   "teamStatusCategories": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "name": "Web",
+//         "contestId": "1"
+//       },
+//       {
+//         "id": "2",
+//         "name": "Mobile",
+//         "contestId": "2"
+//       },
+//       {
+//         "id": "3",
+//         "name": "AI",
+//         "contestId": "1"
+//       }
+//     ]
+//   },
+//   "teamStatusByContest": {
+//     "1": {
+//       "teamName": "SEAL Warriors",
+//       "invitationCode": "1A2B3C4D",
+//       "status": "APPROVED",
+//       "roster": [
+//         {
+//           "fullName": "Le Tien Dat",
+//           "studentId": "SE190001",
+//           "email": "letiendat@fpt.edu.vn",
+//           "internalRole": "LEADER"
+//         },
+//         {
+//           "fullName": "Nguyen Trung Anh",
+//           "studentId": "SE190002",
+//           "email": "trunganh@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         },
+//         {
+//           "fullName": "Tran Minh Quan",
+//           "studentId": "SE190003",
+//           "email": "minhquan@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         }
+//       ]
+//     },
+//     "2": {
+//       "teamName": "Fall Innovators",
+//       "invitationCode": "5X6M8C9Q",
+//       "status": "FORMING",
+//       "roster": [
+//         {
+//           "fullName": "Le Tien Dat",
+//           "studentId": "SE190001",
+//           "email": "letiendat@fpt.edu.vn",
+//           "internalRole": "LEADER"
+//         },
+//         {
+//           "fullName": "Do Minh Khang",
+//           "studentId": "SE190011",
+//           "email": "minhkhang@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         },
+//         {
+//           "fullName": "Vo Hoang Nam",
+//           "studentId": "SE190012",
+//           "email": "hoangnam@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         }
+//       ]
+//     },
+//     "default": {
+//       "teamName": "SEAL Mock Team",
+//       "invitationCode": "MOCK2026",
+//       "status": "APPROVED",
+//       "roster": [
+//         {
+//           "fullName": "Le Tien Dat",
+//           "studentId": "SE190001",
+//           "email": "letiendat@fpt.edu.vn",
+//           "internalRole": "LEADER"
+//         },
+//         {
+//           "fullName": "Nguyen Trung Anh",
+//           "studentId": "SE190002",
+//           "email": "trunganh@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         },
+//         {
+//           "fullName": "Tran Minh Quan",
+//           "studentId": "SE190003",
+//           "email": "minhquan@fpt.edu.vn",
+//           "internalRole": "MEMBER"
+//         }
+//       ]
+//     }
+//   },
+//   "studentSubmission": {
+//     "data": {
+//       "contestName": "FPT Hackathon Summer",
+//       "contestStatus": "ACTIVE",
+//       "internalRole": "LEADER",
+//       "teamName": "CodeCrafters",
+//       "teamStatus": "APPROVED",
+//       "rounds": [
+//         {
+//           "id": "R001",
+//           "name": "Idea Submission",
+//           "status": "OPEN",
+//           "submissionOpen": "2026-06-18T00:00:00+07:00",
+//           "submissionDeadline": "2026-06-20T23:59:00+07:00",
+//           "eligible": true,
+//           "evaluated": true,
+//           "totalScore": 91.25
+//         },
+//         {
+//           "id": "R002",
+//           "name": "Final Sprint",
+//           "status": "ACTIVE",
+//           "submissionOpen": "2026-06-21T00:00:00+07:00",
+//           "submissionDeadline": "2026-06-30T23:59:00+07:00",
+//           "eligible": false,
+//           "lockedReason": "Your team has not qualified from Idea Submission yet.",
+//           "evaluated": false
+//         }
+//       ],
+//       "history": [
+//         {
+//           "id": "S001",
+//           "roundId": "R001",
+//           "version": 1,
+//           "timestamp": "2026-06-18T10:30:00+07:00",
+//           "githubRepoUrl": "https://github.com/codecrafters/shms-demo",
+//           "liveDemoUrl": "https://shms-demo.vercel.app",
+//           "docsUrl": "https://docs.google.com/document/d/shms-docs",
+//           "slideUrl": "https://docs.google.com/presentation/d/shms-slide",
+//           "status": "ARCHIVED"
+//         },
+//         {
+//           "id": "S002",
+//           "roundId": "R001",
+//           "version": 2,
+//           "timestamp": "2026-06-19T21:15:00+07:00",
+//           "githubRepoUrl": "https://github.com/codecrafters/shms-final",
+//           "liveDemoUrl": "https://shms-final.vercel.app",
+//           "docsUrl": "https://docs.google.com/document/d/shms-final-docs",
+//           "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide",
+//           "status": "EVALUATED",
+//           "evaluated": true,
+//           "totalScore": 91.25
+//         }
+//       ]
+//     }
+//   },
+//   "studentDashboard": {
+//     "data": {
+//       "validInviteCodes": [
+//         {
+//           "invitationCode": "TEAM2026",
+//           "teamName": "Seal Warriors"
+//         },
+//         {
+//           "invitationCode": "WEB123",
+//           "teamName": "Web Innovators"
+//         },
+//         {
+//           "invitationCode": "AI2026",
+//           "teamName": "AI Builders"
+//         }
+//       ]
+//     }
+//   },
+//   "teams": {
+//     "data": [
+//       {
+//         "id": "T001",
+//         "contestId": "C001",
+//         "name": "CodeCrafters",
+//         "leaderId": "U002",
+//         "members": [
+//           "U002",
+//           "U004",
+//           "U005"
+//         ],
+//         "projectTitle": "Smart Hackathon Management",
+//         "status": "Approved"
+//       }
+//     ]
+//   },
+//   "leaderboard": {
+//     "data": [
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "CodeCrafters",
+//         "rank": 1,
+//         "categoryName": "Web",
+//         "status": "QUALIFIED",
+//         "finalScore": 95.5
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "BugHunters",
+//         "rank": 2,
+//         "categoryName": "Web",
+//         "status": "QUALIFIED",
+//         "finalScore": 89
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "DevRangers",
+//         "rank": 3,
+//         "categoryName": "Web",
+//         "status": "QUALIFIED",
+//         "finalScore": 82.5
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "ByteMe",
+//         "rank": 4,
+//         "categoryName": "Web",
+//         "status": "QUALIFIED",
+//         "finalScore": 78.5
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "TechTitans",
+//         "rank": 5,
+//         "categoryName": "Web",
+//         "status": "QUALIFIED",
+//         "finalScore": 72.5
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "Innovators",
+//         "rank": 1,
+//         "categoryName": "Mobile",
+//         "status": "QUALIFIED",
+//         "finalScore": 92
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "PixelPerfect",
+//         "rank": 2,
+//         "categoryName": "Mobile",
+//         "status": "QUALIFIED",
+//         "finalScore": 88.5
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "AppMasters",
+//         "rank": 3,
+//         "categoryName": "Mobile",
+//         "status": "QUALIFIED",
+//         "finalScore": 84
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "CodeNinjas",
+//         "rank": 4,
+//         "categoryName": "Mobile",
+//         "status": "QUALIFIED",
+//         "finalScore": 80
+//       },
+//       {
+//         "contestId": 1,
+//         "roundName": "Final Sprint",
+//         "publishedAt": "2026-03-15",
+//         "contestName": "FPT Hackathon 2026",
+//         "teamName": "StackOverflowed",
+//         "rank": 5,
+//         "categoryName": "Mobile",
+//         "status": "QUALIFIED",
+//         "finalScore": 70.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Coders",
+//         "rank": 1,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 92.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Hunters",
+//         "rank": 2,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 83
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Dev",
+//         "rank": 3,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 80.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Me",
+//         "rank": 4,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 72.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Titans",
+//         "rank": 5,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 72.4
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Innovators",
+//         "rank": 1,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 90
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Pixel",
+//         "rank": 3,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 82.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "Masters",
+//         "rank": 2,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 84
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "CodeNinjas",
+//         "rank": 4,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 80
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "StackOverflowed",
+//         "rank": 5,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 79.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "A",
+//         "rank": 6,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 72.3
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "B",
+//         "rank": 7,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 72.2
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "C",
+//         "rank": 8,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 72
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "D",
+//         "rank": 9,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 71.9
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "E",
+//         "rank": 10,
+//         "categoryName": "Design",
+//         "status": "QUALIFIED",
+//         "finalScore": 71.6
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "F",
+//         "rank": 6,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 79
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "G",
+//         "rank": 7,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 78.5
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "H",
+//         "rank": 8,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 78
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "I",
+//         "rank": 9,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 77
+//       },
+//       {
+//         "contestId": 2,
+//         "roundName": "Idea Submission",
+//         "publishedAt": "2025-06-15",
+//         "contestName": "FPT Hackathon Summer 2025",
+//         "teamName": "K",
+//         "rank": 10,
+//         "categoryName": "Test",
+//         "status": "QUALIFIED",
+//         "finalScore": 75.5
+//       }
+//     ]
+//   },
+//   "standingsFeedback": {
+//     "data": {
+//       "teamName": "Team Alpha",
+//       "projectName": "Sentinel Guard AI",
+//       "totalScore": 91.25,
+//       "rounds": [
+//         {
+//           "roundName": "Preliminary Round",
+//           "totalScore": 91.25,
+//           "detailedScores": [
+//             {
+//               "criteriaName": "Technical Complexity",
+//               "weight": 30,
+//               "pointsAwarded": 90,
+//               "feedback": "Excellent architecture and clear separation of responsibilities."
+//             },
+//             {
+//               "criteriaName": "Innovation",
+//               "weight": 20,
+//               "pointsAwarded": 95,
+//               "feedback": "Creative use of AI-assisted detection for hackathon operations."
+//             },
+//             {
+//               "criteriaName": "UI/UX Design",
+//               "weight": 25,
+//               "pointsAwarded": 92,
+//               "feedback": "Dashboard flows are easy to scan and suitable for repeated use."
+//             },
+//             {
+//               "criteriaName": "Pitch Quality",
+//               "weight": 25,
+//               "pointsAwarded": 88,
+//               "feedback": "Strong demo, with a few metrics needing clearer explanation."
+//             }
+//           ]
+//         },
+//         {
+//           "roundName": "Final Sprint",
+//           "totalScore": 94.5,
+//           "detailedScores": [
+//             {
+//               "criteriaName": "Technical Complexity",
+//               "weight": 30,
+//               "pointsAwarded": 94,
+//               "feedback": "The final implementation is stable and handles edge cases well."
+//             },
+//             {
+//               "criteriaName": "Innovation",
+//               "weight": 20,
+//               "pointsAwarded": 96,
+//               "feedback": "The product direction is distinctive and practical for organizers."
+//             },
+//             {
+//               "criteriaName": "UI/UX Design",
+//               "weight": 25,
+//               "pointsAwarded": 93,
+//               "feedback": "Navigation and visual hierarchy improved meaningfully in the final sprint."
+//             },
+//             {
+//               "criteriaName": "Pitch Quality",
+//               "weight": 25,
+//               "pointsAwarded": 95,
+//               "feedback": "Confident presentation with clear impact and next-step planning."
+//             }
+//           ]
+//         }
+//       ]
+//     }
+//   },
+//   "rubrics": {
+//     "data": [
+//       {
+//         "id": "1",
+//         "name": "Standard Web App Rubric",
+//         "criteria": [
+//           {
+//             "id": "1",
+//             "name": "Innovation",
+//             "weight": 30
+//           },
+//           {
+//             "id": "2",
+//             "name": "Technical Complexity",
+//             "weight": 40
+//           },
+//           {
+//             "id": "3",
+//             "name": "UI/UX",
+//             "weight": 30
+//           }
+//         ]
+//       }
+//     ]
+//   },
+//   "evaluatorDashboard": {
+//     "data": {
+//       "assignedCategoryCount": 2,
+//       "totalAllocatedTeams": 4,
+//       "evaluatedCount": 1,
+//       "contests": [
+//         {
+//           "id": 1,
+//           "name": "FPT Hackathon Summer 2026"
+//         },
+//         {
+//           "id": 2,
+//           "name": "Techfest Fall 2026"
+//         }
+//       ],
+//       "queue": [
+//         {
+//           "teamId": "1",
+//           "contestId": 1,
+//           "teamName": "CodeCrafters",
+//           "categoryName": "Web",
+//           "roundName": "Final Sprint",
+//           "submissionState": "SUBMITTED"
+//         },
+//         {
+//           "teamId": "2",
+//           "contestId": 1,
+//           "teamName": "BugHunters",
+//           "categoryName": "Mobile",
+//           "roundName": "Final Sprint",
+//           "submissionState": "EVALUATED"
+//         },
+//         {
+//           "teamId": "3",
+//           "contestId": 2,
+//           "teamName": "DevRangers",
+//           "categoryName": "Web",
+//           "roundName": "Idea Submission",
+//           "submissionState": "PENDING"
+//         },
+//         {
+//           "teamId": "4",
+//           "contestId": 2,
+//           "teamName": "ByteMe",
+//           "categoryName": "Mobile",
+//           "roundName": "Idea Submission",
+//           "submissionState": "SUBMITTED"
+//         }
+//       ]
+//     }
+//   },
+//   "hackathonConfig": {
+//     "universities": [
+//       {
+//         "id": 1,
+//         "name": "FPT University"
+//       },
+//       {
+//         "id": 2,
+//         "name": "Hanoi University of Science and Technology"
+//       },
+//       {
+//         "id": 3,
+//         "name": "National Economics University"
+//       },
+//       {
+//         "id": 4,
+//         "name": "RMIT University"
+//       }
+//     ],
+//     "contestDetail": {
+//       "name": "SEAL Summer Tech Sprint 2026",
+//       "term": "SUMMER",
+//       "year": "2026",
+//       "regionScope": "Hanoi",
+//       "maximumAllowedTeams": 50,
+//       "registrationStart": "2026-05-01",
+//       "registrationEnd": "2026-05-31",
+//       "complianceRules": "1. All code must be original.\n2. Teams must have 3-5 members.",
+//       "tieredPrizeStructures": "Grand Prize: $5000\nRunner-up: $2000",
+//       "status": "UPCOMING",
+//       "universities": [
+//         "FPT University",
+//         "RMIT University"
+//       ],
+//       "tracks": [
+//         {
+//           "id": 1,
+//           "categoryName": "AI & Machine Learning Innovation",
+//           "categoryDescription": "Develop AI solutions for real-world problems.",
+//           "guidelineUrl": "https://docs.hackathon.com/ai-guidelines",
+//           "rounds": [
+//             {
+//               "id": 1,
+//               "phaseName": "Phase 01: Screening",
+//               "submissionOpen": "2026-06-01T08:00",
+//               "submissionDeadline": "2026-06-15T23:59",
+//               "state": "UPCOMING"
+//             },
+//             {
+//               "id": 2,
+//               "phaseName": "Phase 02: Final",
+//               "submissionOpen": "2026-06-20T08:00",
+//               "submissionDeadline": "2026-06-30T23:59",
+//               "state": "UPCOMING"
+//             }
+//           ]
+//         }
+//       ]
+//     }
+//   },
+//   "mentorCategory": {
+//     "data": {
+//       "contestName": "SEAL Summer Tech Sprint 2026",
+//       "trackOverviews": [
+//         {
+//           "trackId": 1,
+//           "trackName": "Web3 & Blockchain",
+//           "assignedTeams": 2,
+//           "activeSessions": 0,
+//           "completionPercentage": 50
+//         },
+//         {
+//           "trackId": 2,
+//           "trackName": "AI & Machine Learning Innovation",
+//           "assignedTeams": 1,
+//           "activeSessions": 0,
+//           "completionPercentage": 100
+//         }
+//       ],
+//       "allocatedTeams": [
+//         {
+//           "teamId": 1,
+//           "teamName": "Crypto Wizards",
+//           "trackName": "Web3 & Blockchain",
+//           "leaderName": "Nguyen Van A",
+//           "totalMembers": 4,
+//           "progressStatus": "Submitted",
+//           "githubRepoUrl": "https://github.com",
+//           "liveDemoUrl": null,
+//           "docsUrl": null,
+//           "slideUrl": null
+//         },
+//         {
+//           "teamId": 2,
+//           "teamName": "Block Builders",
+//           "trackName": "Web3 & Blockchain",
+//           "leaderName": "Tran Thi B",
+//           "totalMembers": 3,
+//           "progressStatus": "Ideation",
+//           "githubRepoUrl": null,
+//           "liveDemoUrl": null,
+//           "docsUrl": null,
+//           "slideUrl": null
+//         },
+//         {
+//           "teamId": 3,
+//           "teamName": "AI Pioneers",
+//           "trackName": "AI & Machine Learning Innovation",
+//           "leaderName": "Le Van C",
+//           "totalMembers": 5,
+//           "progressStatus": "Submitted",
+//           "githubRepoUrl": "https://github.com",
+//           "liveDemoUrl": "https://demo.com",
+//           "docsUrl": null,
+//           "slideUrl": null
+//         }
+//       ]
+//     }
+//   },
+//   "rankingConsole": {
+//     "contests": {
+//       "data": [
+//         {
+//           "id": 1,
+//           "name": "FPT Hackathon Summer 2026",
+//           "tracks": [
+//             {
+//               "trackName": "Web Development",
+//               "rounds": [
+//                 {
+//                   "id": 1,
+//                   "phaseName": "Phase 01: Screening",
+//                   "submissionOpen": "2026-06-01T08:00:00",
+//                   "submissionDeadline": "2026-07-01T18:00:00",
+//                   "totalTeams": 35,
+//                   "submittedTeams": 35
+//                 },
+//                 {
+//                   "id": 2,
+//                   "phaseName": "Phase 02: Semi-Final",
+//                   "submissionOpen": "2026-07-02T08:00:00",
+//                   "submissionDeadline": "2026-07-08T18:00:00",
+//                   "totalTeams": 20,
+//                   "submittedTeams": 12
+//                 },
+//                 {
+//                   "id": 3,
+//                   "phaseName": "Phase 03: Final",
+//                   "submissionOpen": "2026-07-10T08:00:00",
+//                   "submissionDeadline": "2026-07-15T18:00:00",
+//                   "totalTeams": 10,
+//                   "submittedTeams": 0
+//                 }
+//               ]
+//             }
+//           ]
+//         }
+//       ]
+//     },
+//     "readiness": {
+//       "summary": {
+//         "totalTeams": 10,
+//         "avgScore": 83.4,
+//         "scoreRange": "65-98",
+//         "bars": [
+//           0,
+//           0,
+//           0,
+//           0,
+//           1,
+//           1,
+//           2,
+//           2,
+//           2,
+//           2
+//         ]
+//       },
+//       "evaluators": [
+//         {
+//           "name": "Nguyen Van A",
+//           "dept": "Software Engineering",
+//           "status": "Finalized",
+//           "date": "2026-06-23"
+//         },
+//         {
+//           "name": "Tran Thi B",
+//           "dept": "Artificial Intelligence",
+//           "status": "Finalized",
+//           "date": "2026-06-23"
+//         },
+//         {
+//           "name": "Le Van C",
+//           "dept": "Information Security",
+//           "status": "Finalized",
+//           "date": "2026-06-23"
+//         }
+//       ],
+//       "allReady": true
+//     },
+//     "rankingResult": {
+//       "roundName": "Phase 01: Screening",
+//       "qualifiedCount": 5,
+//       "eliminatedCount": 5,
+//       "totalProcessed": 10,
+//       "results": [
+//         {
+//           "rank": 1,
+//           "teamName": "CodeCrafters",
+//           "averageScore": 98,
+//           "status": "QUALIFIED"
+//         },
+//         {
+//           "rank": 2,
+//           "teamName": "AI Wizards",
+//           "averageScore": 95,
+//           "status": "QUALIFIED"
+//         },
+//         {
+//           "rank": 3,
+//           "teamName": "Quantum Leap",
+//           "averageScore": 92,
+//           "status": "QUALIFIED"
+//         },
+//         {
+//           "rank": 4,
+//           "teamName": "Syntax Error",
+//           "averageScore": 90,
+//           "status": "QUALIFIED"
+//         },
+//         {
+//           "rank": 5,
+//           "teamName": "Cyber Sentry",
+//           "averageScore": 88,
+//           "status": "QUALIFIED"
+//         },
+//         {
+//           "rank": 6,
+//           "teamName": "ByteForce",
+//           "averageScore": 84,
+//           "status": "ELIMINATED"
+//         },
+//         {
+//           "rank": 7,
+//           "teamName": "Pixel Pirates",
+//           "averageScore": 81,
+//           "status": "ELIMINATED"
+//         },
+//         {
+//           "rank": 8,
+//           "teamName": "Data Dragons",
+//           "averageScore": 77,
+//           "status": "ELIMINATED"
+//         },
+//         {
+//           "rank": 9,
+//           "teamName": "Hack Titans",
+//           "averageScore": 72,
+//           "status": "ELIMINATED"
+//         },
+//         {
+//           "rank": 10,
+//           "teamName": "Bug Hunters",
+//           "averageScore": 65,
+//           "status": "ELIMINATED"
+//         }
+//       ]
+//     },
+//     "roundProgress": {
+//       "roundStatus": "OPEN",
+//       "timeRemaining": "12 hours remaining",
+//       "submittedCount": 3,
+//       "awaitingCount": 1,
+//       "notSubmittedCount": 1,
+//       "submissionRequirements": "['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl']",
+//       "teams": [
+//         {
+//           "teamId": 1,
+//           "teamName": "CodeCrafters",
+//           "submissionState": "OFFICIAL",
+//           "submittedAt": "2026-06-19 21:15:00",
+//           "repoUrl": "https://github.com/codecrafters/shms-final",
+//           "demoUrl": "https://shms-final.vercel.app",
+//           "docUrl": "https://docs.google.com/document/d/shms-final-docs",
+//           "slideUrl": "https://docs.google.com/presentation/d/shms-final-slide"
+//         },
+//         {
+//           "teamId": 2,
+//           "teamName": "AI Wizards",
+//           "submissionState": "OFFICIAL",
+//           "submittedAt": "2026-06-19 22:30:00",
+//           "repoUrl": "https://github.com/aiwizards/shms",
+//           "demoUrl": "https://aiwizards.demo.app",
+//           "docUrl": "https://docs.google.com/document/d/aiwizards",
+//           "slideUrl": ""
+//         },
+//         {
+//           "teamId": 3,
+//           "teamName": "Quantum Leap",
+//           "submissionState": "Not Submitted",
+//           "submittedAt": null,
+//           "repoUrl": "",
+//           "demoUrl": "",
+//           "docUrl": "",
+//           "slideUrl": ""
+//         },
+//         {
+//           "teamId": 4,
+//           "teamName": "Syntax Error",
+//           "submissionState": "DRAFT",
+//           "submittedAt": "2026-06-18 10:00:00",
+//           "repoUrl": "https://github.com/syntaxerror/shms-draft",
+//           "demoUrl": "",
+//           "docUrl": "",
+//           "slideUrl": ""
+//         },
+//         {
+//           "teamId": 5,
+//           "teamName": "Cyber Sentry",
+//           "submissionState": "MISSED_DEADLINE",
+//           "submittedAt": null,
+//           "repoUrl": "",
+//           "demoUrl": "",
+//           "docUrl": "",
+//           "slideUrl": ""
+//         }
+//       ]
+//     }
+//   },
+//   "teamRegistrationApproval": {
+//     "contests": [
+//       {
+//         "id": 1,
+//         "name": "Summer Hackathon 2026",
+//         "status": "ACTIVED",
+//         "pendingReview": 4,
+//         "approved": 8,
+//         "totalParticipants": 36,
+//         "teams": [
+//           {
+//             "id": 1,
+//             "name": "AI Warriors",
+//             "track": "Artificial Intelligence",
+//             "trackClass": "ai"
+//           },
+//           {
+//             "id": 2,
+//             "name": "Code Titans",
+//             "track": "Software Engineering",
+//             "trackClass": "software"
+//           },
+//           {
+//             "id": 3,
+//             "name": "Data Miners",
+//             "track": "Data Science",
+//             "trackClass": "data"
+//           },
+//           {
+//             "id": 4,
+//             "name": "NextGen",
+//             "track": "Cyber Security",
+//             "trackClass": "cyber"
+//           }
+//         ],
+//         "capacities": [
+//           {
+//             "categoryName": "Artificial Intelligence",
+//             "percentage": 80
+//           },
+//           {
+//             "categoryName": "Software Engineering",
+//             "percentage": 60
+//           },
+//           {
+//             "categoryName": "Data Science",
+//             "percentage": 45
+//           },
+//           {
+//             "categoryName": "Cyber Security",
+//             "percentage": 30
+//           }
+//         ]
+//       },
+//       {
+//         "id": 2,
+//         "name": "Winter Hackathon 2026",
+//         "status": "CLOSED",
+//         "pendingReview": 2,
+//         "approved": 5,
+//         "totalParticipants": 21,
+//         "teams": [
+//           {
+//             "id": 5,
+//             "name": "Tech Heroes",
+//             "track": "Artificial Intelligence",
+//             "trackClass": "ai"
+//           },
+//           {
+//             "id": 6,
+//             "name": "HackStorm",
+//             "track": "Cyber Security",
+//             "trackClass": "cyber"
+//           }
+//         ],
+//         "capacities": [
+//           {
+//             "categoryName": "Artificial Intelligence",
+//             "percentage": 50
+//           },
+//           {
+//             "categoryName": "Cyber Security",
+//             "percentage": 70
+//           }
+//         ]
+//       }
+//     ],
+//     "evaluationWorkspace": {
+//       "data": {
+//         "submissionId": "12345",
+//         "projectId": "9876",
+//         "teamName": "CodeCrafters",
+//         "githubRepoUrl": "https://github.com/codecrafters/project",
+//         "liveDemoUrl": "https://demo.codecrafters.com",
+//         "docsUrl": "https://docs.codecrafters.com",
+//         "slideUrl": "https://slides.codecrafters.com",
+//         "criteria": [
+//           {
+//             "id": 1,
+//             "name": "Technical Complexity",
+//             "description": "Architecture, code quality, and technical difficulty.",
+//             "weight": 30
+//           },
+//           {
+//             "id": 2,
+//             "name": "Innovation",
+//             "description": "Originality of the idea and creative problem-solving.",
+//             "weight": 20
+//           },
+//           {
+//             "id": 3,
+//             "name": "UI/UX Design",
+//             "description": "Visual aesthetic, accessibility, and user journey flow.",
+//             "weight": 25
+//           },
+//           {
+//             "id": 4,
+//             "name": "Pitch Quality",
+//             "description": "Clarity of presentation and ability to communicate value.",
+//             "weight": 25
+//           }
+//         ]
+//       }
+//     }
+//   },
+//   "panelAllocation": {
+//     "contests": [
+//       {
+//         "id": 1,
+//         "name": "Summer Hackathon",
+//         "year": 2026,
+//         "season": "Summer",
+//         "tracks": [
+//           {
+//             "id": 1,
+//             "categoryName": "Artificial Intelligence",
+//             "trackDescription": "AI and Machine Learning",
+//             "teams": [
+//               {
+//                 "id": 1,
+//                 "name": "AI Warriors"
+//               }
+//             ]
+//           },
+//           {
+//             "id": 2,
+//             "categoryName": "Cyber Security",
+//             "trackDescription": "Security Solutions",
+//             "teams": [
+//               {
+//                 "id": 3,
+//                 "name": "HackStorm"
+//               }
+//             ]
+//           }
+//         ]
+//       }
+//     ],
+//     "experts": [
+//       {
+//         "userId": 1,
+//         "username": "mentor01",
+//         "fullName": "Nguyen Van A",
+//         "roles": [
+//           "MENTOR"
+//         ]
+//       },
+//       {
+//         "userId": 2,
+//         "username": "judge01",
+//         "fullName": "Tran Thi B",
+//         "roles": [
+//           "JUDGE"
+//         ]
+//       },
+//       {
+//         "userId": 3,
+//         "username": "expert01",
+//         "fullName": "Le Van C",
+//         "roles": [
+//           "MENTOR",
+//           "JUDGE"
+//         ]
+//       }
+//     ],
+//     "allocations": {
+//       "1": {
+//         "1": {
+//           "isJudge": false,
+//           "mentoredTeamIds": [
+//             1
+//           ]
+//         },
+//         "2": {
+//           "isJudge": true,
+//           "mentoredTeamIds": []
+//         }
+//       },
+//       "2": {
+//         "1": {
+//           "isJudge": true,
+//           "mentoredTeamIds": []
+//         }
+//       }
+//     }
+//   },
+//   "loginMock": [
+//     {
+//       "username": "admin",
+//       "password": "123456",
+//       "token": "mock-admin-token",
+//       "role": "ADMIN",
+//       "allRoles": [
+//         "ADMIN"
+//       ],
+//       "fullName": "Nguyen Van Admin"
+//     },
+//     {
+//       "username": "judge",
+//       "password": "123456",
+//       "token": "mock-judge-token",
+//       "role": "JUDGE",
+//       "allRoles": [
+//         "JUDGE"
+//       ],
+//       "fullName": "Tran Thi Judge"
+//     },
+//     {
+//       "username": "mentor",
+//       "password": "123456",
+//       "token": "mock-mentor-token",
+//       "role": "MENTOR",
+//       "allRoles": [
+//         "MENTOR"
+//       ],
+//       "fullName": "Le Van Mentor"
+//     },
+//     {
+//       "username": "student",
+//       "password": "123456",
+//       "token": "mock-student-token",
+//       "role": "STUDENT",
+//       "allRoles": [
+//         "STUDENT"
+//       ],
+//       "fullName": "Pham Van Student"
+//     }
+//   ],
+//   "adminProfile": {
+//     "telephoneNumber": "+84 123 456 789",
+//     "avatarBase64": null,
+//     "fullName": "Nguyen Van Admin"
+//   },
+//   "expertProvisioning": {
+//     "experts": [
+//       {
+//         "userId": 1,
+//         "fullName": "Nguyen Van A",
+//         "username": "mentor01",
+//         "professionalEmail": "mentor01@fpt.edu.vn",
+//         "roles": [
+//           "Mentor"
+//         ],
+//         "accessExpiry": "2026-12-31T23:59:59"
+//       },
+//       {
+//         "userId": 2,
+//         "fullName": "Tran Thi B",
+//         "username": "judge01",
+//         "professionalEmail": "judge01@fpt.edu.vn",
+//         "roles": [
+//           "Judge"
+//         ],
+//         "accessExpiry": "2026-10-15T23:59:59"
+//       },
+//       {
+//         "userId": 3,
+//         "fullName": "Le Van C",
+//         "username": "expert01",
+//         "professionalEmail": "expert01@fpt.edu.vn",
+//         "roles": [
+//           "Mentor",
+//           "Judge"
+//         ],
+//         "accessExpiry": "2026-08-30T23:59:59"
+//       }
+//     ]
+//   },
+//   "students": [
+//     {
+//       "mssv": "SE180001",
+//       "fullName": "Nguyen Van A",
+//       "corporateEmail": "a@fpt.edu.vn",
+//       "major": "SE",
+//       "university": "FPT University",
+//       "isCurrentStudent": true
+//     },
+//     {
+//       "mssv": "2012345",
+//       "fullName": "Tran Thi B",
+//       "corporateEmail": "b@hcmut.edu.vn",
+//       "major": "CS",
+//       "university": "HCMUT",
+//       "isCurrentStudent": true
+//     }
+//   ],
+//   "verification": [
+//     {
+//       "verification_data_id": 1,
+//       "university_id": 1,
+//       "student_code": "SE123456",
+//       "email": "kha@fpt.edu.vn",
+//       "full_name": "Le Bao Kha",
+//       "major": "Software Engineering",
+//       "is_current_student": true
+//     },
+//     {
+//       "verification_data_id": 2,
+//       "university_id": 1,
+//       "student_code": "SE654321",
+//       "email": "an.nguyen@fpt.edu.vn",
+//       "full_name": "Nguyen Van An",
+//       "major": "Artificial Intelligence",
+//       "is_current_student": true
+//     },
+//     {
+//       "verification_data_id": 3,
+//       "university_id": 2,
+//       "student_code": "22127458",
+//       "email": "kha@hcmut.edu.vn",
+//       "full_name": "Le Bao Kha",
+//       "major": "Computer Science",
+//       "is_current_student": true
+//     },
+//     {
+//       "verification_data_id": 4,
+//       "university_id": 2,
+//       "student_code": "22129999",
+//       "email": "abc@hcmut.edu.vn",
+//       "full_name": "Tran Minh Quan",
+//       "major": "Information Systems",
+//       "is_current_student": false
+//     },
+//     {
+//       "verification_data_id": 5,
+//       "university_id": 3,
+//       "student_code": "20123456",
+//       "email": "student@hcmus.edu.vn",
+//       "full_name": "Pham Thi Mai",
+//       "major": "Data Science",
+//       "is_current_student": true
+//     }
+//   ],
+//   "rubricTemplates": {
+//     "data": [
+//       {
+//         "id": 1,
+//         "name": "General Technical Rubric",
+//         "description": "Standard template for technical projects",
+//         "publicVisibility": true,
+//         "weightedScoring": true,
+//         "criteria": [
+//           {
+//             "id": 101,
+//             "criteriaName": "Innovation",
+//             "description": "How innovative is the solution?",
+//             "maxScore": 10,
+//             "percentageWeight": 30
+//           },
+//           {
+//             "id": 102,
+//             "criteriaName": "Technical Complexity",
+//             "description": "Complexity of the implementation",
+//             "maxScore": 10,
+//             "percentageWeight": 40
+//           },
+//           {
+//             "id": 103,
+//             "criteriaName": "UI/UX",
+//             "description": "User interface and experience",
+//             "maxScore": 10,
+//             "percentageWeight": 30
+//           }
+//         ]
+//       },
+//       {
+//         "id": 2,
+//         "name": "Design Focused Rubric",
+//         "description": "For UI/UX and design heavy projects",
+//         "publicVisibility": true,
+//         "weightedScoring": true,
+//         "criteria": [
+//           {
+//             "id": 201,
+//             "criteriaName": "Visual Appeal",
+//             "description": "Aesthetics and beauty",
+//             "maxScore": 10,
+//             "percentageWeight": 50
+//           },
+//           {
+//             "id": 202,
+//             "criteriaName": "Usability",
+//             "description": "Ease of use",
+//             "maxScore": 10,
+//             "percentageWeight": 50
+//           }
+//         ]
+//       }
+//     ]
+//   },
+//   "contestRubrics": {
+//     "data": [
+//       {
+//         "id": 1,
+//         "contestId": "1",
+//         "categoryId": "1",
+//         "roundId": "1",
+//         "templateId": 1
+//       },
+//       {
+//         "id": 2,
+//         "contestId": "1",
+//         "categoryId": "1",
+//         "roundId": "2",
+//         "templateId": 2
+//       }
+//     ]
+//   },
+//   "mentorCategory": {
+//     "data": {
+//       "contestName": "FPT Hackathon Summer 2026",
+//       "trackOverviews": [
+//         {
+//           "trackName": "Web Development",
+//           "assignedTeams": 12,
+//           "completionPercentage": 75
+//         },
+//         {
+//           "trackName": "AI Innovation",
+//           "assignedTeams": 8,
+//           "completionPercentage": 50
+//         }
+//       ],
+//       "allocatedTeams": [
+//         {
+//           "teamId": "T001",
+//           "teamName": "CodeCrafters",
+//           "trackName": "Web Development",
+//           "leaderName": "Nguyen Van A",
+//           "githubRepoUrl": "https://github.com/codecrafters",
+//           "liveDemoUrl": "https://codecrafters.demo",
+//           "docsUrl": "https://docs.codecrafters.demo",
+//           "slideUrl": "https://slides.codecrafters.demo"
+//         },
+//         {
+//           "teamId": "T002",
+//           "teamName": "AI Wizards",
+//           "trackName": "AI Innovation",
+//           "leaderName": "Tran Thi B",
+//           "githubRepoUrl": "https://github.com/aiwizards",
+//           "liveDemoUrl": "https://aiwizards.demo"
+//         }
+//       ]
+//     }
+//   },
+//   "judgeHistory": {
+//     "data": {
+//       "records": [
+//         {
+//           "teamName": "CodeCrafters",
+//           "teamId": "SEAL-2026-001",
+//           "timestamp": "Jun 20, 2026\n14:30 PM",
+//           "roundStatus": "ACTIVE_ROUND",
+//           "totalScore": 92.5,
+//           "details": [
+//             {
+//               "criteriaName": "Technical Complexity",
+//               "pointsAwarded": 30,
+//               "feedback": "Great architecture."
+//             },
+//             {
+//               "criteriaName": "Innovation",
+//               "pointsAwarded": 25,
+//               "feedback": "Very innovative."
+//             }
+//           ]
+//         },
+//         {
+//           "teamName": "AI Wizards",
+//           "teamId": "SEAL-2026-002",
+//           "timestamp": "Jun 21, 2026\n09:15 AM",
+//           "roundStatus": "LOCKED",
+//           "totalScore": 85.0,
+//           "details": [
+//             {
+//               "criteriaName": "Technical Complexity",
+//               "pointsAwarded": 25,
+//               "feedback": "Good, but could be optimized."
+//             }
+//           ]
+//         }
+//       ]
+//     }
+//   },
+//   "evaluatorDashboard": {
+//     "data": {
+//       "assignedCategoryCount": 2,
+//       "totalAllocatedTeams": 5,
+//       "evaluatedCount": 2,
+//       "contests": [
+//         {
+//           "id": 1,
+//           "name": "FPT Hackathon Summer 2026"
+//         },
+//         {
+//           "id": 2,
+//           "name": "FPT Fall Innovation Challenge"
+//         }
+//       ],
+//       "queue": [
+//         {
+//           "teamId": "T001",
+//           "teamName": "CodeCrafters",
+//           "categoryName": "Web Development",
+//           "roundName": "Final Sprint",
+//           "submissionState": "SUBMITTED",
+//           "contestId": 1
+//         },
+//         {
+//           "teamId": "T002",
+//           "teamName": "AI Wizards",
+//           "categoryName": "AI Innovation",
+//           "roundName": "Final Sprint",
+//           "submissionState": "EVALUATED",
+//           "contestId": 1
+//         },
+//         {
+//           "teamId": "T003",
+//           "teamName": "Cyber Sentry",
+//           "categoryName": "Web Development",
+//           "roundName": "Idea Submission",
+//           "submissionState": "PENDING",
+//           "contestId": 2
+//         },
+//         {
+//           "teamId": "T004",
+//           "teamName": "Syntax Error",
+//           "categoryName": "Web Development",
+//           "roundName": "Final Sprint",
+//           "submissionState": "EVALUATED",
+//           "contestId": 1
+//         },
+//         {
+//           "teamId": "T005",
+//           "teamName": "Quantum Leap",
+//           "categoryName": "AI Innovation",
+//           "roundName": "Final Sprint",
+//           "submissionState": "SUBMITTED",
+//           "contestId": 1
+//         }
+//       ]
+//     }
+//   },
+//   "evaluatorDashboard": {
+//     "data": {
+//       "assignedCategoryCount": 2,
+//       "totalAllocatedTeams": 5,
+//       "evaluatedCount": 2,
+//       "contests": [
+//         {
+//           "id": 1,
+//           "name": "FPT Hackathon Summer 2026"
+//         },
+//         {
+//           "id": 2,
+//           "name": "FPT Fall Innovation Challenge"
+//         }
+//       ],
+//       "queue": [
+//         {
+//           "teamId": "T001",
+//           "teamName": "CodeCrafters",
+//           "categoryName": "Web Development",
+//           "roundName": "Final Sprint",
+//           "submissionState": "SUBMITTED",
+//           "contestId": 1
+//         }
+//       ]
+//     }
+//   },
+//   "publicationDataExport": {
+//     "contests": [
+//       {
+//         "id": 1,
+//         "name": "FPT AI Hackathon 2026"
+//       },
+//       {
+//         "id": 2,
+//         "name": "Startup Innovation Challenge"
+//       },
+//       {
+//         "id": 3,
+//         "name": "Smart City Competition"
+//       }
+//     ],
+//     "announcements": [
+//       {
+//         "id": 1,
+//         "contestId": 1,
+//         "title": "Submission Deadline Extended",
+//         "content": "The submission deadline has been extended to July 15.",
+//         "type": "DEADLINE_REMINDER",
+//         "roles": [
+//           "Student",
+//           "Mentor"
+//         ],
+//         "createdAt": "2026-06-20T10:00:00"
+//       },
+//       {
+//         "id": 2,
+//         "contestId": 1,
+//         "title": "Judge Assignment Completed",
+//         "content": "All judges have been assigned to categories.",
+//         "type": "GENERAL_UPDATE",
+//         "roles": [
+//           "Judge",
+//           "Admin"
+//         ],
+//         "createdAt": "2026-06-21T09:30:00"
+//       }
+//     ]
+//   },
+//   "expertProfile": {
+//     "expertId": "EXP-2026-042",
+//     "fullName": "Nguyen Van An",
+//     "department": "Software Engineering",
+//     "corporateEmail": "alex.nguyen@university.edu",
+//     "telephoneNumber": "+84 912345678",
+//     "avatarBase64": null,
+//     "roleLabel": "Judge"
+//   }
+// }
+export const testFE = [];

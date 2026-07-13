@@ -4,8 +4,8 @@ import axios from 'axios';
 import './StudentDashboard.css';
 import LatestAnnouncements from './LatestAnnouncements';
 
-const API_PUBLIC = 'http://localhost:8080/api/v1/public';
-const API_STUDENT = 'http://localhost:8080/api/v1/student';
+const API_PUBLIC = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/public";
+const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
 
 function getContestList(json) {
     if (Array.isArray(json)) {
@@ -223,7 +223,7 @@ const StudentDashboard = () => {
         const fetchPendingInvitations = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/pending`, {
+                const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/teams/invitations/pending", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -249,7 +249,7 @@ const StudentDashboard = () => {
     const handleRespondInvitation = async (invitationToken, action) => {
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch(`http://localhost:8080/api/v1/student/teams/invitations/respond`, {
+            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/teams/invitations/respond", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ invitationToken, action })
@@ -281,8 +281,8 @@ const StudentDashboard = () => {
             if (await hasExistingTeam(token)) {
                 setCreateError('You have already created a team!');
                 return;
-            } 
- 
+            }
+
             const res = await axios.post(
                 API_STUDENT + '/teams/create',
                 { teamName: teamName, categoryId: 1 },
@@ -379,52 +379,52 @@ const StudentDashboard = () => {
                             </div>
                             <table className="mc-table">
                                 <thead>
-                                    <tr>
-                                        <th>Milestone</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                    </tr>
+                                <tr>
+                                    <th>Milestone</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><strong>Registration Open</strong></td>
-                                        <td>{formatDateOnly(activeContest?.registrationStart)}</td>
-                                        <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Registration Deadline</strong></td>
-                                        <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
-                                        <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Contest Start</strong></td>
-                                        <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                        <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                    </tr>
-                                    {activeContest?.rounds?.map((round, idx) => (
-                                        <React.Fragment key={idx}>
-                                            <tr>
-                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
-                                                <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
-                                                <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
-                                                <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
-                                                <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
-                                                <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
-                                                <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
-                                            </tr>
-                                        </React.Fragment>
-                                    ))}
-                                    <tr>
-                                        <td><strong>Contest End</strong></td>
-                                        <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                        <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                    </tr>
+                                <tr>
+                                    <td><strong>Registration Open</strong></td>
+                                    <td>{formatDateOnly(activeContest?.registrationStart)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Registration Deadline</strong></td>
+                                    <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Contest Start</strong></td>
+                                    <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                </tr>
+                                {activeContest?.rounds?.map((round, idx) => (
+                                    <React.Fragment key={idx}>
+                                        <tr>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
+                                            <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
+                                            <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
+                                            <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
+                                            <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
+                                            <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
+                                            <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
+                                        </tr>
+                                    </React.Fragment>
+                                ))}
+                                <tr>
+                                    <td><strong>Contest End</strong></td>
+                                    <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                    <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>

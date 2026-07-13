@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './ExpertProvision.css';
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const todayStr = new Date().toISOString().split('T')[0];
 
 const ExpertProvisioning = () => {
@@ -529,19 +529,19 @@ const ExpertProvisioning = () => {
                                                         return (
                                                             <label key={r} className="expert-role-option">
                                                                 <input type="checkbox" checked={isChecked}
-                                                                    onChange={(e) => {
-                                                                        const checked = e.target.checked;
-                                                                        setManagedRoles(prev => {
-                                                                            let updated = [...(prev[exp.userId] || exp.roles || [])];
-                                                                            if (checked) {
-                                                                                updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
-                                                                                if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
-                                                                            } else {
-                                                                                updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
-                                                                            }
-                                                                            return { ...prev, [exp.userId]: updated };
-                                                                        });
-                                                                    }}
+                                                                       onChange={(e) => {
+                                                                           const checked = e.target.checked;
+                                                                           setManagedRoles(prev => {
+                                                                               let updated = [...(prev[exp.userId] || exp.roles || [])];
+                                                                               if (checked) {
+                                                                                   updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
+                                                                                   if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
+                                                                               } else {
+                                                                                   updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
+                                                                               }
+                                                                               return { ...prev, [exp.userId]: updated };
+                                                                           });
+                                                                       }}
                                                                 /> {r}
                                                             </label>
                                                         );
@@ -555,8 +555,8 @@ const ExpertProvisioning = () => {
                                                     <div className="expert-expiry-controls">
                                                         <label>{hasLifespan ? 'Extend Expiry:' : 'Set Expiry:'}</label>
                                                         <input type="date" className="form-input" min={todayStr}
-                                                            onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
-                                                            value={newExpiries[exp.userId] || ''}
+                                                               onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
+                                                               value={newExpiries[exp.userId] || ''}
                                                         />
                                                         <button className="expert-extend-btn" onClick={() => handleExtendSubmit(exp.userId)} disabled={!newExpiries[exp.userId] || extendLoading[exp.userId]}>
                                                             {extendLoading[exp.userId] ? 'Wait...' : (hasLifespan ? 'Extend' : 'Update Expiry')}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import './LatestAnnouncements.css';
 
-const API_URL = 'http://localhost:8080/api/v1/public/announcements';
+const API_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/public/announcements";
 
 const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
     const [announcements, setAnnouncements] = useState([]);
@@ -148,93 +148,93 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
             <div className="announcements-table-wrapper">
                 <table className="announcements-table">
                     <thead>
-                        <tr>
-                            <th>Announcement Title</th>
-                            <th>Category</th>
-                            <th>Date Posted</th>
-                            <th>Action</th>
-                        </tr>
+                    <tr>
+                        <th>Announcement Title</th>
+                        <th>Category</th>
+                        <th>Date Posted</th>
+                        <th>Action</th>
+                    </tr>
                     </thead>
 
                     <tbody>
-                        {loading && (
-                            <tr>
-                                <td colSpan="4" className="text-center">
-                                    Loading...
+                    {loading && (
+                        <tr>
+                            <td colSpan="4" className="text-center">
+                                Loading...
+                            </td>
+                        </tr>
+                    )}
+
+                    {!loading && announcements.length === 0 && (
+                        <tr>
+                            <td colSpan="4" className="text-center">
+                                No announcements found.
+                            </td>
+                        </tr>
+                    )}
+
+                    {!loading && displayedAnnouncements.map(announcement => {
+                        const isRead = readIds.includes(announcement.id);
+
+                        return (
+
+                            <tr
+                                key={announcement.id}
+                                className="announcement-row"
+                                onClick={() => openDetail(announcement)}
+                            >
+                                <td className="announcement-title-cell">
+                                    <div className="ann-title">
+                                        {announcement.title}
+                                    </div>
+
+                                    <div className="ann-desc">
+                                        {announcement.content || 'No content'}
+                                    </div>
                                 </td>
-                            </tr>
-                        )}
-
-                        {!loading && announcements.length === 0 && (
-                            <tr>
-                                <td colSpan="4" className="text-center">
-                                    No announcements found.
-                                </td>
-                            </tr>
-                        )}
-
-                        {!loading && displayedAnnouncements.map(announcement => {
-                            const isRead = readIds.includes(announcement.id);
-
-                            return (
-
-                                <tr
-                                    key={announcement.id}
-                                    className="announcement-row"
-                                    onClick={() => openDetail(announcement)}
-                                >
-                                    <td className="announcement-title-cell">
-                                        <div className="ann-title">
-                                            {announcement.title}
-                                        </div>
-
-                                        <div className="ann-desc">
-                                            {announcement.content || 'No content'}
-                                        </div>
-                                    </td>
 
 
-                                    <td>
+                                <td>
                                         <span className={`ann-category ${getCategoryClass(announcement.type)}`}>
                                             {formatType(announcement.type)}
                                         </span>
-                                    </td>
+                                </td>
 
-                                    <td>
+                                <td>
                                         <span className="ann-date">
                                             {formatDate(announcement.publishedAt)}
                                         </span>
-                                    </td>
+                                </td>
 
-                                    <td className="announcement-action-cell">
-                                        <div className="announcement-action-buttons">
-                                            <button
-                                                className={`announcement-action-btn ${isRead ? 'unread-btn' : 'read-btn'}`}
-                                                onClick={(e) => toggleRead(e, announcement.id)}
-                                                title={isRead ? 'Mark as unread' : 'Mark as read'}
-                                            >
-                                                {isRead ? (
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19h18M3 19V9.172a2 2 0 01.586-1.414l3.828-3.828A2 2 0 018.828 3h6.344a2 2 0 011.414.586l3.828 3.828A2 2 0 0121 9.172V19M3 19l4-4m14 4l-4-4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v4" /></svg>
-                                                ) : (
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                                )}
-                                            </button>
+                                <td className="announcement-action-cell">
+                                    <div className="announcement-action-buttons">
+                                        <button
+                                            className={`announcement-action-btn ${isRead ? 'unread-btn' : 'read-btn'}`}
+                                            onClick={(e) => toggleRead(e, announcement.id)}
+                                            title={isRead ? 'Mark as unread' : 'Mark as read'}
+                                        >
+                                            {isRead ? (
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19h18M3 19V9.172a2 2 0 01.586-1.414l3.828-3.828A2 2 0 018.828 3h6.344a2 2 0 011.414.586l3.828 3.828A2 2 0 0121 9.172V19M3 19l4-4m14 4l-4-4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v4" /></svg>
+                                            ) : (
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            )}
+                                        </button>
 
-                                            <button
-                                                className="announcement-action-btn view-detail-btn"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDetail(announcement);
-                                                }}
-                                                title="View Detail"
-                                            >
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                                        <button
+                                            className="announcement-action-btn view-detail-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openDetail(announcement);
+                                            }}
+                                            title="View Detail"
+                                        >
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        );
+                    })}
                     </tbody>
                 </table>
             </div>
