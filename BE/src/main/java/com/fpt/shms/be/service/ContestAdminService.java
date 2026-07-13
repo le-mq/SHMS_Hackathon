@@ -423,6 +423,23 @@ public class ContestAdminService {
                             "Deadline cannot be before open time for " + roundDto.getPhaseName());
                 }
 
+                if (contest.getContestStartAt() != null && roundDto.getSubmissionOpen().isBefore(contest.getContestStartAt())) {
+                    throw new IllegalArgumentException(
+                            "Round '" + roundDto.getPhaseName() + "' cannot start before the contest start time (" + contest.getContestStartAt().toLocalDate() + ")");
+                }
+
+                if (contest.getContestEndAt() != null) {
+                    if (roundDto.getSubmissionDeadline() != null && roundDto.getSubmissionDeadline().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' submission deadline cannot be after the contest end time.");
+                    }
+                    if (roundDto.getGradingDeadlineAt() != null && roundDto.getGradingDeadlineAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' grading deadline cannot be after the contest end time.");
+                    }
+                    if (roundDto.getPublishResultAt() != null && roundDto.getPublishResultAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' publish result time cannot be after the contest end time.");
+                    }
+                }
+
                 Round.RoundState state = Round.RoundState.UPCOMING;
                 if (roundDto.getState() != null) {
                     try {
