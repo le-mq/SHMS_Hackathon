@@ -24,6 +24,8 @@ const RubricConfig = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     const requestData = async (baseUrl, endpoint, fallbackPath) => {
         try {
             const res = await fetch(`${baseUrl}${endpoint}`, { headers });
@@ -37,24 +39,29 @@ const RubricConfig = () => {
     };
 
     useEffect(() => {
-        requestData(CONTEST_API, '', (json) => json.contests?.data || [])
-            .then(data => setContests(Array.isArray(data) ? data : data.data || []));
-        requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []).then(setTemplates);
-        requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []).then(setContestRubrics);
-        fetch(CATEGORY_API, { headers })
-            .then(res => res.ok ? res.json() : [])
-            .then(data => {
-                if (Array.isArray(data)) {
-                    const uniqueMap = new Map();
-                    data.forEach(item => {
-                        if (item && item.id) {
-                            uniqueMap.set(item.id, { id: item.id, categoryName: item.name });
-                        }
-                    });
-                    setAllGlobalCategories(Array.from(uniqueMap.values()));
-                }
-            })
-            .catch(err => console.error("Failed to load global categories", err));
+        setInitialLoading(true);
+        Promise.all([
+            requestData(CONTEST_API, '', (json) => json.contests?.data || [])
+                .then(data => setContests(Array.isArray(data) ? data : data.data || [])),
+            requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []).then(setTemplates),
+            requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []).then(setContestRubrics),
+            fetch(CATEGORY_API, { headers })
+                .then(res => res.ok ? res.json() : [])
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        const uniqueMap = new Map();
+                        data.forEach(item => {
+                            if (item && item.id) {
+                                uniqueMap.set(item.id, { id: item.id, categoryName: item.name });
+                            }
+                        });
+                        setAllGlobalCategories(Array.from(uniqueMap.values()));
+                    }
+                })
+                .catch(err => console.error("Failed to load global categories", err))
+        ])
+        .catch(err => console.error("Initial load error in RubricConfig", err))
+        .finally(() => setInitialLoading(false));
     }, []);
 
     useEffect(() => {
@@ -248,6 +255,19 @@ const RubricConfig = () => {
             setIsLoading(false);
         }
     };
+
+    if (initialLoading) {
+        return (
+            <div className="admin-container">
+                <div className="config-wrapper">
+                    <div className="global-loading">
+                        <div className="global-spinner"></div>
+                        <span>Loading Rubric Settings...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-container">

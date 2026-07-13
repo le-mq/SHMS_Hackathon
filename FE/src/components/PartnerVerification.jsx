@@ -9,6 +9,8 @@ const PartnerVerification = () => {
     const [students, setStudents] = useState([]);
     const [selectedStudentPartner, setSelectedStudentPartner] = useState('');
 
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [studentsLoading, setStudentsLoading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSavingStudents, setIsSavingStudents] = useState(false);
 
@@ -95,10 +97,13 @@ const PartnerVerification = () => {
             });
 
             setPartners(sorted.map((p, i) => ({ ...p, ui_id: p.id || `temp-${i}` })));
+        } finally {
+            setInitialLoading(false);
         }
     };
 
     const fetchStudents = async (partnerId, currentNewStudents = newlyAddedStudents) => {
+        setStudentsLoading(true);
         try {
             const token = localStorage.getItem("shms_token");
             const partnerName = partners.find(p => String(p.ui_id) === String(partnerId))?.name;
@@ -132,6 +137,8 @@ const PartnerVerification = () => {
             });
 
             setStudents(sorted.map((s, i) => ({ ...s, ui_id: `mock-${i}` })));
+        } finally {
+            setStudentsLoading(false);
         }
     };
 
@@ -388,6 +395,17 @@ const PartnerVerification = () => {
         });
     };
 
+    if (initialLoading) {
+        return (
+            <div className="admin-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading partners...</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-container">
             {toast.show && (
@@ -413,7 +431,6 @@ const PartnerVerification = () => {
                     <p className="config-subtitle">Configure university code, domains, and student verification protocols globally.</p>
                 </div>
 
-                {/* Card 1: Verification Protocols */}
                 <div className="main-card" style={{ overflow: 'visible' }}>
                     <div className="card-header-flex">
                         <div>
@@ -482,7 +499,6 @@ const PartnerVerification = () => {
                     </table>
                 </div>
 
-                {/* Card 2: Student Directory */}
                 <div className="main-card" style={{ marginTop: '24px', overflow: 'visible' }}>
                     <div className="card-header-flex">
                         <div>
@@ -511,7 +527,13 @@ const PartnerVerification = () => {
                     </div>
 
                     {selectedStudentPartner ? (
-                        <form onSubmit={(e) => e.preventDefault()}>
+                        studentsLoading ? (
+                            <div className="global-loading" style={{ height: '30vh' }}>
+                                <div className="global-spinner"></div>
+                                <span>Loading student directory...</span>
+                            </div>
+                        ) : (
+                            <form onSubmit={(e) => e.preventDefault()}>
                             <table className="partners-table">
                                 <thead>
                                 <tr>
@@ -568,6 +590,7 @@ const PartnerVerification = () => {
                                 </tbody>
                             </table>
                         </form>
+                        )
                     ) : (
                         <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
                             Please select a partner institution above to view student records.
@@ -583,7 +606,6 @@ const PartnerVerification = () => {
                 </div>
             </div>
 
-            {/* Modal: Add/Edit Partner */}
             <AddPartnerModal
                 show={showAddPartnerModal}
                 onHide={() => {
@@ -595,7 +617,6 @@ const PartnerVerification = () => {
                 editPartner={editPartner}
             />
 
-            {/* Modal: Add/Edit Student */}
             <AddStudentModal
                 show={showAddStudentModal}
                 onHide={() => {
@@ -608,7 +629,6 @@ const PartnerVerification = () => {
                 editStudent={editStudent}
             />
 
-            {/* Confirm Dialog */}
             <ConfirmDialog
                 show={confirmDialog.show}
                 title={confirmDialog.title}

@@ -78,18 +78,16 @@ const TeamRegistrationApproval = () => {
     }
     const allTeams = selectedContest?.teams || [];
     const approvedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'APPROVED').length;
-    const canceledRejectedCount = allTeams.filter(t => {
-        const s = (t.status || '').toUpperCase();
-        return s === 'CANCELED' || s === 'REJECTED';
-    }).length;
-
+    const canceledCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CANCELED').length;
     const closedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CLOSED').length;
-    const pendingCount = Math.max(0, allTeams.length - approvedCount - canceledRejectedCount);
-    const totalTeamsCount = allTeams.length;
-    const totalParticipantsCount = allTeams.reduce(
-        (sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0),
-        0
-    );
+    const totalTeamsCount = allTeams.filter(t => (t.status || '').toUpperCase() !== 'REJECTED').length;
+    const pendingCount = Math.max(0, totalTeamsCount - approvedCount - canceledCount - closedCount);
+    const totalParticipantsCount = allTeams
+        .filter(t => (t.status || '').toUpperCase() !== 'REJECTED')
+        .reduce(
+            (sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0),
+            0
+        );
 
     const isContestClosed = selectedContest?.status === 'CLOSED';
     const handleOpenActionModal = (teamId, teamName, actionType) => {
@@ -389,8 +387,8 @@ const TeamRegistrationApproval = () => {
                     </div>
 
                     <div className="stat-card" style={{ borderLeft: '4px solid #ef4444' }}>
-                        <div className="stat-label">REJECTED & CANCELED</div>
-                        <div className="stat-value">{canceledRejectedCount} Teams</div>
+                        <div className="stat-label">CANCELED</div>
+                        <div className="stat-value">{canceledCount} Teams</div>
                     </div>
 
                     <div className="stat-card" style={{ borderLeft: '4px solid #64748b' }}>

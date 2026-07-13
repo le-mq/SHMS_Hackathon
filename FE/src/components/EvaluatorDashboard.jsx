@@ -24,6 +24,7 @@ const formatScheduleDate = (dateValue, emptyText, invalidText) => {
 const EvaluatorDashboard = () => {
     const navigate = useNavigate();
     const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedContest, setSelectedContest] = useState(() => sessionStorage.getItem('judgeSelectedContest') || '');
     const [selectedRound, setSelectedRound] = useState('');
     const [timeLeft, setTimeLeft] = useState('');
@@ -35,6 +36,8 @@ const EvaluatorDashboard = () => {
 
     useEffect(() => {
         const fetchDashboard = async () => {
+            setIsLoading(true);
+            setData(null);
             try {
                 const token = localStorage.getItem('shms_token');
                 let url = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/judge/assigned-submissions";
@@ -67,6 +70,8 @@ const EvaluatorDashboard = () => {
                 } catch (fallbackErr) {
                     console.error("Error fetching mock data:", fallbackErr);
                 }
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchDashboard();
@@ -179,7 +184,13 @@ const EvaluatorDashboard = () => {
         <div className="evaluator-container">
             <div style={{ padding: '20px', maxWidth: 1200, margin: 'auto' }}><LatestAnnouncements /></div>
             <div className="evaluator-content">
-                {!selectedContest ? (
+                {isLoading ? (
+                    <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b', background: 'white', borderRadius: '12px', border: '1.5px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                        <div style={{ width: '40px', height: '40px', margin: '0 auto 16px', border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                        <p style={{ fontSize: '15px', fontWeight: 500 }}>Loading workspace...</p>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    </div>
+                ) : !selectedContest ? (
                     <div className="contest-list-view">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <div>
