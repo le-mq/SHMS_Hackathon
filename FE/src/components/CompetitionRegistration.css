@@ -138,11 +138,27 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     backdrop-filter: blur(4px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.badge-open { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.comp-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.badge-open, .badge-actived { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.badge-open::before, .badge-actived::before { background: #16a34a; }
+
 .badge-upcoming { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.badge-upcoming::before { background: #94a3b8; }
+
 .badge-past { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.badge-past::before { background: #64748b; }
 
 .comp-card-content {
     padding: 24px;

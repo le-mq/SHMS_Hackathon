@@ -174,14 +174,27 @@ const StandingsFeedback = () => {
 
         const loadCompetitions = async () => {
             const sortLogic = (a, b) => {
+                // Priority 1: Contest status 'ACTIVED' or 'ACTIVE'
+                const contestStatusA = String(a.contest?.status || '').toUpperCase();
+                const contestStatusB = String(b.contest?.status || '').toUpperCase();
+                const isContestActiveA = contestStatusA === 'ACTIVE' || contestStatusA === 'ACTIVED';
+                const isContestActiveB = contestStatusB === 'ACTIVE' || contestStatusB === 'ACTIVED';
+
+                if (isContestActiveA && !isContestActiveB) return -1;
+                if (!isContestActiveA && isContestActiveB) return 1;
+
+                // Priority 2: Team status 'APPROVED'
                 const statusA = String(a.data?.status || '').toUpperCase();
                 const statusB = String(b.data?.status || '').toUpperCase();
                 if (statusA === 'APPROVED' && statusB !== 'APPROVED') return -1;
                 if (statusB === 'APPROVED' && statusA !== 'APPROVED') return 1;
 
+                // Priority 3: Competition Start Date
                 const dateA = a.contest?.competitionStart ? new Date(a.contest.competitionStart).getTime() : 0;
                 const dateB = b.contest?.competitionStart ? new Date(b.contest.competitionStart).getTime() : 0;
                 if (dateA !== dateB && !isNaN(dateA) && !isNaN(dateB)) return dateB - dateA;
+                
+                // Priority 4: ID
                 return (parseInt(b.contest?.id) || 0) - (parseInt(a.contest?.id) || 0);
             };
 
