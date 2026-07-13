@@ -861,9 +861,9 @@ VALUES
 (1, 2, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Submit Demo Video, Presentation Slides, and Final Source Code', 'OFFLINE'),
 (2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Submit Testnet Smart Contract link and Technical Whitepaper', 'ONLINE'),
 (2, 5, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Submit Complete DApp running on Mainnet/Testnet and Demo Video', 'OFFLINE'),
-(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Source Code, Demo Video, and AI/Web3 Presentation Slides', 'ONLINE'),
-(3, 8, 'Cloud & Big Data Architecture Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Cloud/Big Data Architecture Diagram, Source Code, and Demo Video', 'ONLINE'),
-(3, 9, 'Mobile & IoT Solutions Round', 1, '2026-07-01 08:00:00', '2026-08-25 23:59:59', '2026-08-28 17:00:00', '2026-08-31 10:00:00', 'ACTIVED', N'Submit Mobile/IoT Application APK/Firmware, Source Code, and Demo Video', 'ONLINE'),
+(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Submit Source Code, Demo Video, and AI/Web3 Presentation Slides', 'ONLINE'),
+(3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Submit Cloud/Big Data Architecture Diagram, Source Code, and Demo Video', 'ONLINE'),
+(3, 9, 'Mobile & IoT Solutions Round', 3, '2026-08-17 08:00:00', '2026-08-27 23:59:59', '2026-08-30 17:00:00', '2026-08-31 10:00:00', 'UPCOMING', N'Submit Mobile/IoT Application APK/Firmware, Source Code, and Demo Video', 'ONLINE'),
 (4, 10, 'Global Championship Round', 1, '2026-02-16 08:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-25 10:00:00', 'CLOSED', N'Submit Enterprise Architecture Diagram, Complete Source Code, and 5-minute Live Demo Video', 'ONLINE');
 GO
 
@@ -1254,6 +1254,244 @@ VALUES
 (@Sub_C4_T10, @Judge1_ID, 72.80, N'Decent cloud storage utility with encrypted file transfer support.', 'PUBLISHED'),
 (@Sub_C4_T10, @Judge2_ID, 72.50, N'Functional cloud storage utility, UI and read/write speeds require optimization.', 'PUBLISHED'),
 (@Sub_C4_T10, @JudgeMentor_ID, 72.20, N'Good baseline storage app, further enhance throughput and error handling.', 'PUBLISHED');
+GO
+
+-- 10.5. SCORE DETAILS (Detailed rubric criteria evaluations precisely matching Score and Rubric criteria)
+DECLARE @CR1_D1 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Innovation & Creativity');
+DECLARE @CR1_D2 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Technical Complexity');
+DECLARE @CR1_D3 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Feasibility & Impact');
+DECLARE @CR1_D4 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Presentation & Demo');
+
+DECLARE @CR2_D1 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 2) AND criteria_name = 'Model Accuracy & Prompt Engineering');
+DECLARE @CR2_D2 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 2) AND criteria_name = 'Contextual Understanding & Reasoning');
+DECLARE @CR2_D3 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 2) AND criteria_name = 'Real-world Application & Scalability');
+
+DECLARE @CR4_D1 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'Smart Contract Security');
+DECLARE @CR4_D2 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'Decentralization & Utility');
+DECLARE @CR4_D3 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'UI/UX & Web3 Integration');
+
+DECLARE @CR5_D1 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 5) AND criteria_name = 'Tokenomics Sustainability & Mathematical Rigor');
+DECLARE @CR5_D2 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 5) AND criteria_name = 'Liquidity & Yield Protocol Design');
+DECLARE @CR5_D3 BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 5) AND criteria_name = 'Regulatory Compliance & Risk Management');
+
+DECLARE @Sub_AI_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 1);
+DECLARE @Sub_Vis_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 1);
+DECLARE @Sub_Cyb_R1 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01') AND round_id = 1);
+
+DECLARE @Sub_AI_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01') AND round_id = 2);
+DECLARE @Sub_Vis_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02') AND round_id = 2);
+DECLARE @Sub_Cyb_R2 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM01') AND round_id = 2);
+
+DECLARE @Sub_Block_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 3);
+DECLARE @Sub_Code_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02') AND round_id = 3);
+DECLARE @Sub_Byte_R3 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03') AND round_id = 3);
+
+DECLARE @Sub_Block_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03') AND round_id = 4);
+DECLARE @Sub_Code_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM02') AND round_id = 4);
+DECLARE @Sub_Byte_R4 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'TEAM03') AND round_id = 4);
+
+DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
+DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
+DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
+
+DECLARE @S_C1_R1_AI_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R1 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R1_AI_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R1 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R1_AI_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R1 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C1_R1_Vis_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R1 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R1_Vis_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R1 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R1_Vis_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R1 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C1_R1_Cyb_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R1 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R1_Cyb_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R1 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R1_Cyb_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R1 AND user_id = @JudgeMentor_ID);
+
+DECLARE @S_C1_R2_AI_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R2 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R2_AI_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R2 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R2_AI_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_AI_R2 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C1_R2_Vis_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R2 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R2_Vis_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R2 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R2_Vis_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Vis_R2 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C1_R2_Cyb_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R2 AND user_id = @Judge1_ID);
+DECLARE @S_C1_R2_Cyb_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R2 AND user_id = @Judge2_ID);
+DECLARE @S_C1_R2_Cyb_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Cyb_R2 AND user_id = @JudgeMentor_ID);
+
+DECLARE @S_C2_R3_Blk_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R3 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R3_Blk_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R3 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R3_Blk_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R3 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C2_R3_Cod_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R3 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R3_Cod_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R3 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R3_Cod_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R3 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C2_R3_Byt_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R3 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R3_Byt_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R3 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R3_Byt_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R3 AND user_id = @JudgeMentor_ID);
+
+DECLARE @S_C2_R4_Blk_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R4 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R4_Blk_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R4 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R4_Blk_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Block_R4 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C2_R4_Cod_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R4 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R4_Cod_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R4 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R4_Cod_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Code_R4 AND user_id = @JudgeMentor_ID);
+DECLARE @S_C2_R4_Byt_J1 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R4 AND user_id = @Judge1_ID);
+DECLARE @S_C2_R4_Byt_J2 BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R4 AND user_id = @Judge2_ID);
+DECLARE @S_C2_R4_Byt_JM BIGINT = (SELECT TOP 1 score_id FROM Score WHERE submission_id = @Sub_Byte_R4 AND user_id = @JudgeMentor_ID);
+
+INSERT INTO ScoreDetail (score_id, contest_rubric_detail_id, raw_score, weighted_score, feedback)
+VALUES
+-- Contest 1 Round 1 Scores details
+(@S_C1_R1_AI_J1, @CR1_D1, 27.50, 27.50, N'Exceptional AI innovation'),
+(@S_C1_R1_AI_J1, @CR1_D2, 27.50, 27.50, N'Sophisticated model depth'),
+(@S_C1_R1_AI_J1, @CR1_D3, 18.50, 18.50, N'Highly viable in real world'),
+(@S_C1_R1_AI_J1, @CR1_D4, 18.00, 18.00, N'Smooth presentation structure'),
+
+(@S_C1_R1_AI_J2, @CR1_D1, 27.00, 27.00, N'Great novelty in approach'),
+(@S_C1_R1_AI_J2, @CR1_D2, 27.00, 27.00, N'Clean algorithmic pipeline'),
+(@S_C1_R1_AI_J2, @CR1_D3, 18.00, 18.00, N'Clear social impact'),
+(@S_C1_R1_AI_J2, @CR1_D4, 18.00, 18.00, N'Well explained architecture'),
+
+(@S_C1_R1_AI_JM, @CR1_D1, 28.00, 28.00, N'Top tier AI creativity'),
+(@S_C1_R1_AI_JM, @CR1_D2, 28.00, 28.00, N'Excellent technical execution'),
+(@S_C1_R1_AI_JM, @CR1_D3, 18.00, 18.00, N'Strong feasibility metrics'),
+(@S_C1_R1_AI_JM, @CR1_D4, 18.00, 18.00, N'Engaging live demonstration'),
+
+(@S_C1_R1_Vis_J1, @CR1_D1, 26.00, 26.00, N'Solid vision wireframe'),
+(@S_C1_R1_Vis_J1, @CR1_D2, 26.00, 26.00, N'Reliable detection pipeline'),
+(@S_C1_R1_Vis_J1, @CR1_D3, 17.50, 17.50, N'Practical industry usage'),
+(@S_C1_R1_Vis_J1, @CR1_D4, 17.50, 17.50, N'Clear prototype layout'),
+
+(@S_C1_R1_Vis_J2, @CR1_D1, 26.50, 26.50, N'Creative visual recognition'),
+(@S_C1_R1_Vis_J2, @CR1_D2, 26.50, 26.50, N'High frame rate accuracy'),
+(@S_C1_R1_Vis_J2, @CR1_D3, 18.00, 18.00, N'Strong market potential'),
+(@S_C1_R1_Vis_J2, @CR1_D4, 17.50, 17.50, N'Well structured slides'),
+
+(@S_C1_R1_Vis_JM, @CR1_D1, 26.00, 26.00, N'Good vision concept'),
+(@S_C1_R1_Vis_JM, @CR1_D2, 26.00, 26.00, N'Consistent detection output'),
+(@S_C1_R1_Vis_JM, @CR1_D3, 17.50, 17.50, N'Realistic deployment model'),
+(@S_C1_R1_Vis_JM, @CR1_D4, 17.00, 17.00, N'Decent presentation workflow'),
+
+(@S_C1_R1_Cyb_J1, @CR1_D1, 25.00, 25.00, N'Clear threat analysis'),
+(@S_C1_R1_Cyb_J1, @CR1_D2, 25.00, 25.00, N'Solid encryption layout'),
+(@S_C1_R1_Cyb_J1, @CR1_D3, 17.00, 17.00, N'Practical network protection'),
+(@S_C1_R1_Cyb_J1, @CR1_D4, 17.00, 17.00, N'Good qualification document'),
+
+(@S_C1_R1_Cyb_J2, @CR1_D1, 25.00, 25.00, N'Logical security approach'),
+(@S_C1_R1_Cyb_J2, @CR1_D2, 25.00, 25.00, N'Well structured defense rules'),
+(@S_C1_R1_Cyb_J2, @CR1_D3, 17.00, 17.00, N'Good utility value'),
+(@S_C1_R1_Cyb_J2, @CR1_D4, 16.50, 16.50, N'Clear technical diagrams'),
+
+(@S_C1_R1_Cyb_JM, @CR1_D1, 25.50, 25.50, N'Good security innovation'),
+(@S_C1_R1_Cyb_JM, @CR1_D2, 25.50, 25.50, N'Clean threat model design'),
+(@S_C1_R1_Cyb_JM, @CR1_D3, 17.00, 17.00, N'High practical application'),
+(@S_C1_R1_Cyb_JM, @CR1_D4, 17.00, 17.00, N'Solid presentation defense'),
+
+-- Contest 1 Round 2 Scores details
+(@S_C1_R2_AI_J1, @CR2_D1, 32.50, 32.50, N'Outstanding NLP accuracy'),
+(@S_C1_R2_AI_J1, @CR2_D2, 32.50, 32.50, N'Exceptional reasoning depth'),
+(@S_C1_R2_AI_J1, @CR2_D3, 28.00, 28.00, N'Highly scalable enterprise solution'),
+
+(@S_C1_R2_AI_J2, @CR2_D1, 32.00, 32.00, N'Very high model precision'),
+(@S_C1_R2_AI_J2, @CR2_D2, 32.00, 32.00, N'Robust logical inference capabilities'),
+(@S_C1_R2_AI_J2, @CR2_D3, 28.00, 28.00, N'Excellent production readiness'),
+
+(@S_C1_R2_AI_JM, @CR2_D1, 33.00, 33.00, N'Superb prompt architecture'),
+(@S_C1_R2_AI_JM, @CR2_D2, 32.50, 32.50, N'Deep contextual understanding'),
+(@S_C1_R2_AI_JM, @CR2_D3, 28.00, 28.00, N'Seamless real-world application'),
+
+(@S_C1_R2_Vis_J1, @CR2_D1, 31.00, 31.00, N'Clean processing pipeline'),
+(@S_C1_R2_Vis_J1, @CR2_D2, 31.00, 31.00, N'Good feature recognition speed'),
+(@S_C1_R2_Vis_J1, @CR2_D3, 26.00, 26.00, N'Solid application deployment'),
+
+(@S_C1_R2_Vis_J2, @CR2_D1, 31.50, 31.50, N'Reliable real-time accuracy'),
+(@S_C1_R2_Vis_J2, @CR2_D2, 31.00, 31.00, N'Smooth model tracking'),
+(@S_C1_R2_Vis_J2, @CR2_D3, 26.50, 26.50, N'Good commercial potential'),
+
+(@S_C1_R2_Vis_JM, @CR2_D1, 30.50, 30.50, N'Stable detection performance'),
+(@S_C1_R2_Vis_JM, @CR2_D2, 31.00, 31.00, N'Good contextual filtering'),
+(@S_C1_R2_Vis_JM, @CR2_D3, 26.00, 26.00, N'Responsive UI/UX integration'),
+
+(@S_C1_R2_Cyb_J1, @CR2_D1, 30.00, 30.00, N'Well structured network defense'),
+(@S_C1_R2_Cyb_J1, @CR2_D2, 30.00, 30.00, N'Accurate threat classification'),
+(@S_C1_R2_Cyb_J1, @CR2_D3, 25.00, 25.00, N'Good system protection demo'),
+
+(@S_C1_R2_Cyb_J2, @CR2_D1, 29.50, 29.50, N'Clean defense mechanism'),
+(@S_C1_R2_Cyb_J2, @CR2_D2, 29.50, 29.50, N'Good anomaly recognition'),
+(@S_C1_R2_Cyb_J2, @CR2_D3, 25.00, 25.00, N'Solid working AI prototype'),
+
+(@S_C1_R2_Cyb_JM, @CR2_D1, 29.50, 29.50, N'Reliable prototype design'),
+(@S_C1_R2_Cyb_JM, @CR2_D2, 30.00, 30.00, N'Good logic verification'),
+(@S_C1_R2_Cyb_JM, @CR2_D3, 25.00, 25.00, N'Satisfactory system scalability'),
+
+-- Contest 2 Round 3 Scores details
+(@S_C2_R3_Blk_J1, @CR4_D1, 33.00, 33.00, N'Optimal smart contract security'),
+(@S_C2_R3_Blk_J1, @CR4_D2, 32.50, 32.50, N'High degree of decentralization'),
+(@S_C2_R3_Blk_J1, @CR4_D3, 28.00, 28.00, N'Intuitive wallet interaction'),
+
+(@S_C2_R3_Blk_J2, @CR4_D1, 33.00, 33.00, N'Rigorous vulnerability auditing'),
+(@S_C2_R3_Blk_J2, @CR4_D2, 33.00, 33.00, N'Very clean consensus layout'),
+(@S_C2_R3_Blk_J2, @CR4_D3, 28.50, 28.50, N'Smooth Web3 UX integration'),
+
+(@S_C2_R3_Blk_JM, @CR4_D1, 33.00, 33.00, N'Flawless contract whitepaper'),
+(@S_C2_R3_Blk_JM, @CR4_D2, 33.00, 33.00, N'Excellent decentralized utility'),
+(@S_C2_R3_Blk_JM, @CR4_D3, 28.00, 28.00, N'Seamless DApp navigation'),
+
+(@S_C2_R3_Cod_J1, @CR4_D1, 31.00, 31.00, N'Good exchange architecture'),
+(@S_C2_R3_Cod_J1, @CR4_D2, 31.00, 31.00, N'Low latency decentralized flow'),
+(@S_C2_R3_Cod_J1, @CR4_D3, 26.50, 26.50, N'Clean trading interface'),
+
+(@S_C2_R3_Cod_J2, @CR4_D1, 31.50, 31.50, N'Very solid liquidity specifications'),
+(@S_C2_R3_Cod_J2, @CR4_D2, 31.50, 31.50, N'Reliable decentralized model'),
+(@S_C2_R3_Cod_J2, @CR4_D3, 26.50, 26.50, N'Good user experience design'),
+
+(@S_C2_R3_Cod_JM, @CR4_D1, 31.00, 31.00, N'Strong DeFi security practices'),
+(@S_C2_R3_Cod_JM, @CR4_D2, 31.50, 31.50, N'Clean smart contract structure'),
+(@S_C2_R3_Cod_JM, @CR4_D3, 26.50, 26.50, N'Responsive wallet interaction'),
+
+(@S_C2_R3_Byt_J1, @CR4_D1, 30.00, 30.00, N'Clear DApp security layout'),
+(@S_C2_R3_Byt_J1, @CR4_D2, 30.00, 30.00, N'Solid decentralized integration'),
+(@S_C2_R3_Byt_J1, @CR4_D3, 25.50, 25.50, N'Clean wireframe structure'),
+
+(@S_C2_R3_Byt_J2, @CR4_D1, 29.50, 29.50, N'Good staking security logic'),
+(@S_C2_R3_Byt_J2, @CR4_D2, 30.00, 30.00, N'Well thought out utility model'),
+(@S_C2_R3_Byt_J2, @CR4_D3, 25.00, 25.00, N'Smooth wallet connection'),
+
+(@S_C2_R3_Byt_JM, @CR4_D1, 30.00, 30.00, N'Reliable tokenomics proposal'),
+(@S_C2_R3_Byt_JM, @CR4_D2, 30.00, 30.00, N'Good decentralized concept'),
+(@S_C2_R3_Byt_JM, @CR4_D3, 25.00, 25.00, N'Intuitive user interface'),
+
+-- Contest 2 Round 4 Scores details
+(@S_C2_R4_Blk_J1, @CR5_D1, 33.00, 33.00, N'Exceptional mathematical rigor'),
+(@S_C2_R4_Blk_J1, @CR5_D2, 33.00, 33.00, N'World-class yield protocol design'),
+(@S_C2_R4_Blk_J1, @CR5_D3, 28.50, 28.50, N'Stellar regulatory compliance'),
+
+(@S_C2_R4_Blk_J2, @CR5_D1, 33.50, 33.50, N'Flawless tokenomics modeling'),
+(@S_C2_R4_Blk_J2, @CR5_D2, 33.50, 33.50, N'Optimal capital allocation'),
+(@S_C2_R4_Blk_J2, @CR5_D3, 28.50, 28.50, N'Top tier security auditing'),
+
+(@S_C2_R4_Blk_JM, @CR5_D1, 33.00, 33.00, N'Sustainable economic viability'),
+(@S_C2_R4_Blk_JM, @CR5_D2, 33.50, 33.50, N'Highly efficient market mechanics'),
+(@S_C2_R4_Blk_JM, @CR5_D3, 28.50, 28.50, N'Maximum risk mitigation'),
+
+(@S_C2_R4_Cod_J1, @CR5_D1, 31.50, 31.50, N'Robust DEX tokenomics'),
+(@S_C2_R4_Cod_J1, @CR5_D2, 31.50, 31.50, N'High transaction throughput design'),
+(@S_C2_R4_Cod_J1, @CR5_D3, 27.00, 27.00, N'Solid compliance management'),
+
+(@S_C2_R4_Cod_J2, @CR5_D1, 31.50, 31.50, N'Clean order-book synchronization'),
+(@S_C2_R4_Cod_J2, @CR5_D2, 32.00, 32.00, N'Fast settlement liquidity pool'),
+(@S_C2_R4_Cod_J2, @CR5_D3, 27.00, 27.00, N'Reliable systemic risk control'),
+
+(@S_C2_R4_Cod_JM, @CR5_D1, 31.50, 31.50, N'Well balanced economic structure'),
+(@S_C2_R4_Cod_JM, @CR5_D2, 31.50, 31.50, N'Strong liquidity protocol'),
+(@S_C2_R4_Cod_JM, @CR5_D3, 26.50, 26.50, N'Good security risk standards'),
+
+(@S_C2_R4_Byt_J1, @CR5_D1, 30.50, 30.50, N'Great liquidity staking formula'),
+(@S_C2_R4_Byt_J1, @CR5_D2, 30.50, 30.50, N'Clean reward distribution design'),
+(@S_C2_R4_Byt_J1, @CR5_D3, 25.50, 25.50, N'Satisfactory compliance checks'),
+
+(@S_C2_R4_Byt_J2, @CR5_D1, 30.00, 30.00, N'Reliable staking mathematics'),
+(@S_C2_R4_Byt_J2, @CR5_D2, 30.50, 30.50, N'Good yield pool efficiency'),
+(@S_C2_R4_Byt_J2, @CR5_D3, 25.50, 25.50, N'Solid risk monitoring rules'),
+
+(@S_C2_R4_Byt_JM, @CR5_D1, 30.00, 30.00, N'Consistent token reward model'),
+(@S_C2_R4_Byt_JM, @CR5_D2, 30.00, 30.00, N'Solid automated market mechanism'),
+(@S_C2_R4_Byt_JM, @CR5_D3, 25.50, 25.50, N'Good baseline risk management');
 GO
 
 -- 11. RANKING RESULTS (Complete Leaderboards for ALL Completed Rounds & 10-Team Championship)
