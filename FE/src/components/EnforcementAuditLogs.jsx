@@ -37,6 +37,8 @@ const EnforcementAuditLogs = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(15);
     const [filters, setFilters] = useState({ actionType: '', performer: '', startDate: '', endDate: '' });
+    const [initialLoading, setInitialLoading] = useState(true);
+
     useEffect(() => {
         const fetchLogs = async () => {
             try {
@@ -67,6 +69,8 @@ const EnforcementAuditLogs = () => {
                 }
             } catch (err) {
                 console.error('Cannot load audit logs.', err);
+            } finally {
+                setInitialLoading(false);
             }
         };
         fetchLogs();
@@ -130,6 +134,17 @@ const EnforcementAuditLogs = () => {
             alert('Cannot export CSV. Please try again.');
         }
     };
+
+    if (initialLoading) {
+        return (
+            <div className="audit-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading audit logs...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="audit-container">

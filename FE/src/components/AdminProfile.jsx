@@ -20,6 +20,8 @@ const AdminProfile = () => {
         confirmPassword: ''
     });
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -60,6 +62,8 @@ const AdminProfile = () => {
                 catch (error) {
                     console.error("Profile synchronization error:", error);
                 }
+            } finally {
+                setInitialLoading(false);
             }
         };
         fetchProfile();
@@ -241,6 +245,19 @@ const AdminProfile = () => {
             setIsLoading(false);
         }
     };
+
+    if (initialLoading) {
+        return (
+            <div className="op-profile-container">
+                <div className="op-profile-content">
+                    <div className="global-loading">
+                        <div className="global-spinner"></div>
+                        <span>Loading account profile...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="op-profile-container">

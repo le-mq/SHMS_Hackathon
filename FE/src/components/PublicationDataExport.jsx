@@ -17,6 +17,8 @@ const PublicationDataExport = () => {
     const [contests, setContests] = useState([]);
     const [isPublishing, setIsPublishing] = useState(false);
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     const [formData, setFormData] = useState({
         contestId: '',
         title: '',
@@ -62,6 +64,10 @@ const PublicationDataExport = () => {
                 } catch (localError) {
                     console.error(localError);
                 }
+            } finally {
+                if (!cancelled) {
+                    setInitialLoading(false);
+                }
             }
         }
         fetchContests();
@@ -88,13 +94,13 @@ const PublicationDataExport = () => {
 
         let mappedType = 'GENERAL_UPDATE';
         if (formData.type === 'Deadline Reminder') mappedType = 'DEADLINE_REMINDER';
-        else if (formData.type === 'Rule Change') mappedType = 'RULE_CHANGE';
-        else if (formData.type === 'Result Announcement') mappedType = 'RESULT_ANNOUNCEMENT';
-        else if (formData.type === 'System Maintenance') mappedType = 'SYSTEM_MAINTENANCE';
+        if (formData.type === 'Rule Change') mappedType = 'RULE_CHANGE';
+        if (formData.type === 'Result Announcement') mappedType = 'RESULT_ANNOUNCEMENT';
+        if (formData.type === 'System Maintenance') mappedType = 'SYSTEM_MAINTENANCE';
 
         try {
-            const token = localStorage.getItem('shms_token');
-            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/admin/contests/announcements", {
+            const token = localStorage.getItem("shms_token");
+            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/admin/contests/announcements", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -132,8 +138,19 @@ const PublicationDataExport = () => {
     const handleExport = (type) => {
         const token = localStorage.getItem('shms_token');
         const contestParam = formData.contestId ? `&contestId=${formData.contestId}` : '';
-        window.open((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/admin/results/export-csv?type=${type}${contestParam}&token=${token}`, '_blank');
+        window.open((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + `/admin/results/export-csv?type=${type}${contestParam}&token=${token}`, '_blank');
     };
+
+    if (initialLoading) {
+        return (
+            <div className="publication-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading Broadcast & Export Center...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="publication-container">
