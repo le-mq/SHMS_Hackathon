@@ -92,6 +92,18 @@ const enrichRound = (r) => {
     return enriched;
 };
 
+const getLiveStatus = (c) => {
+    if (!c) return 'ACTIVE';
+    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
+    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
+    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
+    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
+    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
+    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
+    return s;
+};
+
 const RankingsConsole = () => {
     const [activeTab, setActiveTab] = useState('COMPILATION');
     const [viewMode, setViewMode] = useState('ROUNDS_LIST');
@@ -570,21 +582,24 @@ const RankingsConsole = () => {
                         {contests
                             .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
                             .sort((a, b) => {
-                                const isAClosed = a.status === 'CLOSED' || a.status === 'CANCELLED' || a.status === 'CANCELED';
-                                const isBClosed = b.status === 'CLOSED' || b.status === 'CANCELLED' || b.status === 'CANCELED';
+                                const aLiveStatus = getLiveStatus(a);
+                                const bLiveStatus = getLiveStatus(b);
+                                const isAClosed = aLiveStatus === 'CLOSED';
+                                const isBClosed = bLiveStatus === 'CLOSED';
                                 if (isAClosed && !isBClosed) return 1;
                                 if (!isAClosed && isBClosed) return -1;
                                 return Number(b.id) - Number(a.id);
                             })
                             .map(c => {
-                                const isClosed = c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED';
-                                const isUpcoming = c.status === 'UPCOMING';
-                                const isActive = c.status === 'ACTIVED' || c.status === 'ACTIVE';
+                                const liveStatus = getLiveStatus(c);
+                                const isClosed = liveStatus === 'CLOSED';
+                                const isUpcoming = liveStatus === 'UPCOMING';
+                                const isActive = liveStatus === 'ACTIVE';
 
                                 let cardBg = 'white';
                                 let cardBorderColor = '#cbd5e1';
                                 let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                let statusText = 'ACTIVED';
+                                let statusText = 'ACTIVE';
                                 let badgeBg = '#dcfce7';
                                 let badgeColor = '#166534';
 

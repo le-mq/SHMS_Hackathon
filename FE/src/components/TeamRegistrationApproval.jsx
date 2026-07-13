@@ -5,6 +5,18 @@ import LatestAnnouncements from './LatestAnnouncements';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
+const getLiveStatus = (c) => {
+    if (!c) return 'ACTIVE';
+    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
+    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
+    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
+    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
+    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
+    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
+    return s;
+};
+
 const TeamRegistrationApproval = () => {
     const [dashboardData, setDashboardData] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('teamApprovalSelectedContest') || '');
@@ -89,7 +101,7 @@ const TeamRegistrationApproval = () => {
             0
         );
 
-    const isContestClosed = selectedContest?.status === 'CLOSED';
+    const isContestClosed = getLiveStatus(selectedContest) === 'CLOSED';
     const handleOpenActionModal = (teamId, teamName, actionType) => {
         setCancelModal({
             isOpen: true,
@@ -215,15 +227,18 @@ const TeamRegistrationApproval = () => {
                         {dashboardData
                             .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
                             .sort((a, b) => {
-                                const aActive = (a.status === 'ACTIVED' || a.status === 'ACTIVE' || !a.status);
-                                const bActive = (b.status === 'ACTIVED' || b.status === 'ACTIVE' || !b.status);
+                                const aLiveStatus = getLiveStatus(a);
+                                const bLiveStatus = getLiveStatus(b);
+                                const aActive = (aLiveStatus === 'ACTIVE');
+                                const bActive = (bLiveStatus === 'ACTIVE');
                                 if (aActive && !bActive) return -1;
                                 if (!aActive && bActive) return 1;
                                 return Number(b.id) - Number(a.id);
                             })
                             .map(c => {
-                                const isClosed = c.status === 'CLOSED';
-                                const isActive = c.status === 'ACTIVED' || c.status === 'ACTIVE' || !c.status;
+                                const liveStatus = getLiveStatus(c);
+                                const isClosed = liveStatus === 'CLOSED';
+                                const isActive = liveStatus === 'ACTIVE';
                                 const totalTeams = Array.isArray(c.teams)
                                     ? c.teams.length
                                     : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
@@ -278,7 +293,7 @@ const TeamRegistrationApproval = () => {
                                                     whiteSpace: 'nowrap'
                                                 }}>
                                                     {isActive && <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>}
-                                                    {isClosed ? 'CLOSED' : 'ACTIVE'}
+                                                    {liveStatus}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' }}>
