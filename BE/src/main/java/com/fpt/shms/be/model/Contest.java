@@ -122,13 +122,12 @@ public class Contest {
 
     public ContestStatus getStatus() {
         java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
-        java.time.LocalDate nowDay = java.time.LocalDate.now();
 
         if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) {
             return ContestStatus.CLOSED;
         }
 
-        if (this.registrationStart != null && nowDay.isBefore(this.registrationStart)) {
+        if (this.contestStartAt != null && nowTime.isBefore(this.contestStartAt)) {
             return ContestStatus.UPCOMING;
         }
 
