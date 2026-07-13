@@ -142,6 +142,7 @@ const ProjectSubmission = () => {
     const [selectedFeedbackRecord, setSelectedFeedbackRecord] = useState(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
     const errorTimerRef = useRef(null);
     const successTimerRef = useRef(null);
     const reloadTimerRef = useRef(null);
@@ -319,6 +320,9 @@ const ProjectSubmission = () => {
     const handleChange = (e) => {
         if (e.target.name === 'roundId') {
             sessionStorage.setItem(SELECTED_ROUND_STORAGE_KEY, e.target.value);
+            setFieldErrors({});
+        } else {
+            setFieldErrors({ ...fieldErrors, [e.target.name]: null });
         }
 
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -490,6 +494,9 @@ const ProjectSubmission = () => {
     const submitFeedbackType = error || notLeaderMessage || notEligibleMessage || closedRoundMessage ? 'error' : notOpenedRoundMessage ? 'warning' : 'success';
     const submitFeedbackVariant = notLeaderMessage || notEligibleMessage || closedRoundMessage || notOpenedRoundMessage ? ' closed' : '';
 
+    const displayRoundStatus = displayRoundForDeadline ? getNormalizedRoundStatus(displayRoundForDeadline) : null;
+    const isDisplayRoundClosed = ['CLOSED', 'ENDED', 'FINISHED'].includes(displayRoundStatus);
+
     useEffect(() => {
         if (!currentDeadline) {
             setFormattedDeadline('No Deadline Set');
@@ -512,7 +519,7 @@ const ProjectSubmission = () => {
         const updateCountdown = () => {
             const now = new Date();
 
-            if (!isTeamApproved || !hasValidOpen || now < open || now > deadline) {
+            if (!isTeamApproved || !hasValidOpen || now < open || now > deadline || isDisplayRoundClosed) {
                 setTimeLeft('');
                 return;
             }
@@ -532,7 +539,7 @@ const ProjectSubmission = () => {
         updateCountdown();
         const timer = setInterval(updateCountdown, 1000);
         return () => clearInterval(timer);
-    }, [currentDeadline, currentOpen, isTeamApproved]);
+    }, [currentDeadline, currentOpen, isTeamApproved, isDisplayRoundClosed]);
 
     const getBackendMessage = (data, fallback) => {
         const message = data?.message || data?.error ||
@@ -670,11 +677,54 @@ const ProjectSubmission = () => {
 
         if (selectedRound && selectedRound.submissionRequirements && selectedRound.submissionRequirements !== '[]') {
             const reqs = parseRequirements(selectedRound.submissionRequirements);
+            let errors = {};
+            let hasError = false;
+
             for (const req of reqs) {
-                if (!formData[req] || !formData[req].trim()) {
-                    showErrorMessage(`${req} is required for this round.`);
-                    return;
+                const val = formData[req];
+                if (!val || !val.trim()) {
+                    errors[req] = `${req} is required.`;
+                    hasError = true;
+                    continue;
                 }
+
+                const url = val.trim();
+                const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+                let isValidUrl = urlRegex.test(url);
+                
+                try {
+                    new URL(url.startsWith('http') ? url : `https://${url}`);
+                } catch (e) {
+                    isValidUrl = false;
+                }
+
+                if (!isValidUrl) {
+                    errors[req] = `Invalid link format. Please enter a valid URL.`;
+                    hasError = true;
+                    continue;
+                }
+
+                const lowerReq = req.toLowerCase();
+                const lowerUrl = url.toLowerCase();
+
+                if (lowerReq.includes('source code') || lowerReq.includes('github')) {
+                    if (!/github\.com|gitlab\.com|bitbucket\.org/i.test(lowerUrl)) {
+                        errors[req] = `Must be a valid GitHub, GitLab, or Bitbucket link.`;
+                        hasError = true;
+                    }
+                }
+                
+                if (lowerReq.includes('video') || lowerReq.includes('demo')) {
+                    if (!/youtube\.com|youtu\.be|vimeo\.com|loom\.com|drive\.google\.com|dropbox\.com|1drv\.ms|sharepoint\.com/i.test(lowerUrl)) {
+                        // Optional: could add stricter validation, but URL format is usually enough for videos
+                    }
+                }
+            }
+
+            setFieldErrors(errors);
+            if (hasError) {
+                showErrorMessage('Please fix the errors in the form before submitting.');
+                return;
             }
         }
 
@@ -988,8 +1038,15 @@ const ProjectSubmission = () => {
                                                     onChange={handleChange}
                                                     placeholder={`Enter your ${req}...`}
                                                     disabled={isInputsDisabled}
-                                                    className="custom-input"
+                                                    className={`custom-input ${fieldErrors[req] ? 'input-error' : ''}`}
+                                                    style={fieldErrors[req] ? { borderColor: '#ef4444', backgroundColor: '#fef2f2' } : {}}
                                                 />
+                                                {fieldErrors[req] && (
+                                                    <div style={{ color: '#ef4444', fontSize: '13px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                        {fieldErrors[req]}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
