@@ -73,6 +73,25 @@ function getMilestoneStatus(dateStr) {
         : <span className="mc-status ms-upcoming">Upcoming</span>;
 }
 
+function calculateProgress(contest) {
+    if (contest.status === 'UPCOMING') return 0;
+    
+    const rounds = contest.rounds || [];
+    const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
+    const compEnd = validRounds.length ? new Date(Math.max(...validRounds.map(r => new Date(r.submissionDeadline)))).toISOString() : null;
+    const cStart = contest.registrationStart || contest.contestStartAt || contest.startDate;
+    const cEnd = contest.contestEndAt || contest.endDate || compEnd;
+    
+    if (!cStart || !cEnd) return 0;
+    const now = Date.now();
+    const s = new Date(cStart).getTime();
+    const e = new Date(cEnd).getTime();
+    if (isNaN(s) || isNaN(e)) return 0;
+    if (now <= s) return 0;
+    if (now >= e) return 100;
+    return Math.round(((now - s) / (e - s)) * 100);
+}
+
 async function copyToClipboard(text) {
     if (!text) return false;
 
@@ -297,7 +316,7 @@ const StudentDashboard = () => {
                         ) : activeContests.length > 0 ? (
                             activeContests.map(contest => (
                                 <div
-                                    className={`info-card contest-card ${selectedContestId === String(contest.id) ? 'selected' : ''}`}
+                                    className={`info-card contest-card ${selectedContestId === String(contest.id) ? 'selected' : ''} ${contest.status === 'ACTIVED' ? 'active-contest-card' : ''}`}
                                     key={contest.id}
                                     role="button"
                                     tabIndex={0}
@@ -333,8 +352,11 @@ const StudentDashboard = () => {
                                         </span>
                                     </div>
 
-                                    <div className="progress-bar-bg">
-                                        <div className="progress-bar-fill"></div>
+                                    <div className="progress-bar-bg" title={`${calculateProgress(contest)}% through contest`}>
+                                        <div 
+                                            className={`progress-bar-fill ${contest.status === 'ACTIVED' ? 'is-active' : ''}`}
+                                            style={{ width: `${calculateProgress(contest)}%` }}
+                                        ></div>
                                     </div>
                                 </div>
                             ))
