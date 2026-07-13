@@ -120,18 +120,17 @@ public class Contest {
         return semester != null ? semester.getYear() : null;
     }
 
-    public ContestStatus getStatus() {
+    @PrePersist
+    @PreUpdate
+    public void syncStatus() {
         java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
-        java.time.LocalDate nowDay = java.time.LocalDate.now();
 
         if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) {
-            return ContestStatus.CLOSED;
+            this.status = ContestStatus.CLOSED;
+        } else if (this.contestStartAt != null && nowTime.isBefore(this.contestStartAt)) {
+            this.status = ContestStatus.UPCOMING;
+        } else {
+            this.status = ContestStatus.ACTIVED;
         }
-
-        if (this.registrationStart != null && nowDay.isBefore(this.registrationStart)) {
-            return ContestStatus.UPCOMING;
-        }
-
-        return ContestStatus.ACTIVED;
     }
 }
