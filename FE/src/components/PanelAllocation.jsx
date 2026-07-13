@@ -19,14 +19,10 @@ const getStatusStyles = (status) => {
 
 const getLiveStatus = (c) => {
     if (!c) return 'ACTIVE';
-    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
-    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
-    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
-    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
-    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
     const s = c.status?.toUpperCase() || 'ACTIVE';
-    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
-    return s;
+    if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
+    if (s === 'UPCOMING') return 'UPCOMING';
+    return 'ACTIVE';
 };
 
 const PanelAllocation = () => {
