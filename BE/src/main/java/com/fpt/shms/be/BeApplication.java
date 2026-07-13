@@ -10,6 +10,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class BeApplication {
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Aisa/Ho_Chi_Minh"));
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(BeApplication.class, args);
     }

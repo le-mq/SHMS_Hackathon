@@ -31,8 +31,8 @@ spring:
   mail:
     host: smtp-relay.brevo.com
     port: 587
-    username:
-    password:
+    username: ${BREVO_USERNAME:local_username_here}
+    password: ${BREVO_PASSWORD:local_password_here}
 
     properties:
       mail:
