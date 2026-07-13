@@ -5,16 +5,12 @@ import LatestAnnouncements from './LatestAnnouncements';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
-const getLiveStatus = (c) => {
+const getDatabaseStatus = (c) => {
     if (!c) return 'ACTIVE';
-    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
-    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
-    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
-    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
-    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
     const s = c.status?.toUpperCase() || 'ACTIVE';
-    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
-    return s;
+    if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
+    if (s === 'UPCOMING') return 'UPCOMING';
+    return 'ACTIVE';
 };
 
 const TeamRegistrationApproval = () => {
@@ -101,7 +97,7 @@ const TeamRegistrationApproval = () => {
             0
         );
 
-    const isContestClosed = getLiveStatus(selectedContest) === 'CLOSED';
+    const isContestClosed = getDatabaseStatus(selectedContest) === 'CLOSED';
     const handleOpenActionModal = (teamId, teamName, actionType) => {
         setCancelModal({
             isOpen: true,
@@ -227,8 +223,8 @@ const TeamRegistrationApproval = () => {
                         {dashboardData
                             .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
                             .sort((a, b) => {
-                                const aLiveStatus = getLiveStatus(a);
-                                const bLiveStatus = getLiveStatus(b);
+                                const aLiveStatus = getDatabaseStatus(a);
+                                const bLiveStatus = getDatabaseStatus(b);
                                 const aActive = (aLiveStatus === 'ACTIVE');
                                 const bActive = (bLiveStatus === 'ACTIVE');
                                 if (aActive && !bActive) return -1;
@@ -236,7 +232,7 @@ const TeamRegistrationApproval = () => {
                                 return Number(b.id) - Number(a.id);
                             })
                             .map(c => {
-                                const liveStatus = getLiveStatus(c);
+                                const liveStatus = getDatabaseStatus(c);
                                 const isClosed = liveStatus === 'CLOSED';
                                 const isActive = liveStatus === 'ACTIVE';
                                 const totalTeams = Array.isArray(c.teams)

@@ -94,14 +94,10 @@ const enrichRound = (r) => {
 
 const getLiveStatus = (c) => {
     if (!c) return 'ACTIVE';
-    if (c.status === 'CLOSED' || c.status === 'CANCELLED' || c.status === 'CANCELED') return 'CLOSED';
-    const endStr = c.contestEndAt || c.competitionEnd || c.endDate;
-    if (endStr && new Date(endStr).getTime() < new Date().getTime()) return 'CLOSED';
-    const startStr = c.registrationStart || c.contestStartAt || c.competitionStart || c.startDate;
-    if (startStr && new Date(startStr).getTime() > new Date().getTime()) return 'UPCOMING';
     const s = c.status?.toUpperCase() || 'ACTIVE';
-    if (s === 'ACTIVED' || s === 'ACTIVE') return 'ACTIVE';
-    return s;
+    if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
+    if (s === 'UPCOMING') return 'UPCOMING';
+    return 'ACTIVE';
 };
 
 const RankingsConsole = () => {
@@ -1206,18 +1202,6 @@ const RankingsConsole = () => {
                                                             >
                                                                 View
                                                             </button>
-                                                            {['SUBMITTED', 'OFFICIAL', 'EVALUATED'].includes(team.submissionState) && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setRevalData({ teamId: team.teamId, teamName: team.teamName, reason: '' });
-                                                                        setIsRevalModalOpen(true);
-                                                                    }}
-                                                                    style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontWeight: 600, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                                                                    title="Request Re-evaluation"
-                                                                >
-                                                                    ⚠️ Request Re-eval
-                                                                </button>
-                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
