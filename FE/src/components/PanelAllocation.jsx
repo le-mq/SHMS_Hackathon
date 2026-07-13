@@ -32,6 +32,8 @@ const PanelAllocation = () => {
     const [savedAllocations, setSavedAllocations] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [isSendingMail, setIsSendingMail] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
+
     const token = localStorage.getItem("shms_token");
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
     const activeExpert = useMemo(() => experts.find(e => String(e.userId) === String(selectedExpertId)), [experts, selectedExpertId]);
@@ -64,6 +66,8 @@ const PanelAllocation = () => {
                 if (eData.length > 0) setSelectedExpertId(String(eData[0].userId));
             } catch (err) {
                 console.error(err);
+            } finally {
+                setInitialLoading(false);
             }
         };
         fetchInitial();
@@ -307,6 +311,17 @@ const PanelAllocation = () => {
     const isJudgeForRound = allocations[String(selectedExpertId)]?.[roundCategoryId]?.isJudge || false;
     const isJudgeDisabled = !hasJudgeRole || currentMentoredTeamIds.length > 0;
 
+    if (initialLoading) {
+        return (
+            <div className="admin-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading panel allocations...</span>
+                </div>
+            </div>
+        );
+    }
+
     if (!selectedContestId) {
         return (
             <div className="admin-container">
@@ -479,9 +494,9 @@ const PanelAllocation = () => {
                             {contests.find(c => String(c.id) === String(selectedContestId))?.name || 'Selected Contest'}
                         </div>
                         {(() => {
-                            const selectedC = contests.find(c => String(c.id) === String(selectedContestId));
-                            if (!selectedC) return null;
-                            const statusText = selectedC.status || 'ACTIVE';
+                            const contestsObj = contests.find(c => String(c.id) === String(selectedContestId));
+                            if (!contestsObj) return null;
+                            const statusText = contestsObj.status || 'ACTIVE';
                             const badgeStyles = getStatusStyles(statusText);
                             return (
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', padding: '0 4px' }}>
@@ -675,7 +690,7 @@ const PanelAllocation = () => {
                             </div>
 
                             <div className="panel-footer-actions">
-                                <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
+                               <button className="btn-save-master" onClick={handleSave} disabled={isLoading}>
                                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>

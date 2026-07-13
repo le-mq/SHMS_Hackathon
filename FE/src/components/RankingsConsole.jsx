@@ -184,6 +184,8 @@ const RankingsConsole = () => {
         return `https://${trimmedUrl}`;
     };
 
+    const [initialLoading, setInitialLoading] = useState(true);
+
     useEffect(() => {
         let cancelled = false;
         async function fetchInitialData() {
@@ -209,6 +211,10 @@ const RankingsConsole = () => {
                 const sorted = [...contestsData].sort((a, b) => Number(b.id) - Number(a.id));
                 if (!cancelled) {
                     setContests(sorted);
+                }
+            } finally {
+                if (!cancelled) {
+                    setInitialLoading(false);
                 }
             }
         }
@@ -525,6 +531,17 @@ const RankingsConsole = () => {
     const totalTeams = readinessData.summary.totalTeams;
     const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && Number(topN) <= totalTeams;
     const isActionDisabled = !readinessData.allReady || isProcessing || !isTopNValid;
+
+    if (initialLoading) {
+        return (
+            <div className="rankings-container">
+                <div className="global-loading">
+                    <div className="global-spinner"></div>
+                    <span>Loading rankings...</span>
+                </div>
+            </div>
+        );
+    }
 
     if (!selectedContestId) {
         return (
