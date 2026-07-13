@@ -120,17 +120,7 @@ public class Contest {
         return semester != null ? semester.getYear() : null;
     }
 
-    @PrePersist
-    @PreUpdate
-    public void syncStatus() {
-        java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
-
-        if (this.contestEndAt != null && nowTime.isAfter(this.contestEndAt)) {
-            this.status = ContestStatus.CLOSED;
-        } else if (this.contestStartAt != null && nowTime.isBefore(this.contestStartAt)) {
-            this.status = ContestStatus.UPCOMING;
-        } else {
-            this.status = ContestStatus.ACTIVED;
-        }
+    public ContestStatus getStatus() {
+        return this.status;
     }
 }
