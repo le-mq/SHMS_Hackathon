@@ -153,10 +153,10 @@ public class StudentController {
 
     @GetMapping("/submissions")
     @Operation(summary = "Get Submission Page Data", description = "Returns contest, round, role, and history.")
-    public ResponseEntity<?> getSubmissionPageData(HttpServletRequest request) {
+    public ResponseEntity<?> getSubmissionPageData(HttpServletRequest request, @RequestParam(required = false) Long contestId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            return ResponseEntity.ok(submissionService.getSubmissionPageData(username));
+            return ResponseEntity.ok(submissionService.getSubmissionPageData(username, contestId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -271,10 +271,10 @@ public class StudentController {
 
     @GetMapping("/workspace")
     @Operation(summary = "Get Leader Workspace Data", description = "Returns dashboard metrics for team leader.")
-    public ResponseEntity<?> getWorkspaceData(HttpServletRequest request) {
+    public ResponseEntity<?> getWorkspaceData(HttpServletRequest request, @RequestParam(required = false) Long contestId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            return ResponseEntity.ok(teamService.getWorkspaceData(username));
+            return ResponseEntity.ok(teamService.getWorkspaceData(username, contestId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
