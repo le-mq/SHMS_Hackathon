@@ -76,20 +76,68 @@ function getMilestoneStatus(dateStr) {
 function calculateProgress(contest) {
     if (contest.status === 'UPCOMING') return 0;
     
-    const rounds = contest.rounds || [];
-    const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
-    const compEnd = validRounds.length ? new Date(Math.max(...validRounds.map(r => new Date(r.submissionDeadline)))).toISOString() : null;
-    const cStart = contest.registrationStart || contest.contestStartAt || contest.startDate;
-    const cEnd = contest.contestEndAt || contest.endDate || compEnd;
+    let milestones = [];
+    if (contest.registrationStart) milestones.push(new Date(contest.registrationStart).getTime());
+    if (contest.registrationEnd) milestones.push(new Date(contest.registrationEnd).getTime());
     
-    if (!cStart || !cEnd) return 0;
+    const startObj = contest.contestStartAt || contest.startDate;
+    if (startObj) milestones.push(new Date(startObj).getTime());
+    
+    if (contest.rounds && contest.rounds.length > 0) {
+        contest.rounds.forEach(r => {
+            const rOpen = r.submissionOpen || r.startDate;
+            if (rOpen) milestones.push(new Date(rOpen).getTime());
+            
+            const rDead = r.submissionDeadline || r.endDate;
+            if (rDead) milestones.push(new Date(rDead).getTime());
+            
+            const rRes = r.publishResultAt || r.resultPublishAt;
+            if (rRes) milestones.push(new Date(rRes).getTime());
+        });
+    }
+    
+    const endObj = contest.contestEndAt || contest.endDate;
+    if (endObj) milestones.push(new Date(endObj).getTime());
+    
+    milestones = milestones.filter(m => !isNaN(m)).sort((a, b) => a - b);
+    
+    if (milestones.length < 2) {
+        const cStart = contest.registrationStart || contest.contestStartAt || contest.startDate;
+        const cEnd = contest.contestEndAt || contest.endDate;
+        if (!cStart || !cEnd) return 0;
+        const now = Date.now();
+        const s = new Date(cStart).getTime();
+        const e = new Date(cEnd).getTime();
+        if (isNaN(s) || isNaN(e)) return 0;
+        if (now <= s) return 0;
+        if (now >= e) return 100;
+        return Math.round(((now - s) / (e - s)) * 100);
+    }
+    
     const now = Date.now();
-    const s = new Date(cStart).getTime();
-    const e = new Date(cEnd).getTime();
-    if (isNaN(s) || isNaN(e)) return 0;
-    if (now <= s) return 0;
-    if (now >= e) return 100;
-    return Math.round(((now - s) / (e - s)) * 100);
+    if (now <= milestones[0]) return 0;
+    if (now >= milestones[milestones.length - 1]) return 100;
+    
+    let currentIdx = 0;
+    for (let i = 0; i < milestones.length - 1; i++) {
+        if (now >= milestones[i] && now < milestones[i + 1]) {
+            currentIdx = i;
+            break;
+        }
+    }
+    
+    const segmentStart = milestones[currentIdx];
+    const segmentEnd = milestones[currentIdx + 1];
+    let segmentProgress = 0;
+    
+    if (segmentEnd > segmentStart) {
+        segmentProgress = (now - segmentStart) / (segmentEnd - segmentStart);
+    } else {
+        segmentProgress = 1;
+    }
+    
+    const totalProgress = ((currentIdx + segmentProgress) / (milestones.length - 1)) * 100;
+    return Math.round(totalProgress);
 }
 
 async function copyToClipboard(text) {
@@ -122,12 +170,12 @@ async function copyToClipboard(text) {
 async function hasExistingTeam(token) {
     try {
         const response = await axios.get(
-            API_STUDENT + '/teams/status',
+            API_STUDENT + '/teams/all-forming',
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const status = String(response.data?.status || '').toUpperCase();
-        return response.data && !response.data.error && ['FORMING', 'PENDING', 'APPROVED'].includes(status);
+        const teams = Array.isArray(response.data) ? response.data : [];
+        return teams.some(t => String(t.status || '').toUpperCase() === 'FORMING');
     } catch (error) {
         if (error.response?.status === 400) {
             return false;
@@ -279,7 +327,7 @@ const StudentDashboard = () => {
             const token = localStorage.getItem('shms_token');
 
             if (await hasExistingTeam(token)) {
-                setCreateError('You have already created a team!');
+                setCreateError('You already have a team in FORMING status.');
                 return;
             }
 
@@ -311,7 +359,10 @@ const StudentDashboard = () => {
                         {loadingContest ? (
                             <div className="info-card">
                                 <div className="ic-header">ACTIVED CONTEST</div>
-                                <div className="ic-title">Loading...</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 0' }}>
+                                    <div className="global-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', marginBottom: 0 }}></div>
+                                    <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 'normal' }}>Loading...</span>
+                                </div>
                             </div>
                         ) : activeContests.length > 0 ? (
                             activeContests.map(contest => (

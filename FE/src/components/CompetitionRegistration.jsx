@@ -8,12 +8,9 @@ const safeJson = async (res) => { try { return await res.json(); } catch { retur
 
 const categorizeCompetition = (c) => {
     const status = String(c.status || '').toUpperCase();
-    if (['CLOSED', 'ENDED', 'INACTIVE'].includes(status)) return 'PAST';
-    const now = new Date();
-    const regStart = new Date(c.registrationStart);
-    if (regStart && regStart > now) return 'UPCOMING';
-
-    return 'OPEN';
+    if (['CLOSED', 'CANCELED', 'CANCELLED', 'ENDED', 'INACTIVE'].includes(status)) return 'PAST';
+    if (status === 'UPCOMING') return 'UPCOMING';
+    return 'ACTIVED';
 };
 
 const formatDateTime = (dateStr) => {
@@ -70,11 +67,12 @@ const renderComplianceRules = (rulesStr) => {
 
 const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams }) => {
     const cat = categorizeCompetition(comp);
-    const isOpen = cat === 'OPEN';
+    const isOpen = cat === 'ACTIVED';
 
-    const isAlreadyRegistered = myTeams?.some(team =>
-        team.contestName === comp.name && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase())
-    );
+    const isAlreadyRegistered = myTeams?.some(team => {
+        const isSameContest = team.contestId ? team.contestId === comp.id : team.contestName === comp.name;
+        return isSameContest && ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase());
+    });
 
     let isRegistrationExpired = false;
     if (comp.registrationEnd) {
@@ -82,6 +80,14 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
         endDate.setHours(23, 59, 59, 999);
         isRegistrationExpired = endDate < new Date();
     }
+
+    let isRegistrationNotStarted = false;
+    if (comp.registrationStart) {
+        const startDate = new Date(comp.registrationStart);
+        isRegistrationNotStarted = startDate > new Date();
+    }
+
+    const canRegister = (cat === 'ACTIVED' || cat === 'UPCOMING') && !isRegistrationExpired && !isRegistrationNotStarted;
 
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
@@ -119,11 +125,11 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
                 ) : (
                     <button
                         className="btn-primary"
-                        disabled={!isOpen || isRegistrationExpired}
-                        style={isRegistrationExpired ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
+                        disabled={!canRegister}
+                        style={!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
                         onClick={() => onRegister(comp)}
                     >
-                        {isRegistrationExpired ? 'Registration Closed' : (isOpen ? 'Register' : 'Closed')}
+                        {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Registration Not Started' : (canRegister ? 'Register' : 'Closed'))}
                     </button>
                 )}
             </div>
@@ -320,7 +326,11 @@ const CompetitionRegistration = () => {
 
     // Filter & Sort Logic
     const filteredCompetitions = useMemo(() => {
-        let result = competitions.filter(c => categorizeCompetition(c) === activeTab);
+        let result = competitions.filter(c => {
+            const cat = categorizeCompetition(c);
+            if (activeTab === 'OPEN') return cat === 'ACTIVED' || cat === 'UPCOMING';
+            return cat === activeTab;
+        });
 
         if (searchKeyword) {
             const kw = searchKeyword.toLowerCase();
@@ -328,6 +338,12 @@ const CompetitionRegistration = () => {
         }
 
         result.sort((a, b) => {
+            const catA = categorizeCompetition(a);
+            const catB = categorizeCompetition(b);
+            
+            if (catA === 'ACTIVED' && catB !== 'ACTIVED') return -1;
+            if (catB === 'ACTIVED' && catA !== 'ACTIVED') return 1;
+
             if (sortBy === 'REG_DEADLINE') return new Date(a.registrationEnd) - new Date(b.registrationEnd);
             if (sortBy === 'DATE') return new Date(a.startDate) - new Date(b.startDate);
             return b.id - a.id;
@@ -392,7 +408,7 @@ const CompetitionRegistration = () => {
         let open = 0, upcoming = 0;
         competitions.forEach(c => {
             const cat = categorizeCompetition(c);
-            if (cat === 'OPEN') open++;
+            if (cat === 'ACTIVED') open++;
             if (cat === 'UPCOMING') upcoming++;
         });
         return { total: competitions.length, open, upcoming };
