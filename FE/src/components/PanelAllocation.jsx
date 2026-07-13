@@ -277,7 +277,7 @@ const PanelAllocation = () => {
 
     const handleNotifyExperts = async () => {
         if (!selectedRoundId) return alert("Please select Round.");
-        if (!window.confirm("Bạn có chắc chắn muốn gửi email thông báo phân công cho tất cả chuyên gia trong vòng thi này không?")) return;
+        if (!window.confirm("Are you sure you want to send allocation notification emails to all experts in this round?")) return;
 
         setIsSendingMail(true);
         try {
