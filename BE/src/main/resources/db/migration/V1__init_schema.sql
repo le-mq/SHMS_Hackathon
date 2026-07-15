@@ -418,7 +418,7 @@ VALUES
 (N'Đại học Nông Lâm TP.HCM','HCMUAF','^[0-9]{8}$','^[0-9]{8}@st.hcmuaf.edu.vn$','ACTIVE'),
 (N'Đại học Bách Khoa TP.HCM','HCMUT','^[0-9]{7}$','^[a-zA-Z0-9.-]+@hcmut.edu.vn$','ACTIVE'),
 (N'Đại học Khoa học Tự nhiên TP.HCM','HCMUS','^[0-9]{8}$','^[0-9]{8}@student.hcmus.edu.vn$','ACTIVE'),
-(N'Đại học Ngoại ngữ - Tin học TP.HCM','HUFLIT','^[0-9]{2}[A-Z]{2}[0-9]{6}$','^[0-9]{2}[A-Z]{2}[0-9]{6}@st.huflit.edu.vn$','ACTIVE');
+(N'Đại học Ngoại ngữ - Tin học TP.HCM','HUFLIT','^[0-9]{2}DH[0-9]{6}$','^[0-9]{2}DH[0-9]{6}@st.huflit.edu.vn$','ACTIVE');
 GO
 
 INSERT INTO [Role] (role_name, description) VALUES ('ADMIN', N'Quản trị viên hệ thống');
@@ -462,8 +462,8 @@ INSERT INTO [User] (username, email, password, full_name, email_verified, status
 ('tunhien11', '20120002@student.hcmus.edu.vn', 'nhien123', N'Hoàng Tự Nhiên', 1, 'ACTIVE'),
 
 --HUFLIT
-('hieuminh1', '20IT123456@st.huflit.edu.vn', 'minhvu123', N'Vũ Hiếu Minh', 1, 'ACTIVE'),
-('datle2004', '20IT123457@st.huflit.edu.vn', 'datle1234', N'Lê Tiến Đạt', 1, 'ACTIVE');
+('hieuminh1', '20DH123456@st.huflit.edu.vn', 'minhvu123', N'Vũ Hiếu Minh', 1, 'ACTIVE'),
+('datle2004', '20DH123457@st.huflit.edu.vn', 'datle1234', N'Lê Tiến Đạt', 1, 'ACTIVE');
 GO
 
 INSERT INTO UserRole (user_id, role_id, is_active)
@@ -579,13 +579,13 @@ IF @UniId_HUFLIT IS NOT NULL
 BEGIN
 INSERT INTO StudentVerificationData (university_id, student_code, email, full_name, major, is_current_student)
 VALUES
-    (@UniId_HUFLIT, '20IT123456', '20IT123456@st.huflit.edu.vn', N'Vũ Hiếu Minh', 'IT', 1),
-    (@UniId_HUFLIT, '20IT123457', '20IT123457@st.huflit.edu.vn', N'Lê Tiến Đạt', 'IT', 1);
+    (@UniId_HUFLIT, '20DH123456', '20DH123456@st.huflit.edu.vn', N'Vũ Hiếu Minh', 'IT', 1),
+    (@UniId_HUFLIT, '20DH123457', '20DH123457@st.huflit.edu.vn', N'Lê Tiến Đạt', 'IT', 1);
 
 INSERT INTO Student (user_id, university_id, student_code, major, student_email, status)
 SELECT u.user_id, @UniId_HUFLIT, v.student_code, v.major, u.email, 'ACTIVE'
 FROM [User] u JOIN StudentVerificationData v ON u.email = v.email
-WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
+WHERE u.email IN ('20DH123456@st.huflit.edu.vn', '20DH123457@st.huflit.edu.vn');
 END
 GO
 
@@ -882,7 +882,7 @@ SET @PastTeam1_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @PastTeam1_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20IT123457@st.huflit.edu.vn');
+SELECT @PastTeam1_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-05 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com', 'thuhien456@gmail.com', '20DH123457@st.huflit.edu.vn');
 
 -- Historical Team 2: Visionary Devs (Contest 1, Category 1) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
@@ -918,9 +918,9 @@ INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
 VALUES ('TEAM02', 'Code Rangers', 2, 'CLOSED', '2025-09-06 10:00:00');
 SET @Team2_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email = '20IT123456@st.huflit.edu.vn';
+SELECT @Team2_ID, u.user_id, 'LEADER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email = '20DH123456@st.huflit.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123457@st.huflit.edu.vn', 'nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com', 'Leduyphuc@hcmut.edu.vn');
+SELECT @Team2_ID, u.user_id, 'MEMBER', 'APPROVED', '2025-09-06 10:00:00' FROM [User] u WHERE u.email IN ('20DH123457@st.huflit.edu.vn', 'nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com', 'Leduyphuc@hcmut.edu.vn');
 
 -- Historical Team 6: Byte Wizards (Contest 2, Category 4) - CLOSED
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at)
@@ -972,7 +972,7 @@ SELECT @C4_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @C4_T06_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
+SELECT @C4_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('20DH123456@st.huflit.edu.vn', '20DH123457@st.huflit.edu.vn');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @C4_T07_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email = '20120001@student.hcmus.edu.vn';
@@ -1030,7 +1030,7 @@ SELECT @SEAL_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 09:00:00' FROM
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', '20IT123457@st.huflit.edu.vn');
+SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email IN ('20DH123456@st.huflit.edu.vn', '20DH123457@st.huflit.edu.vn');
 
 -- Forming Team 4: Tech Titans (No contest yet) - FORMING
 INSERT INTO Team (team_code, team_name, status, created_at)
@@ -1055,9 +1055,9 @@ INSERT INTO Team (team_code, team_name, status, created_at)
 VALUES ('TEAM06', 'DatLe Pioneers', 'FORMING', '2026-06-06 10:00:00');
 SET @Team6_ID = SCOPE_IDENTITY();
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = '20IT123457@st.huflit.edu.vn';
+SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email = '20DH123457@st.huflit.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email IN ('20IT123456@st.huflit.edu.vn', 'Leduyphuc@hcmut.edu.vn', '12345678@st.hcmuaf.edu.vn');
+SELECT @Team6_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-06-06 10:00:00' FROM [User] u WHERE u.email IN ('20DH123456@st.huflit.edu.vn', 'Leduyphuc@hcmut.edu.vn', '12345678@st.hcmuaf.edu.vn');
 GO
 
 -- Assign Mentors to Teams
