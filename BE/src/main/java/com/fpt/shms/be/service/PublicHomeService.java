@@ -118,6 +118,7 @@ public class PublicHomeService {
                     dto.setName(u.getName());
                     dto.setStudentCodeRegex(u.getStudentCodeRegex());
                     dto.setEmailRegex(u.getEmailRegex());
+                    dto.setUniversityCode(u.getUniversityCode());
                     return dto;
                 })
                 .toList();
