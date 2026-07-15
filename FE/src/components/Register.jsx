@@ -5,6 +5,121 @@ import NavbarHome from './NavbarHome';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
+const convertTemplateToRegexStr = (template) => {
+    if (!template) return "";
+    const trimmed = template.trim();
+    if (trimmed.startsWith("^") && trimmed.endsWith("$")) {
+        return trimmed;
+    }
+
+    const parts = trimmed.split(',').map(part => {
+        let p = part.trim();
+        let escaped = "";
+        for (let i = 0; i < p.length; i++) {
+            const char = p[i];
+            if (char === '#') {
+                escaped += '[0-9]';
+            } else if (char === '*') {
+                escaped += '[a-zA-Z0-9._%+-]+';
+            } else if (['\\', '.', '(', ')', '[', ']', '{', '}', '+', '$', '^', '|', '?'].includes(char)) {
+                escaped += '\\' + char;
+            } else {
+                escaped += char;
+            }
+        }
+        return escaped;
+    });
+
+    if (parts.length === 1) {
+        return '^' + parts[0] + '$';
+    } else {
+        return '^(' + parts.join('|') + ')$';
+    }
+};
+
+const UNIVERSITY_EXAMPLES = {
+    "FPT": {
+        codeExample: "SE185041",
+        emailExample: "nhatmysocutedl@gmail.com"
+    },
+    "HCMUAF": {
+        codeExample: "12345678",
+        emailExample: "12345678@st.hcmuaf.edu.vn"
+    },
+    "HCMUT": {
+        codeExample: "2010001",
+        emailExample: "Leduyphuc@hcmut.edu.vn"
+    },
+    "HCMUS": {
+        codeExample: "20120001",
+        emailExample: "20120001@student.hcmus.edu.vn"
+    },
+    "HUFLIT": {
+        codeExample: "20DH123456",
+        emailExample: "20DH123456@st.huflit.edu.vn"
+    }
+};
+
+const getUniversityExamples = (uni, currentStudentCode) => {
+    if (!uni) return null;
+    const code = uni.universityCode || "";
+    if (code === "FPT" || uni.name?.includes("FPT")) {
+        let isPreK18 = false;
+        if (currentStudentCode && currentStudentCode.length >= 4) {
+            const batchStr = currentStudentCode.substring(2, 4);
+            const batchNum = parseInt(batchStr, 10);
+            if (!isNaN(batchNum) && batchNum < 18) {
+                isPreK18 = true;
+            }
+        }
+        return {
+            codeExample: "SE185041",
+            emailExample: isPreK18 ? "student@fpt.edu.vn" : "nhatmysocutedl@gmail.com"
+        };
+    }
+    if (UNIVERSITY_EXAMPLES[code]) {
+        return UNIVERSITY_EXAMPLES[code];
+    }
+    const name = uni.name || "";
+    if (name.includes("Nông Lâm")) return UNIVERSITY_EXAMPLES["HCMUAF"];
+    if (name.includes("Bách Khoa")) return UNIVERSITY_EXAMPLES["HCMUT"];
+    if (name.includes("Tự nhiên")) return UNIVERSITY_EXAMPLES["HCMUS"];
+    if (name.includes("HUFLIT")) return UNIVERSITY_EXAMPLES["HUFLIT"];
+    return null;
+};
+
+const generateExampleFromTemplate = (selectedUni, type, currentStudentCode) => {
+    if (!selectedUni) return "";
+    const examples = getUniversityExamples(selectedUni, currentStudentCode);
+    if (examples) {
+        return type === 'email' ? examples.emailExample : examples.codeExample;
+    }
+    
+    const template = type === 'email' ? selectedUni.emailRegex : selectedUni.studentCodeRegex;
+    if (!template) return "";
+    const parts = template.split(',').map(part => {
+        let p = part.trim();
+        if (p.startsWith("^") && p.endsWith("$")) {
+            if (type === 'email') return "student@university.edu.vn";
+            return "SE123456";
+        }
+        
+        let hasHash = p.includes('#');
+        if (hasHash) {
+            let hashCount = 0;
+            p = p.replace(/#/g, () => {
+                hashCount++;
+                return hashCount.toString();
+            });
+        }
+        
+        p = p.replace(/\*/g, 'username');
+        return p;
+    });
+    
+    return parts.join(' or ');
+};
+
 const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -19,6 +134,8 @@ const Register = () => {
     const [successMsg, setSuccessMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [universities, setUniversities] = useState([]);
+    const [isExistingStudentAccount, setIsExistingStudentAccount] = useState(false);
+    const [countdown, setCountdown] = useState(5);
 
     useEffect(() => {
         const fetchUniversities = async () => {
@@ -44,11 +161,11 @@ const Register = () => {
         if (name === 'fullName') {
             const fullName = value;
             if (!fullName) {
-                newErrors.fullName = 'Full Name is required';
+                newErrors.fullName = 'Full name is required';
             } else if (fullName.length < 2 || fullName.length > 100) {
-                newErrors.fullName = 'Full Name must be between 2 and 100 characters';
+                newErrors.fullName = 'Full name must be between 2 and 100 characters';
             } else if (!/^[\p{L} '-]+$/u.test(fullName)) {
-                newErrors.fullName = "Full Name can only contain letters, spaces, apostrophes, and hyphens";
+                newErrors.fullName = "Full name can only contain letters, spaces, and hyphens";
             } else {
                 delete newErrors.fullName;
             }
@@ -60,7 +177,7 @@ const Register = () => {
             } else if (username.length < 4 || username.length > 30) {
                 newErrors.username = 'Username must be between 4 and 30 characters';
             } else if (!/^[a-zA-Z0-9._]+$/.test(username)) {
-                newErrors.username = 'Username can only contain alphanumeric characters, underscores, and dots';
+                newErrors.username = 'Username can only contain letters, numbers, underscores, and dots';
             } else {
                 delete newErrors.username;
             }
@@ -72,13 +189,13 @@ const Register = () => {
             } else if (password.length < 8 || password.length > 32) {
                 newErrors.password = 'Password must be between 8 and 32 characters';
             } else if (/\s/.test(password)) {
-                newErrors.password = 'Password must not contain spaces';
+                newErrors.password = 'Password cannot contain spaces';
             } else if (!/[a-z]/.test(password)) {
                 newErrors.password = 'Password must contain at least one lowercase letter';
             } else if (!/[A-Z]/.test(password)) {
                 newErrors.password = 'Password must contain at least one uppercase letter';
             } else if (!/\d/.test(password)) {
-                newErrors.password = 'Password must contain at least one number';
+                newErrors.password = 'Password must contain at least one digit';
             } else if (!/[^a-zA-Z\d\s]/.test(password)) {
                 newErrors.password = 'Password must contain at least one special character';
             } else {
@@ -87,49 +204,73 @@ const Register = () => {
         }
         if (name === 'targetUniversity') {
             if (!value) {
-                newErrors.targetUniversity = 'Please select a University';
+                newErrors.targetUniversity = 'Please select a university';
             } else {
                 delete newErrors.targetUniversity;
             }
         }
-        if (name === 'studentCode' || name === 'targetUniversity') {
+        if (name === 'studentCode' || name === 'corporateEmail' || name === 'targetUniversity') {
             const codeVal = name === 'studentCode' ? value : formData.studentCode;
-            const uniVal = name === 'targetUniversity' ? value : formData.targetUniversity;
-            const selectedUni = universities.find(u => u.name === uniVal);
-            if (!codeVal) {
-                newErrors.studentCode = 'Student Identification Number is required';
-            } else if (selectedUni && selectedUni.studentCodeRegex) {
-                try {
-                    const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
-                    if (!studentCodePattern.test(codeVal)) {
-                        newErrors.studentCode = 'Invalid student code format';
-                    } else {
-                        delete newErrors.studentCode;
-                    }
-                } catch (e) {}
-            } else {
-                delete newErrors.studentCode;
-            }
-        }
-        if (name === 'corporateEmail' || name === 'targetUniversity') {
             const emailVal = name === 'corporateEmail' ? value : formData.corporateEmail;
             const uniVal = name === 'targetUniversity' ? value : formData.targetUniversity;
             const selectedUni = universities.find(u => u.name === uniVal);
-            if (!emailVal) {
-                newErrors.corporateEmail = 'Email is required';
-            } else if (!/^[^\s@]+@[^\s@]+$/.test(emailVal)) {
-                newErrors.corporateEmail = 'Email must have exactly one @, with a name before and a domain after';
-            } else if (selectedUni && selectedUni.emailRegex) {
-                try {
-                    const emailPattern = new RegExp(selectedUni.emailRegex);
-                    if (!emailPattern.test(emailVal)) {
-                        newErrors.corporateEmail = 'Invalid university email format';
-                    } else {
-                        delete newErrors.corporateEmail;
-                    }
-                } catch (e) {}
-            } else {
-                delete newErrors.corporateEmail;
+
+            // Validate Student Code
+            const shouldValidateCode = name === 'studentCode' || (name === 'targetUniversity' && formData.studentCode);
+            if (shouldValidateCode) {
+                if (!codeVal) {
+                    newErrors.studentCode = 'Student Identification Number is required';
+                } else if (selectedUni && selectedUni.studentCodeRegex) {
+                    try {
+                        const studentCodePattern = new RegExp(convertTemplateToRegexStr(selectedUni.studentCodeRegex));
+                        if (!studentCodePattern.test(codeVal)) {
+                            newErrors.studentCode = `Student ID does not match the required format for ${selectedUni.name}. Example: ${generateExampleFromTemplate(selectedUni, 'code', codeVal)}`;
+                        } else {
+                            delete newErrors.studentCode;
+                        }
+                    } catch (e) {}
+                } else {
+                    delete newErrors.studentCode;
+                }
+            }
+
+            // Validate Email
+            const shouldValidateEmail = name === 'corporateEmail' || (name === 'targetUniversity' && formData.corporateEmail) || (name === 'studentCode' && formData.corporateEmail);
+            if (shouldValidateEmail) {
+                if (!emailVal) {
+                    newErrors.corporateEmail = 'Email is required';
+                } else if (!/^[^\s@]+@[^\s@]+$/.test(emailVal)) {
+                    newErrors.corporateEmail = 'Email must have exactly one @, with a name before and a domain after';
+                } else if (selectedUni && selectedUni.emailRegex) {
+                    try {
+                        let isFptBeforeK18 = false;
+                        if ((selectedUni.universityCode === "FPT" || selectedUni.name?.includes("FPT")) && codeVal && codeVal.length >= 4) {
+                            const batchStr = codeVal.substring(2, 4);
+                            const batchNum = parseInt(batchStr, 10);
+                            if (!isNaN(batchNum) && batchNum < 18) {
+                                isFptBeforeK18 = true;
+                            }
+                        }
+
+                        if (isFptBeforeK18) {
+                            const fptPattern = /^[a-zA-Z0-9._%+-]+@fpt\.edu\.vn$/;
+                            if (!fptPattern.test(emailVal)) {
+                                newErrors.corporateEmail = `Email must end with @fpt.edu.vn for students before K18. Example: student@fpt.edu.vn`;
+                            } else {
+                                delete newErrors.corporateEmail;
+                            }
+                        } else {
+                            const emailPattern = new RegExp(convertTemplateToRegexStr(selectedUni.emailRegex));
+                            if (!emailPattern.test(emailVal)) {
+                                newErrors.corporateEmail = `Email does not match the required format for ${selectedUni.name}. Example: ${generateExampleFromTemplate(selectedUni, 'email', codeVal)}`;
+                            } else {
+                                delete newErrors.corporateEmail;
+                            }
+                        }
+                    } catch (e) {}
+                } else {
+                    delete newErrors.corporateEmail;
+                }
             }
         }
         if (name === 'major') {
@@ -152,11 +293,11 @@ const Register = () => {
         // Full Name
         const fullName = data.fullName;
         if (!fullName) {
-            newErrors.fullName = 'Full Name is required';
+            newErrors.fullName = 'Full name is required';
         } else if (fullName.length < 2 || fullName.length > 100) {
-            newErrors.fullName = 'Full Name must be between 2 and 100 characters';
+            newErrors.fullName = 'Full name must be between 2 and 100 characters';
         } else if (!/^[\p{L} '-]+$/u.test(fullName)) {
-            newErrors.fullName = "Full Name can only contain letters, spaces, apostrophes, and hyphens";
+            newErrors.fullName = "Full name can only contain letters, spaces, and hyphens";
         }
 
         // Username
@@ -166,7 +307,7 @@ const Register = () => {
         } else if (username.length < 4 || username.length > 30) {
             newErrors.username = 'Username must be between 4 and 30 characters';
         } else if (!/^[a-zA-Z0-9._]+$/.test(username)) {
-            newErrors.username = 'Username can only contain alphanumeric characters, underscores, and dots';
+            newErrors.username = 'Username can only contain letters, numbers, underscores, and dots';
         }
 
         // Password
@@ -176,20 +317,20 @@ const Register = () => {
         } else if (password.length < 8 || password.length > 32) {
             newErrors.password = 'Password must be between 8 and 32 characters';
         } else if (/\s/.test(password)) {
-            newErrors.password = 'Password must not contain spaces';
+            newErrors.password = 'Password cannot contain spaces';
         } else if (!/[a-z]/.test(password)) {
             newErrors.password = 'Password must contain at least one lowercase letter';
         } else if (!/[A-Z]/.test(password)) {
             newErrors.password = 'Password must contain at least one uppercase letter';
         } else if (!/\d/.test(password)) {
-            newErrors.password = 'Password must contain at least one number';
+            newErrors.password = 'Password must contain at least one digit';
         } else if (!/[^a-zA-Z\d\s]/.test(password)) {
             newErrors.password = 'Password must contain at least one special character';
         }
 
         // University
         if (!data.targetUniversity) {
-            newErrors.targetUniversity = 'Please select a University';
+            newErrors.targetUniversity = 'Please select a university';
         }
 
         // Student Code & Email
@@ -201,9 +342,9 @@ const Register = () => {
             newErrors.studentCode = 'Student Identification Number is required';
         } else if (selectedUni && selectedUni.studentCodeRegex) {
             try {
-                const studentCodePattern = new RegExp(selectedUni.studentCodeRegex);
+                const studentCodePattern = new RegExp(convertTemplateToRegexStr(selectedUni.studentCodeRegex));
                 if (!studentCodePattern.test(studentCode)) {
-                    newErrors.studentCode = 'Invalid student code format';
+                    newErrors.studentCode = `Student ID does not match the required format for ${selectedUni.name}. Example: ${generateExampleFromTemplate(selectedUni, 'code', studentCode)}`;
                 }
             } catch (e) {
                 console.error('Invalid student code regex pattern', e);
@@ -216,9 +357,25 @@ const Register = () => {
             newErrors.corporateEmail = 'Email must have exactly one @, with a name before and a domain after';
         } else if (selectedUni && selectedUni.emailRegex) {
             try {
-                const emailPattern = new RegExp(selectedUni.emailRegex);
-                if (!emailPattern.test(email)) {
-                    newErrors.corporateEmail = 'Invalid university email format';
+                let isFptBeforeK18 = false;
+                if ((selectedUni.universityCode === "FPT" || selectedUni.name?.includes("FPT")) && studentCode && studentCode.length >= 4) {
+                    const batchStr = studentCode.substring(2, 4);
+                    const batchNum = parseInt(batchStr, 10);
+                    if (!isNaN(batchNum) && batchNum < 18) {
+                        isFptBeforeK18 = true;
+                    }
+                }
+
+                if (isFptBeforeK18) {
+                    const fptPattern = /^[a-zA-Z0-9._%+-]+@fpt\.edu\.vn$/;
+                    if (!fptPattern.test(email)) {
+                        newErrors.corporateEmail = `Email must end with @fpt.edu.vn for students before K18. Example: student@fpt.edu.vn`;
+                    }
+                } else {
+                    const emailPattern = new RegExp(convertTemplateToRegexStr(selectedUni.emailRegex));
+                    if (!emailPattern.test(email)) {
+                        newErrors.corporateEmail = `Email does not match the required format for ${selectedUni.name}. Example: ${generateExampleFromTemplate(selectedUni, 'email', studentCode)}`;
+                    }
                 }
             } catch (e) {
                 console.error('Invalid email regex pattern', e);
@@ -261,43 +418,141 @@ const Register = () => {
             });
             const data = await response.json();
             if (!response.ok) {
-                const errorStr = (data.error || data.message || "").toLowerCase();
+                const rawError = data.error || data.message || "Registration failed";
+                const errorStr = rawError.toLowerCase();
+
+                if (errorStr.includes("this student already has an account")) {
+                    setIsExistingStudentAccount(true);
+                    setServerError('');
+                    setSuccessMsg('');
+                    
+                    let secondsLeft = 3;
+                    setCountdown(secondsLeft);
+                    const timer = setInterval(() => {
+                        secondsLeft -= 1;
+                        if (secondsLeft < 0) {
+                            clearInterval(timer);
+                            navigate('/login');
+                        } else {
+                            setCountdown(secondsLeft);
+                        }
+                    }, 1000);
+                    return;
+                }
+
                 let fieldErrors = {};
-                let hasMappedField = false;
+                let friendlyMsg = "";
 
-                if (errorStr.includes("username")) {
-                    fieldErrors.username = data.error || data.message;
-                    hasMappedField = true;
-                }
-                if (errorStr.includes("email")) {
-                    fieldErrors.corporateEmail = data.error || data.message;
-                    hasMappedField = true;
-                }
-                if (errorStr.includes("studentcode")) {
-                    fieldErrors.studentCode = data.error || data.message;
-                    hasMappedField = true;
+                if (errorStr.includes("username is already taken")) {
+                    fieldErrors.username = (
+                        <span>
+                            Username already exists. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> if this is your account.
+                        </span>
+                    );
+                    friendlyMsg = "Error: Username is already registered.";
+                } else if (errorStr.includes("username")) {
+                    fieldErrors.username = "Invalid or already taken username.";
+                    friendlyMsg = "Error: Username is invalid or already taken.";
                 }
 
-                if (hasMappedField) {
+                if (errorStr.includes("student code is already registered") || errorStr.includes("student_code is already registered")) {
+                    fieldErrors.studentCode = (
+                        <span>
+                            This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                        </span>
+                    );
+                    friendlyMsg = "Error: Student Identification Number is already registered.";
+                } else if (errorStr.includes("student code format") || errorStr.includes("student_code format") || errorStr.includes("student code")) {
+                    if (errorStr.includes("already registered")) {
+                        fieldErrors.studentCode = (
+                            <span>
+                                This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                            </span>
+                        );
+                        friendlyMsg = "Error: Student ID is already registered.";
+                    } else {
+                        fieldErrors.studentCode = "Student ID does not match the university's required format.";
+                        friendlyMsg = "Error: Invalid Student ID format.";
+                    }
+                }
+
+                if (errorStr.includes("email is already registered")) {
+                    fieldErrors.corporateEmail = (
+                        <span>
+                            This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                        </span>
+                    );
+                    friendlyMsg = "Error: Corporate email is already registered.";
+                } else if (errorStr.includes("email format") || errorStr.includes("email")) {
+                    if (errorStr.includes("already registered")) {
+                        fieldErrors.corporateEmail = (
+                            <span>
+                                This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                            </span>
+                        );
+                        friendlyMsg = "Error: Email is already registered.";
+                    } else if (errorStr.includes("format")) {
+                        fieldErrors.corporateEmail = "Corporate email format is invalid for this university.";
+                        friendlyMsg = "Error: Invalid corporate email format.";
+                    }
+                }
+
+                if (errorStr.includes("full name does not match") || errorStr.includes("full name mismatch")) {
+                    fieldErrors.fullName = "Full name does not match the university's verification records.";
+                    friendlyMsg = "Error: Full name does not match university records (please verify spelling and accents).";
+                }
+
+                if (errorStr.includes("major does not match") || errorStr.includes("major mismatch")) {
+                    fieldErrors.major = "Major does not match the university's verification records.";
+                    friendlyMsg = "Error: Major does not match university records (e.g., Software Engineering).";
+                }
+
+                if (errorStr.includes("university not found")) {
+                    fieldErrors.targetUniversity = "This university could not be found.";
+                    friendlyMsg = "Error: University not found.";
+                }
+
+                if (errorStr.includes("student not found in university verification data") || errorStr.includes("verification record not found")) {
+                    fieldErrors.studentCode = "Student ID not found in the university's verification database.";
+                    fieldErrors.corporateEmail = "Corporate email not found in the university's verification database.";
+                    friendlyMsg = "Error: Could not find your verification records in the university's database. Please check your Student ID and Corporate Email.";
+                } else if (errorStr.includes("not verified as a current student") || errorStr.includes("not current student")) {
+                    friendlyMsg = "Registration Error: You are not verified as a current student of this university.";
+                }
+
+                // If we didn't map to a specific message, use the raw error or a generic one
+                if (!friendlyMsg) {
+                    friendlyMsg = rawError;
+                }
+
+                // Update fields error state
+                if (Object.keys(fieldErrors).length > 0) {
                     setErrors(prev => ({ ...prev, ...fieldErrors }));
-                    setServerError("Registration failed. Please check the fields above.");
-                } else {
-                    setServerError(data.message || data.error || "Registration failed");
                 }
+
+                setServerError(friendlyMsg);
                 return;
             }
 
-            setSuccessMsg(data.message || 'Registration successful! Redirecting to email verification...');
+            setSuccessMsg(data.message || 'Registration successful! Redirecting to email verification page...');
             setTimeout(() => {
                 navigate('/verify-email', { state: { username: cleanedData.username } });
             }, 1500);
 
         } catch (err) {
-            setServerError('Failed to connect to the server. Please try again later.');
+            setServerError('Unable to connect to the server. Please try again later.');
         } finally {
             setIsLoading(false);
         }
     };
+
+    const selectedUni = universities.find(u => u.name === formData.targetUniversity);
+    const studentCodePlaceholder = selectedUni && selectedUni.studentCodeRegex
+        ? `e.g. ${generateExampleFromTemplate(selectedUni, 'code', formData.studentCode)}`
+        : "e.g. SE123456";
+    const emailPlaceholder = selectedUni && selectedUni.emailRegex
+        ? `e.g. ${generateExampleFromTemplate(selectedUni, 'email', formData.studentCode)}`
+        : "example@university.edu.vn";
 
     return (
         <>
@@ -357,12 +612,12 @@ const Register = () => {
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Student Identification Number</label>
-                                <input type="text" name="studentCode" className={`form-input ${errors.studentCode ? 'is-invalid' : ''}`} placeholder="e.g. SE123456" value={formData.studentCode} onChange={handleChange} />
+                                <input type="text" name="studentCode" className={`form-input ${errors.studentCode ? 'is-invalid' : ''}`} placeholder={studentCodePlaceholder} value={formData.studentCode} onChange={handleChange} />
                                 {errors.studentCode && <div className="invalid-feedback">{errors.studentCode}</div>}
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Email</label>
-                                <input type="email" name="corporateEmail" className={`form-input ${errors.corporateEmail ? 'is-invalid' : ''}`} placeholder="example@university.edu.vn" value={formData.corporateEmail} onChange={handleChange} />
+                                <input type="email" name="corporateEmail" className={`form-input ${errors.corporateEmail ? 'is-invalid' : ''}`} placeholder={emailPlaceholder} value={formData.corporateEmail} onChange={handleChange} />
                                 {errors.corporateEmail && <div className="invalid-feedback">{errors.corporateEmail}</div>}
                             </div>
                             <div className="form-group">
@@ -370,11 +625,23 @@ const Register = () => {
                                 <input type="text" name="major" className={`form-input ${errors.major ? 'is-invalid' : ''}`} placeholder="e.g. Software Engineering" value={formData.major} onChange={handleChange} />
                                 {errors.major && <div className="invalid-feedback">{errors.major}</div>}
                             </div>
-                            <button type="submit" className="register-btn" disabled={isLoading || isFormInvalid}>
+                            <button type="submit" className="register-btn" disabled={isLoading || isFormInvalid || isExistingStudentAccount}>
                                 {isLoading ? 'Registering...' : 'Register Account'}
                             </button>
-                            {serverError ? (<div className="alert-error">{serverError}</div>
-                            ) : successMsg ? (<div className="alert-success">{successMsg}</div>
+                            {isExistingStudentAccount ? (
+                                <div className="alert-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', marginTop: '15px' }}>
+                                    <div style={{ fontWeight: 'bold' }}>This student already has an account.</div>
+                                    <div>
+                                        Please click <Link to="/login" style={{ color: '#f20202', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in. or will redirect to login in {countdown}s
+                                    </div>
+                                    <Link to="/login" className="register-btn" style={{ textDecoration: 'none', background: '#3b82f6', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', fontSize: '0.9em', marginTop: '5px', textAlign: 'center', width: 'auto' }}>
+                                        Go to Login
+                                    </Link>
+                                </div>
+                            ) : serverError ? (
+                                <div className="alert-error">{serverError}</div>
+                            ) : successMsg ? (
+                                <div className="alert-success">{successMsg}</div>
                             ) : null}
                         </form>
                         <div className="login-link-container">
