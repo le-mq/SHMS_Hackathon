@@ -150,20 +150,6 @@ public class AuthService {
         log.info("Received registration request - username: '{}', email: '{}', studentCode: '{}', fullName: '{}', university: '{}', major: '{}'",
                 request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
-            throw new IllegalArgumentException("Username is already taken");
-        }
-
-        if (studentRepository.existsByStudentCode(request.getStudentCode())) {
-            log.warn("Registration failed: Student code '{}' is already registered", request.getStudentCode());
-            throw new IllegalArgumentException("Student code is already registered");
-        }
-        if (studentRepository.existsByCorporateEmail(request.getCorporateEmail())) {
-            log.warn("Registration failed: Email '{}' is already registered", request.getCorporateEmail());
-            throw new IllegalArgumentException("Email is already registered");
-        }
-
         // Load university from DB
         log.info("Loading university: '{}'", request.getTargetUniversity());
         University university = universityRepository.findByName(request.getTargetUniversity())
@@ -172,25 +158,73 @@ public class AuthService {
                     return new IllegalArgumentException("University not found");
                 });
 
-        String emailRegex = university.getEmailRegex();
-        log.info("Loaded emailRegex for '{}': '{}'", university.getName(), emailRegex);
-        if (emailRegex != null && !emailRegex.isBlank()) {
-            boolean emailMatches = java.util.regex.Pattern.matches(emailRegex, request.getCorporateEmail());
-            log.info("Email matching outcome: {}", emailMatches);
+        // 1. Check if a complete match in Student Verification Data is already registered in Student table
+        java.util.Optional<StudentVerificationData> verificationOpt = verificationDataRepository
+                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail());
+        if (verificationOpt.isPresent()) {
+            StudentVerificationData verificationData = verificationOpt.get();
+            if (verificationData.getFullName().equalsIgnoreCase(request.getFullName()) &&
+                    verificationData.getMajor().equalsIgnoreCase(request.getMajor())) {
+                if (studentRepository.existsByStudentCode(request.getStudentCode()) ||
+                        studentRepository.existsByCorporateEmail(request.getCorporateEmail())) {
+                    log.warn("Registration failed: Complete student verification match already registered");
+                    throw new IllegalArgumentException("This student already has an account");
+                }
+            }
+        }
+
+        // 2. Check for individual/multiple duplicate fields and combine errors
+        java.util.List<String> duplicateErrors = new java.util.ArrayList<>();
+        if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
+            duplicateErrors.add("Username is already taken");
+        }
+        if (studentRepository.existsByStudentCode(request.getStudentCode())) {
+            log.warn("Registration failed: Student code '{}' is already registered", request.getStudentCode());
+            duplicateErrors.add("Student code is already registered");
+        }
+        if (studentRepository.existsByCorporateEmail(request.getCorporateEmail())) {
+            log.warn("Registration failed: Email '{}' is already registered", request.getCorporateEmail());
+            duplicateErrors.add("Email is already registered");
+        }
+        if (!duplicateErrors.isEmpty()) {
+            throw new IllegalArgumentException(String.join("|", duplicateErrors));
+        }
+
+        String emailRegexTemplate = university.getEmailRegex();
+        log.info("Loaded emailRegex template for '{}': '{}'", university.getName(), emailRegexTemplate);
+        if (emailRegexTemplate != null && !emailRegexTemplate.isBlank()) {
+            String parsedRegex = convertTemplateToRegex(emailRegexTemplate);
+            if ("FPT".equalsIgnoreCase(university.getUniversityCode())) {
+                String studentCode = request.getStudentCode();
+                if (studentCode != null && studentCode.length() >= 4) {
+                    try {
+                        String batchStr = studentCode.substring(2, 4);
+                        int batchNum = Integer.parseInt(batchStr);
+                        if (batchNum < 18) {
+                            parsedRegex = "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$";
+                        }
+                    } catch (NumberFormatException e) {
+                        log.warn("Failed to parse batch number from student code '{}'", studentCode);
+                    }
+                }
+            }
+            boolean emailMatches = java.util.regex.Pattern.matches(parsedRegex, request.getCorporateEmail());
+            log.info("Email matching outcome (regex: '{}'): {}", parsedRegex, emailMatches);
             if (!emailMatches) {
-                log.warn("Registration failed: Corporate Email '{}' does not match university pattern '{}'", request.getCorporateEmail(), emailRegex);
+                log.warn("Registration failed: Corporate Email '{}' does not match university pattern '{}'", request.getCorporateEmail(), emailRegexTemplate);
                 throw new IllegalArgumentException("Invalid university email format");
             }
         }
 
-
-        String studentCodeRegex = university.getStudentCodeRegex();
-        log.info("Loaded studentCodeRegex for '{}': '{}'", university.getName(), studentCodeRegex);
-        if (studentCodeRegex != null && !studentCodeRegex.isBlank()) {
-            boolean codeMatches = java.util.regex.Pattern.matches(studentCodeRegex, request.getStudentCode());
-            log.info("Student code matching outcome: {}", codeMatches);
+        String studentCodeRegexTemplate = university.getStudentCodeRegex();
+        log.info("Loaded studentCodeRegex template for '{}': '{}'", university.getName(), studentCodeRegexTemplate);
+        if (studentCodeRegexTemplate != null && !studentCodeRegexTemplate.isBlank()) {
+            String parsedRegex = convertTemplateToRegex(studentCodeRegexTemplate);
+            boolean codeMatches = java.util.regex.Pattern.matches(parsedRegex, request.getStudentCode());
+            log.info("Student code matching outcome (regex: '{}'): {}", parsedRegex, codeMatches);
             if (!codeMatches) {
-                log.warn("Registration failed: Student code '{}' does not match university pattern '{}'", request.getStudentCode(), studentCodeRegex);
+                log.warn("Registration failed: Student code '{}' does not match university pattern '{}'", request.getStudentCode(), studentCodeRegexTemplate);
                 throw new IllegalArgumentException("Invalid student code format");
             }
         }
@@ -343,5 +377,39 @@ public class AuthService {
         return "A new OTP has been sent to your email.";
     }
 
+    private static String convertTemplateToRegex(String template) {
+        if (template == null || template.trim().isEmpty()) {
+            return "";
+        }
+        String trimmed = template.trim();
+        if (trimmed.startsWith("^") && trimmed.endsWith("$")) {
+            return trimmed;
+        }
 
+        String[] parts = trimmed.split(",");
+        java.util.List<String> escapedParts = new java.util.ArrayList<>();
+        for (String part : parts) {
+            String p = part.trim();
+            StringBuilder escaped = new StringBuilder();
+            for (int i = 0; i < p.length(); i++) {
+                char c = p.charAt(i);
+                if (c == '#') {
+                    escaped.append("[0-9]");
+                } else if (c == '*') {
+                    escaped.append("[a-zA-Z0-9._%+-]+");
+                } else if (c == '\\' || c == '.' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+' || c == '$' || c == '^' || c == '|' || c == '?') {
+                    escaped.append('\\').append(c);
+                } else {
+                    escaped.append(c);
+                }
+            }
+            escapedParts.add(escaped.toString());
+        }
+
+        if (escapedParts.size() == 1) {
+            return "^" + escapedParts.get(0) + "$";
+        } else {
+            return "^(" + String.join("|", escapedParts) + ")$";
+        }
+    }
 }
