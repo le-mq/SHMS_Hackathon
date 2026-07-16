@@ -1,5 +1,5 @@
 package com.fpt.shms.be.dto;
-
+import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -12,8 +12,11 @@ public class UniversityDto {
 
     private String emailRegex;
 
-    @NotBlank(message = "Student Code Regex is required")
     private String studentCodeRegex;
+
+    private List<String> sampleEmails;
+
+    private List<String> sampleStudentIds;
 
     @NotBlank(message = "University code is required")
     private String universityCode;

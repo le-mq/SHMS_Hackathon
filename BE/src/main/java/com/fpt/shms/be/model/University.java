@@ -24,10 +24,10 @@ public class University {
     @Column(name = "university_code", unique = true, length = 50)
     private String universityCode;
 
-    @Column(name = "email_regex", length = 100)
+    @Column(name = "email_regex", length = 500)
     private String emailRegex;
 
-    @Column(name = "student_code_regex", length = 100)
+    @Column(name = "student_code_regex", length = 500)
     private String studentCodeRegex;
 
     @Column(name = "status", length = 50)

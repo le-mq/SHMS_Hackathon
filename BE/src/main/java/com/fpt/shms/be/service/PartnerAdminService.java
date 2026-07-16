@@ -62,6 +62,14 @@ public class PartnerAdminService {
                 continue;
             University u = universityRepository.findByName(dto.getName())
                     .orElseGet(() -> University.builder().name(dto.getName()).build());
+            if (dto.getSampleStudentIds() != null && !dto.getSampleStudentIds().isEmpty()) {
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateStudentCodeRegex(dto.getSampleStudentIds());
+                if (genRegex != null) dto.setStudentCodeRegex(genRegex);
+            }
+            if (dto.getSampleEmails() != null && !dto.getSampleEmails().isEmpty()) {
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateEmailRegex(dto.getSampleEmails());
+                if (genRegex != null) dto.setEmailRegex(genRegex);
+            }
             u.setStudentCodeRegex(dto.getStudentCodeRegex());
             u.setEmailRegex(dto.getEmailRegex());
             u.setStatus(u.getStatus() != null ? u.getStatus() : "ACTIVE");
@@ -197,6 +205,14 @@ public class PartnerAdminService {
 
             u.setName(dto.getName());
             u.setUniversityCode(dto.getUniversityCode());
+            if (dto.getSampleStudentIds() != null && !dto.getSampleStudentIds().isEmpty()) {
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateStudentCodeRegex(dto.getSampleStudentIds());
+                if (genRegex != null) dto.setStudentCodeRegex(genRegex);
+            }
+            if (dto.getSampleEmails() != null && !dto.getSampleEmails().isEmpty()) {
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateEmailRegex(dto.getSampleEmails());
+                if (genRegex != null) dto.setEmailRegex(genRegex);
+            }
             u.setStudentCodeRegex(dto.getStudentCodeRegex());
             u.setEmailRegex(dto.getEmailRegex());
             u.setStatus(u.getStatus() != null ? u.getStatus() : "ACTIVE");
