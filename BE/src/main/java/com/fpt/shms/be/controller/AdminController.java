@@ -418,7 +418,7 @@ public class AdminController {
     }
 
     @PutMapping("/contests/teams/registration-status")
-    @Operation(summary = "Approve or Reject Team Registration", description = "Admin sets team status (APPROVED or REJECTED).")
+    @Operation(summary = "Approve or Reject Team Registration", description = "Admin sets team status (APPROVED or CANCELED).")
     public ResponseEntity<?> updateTeamStatus(HttpServletRequest request,
                                               @Valid @RequestBody UpdateTeamStatusRequest statusRequest) {
         try {

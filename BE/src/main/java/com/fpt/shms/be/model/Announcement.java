@@ -34,8 +34,9 @@ public class Announcement {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
-    @Column(name = "target_roles")
-    private String targetRoles;
+    @OneToMany(mappedBy = "announcement", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<AnnouncementTarget> targets = new java.util.ArrayList<>();
 
     @Builder.Default
     @Transient

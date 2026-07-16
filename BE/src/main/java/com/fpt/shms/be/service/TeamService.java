@@ -506,10 +506,10 @@ public class TeamService{
                 .stream()
                 .filter(a -> a.getContest() == null || a.getContest().getId().equals(team.getContest().getId()))
                 .filter(a -> {
-                    if (a.getTargetRoles() == null || a.getTargetRoles().isBlank()) return true;
+                    if (a.getTargets() == null || a.getTargets().isEmpty()) return true;
                     if (user.getRoles() == null || user.getRoles().isEmpty()) return false;
                     java.util.List<String> userRoleNames = user.getRoles().stream().map(com.fpt.shms.be.model.Role::getName).toList();
-                    java.util.List<String> targetRolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
+                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName()).toList();
                     return userRoleNames.stream().anyMatch(role ->
                             targetRolesList.stream().anyMatch(t -> {
                                 String targetRole = t.trim();

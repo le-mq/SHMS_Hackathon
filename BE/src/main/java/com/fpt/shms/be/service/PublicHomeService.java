@@ -144,11 +144,11 @@ public class PublicHomeService {
                 .stream()
                 .filter(a -> {
 
-                    if (a.getTargetRoles() == null || a.getTargetRoles().isBlank()) return true;
+                    if (a.getTargets() == null || a.getTargets().isEmpty()) return true;
 
                     if (currentRoles.isEmpty()) return false;
 
-                    java.util.List<String> targetRolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
+                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName()).toList();
                     return currentRoles.stream().anyMatch(role ->
                             targetRolesList.stream().anyMatch(t -> {
                                 String targetRole = t.trim();
