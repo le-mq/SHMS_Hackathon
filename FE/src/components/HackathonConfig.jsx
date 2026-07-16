@@ -157,7 +157,6 @@ export default function HackathonConfig() {
         onSubmit: async (v, { setSubmitting, setStatus }) => {
             const st = getStatus(v.registrationStart, v.contestEndAt);
             if (st === 'CLOSED') return setStatus({ error: "Cannot modify closed contest." }), setSubmitting(false);
-
             const b = getBounds(v.term, v.year);
             const out = v.rounds.find(r => [r.submissionOpen, r.submissionDeadline].some(d => d && (new Date(d).getTime() < b.start || new Date(d).getTime() > b.end)));
             if (out) return setStatus({ error: `${out.phaseName} dates out of season bounds.` }), setSubmitting(false);
@@ -322,6 +321,265 @@ export default function HackathonConfig() {
 
     return (
         <div className="hc-root">
+            <FormikProvider value={formik}><Form onSubmit={formik.handleSubmit} style={{ display: 'contents' }}>
+                <div className="hc-topbar">
+                    <div className="hc-topbar-left">
+                        <Icon name="setup" color="#2563eb" size={20} />
+                        <h1>Season Setup {selectedContestId && <>- {formik.values.name} <span className={`status-badge ${formik.values.status.toLowerCase()}`}>{formik.values.status}</span></>}</h1>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {selectedContestId && <button type="button" className="hc-btn-save" onClick={() => handleSelect('')} style={{ padding: '8px 16px', width: 'auto' }}>+ Create New Contest</button>}
+                        <div className="hc-search-wrap">
+                            <span className="hc-search-icon"><Icon name="search" size={14} /></span>
+                            <input placeholder="Search contest..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                            {searchQuery && (
+                                <div className="hc-search-dropdown">
+                                    {contests.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || `${c.season} ${c.year}`.toLowerCase().includes(searchQuery.toLowerCase())).map(c => {
+                                        const st = getStatus(c.registrationStart, c.contestEndAt);
+                                        return (
+                                            <div key={c.id} className={`hc-search-item${selectedContestId === c.id ? ' selected' : ''}`} onClick={() => { handleSelect(c.id); setSearchQuery(''); }}>
+                                                <div><div className="hc-search-name">{c.name}</div><div className="hc-search-season">{c.season} {c.year}</div></div>
+                                                <div className={`hc-badge ${st}`}>{st}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="hc-body">
+                    <div className="hc-sidebar">
+                        <div className="hc-sidebar-scroll">
+                            {[{ id: 'core', icon: 'core', title: 'Contest Information', desc: `${formik.values.name || 'Unnamed Event'} • ${formik.values.term} ${formik.values.year}` },
+                                { id: 'categories', icon: 'category', title: 'Categories Config', desc: `${formik.values.categories.length} categories configured` },
+                                { id: 'rounds', icon: 'round', title: 'Rounds Config', desc: `${formik.values.rounds.length} rounds configured` }].map(t => (
+                                <div key={t.id} className={`hc-nav-card${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>
+                                    <div className="hc-nav-card-header"><h3 className="hc-nav-card-title"><Icon name={t.icon} size={18} /> {t.title}</h3>{badgeErr(t.id)}</div>
+                                    <p className="hc-nav-card-desc">{t.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="hc-sidebar-footer">
+                            {valItems.length > 0 && <div className="hc-save-warning"><Icon name="error" size={14} /> Please fix issues before saving</div>}
+                            {formik.status?.error && <div className="hc-save-warning err"><Icon name="error" size={14} /> {formik.status.error}</div>}
+                            {formik.status?.success && <div className="hc-save-warning succ"><Icon name="check" size={14} /> {formik.status.success}</div>}
+                            <button type="submit" className="hc-btn-save" disabled={!formik.isValid || valItems.length > 0 || isLoading || isClosedContest}>{formik.isSubmitting ? 'Saving...' : 'Save Configuration'}</button>
+                        </div>
+                    </div>
+
+                    <div className="hc-content">
+                        {activeTab === 'core' && (
+                            <div className="hc-tab-scroll">
+                                <h2 className="hc-content-title">Contest Information</h2><p className="hc-content-subtitle">Define the foundational properties of the event</p>
+                                <div className="hc-section">
+                                    <div className="hc-section-header"><Icon name="info" size={18} /> Basic Information</div>
+                                    <div className="hc-grid-2">
+                                        <FormInput formik={formik} name="name" label="Event Name" req disabled={isClosedContest} placeholder="e.g. FPT Hackathon" />
+                                        <FormInput formik={formik} name="theme" label="Theme" req disabled={isClosedContest} />
+                                    </div>
+                                    <div className="hc-grid-4" style={{ marginTop: 20 }}>
+                                        <FormInput formik={formik} name="term" label="Term" disabled />
+                                        <FormInput formik={formik} name="year" label="Year" disabled />
+                                        <div style={{ gridColumn: 'span 2' }}><FormInput formik={formik} name="location" label="Location" req disabled={isClosedContest} /></div>
+                                    </div>
+                                </div>
+                                <div className="hc-section">
+                                    <div className="hc-section-header"><Icon name="time" size={18} /> Dates & Time</div>
+                                    <div className="hc-grid-2">
+                                        <FormInput formik={formik} name="registrationStart" label="Registration Start" type="date" req disabled={isClosedContest} />
+                                        <FormInput formik={formik} name="registrationEnd" label="Registration End" type="date" req disabled={isClosedContest} />
+                                    </div>
+                                    <div className="hc-grid-3" style={{ marginTop: 20 }}>
+                                        <FormInput formik={formik} name="contestStartAt" label="Contest Start" type="datetime-local" req disabled={isClosedContest} onChange={e => { formik.handleChange(e); if (e.target.value) { formik.setFieldValue('term', new Date(e.target.value).getMonth() + 1 <= 4 ? 'SPRING' : new Date(e.target.value).getMonth() + 1 <= 8 ? 'SUMMER' : 'FALL'); formik.setFieldValue('year', new Date(e.target.value).getFullYear()); } }} />
+                                        <FormInput formik={formik} name="contestEndAt" label="Contest End" type="datetime-local" req disabled={isClosedContest} />
+                                        <FormInput formik={formik} name="publishedAt" label="Publish Info At" type="datetime-local" req disabled={isClosedContest} />
+                                    </div>
+                                </div>
+                                <div className="hc-section">
+                                    <div className="hc-section-header"><Icon name="team" size={18} /> Team & Participant Setup</div>
+                                    <div className="hc-grid-3">
+                                        <FormInput formik={formik} name="maximumAllowedTeams" label="Max Teams" type="number" req disabled={isClosedContest} />
+                                        <FormInput formik={formik} name="minTeamMembers" label="Min Members" type="number" req disabled={isClosedContest} />
+                                        <FormInput formik={formik} name="maxTeamMembers" label="Max Members" type="number" req disabled={isClosedContest} />
+                                    </div>
+                                    <div className="hc-field" style={{ marginTop: 20 }}>
+                                        <label className="hc-label">Allowed Universities <span>*</span></label>
+                                        <div className="hc-checklist-grid" style={{ marginTop: 12 }}>
+                                            {allUniversities.map(u => (
+                                                <label key={u.id} className="hc-check-item">
+                                                    <input type="checkbox" name="universities" value={u.name} checked={formik.values.universities.includes(u.name)} disabled={isClosedContest} onChange={e => formik.setFieldValue('universities', e.target.checked ? [...formik.values.universities, u.name] : formik.values.universities.filter(x => x !== u.name))} /> {u.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="hc-section">
+                                    <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="rule" size={18} /> Compliance Rules</div>
+                                        {!isClosedContest && <button type="button" className="hc-list-add-btn" onClick={() => formik.setFieldValue('complianceRules', [...formik.values.complianceRules, { rule: '', penalty: '' }])}>+ Add Rule</button>}
+                                    </div>
+                                    {formik.values.complianceRules.map((item, idx) => (
+                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, marginBottom: 12 }}>
+                                            <FormTextArea formik={formik} name={`complianceRules[${idx}].rule`} disabled={isClosedContest} placeholder={`Rule ${idx + 1}`} rows={2} />
+                                            <FormTextArea formik={formik} name={`complianceRules[${idx}].penalty`} disabled={isClosedContest} placeholder="Penalty Details" rows={2} />
+                                            {formik.values.complianceRules.length > 1 && !isClosedContest && <button type="button" onClick={() => formik.setFieldValue('complianceRules', formik.values.complianceRules.filter((_, i) => i !== idx))} className="hc-remove-btn"><Icon name="remove" /></button>}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="hc-section">
+                                    <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="prize" size={18} /> Prize Structure</div>
+                                        {!isClosedContest && <button type="button" className="hc-list-add-btn" onClick={() => formik.setFieldValue('tieredPrizeStructures', [...formik.values.tieredPrizeStructures, { rank: '', amount: '' }])}>+ Add Prize</button>}
+                                    </div>
+                                    {formik.values.tieredPrizeStructures.map((p, idx) => (
+                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, marginBottom: 12 }}>
+                                            <FormInput formik={formik} name={`tieredPrizeStructures[${idx}].rank`} disabled={isClosedContest} placeholder="Rank" />
+                                            <FormInput formik={formik} name={`tieredPrizeStructures[${idx}].amount`} disabled={isClosedContest} placeholder="Amount" />
+                                            {formik.values.tieredPrizeStructures.length > 1 && !isClosedContest && <button type="button" onClick={() => formik.setFieldValue('tieredPrizeStructures', formik.values.tieredPrizeStructures.filter((_, i) => i !== idx))} className="hc-remove-btn"><Icon name="remove" /></button>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'categories' && (
+                            <div className="hc-tab-scroll">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                                    <div><h2 className="hc-content-title">Categories Config</h2><p className="hc-content-subtitle">Define tracks or categories</p></div>
+                                    {!isClosedContest && <button type="button" className="hc-btn-primary" onClick={() => formik.setFieldValue('categories', [...formik.values.categories, { id: -Date.now(), trackName: '', trackDescription: '', guidelineUrl: '', status: selectedContestId ? 'ACTIVED' : 'UNSAVED' }])}><Icon name="plus" /> Add Category</button>}
+                                </div>
+                                {!formik.values.categories.length ? <div className="hc-empty"><Icon name="category" size={48} /><h3>No categories</h3></div> : formik.values.categories.map((cat, idx) => (
+                                    <div key={cat.id} className="hc-section" style={{ background: '#f8fafc', padding: 20, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                                        <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="catItem" color="#3b82f6" size={18} /> {cat.trackName || `Category ${idx + 1}`}</div>
+                                            {!isClosedContest && formik.values.categories.length > 1 && (
+                                                <button type="button" className="hc-btn-danger" disabled={formik.values.rounds.some(r => String(r.categoryId) === String(cat.id))} onClick={() => {
+                                                    if (cat.id > 0) setDeletedCategories(p => [...p, cat]);
+                                                    formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== idx));
+                                                    formik.setFieldValue('rounds', formik.values.rounds.map(r => String(r.categoryId) === String(cat.id) ? { ...r, categoryId: '' } : r));
+                                                }}>Delete</button>
+                                            )}
+                                        </div>
+                                        <div className="hc-grid-1-2" style={{ marginBottom: 16 }}>
+                                            <FormInput formik={formik} name={`categories[${idx}].trackName`} label="Category Name" req disabled={isClosedContest} />
+                                            <FormInput formik={formik} name={`categories[${idx}].guidelineUrl`} label="Guideline URL" disabled={isClosedContest} />
+                                        </div>
+                                        <FormTextArea formik={formik} name={`categories[${idx}].trackDescription`} label="Description" disabled={isClosedContest} />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'rounds' && (
+                            <div className="hc-tab-scroll" style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ padding: '32px 40px 24px', flexShrink: 0, background: '#fff' }}>
+                                    <div style={{ marginBottom: 24 }}><h2 className="hc-content-title">Rounds Config</h2><p className="hc-content-subtitle" style={{ borderBottom: 'none', paddingBottom: 0 }}>Configure the timeline</p></div>
+                                    <div className="hc-round-nav" style={{ marginBottom: 0 }}>
+                                        {formik.values.rounds.map((r, i) => (
+                                            <button key={r.id} type="button" className={`hc-round-tab${activeCategoryIdx === i ? ' active' : ''}`} style={{ background: r.state === 'ACTIVED' ? '#dcfce7' : r.state === 'CLOSED' ? '#f1f5f9' : '#ffedd5', color: r.state === 'ACTIVED' ? '#166534' : r.state === 'CLOSED' ? '#475569' : '#c2410c' }} onClick={() => setActiveCategoryIdx(i)}>{r.phaseName || `Round ${i + 1}`}</button>
+                                        ))}
+                                        {!isClosedContest && <button type="button" className="hc-round-tab" onClick={() => { formik.setFieldValue('rounds', [...formik.values.rounds, { id: -(Date.now() + 1), phaseName: `Round ${formik.values.rounds.length + 1}`, categoryId: '', submissionOpen: '', submissionDeadline: '', gradingDeadlineAt: '', reviewCalibrationAt: '', publishResultAt: '', state: selectedContestId ? 'UPCOMING' : 'UNSAVED', submissionRequirements: [], roundFormat: '' }]); setActiveCategoryIdx(formik.values.rounds.length); }} style={{ borderStyle: 'dashed', background: 'transparent', color: '#3b82f6' }}>+ Add Round</button>}
+                                    </div>
+                                </div>
+                                <div style={{ padding: '0 40px 32px', background: '#fff', flex: '1 0 auto' }}>
+                                    {!formik.values.rounds.length ? <div className="hc-empty"><Icon name="round" size={48} /><h3>No rounds</h3></div> : (() => {
+                                        const rIdx = Math.min(activeCategoryIdx, Math.max(0, formik.values.rounds.length - 1));
+                                        const r = formik.values.rounds[rIdx];
+                                        if (!r) return null;
+                                        return (
+                                            <div key={r.id} style={{ marginBottom: 32 }}>
+                                                <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                        <Icon name="time" color="#2563eb" size={20} /> Configuring {r.phaseName}
+                                                        {r.state && <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 12, background: r.state === 'ACTIVED' ? '#dcfce7' : r.state === 'CLOSED' ? '#f1f5f9' : '#ffedd5', color: r.state === 'ACTIVED' ? '#166534' : r.state === 'CLOSED' ? '#475569' : '#c2410c', fontWeight: 600, marginLeft: 8 }}>{r.state}</span>}
+                                                    </div>
+                                                    {!isClosedContest && rIdx !== 0 && r.state === 'UPCOMING' && <button type="button" className="hc-btn-danger" onClick={() => { formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== rIdx)); setActiveCategoryIdx(Math.max(0, rIdx - 1)); }}>Delete Round</button>}
+                                                </div>
+                                                <div className="hc-grid-2" style={{ marginBottom: 20 }}>
+                                                    <FormInput formik={formik} name={`rounds[${rIdx}].phaseName`} label="Round Name" req disabled={isClosedContest} />
+                                                    <FormSelect formik={formik} name={`rounds[${rIdx}].categoryId`} label="Category" req disabled={isClosedContest} options={formik.values.categories.map(c => ({ value: c.id, label: c.trackName, disabled: formik.values.rounds.some(other => other.id !== r.id && String(other.categoryId) === String(c.id)) }))} />
+                                                </div>
+                                                <div style={{ marginBottom: 20 }}>
+                                                    <div className="hc-grid-2">
+                                                        <FormSelect formik={formik} name={`rounds[${rIdx}].roundFormat`} label="Format" req disabled={isClosedContest} options={availableRoundFormats} />
+                                                        <div className="hc-field">
+                                                            <label className="hc-label">Submission Requirements <span>*</span></label>
+                                                            <div className="hc-checklist-grid">
+                                                                {availableSubReqs.map(rq => (
+                                                                    <label key={rq.value} className="hc-check-item">
+                                                                        <input type="checkbox" checked={Array.isArray(r.submissionRequirements) && r.submissionRequirements.includes(rq.value)} onChange={e => formik.setFieldValue(`rounds[${rIdx}].submissionRequirements`, e.target.checked ? [...r.submissionRequirements, rq.value] : r.submissionRequirements.filter(x => x !== rq.value))} disabled={isClosedContest} /> {rq.label}
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                            {getIn(formik.touched, `rounds[${rIdx}].submissionRequirements`) && getIn(formik.errors, `rounds[${rIdx}].submissionRequirements`) && <div className="hc-err"><Icon name="error" size={12} /> {getIn(formik.errors, `rounds[${rIdx}].submissionRequirements`)}</div>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {shiftBanner && shiftBanner.roundIdx === rIdx && (
+                                                    <div className="hc-shift-banner">
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="error" /> Adjust subsequent milestones with the same delta?</span>
+                                                        <div>
+                                                            <button type="button" className="hc-shift-btn move" onClick={() => { const fld = ['submissionOpen', 'submissionDeadline', 'gradingDeadlineAt', 'reviewCalibrationAt', 'publishResultAt']; const sId = fld.indexOf(shiftBanner.field) + 1; const nR = [...formik.values.rounds]; for(let i=sId; i<fld.length; i++) if(nR[rIdx][fld[i]]) nR[rIdx][fld[i]] = toISO(new Date(new Date(nR[rIdx][fld[i]]).getTime() + shiftBanner.delta)); formik.setFieldValue('rounds', nR); setShiftBanner(null); }}>Move All</button>
+                                                            <button type="button" className="hc-shift-btn keep" onClick={() => setShiftBanner(null)}>Keep</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="hc-grid-3">
+                                                    {['submissionOpen', 'submissionDeadline', 'gradingDeadlineAt', 'reviewCalibrationAt', 'publishResultAt'].map(fld => (
+                                                        <div className="hc-field" key={fld}>
+                                                            <label className="hc-label">{fld.charAt(0).toUpperCase() + fld.replace(/At$|AtUrgent$/, '').slice(1).replace(/([A-Z])/g, ' $1')} <span>*</span></label>
+                                                            <input type="datetime-local" className={`hc-input${getIn(formik.touched, `rounds[${rIdx}].${fld}`) && getIn(formik.errors, `rounds[${rIdx}].${fld}`) ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].${fld}`} value={r[fld] || ''} onChange={e => handleSmartDate(e, rIdx)} onFocus={() => setOriginalDates(p => ({ ...p, [`${rIdx}_${fld}`]: r[fld] }))} min={fld === 'submissionOpen' ? (formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : b.min) : (r.submissionOpen || b.min)} max={formik.values.contestEndAt || b.max} disabled={isClosedContest} />
+                                                            {getIn(formik.touched, `rounds[${rIdx}].${fld}`) && getIn(formik.errors, `rounds[${rIdx}].${fld}`) && <div className="hc-err"><Icon name="error" size={12} /> {getIn(formik.errors, `rounds[${rIdx}].${fld}`)}</div>}
+                                                            {suggestions[`${rIdx}_${fld}`] && <div className="hc-suggest-banner"><Icon name="suggest" size={12} /> Suggested: {formatDate(suggestions[`${rIdx}_${fld}`])} <button type="button" className="hc-suggest-apply" onClick={() => applySuggest(rIdx, fld, suggestions[`${rIdx}_${fld}`])}>Apply</button></div>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                {formik.values.rounds.length > 0 && (
+                                    <div style={{ flexShrink: 0, padding: '32px 40px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                                        <div className="hc-timeline-card" style={{ marginTop: 0 }}>
+                                            <div className="hc-timeline-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="round" color="#2563eb" size={18} /> Timeline Preview</div>
+                                            </div>
+                                            <div className="hc-timeline-body">
+                                                {!buildGantt().rows.length ? <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13, padding: '20px 0' }}>Enter dates to see timeline</div> : (
+                                                    <div>
+                                                        <div className="hc-timeline-track" style={{ width: `${buildGantt().scale}%` }}>
+                                                            {buildGantt().rows.map((row, i) => (
+                                                                <div key={i} className="hc-timeline-row">
+                                                                    <div className="hc-timeline-label">{row.rowLabel}</div>
+                                                                    <div className="hc-timeline-outer">
+                                                                        {row.stages.map((bar, j) => <div key={j} className="hc-timeline-bar" style={{ left: `${bar.left}%`, width: `${bar.width}%`, background: bar.color }}><span className="hc-timeline-bar-label">{bar.label}</span></div>)}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="hc-timeline-date-labels"><span>{formatDate(formik.values.registrationStart)}</span><span>{formatDate(formik.values.contestEndAt)}</span></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {valItems.length > 0 && (
+                            <div className="hc-val-summary">
+                                <div className="hc-val-summary-header"><Icon name="error" color="#dc2626" size={16} /> Validation Summary</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                    {valItems.map((item, i) => <div key={i} className={`hc-val-item ${item.type}`} onClick={() => { setActiveTab(item.tab); if (item.tab === 'rounds' && item.field.match(/rounds\[(\d+)\]/)) setActiveCategoryIdx(parseInt(item.field.match(/rounds\[(\d+)\]/)[1])); setTimeout(() => { const el = document.querySelector(`[name="${item.field}"]`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 150); }}><Icon name="error" size={14} /> {item.msg}</div>)}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Form></FormikProvider>
         </div>
     );
 }
