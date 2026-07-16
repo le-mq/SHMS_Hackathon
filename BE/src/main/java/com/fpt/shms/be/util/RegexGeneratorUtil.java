@@ -47,7 +47,7 @@ public class RegexGeneratorUtil {
                 .filter(Matcher::matches)
                 .collect(Collectors.groupingBy(
                         matcher -> matcher.group(2).length(),
-                        Collectors.mapping(matcher -> matcher.group(1).toUpperCase(), Collectors.toSet())
+                        Collectors.mapping(matcher -> matcher.group(1).toUpperCase().replaceAll("\\d", "[0-9]"), Collectors.toSet())
                 ));
 
         if (groupedByLength.isEmpty()) {
