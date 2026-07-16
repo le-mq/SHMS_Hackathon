@@ -164,7 +164,10 @@ export default function PublicHome() {
         const term = searchTerm.toLowerCase();
         return contests.filter(c =>
             (c.name && c.name.toLowerCase().includes(term)) ||
-            (c.theme && c.theme.toLowerCase().includes(term))
+            (c.theme && c.theme.toLowerCase().includes(term)) ||
+            (c.season && c.season.toLowerCase().includes(term)) ||
+            (c.year && String(c.year).includes(term)) ||
+            (c.status && c.status.toLowerCase().includes(term))
         );
     }, [contests, searchTerm]);
 
@@ -208,13 +211,14 @@ export default function PublicHome() {
                             <h2>{searchTerm.trim() ? 'Search Results' : 'Active Seasonal Hackathon'}</h2>
                             <p>{searchTerm.trim() ? 'All matching contests including closed ones.' : 'Ongoing and upcoming major seasonal cycles.'}</p>
                         </div>
-                        <div>
+                        <div style={{ position: 'relative' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             <input
                                 type="text"
                                 placeholder="Search contests..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #d1d5db', width: '300px', maxWidth: '100%', fontSize: '14px' }}
+                                style={{ padding: '10px 16px 10px 36px', borderRadius: '8px', border: '1px solid #d1d5db', width: '300px', maxWidth: '100%', fontSize: '14px' }}
                             />
                         </div>
                     </div>
@@ -343,7 +347,7 @@ export default function PublicHome() {
                                                         <tbody>
                                                         {rounds.map((r, rId) => (
                                                             <tr key={`r-${rId}`} style={{ borderBottom: rId < rounds.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
-                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}>{r.phaseName}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}><span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 4 }}>#{rId + 1}</span> {r.phaseName}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{r.roundFormat || '—'}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{renderRequirements(r.submissionRequirements)}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionOpen)}</td>
