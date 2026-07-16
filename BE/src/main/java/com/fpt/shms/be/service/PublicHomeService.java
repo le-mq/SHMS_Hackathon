@@ -65,6 +65,7 @@ public class PublicHomeService {
                                         r.getSubmissionOpen(),
                                         r.getSubmissionDeadline(),
                                         r.getGradingDeadlineAt(),
+                                        r.getReviewCalibrationAt(),
                                         r.getPublishResultAt(),
                                         r.getSubmissionRequirements(),
                                         r.getRoundFormat()
@@ -78,6 +79,7 @@ public class PublicHomeService {
                                     r.getSubmissionOpen(),
                                     r.getSubmissionDeadline(),
                                     r.getGradingDeadlineAt(),
+                                    r.getReviewCalibrationAt(),
                                     r.getPublishResultAt(),
                                     r.getSubmissionRequirements(),
                                     r.getRoundFormat()

@@ -270,6 +270,7 @@ CREATE TABLE [Round] (
     submission_open_at DATETIME NOT NULL,
     submission_deadline_at DATETIME NOT NULL,
     grading_deadline_at DATETIME NULL,
+    review_calibration_at DATETIME NULL,
     publish_result_at DATETIME NULL,
     status VARCHAR(50) NOT NULL,
     submission_requirements NVARCHAR(MAX) NULL,
@@ -850,7 +851,11 @@ INSERT INTO MentorAssignment (category_id, user_id, status) VALUES
 (1, @Mentor1_ID, 'ACTIVE'), (4, @Mentor2_ID, 'ACTIVE'), (10, @Mentor1_ID, 'ACTIVE'), (10, @Mentor2_ID, 'ACTIVE');
 
 INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
-(1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), 
+(1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (1, @JudgeMentor_ID, 'ACTIVE'), 
+(2, @Judge1_ID, 'ACTIVE'), (2, @Judge2_ID, 'ACTIVE'), (2, @JudgeMentor_ID, 'ACTIVE'), 
+(4, @Judge1_ID, 'ACTIVE'), (4, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), 
+(5, @Judge1_ID, 'ACTIVE'), (5, @Judge2_ID, 'ACTIVE'), (5, @JudgeMentor_ID, 'ACTIVE'), 
+(6, @Judge1_ID, 'ACTIVE'), (6, @Judge2_ID, 'ACTIVE'), (6, @JudgeMentor_ID, 'ACTIVE'), 
 (10, @Judge1_ID, 'ACTIVE'), (10, @Judge2_ID, 'ACTIVE'), (10, @JudgeMentor_ID, 'ACTIVE');
 GO
 
@@ -1522,8 +1527,8 @@ VALUES
 
 -- Contest 1 Round 2 (Final Presentation) Ranking
 (2, 2, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
-(2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'QUALIFIED', '2026-03-30 10:00:00'),
-(2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'QUALIFIED', '2026-03-30 10:00:00'),
+(2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'ELIMINATED', '2026-03-30 10:00:00'),
+(2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'ELIMINATED', '2026-03-30 10:00:00'),
 
 -- Contest 2 Round 3 (Qualification) Ranking
 (3, 4, @PastTeam3_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-10-21 10:00:00'),
@@ -1532,8 +1537,8 @@ VALUES
 
 -- Contest 2 Round 4 (Final Presentation) Ranking
 (4, 5, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
-(4, 5, @Team2_ID, @Admin1_ID, 2, 90.00, 'QUALIFIED', '2025-11-30 10:00:00'),
-(4, 5, @Team3_ID, @Admin1_ID, 3, 86.00, 'QUALIFIED', '2025-11-30 10:00:00'),
+(4, 5, @Team2_ID, @Admin1_ID, 2, 90.00, 'ELIMINATED', '2025-11-30 10:00:00'),
+(4, 5, @Team3_ID, @Admin1_ID, 3, 86.00, 'ELIMINATED', '2025-11-30 10:00:00'),
 
 -- Contest 4 Round 8 (Global Championship Round - 10-Team Leaderboard)
 (8, 10, @C4_T01_ID, @Admin1_ID, 1, 96.50, 'QUALIFIED', '2026-04-25 10:00:00'),
