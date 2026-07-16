@@ -46,6 +46,9 @@ public class CreateTrackRoundRequest {
         private LocalDateTime gradingDeadlineAt;
 
         @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime reviewCalibrationAt;
+
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime publishResultAt;
 
         private String state = "UPCOMING";

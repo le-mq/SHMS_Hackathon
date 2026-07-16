@@ -47,6 +47,9 @@ public class Round {
     @Column(name = "grading_deadline_at")
     private java.time.LocalDateTime gradingDeadlineAt;
 
+    @Column(name = "review_calibration_at")
+    private java.time.LocalDateTime reviewCalibrationAt;
+
     @Column(name = "publish_result_at")
     private java.time.LocalDateTime publishResultAt;
 

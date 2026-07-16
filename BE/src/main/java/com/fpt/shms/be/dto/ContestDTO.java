@@ -40,6 +40,8 @@ public record ContestDTO(
             @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
             LocalDateTime gradingDeadlineAt,
             @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            LocalDateTime reviewCalibrationAt,
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
             LocalDateTime publishResultAt,
             String submissionRequirements,
             String roundFormat
