@@ -67,8 +67,8 @@ CREATE TABLE University (
                             university_id BIGINT IDENTITY(1,1) NOT NULL,
                             university_name NVARCHAR(100) NOT NULL,
                             university_code VARCHAR(50) NULL,
-                            email_regex VARCHAR(100) NULL,
-                            student_code_regex VARCHAR(100) NULL,
+                            email_regex VARCHAR(500) NULL,
+                            student_code_regex VARCHAR(500) NULL,
                             status VARCHAR(50) NULL,
                             CONSTRAINT pk_university PRIMARY KEY (university_id),
                             CONSTRAINT uq_university_name UNIQUE (university_name)
@@ -632,18 +632,19 @@ VALUES
 GO
 
 -- 2. CATEGORIES
-INSERT INTO Category (contest_id, category_name, description, status)
+SET IDENTITY_INSERT Category ON;
+INSERT INTO Category (category_id, contest_id, category_name, description, status)
 VALUES
-    (1, 'Computer Vision', N'Image Recognition and Computer Vision Applications', 'ACTIVED'),
-    (1, 'NLP & LLMs', N'Natural Language Processing and Large Language Models', 'ACTIVED'),
-    (1, 'Data Science & Predictive AI', N'Data Science and Predictive AI Analytics', 'ACTIVED'),
-    (2, 'Smart Contracts & Security', N'Smart Contract Development and Web3 Security', 'ACTIVED'),
-    (2, 'DeFi & Tokenomics', N'Decentralized Finance and Tokenomics Modeling', 'ACTIVED'),
-    (2, 'Web3 DApps', N'Decentralized Web3 Application Development', 'ACTIVED'),
-    (3, 'AI & Web3 Innovation', N'Innovative Applications combining AI and Blockchain', 'ACTIVED'),
-    (3, 'Cloud & Big Data Architecture', N'Cloud Architecture and Big Data Processing Systems', 'ACTIVED'),
-    (3, 'Mobile & IoT Applications', N'Smart Mobile and Internet of Things Solutions', 'ACTIVED'),
-    (4, 'Enterprise Cloud & AI Mastery', N'Enterprise-scale Cloud Architecture and AI Systems', 'ACTIVED');
+    (1, 1, 'Computer Vision', N'Image Recognition and Computer Vision Applications', 'ACTIVED'),
+    (2, 1, 'NLP & LLMs', N'Natural Language Processing and Large Language Models', 'ACTIVED'),
+    (3, 1, 'Data Science & Predictive AI', N'Data Science and Predictive AI Analytics', 'ACTIVED'),
+    (4, 2, 'Smart Contracts & Security', N'Smart Contract Development and Web3 Security', 'ACTIVED'),
+    (5, 2, 'DeFi & Tokenomics', N'Decentralized Finance and Tokenomics Modeling', 'ACTIVED'),
+    (6, 2, 'Web3 DApps', N'Decentralized Web3 Application Development', 'ACTIVED'),
+    (7, 3, 'AI & Web3 Innovation', N'Innovative Applications combining AI and Blockchain', 'ACTIVED'),
+    (8, 3, 'Cloud & Big Data Architecture', N'Cloud Architecture and Big Data Processing Systems', 'ACTIVED'),
+    (10, 4, 'Enterprise Cloud & AI Mastery', N'Enterprise-scale Cloud Architecture and AI Systems', 'ACTIVED');
+SET IDENTITY_INSERT Category OFF;
 GO
 
 -- 3. CONTEST UNIVERSITIES
@@ -678,7 +679,6 @@ VALUES
 (6, 'Web3 - Decentralized DApps Rubric', N'Standard evaluation criteria for Decentralized Web3 DApp projects', 'ACTIVE'),
 (7, 'SEAL AI & Web3 Innovation Rubric', N'Evaluation criteria for AI & Web3 Innovation category', 'ACTIVE'),
 (8, 'SEAL Cloud & Big Data Rubric', N'Evaluation criteria for Cloud & Big Data Architecture category', 'ACTIVE'),
-(9, 'SEAL Mobile & IoT Rubric', N'Evaluation criteria for Mobile & IoT Applications category', 'ACTIVE'),
 (10, 'Enterprise Cloud & AI Rubric', N'Enterprise evaluation criteria for Cloud & Advanced AI solutions', 'ACTIVE');
 GO
 
@@ -690,7 +690,6 @@ DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplat
 DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
 DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
 DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
-DECLARE @Rubric9_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 9);
 DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO RubricTemplateCriteria (rubric_template_id, criteria_name, description, default_weight, max_score)
@@ -737,11 +736,6 @@ VALUES
 (@Rubric8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
 (@Rubric8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
 
--- Category 9
-(@Rubric9_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
-(@Rubric9_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
-(@Rubric9_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
-
 -- Category 10
 (@Rubric10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
 (@Rubric10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
@@ -757,7 +751,6 @@ DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplat
 DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
 DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
 DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
-DECLARE @Rubric9_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 9);
 DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_weight, status)
@@ -770,7 +763,6 @@ VALUES
 (@Rubric6_ID, 6, 'Web3 DApps Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric7_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric8_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric9_ID, 9, 'Mobile & IoT Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric10_ID, 10, 'Enterprise Cloud & AI Judging Rubric', 100.00, 'ACTIVE');
 GO
 
@@ -782,7 +774,6 @@ DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHER
 DECLARE @CR6_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 6);
 DECLARE @CR7_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
 DECLARE @CR8_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
-DECLARE @CR9_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 9);
 DECLARE @CR10_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 10);
 
 INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
@@ -829,11 +820,6 @@ VALUES
 (@CR8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
 (@CR8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
 
--- Category 9
-(@CR9_ID, 'Mobile UX & Performance', N'Smooth mobile user experience and animation responsiveness', 35.00, 35.00),
-(@CR9_ID, 'IoT Hardware Integration', N'Reliable IoT device communication and firmware stability', 35.00, 35.00),
-(@CR9_ID, 'Practical Utility', N'Everyday real-world usefulness and problem solving', 30.00, 30.00),
-
 -- Category 10
 (@CR10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
 (@CR10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
@@ -853,6 +839,7 @@ INSERT INTO MentorAssignment (category_id, user_id, status) VALUES
 INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
 (1, @Judge1_ID, 'ACTIVE'), (1, @Judge2_ID, 'ACTIVE'), (1, @JudgeMentor_ID, 'ACTIVE'), 
 (2, @Judge1_ID, 'ACTIVE'), (2, @Judge2_ID, 'ACTIVE'), (2, @JudgeMentor_ID, 'ACTIVE'), 
+(3, @Judge1_ID, 'ACTIVE'), (3, @Judge2_ID, 'ACTIVE'), (3, @JudgeMentor_ID, 'ACTIVE'), 
 (4, @Judge1_ID, 'ACTIVE'), (4, @Judge2_ID, 'ACTIVE'), (4, @JudgeMentor_ID, 'ACTIVE'), 
 (5, @Judge1_ID, 'ACTIVE'), (5, @Judge2_ID, 'ACTIVE'), (5, @JudgeMentor_ID, 'ACTIVE'), 
 (6, @Judge1_ID, 'ACTIVE'), (6, @Judge2_ID, 'ACTIVE'), (6, @JudgeMentor_ID, 'ACTIVE'), 
@@ -860,16 +847,22 @@ INSERT INTO JudgeAssignment (category_id, user_id, status) VALUES
 GO
 
 -- 7. ROUNDS
-INSERT INTO [Round] (contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
+SET IDENTITY_INSERT [Round] ON;
+INSERT INTO [Round] (round_id, contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
-(1, 1, 'Qualification Round', 1, '2026-02-11 08:00:00', '2026-02-20 23:59:59', '2026-02-25 17:00:00', '2026-02-26 10:00:00', 'CLOSED', N'Submit GitHub Repository link and Architecture Documentation', 'ONLINE'),
-(1, 2, 'Final Presentation', 2, '2026-02-27 08:00:00', '2026-03-25 23:59:59', '2026-03-29 17:00:00', '2026-03-30 10:00:00', 'CLOSED', N'Submit Demo Video, Presentation Slides, and Final Source Code', 'OFFLINE'),
-(2, 4, 'Qualification Round', 1, '2025-09-16 08:00:00', '2025-10-15 23:59:59', '2025-10-20 17:00:00', '2025-10-21 10:00:00', 'CLOSED', N'Submit Testnet Smart Contract link and Technical Whitepaper', 'ONLINE'),
-(2, 5, 'Final Presentation', 2, '2025-10-22 08:00:00', '2025-11-25 23:59:59', '2025-11-28 17:00:00', '2025-11-30 10:00:00', 'CLOSED', N'Submit Complete DApp running on Mainnet/Testnet and Demo Video', 'OFFLINE'),
-(3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Submit Source Code, Demo Video, and AI/Web3 Presentation Slides', 'ONLINE'),
-(3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Submit Cloud/Big Data Architecture Diagram, Source Code, and Demo Video', 'ONLINE'),
-(3, 9, 'Mobile & IoT Solutions Round', 3, '2026-08-17 08:00:00', '2026-08-27 23:59:59', '2026-08-30 17:00:00', '2026-08-31 10:00:00', 'UPCOMING', N'Submit Mobile/IoT Application APK/Firmware, Source Code, and Demo Video', 'ONLINE'),
-(4, 10, 'Global Championship Round', 1, '2026-02-16 08:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-25 10:00:00', 'CLOSED', N'Submit Enterprise Architecture Diagram, Complete Source Code, and 5-minute Live Demo Video', 'ONLINE');
+(1, 1, 1, 'Qualification Round', 1, '2025-02-11 09:00:00', '2025-02-20 23:59:59', '2025-02-23 17:00:00', '2025-02-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
+(2, 1, 2, 'Final Presentation', 2, '2025-02-25 08:00:00', '2025-03-15 23:59:59', '2025-03-18 17:00:00', '2025-03-19 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
+(9, 1, 3, 'Data Science & Predictive AI Round', 3, '2025-03-20 08:00:00', '2025-03-27 23:59:59', '2025-03-28 17:00:00', '2025-03-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+
+(3, 2, 4, 'Qualification Round', 1, '2025-09-16 09:00:00', '2025-10-05 23:59:59', '2025-10-08 17:00:00', '2025-10-09 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
+(4, 2, 5, 'Final Presentation', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
+(10, 2, 6, 'Web3 DApps Round', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+
+(5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
+(6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+
+(8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
+SET IDENTITY_INSERT [Round] OFF;
 GO
 
 -- 8. TEAMS & MEMBERSHIPS (3 Historical Completed Teams, 3 Current Ongoing Teams, 2 Forming Teams)
@@ -1117,12 +1110,12 @@ DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 
 INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id)
 VALUES
 -- Contest 1 Submissions (Round 1 & Round 2)
-(@PastTeam1_ID, 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-qual","Documentation":"https://docs.google.com/aipioneers-qual"}', 1, '2026-02-18 14:00:00', 'GRADED', N'Excellent core idea, well prepared for qualification stage.', @Mentor1_ID),
-(@PastTeam1_ID, 2, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-final","Demo Video":"https://youtube.com/watch?v=demo1","Slide":"https://docs.google.com/presentation/d/ai-pioneers"}', 1, '2026-03-20 15:30:00', 'GRADED', N'Outstanding architecture and extremely smooth live presentation!', @Mentor1_ID),
-(@PastTeam2_ID, 1, N'{"Project Repository":"https://github.com/visionary/cv-qual","Documentation":"https://docs.google.com/visionary-qual"}', 1, '2026-02-19 10:00:00', 'GRADED', N'Good model design, further improve validation accuracy.', @Mentor2_ID),
-(@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2026-03-22 11:00:00', 'GRADED', N'Well-rounded computer vision app with solid documentation.', @Mentor2_ID),
-(@Team1_ID, 1, N'{"Project Repository":"https://github.com/cybercore/ai-app","Documentation":"https://docs.google.com/document/d/cybercore-doc"}', 1, '2026-02-15 14:00:00', 'GRADED', N'Solid qualification submission, good technical foundation.', @Mentor1_ID),
-(@Team1_ID, 2, N'{"Project Repository":"https://github.com/cybercore/ai-app-final","Demo Video":"https://youtube.com/watch?v=demo_cybercore","Slide":"https://docs.google.com/presentation/d/cybercore-final"}', 1, '2026-03-23 10:00:00', 'GRADED', N'Good practical UI and solid backend AI pipeline.', @Mentor1_ID),
+(@PastTeam1_ID, 1, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-qual","Documentation":"https://docs.google.com/aipioneers-qual"}', 1, '2025-02-18 14:00:00', 'GRADED', N'Excellent core idea, well prepared for qualification stage.', @Mentor1_ID),
+(@PastTeam1_ID, 2, N'{"Project Repository":"https://github.com/aipioneers/smart-ai-final","Demo Video":"https://youtube.com/watch?v=demo1","Slide":"https://docs.google.com/presentation/d/ai-pioneers"}', 1, '2025-03-10 15:30:00', 'GRADED', N'Outstanding architecture and extremely smooth live presentation!', @Mentor1_ID),
+(@PastTeam2_ID, 1, N'{"Project Repository":"https://github.com/visionary/cv-qual","Documentation":"https://docs.google.com/visionary-qual"}', 1, '2025-02-19 10:00:00', 'GRADED', N'Good model design, further improve validation accuracy.', @Mentor2_ID),
+(@PastTeam2_ID, 2, N'{"Project Repository":"https://github.com/visionary/cv-final","Demo Video":"https://youtube.com/watch?v=demo2","Slide":"https://docs.google.com/presentation/d/visionary"}', 1, '2025-03-12 11:00:00', 'GRADED', N'Well-rounded computer vision app with solid documentation.', @Mentor2_ID),
+(@Team1_ID, 1, N'{"Project Repository":"https://github.com/cybercore/ai-app","Documentation":"https://docs.google.com/document/d/cybercore-doc"}', 1, '2025-02-15 14:00:00', 'GRADED', N'Solid qualification submission, good technical foundation.', @Mentor1_ID),
+(@Team1_ID, 2, N'{"Project Repository":"https://github.com/cybercore/ai-app-final","Demo Video":"https://youtube.com/watch?v=demo_cybercore","Slide":"https://docs.google.com/presentation/d/cybercore-final"}', 1, '2025-03-13 10:00:00', 'GRADED', N'Good practical UI and solid backend AI pipeline.', @Mentor1_ID),
 
 -- Contest 2 Submissions (Round 3 & Round 4)
 (@PastTeam3_ID, 3, N'{"Project Repository":"https://github.com/blockchainmasters/defi-qual","Smart Contract":"0x71C...893"}', 1, '2025-10-10 16:00:00', 'GRADED', N'Flawless smart contract code with optimal gas usage.', @Mentor1_ID),
@@ -1521,14 +1514,19 @@ DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = '
 INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at)
 VALUES
 -- Contest 1 Round 1 (Qualification) Ranking
-(1, 1, @PastTeam1_ID, @Admin1_ID, 1, 91.50, 'QUALIFIED', '2026-02-26 10:00:00'),
-(1, 1, @PastTeam2_ID, @Admin1_ID, 2, 87.00, 'QUALIFIED', '2026-02-26 10:00:00'),
-(1, 1, @Team1_ID, @Admin1_ID, 3, 83.50, 'QUALIFIED', '2026-02-26 10:00:00'),
+(1, 1, @PastTeam1_ID, @Admin1_ID, 1, 91.50, 'QUALIFIED', '2025-02-24 10:00:00'),
+(1, 1, @PastTeam2_ID, @Admin1_ID, 2, 87.00, 'QUALIFIED', '2025-02-24 10:00:00'),
+(1, 1, @Team1_ID, @Admin1_ID, 3, 83.50, 'QUALIFIED', '2025-02-24 10:00:00'),
 
 -- Contest 1 Round 2 (Final Presentation) Ranking
-(2, 2, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2026-03-30 10:00:00'),
-(2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'ELIMINATED', '2026-03-30 10:00:00'),
-(2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'ELIMINATED', '2026-03-30 10:00:00'),
+(2, 2, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2025-03-19 10:00:00'),
+(2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'ELIMINATED', '2025-03-19 10:00:00'),
+(2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'ELIMINATED', '2025-03-19 10:00:00'),
+
+-- Contest 1 Round 9 (Data Science & Predictive AI Round) Ranking
+(9, 3, @PastTeam1_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-03-29 10:00:00'),
+(9, 3, @PastTeam2_ID, @Admin1_ID, 2, 89.50, 'ELIMINATED', '2025-03-29 10:00:00'),
+(9, 3, @Team1_ID, @Admin1_ID, 3, 85.00, 'ELIMINATED', '2025-03-29 10:00:00'),
 
 -- Contest 2 Round 3 (Qualification) Ranking
 (3, 4, @PastTeam3_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-10-21 10:00:00'),
@@ -1539,6 +1537,11 @@ VALUES
 (4, 5, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
 (4, 5, @Team2_ID, @Admin1_ID, 2, 90.00, 'ELIMINATED', '2025-11-30 10:00:00'),
 (4, 5, @Team3_ID, @Admin1_ID, 3, 86.00, 'ELIMINATED', '2025-11-30 10:00:00'),
+
+-- Contest 2 Round 10 (Web3 DApps Round) Ranking
+(10, 6, @PastTeam3_ID, @Admin1_ID, 1, 96.00, 'QUALIFIED', '2025-11-28 10:00:00'),
+(10, 6, @Team2_ID, @Admin1_ID, 2, 91.00, 'ELIMINATED', '2025-11-28 10:00:00'),
+(10, 6, @Team3_ID, @Admin1_ID, 3, 87.00, 'ELIMINATED', '2025-11-28 10:00:00'),
 
 -- Contest 4 Round 8 (Global Championship Round - 10-Team Leaderboard)
 (8, 10, @C4_T01_ID, @Admin1_ID, 1, 96.50, 'QUALIFIED', '2026-04-25 10:00:00'),

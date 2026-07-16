@@ -142,7 +142,14 @@ public class RankingAdminService {
                 allReady = false;
             }
 
-            String date = judgeReady ? LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "";
+            String date = "";
+            if (judgeReady) {
+                if (round.getState() == Round.RoundState.CLOSED && round.getGradingDeadlineAt() != null) {
+                    date = round.getGradingDeadlineAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                } else {
+                    date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                }
+            }
             evaluatorList.add(RankingReadinessResponse.Evaluator.builder()
                     .name(judge.getUsername())
                     .dept("Hackathon Judge")
