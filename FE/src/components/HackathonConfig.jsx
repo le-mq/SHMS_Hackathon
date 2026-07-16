@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { Form } from 'react-bootstrap';
 import './HackathonConfig.css';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 const todayStr = (() => { const d = new Date(); const pad = n => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
 
 const RemoveButton = ({ onClick, title }) => (
@@ -238,6 +238,15 @@ function HackathonConfig() {
     });
 
     useEffect(() => {
+        if (formik.status) {
+            const timer = setTimeout(() => {
+                formik.setStatus(undefined);
+            }, 3500);
+            return () => clearTimeout(timer);
+        }
+    }, [formik.status, formik.setStatus]);
+
+    useEffect(() => {
         if (!selectedContestId) return;
         const computedContestStatus = determineStatus(formik.values.registrationStart, formik.values.contestEndAt);
         if (formik.values.status !== computedContestStatus) formik.setFieldValue('status', computedContestStatus);
@@ -427,9 +436,20 @@ function HackathonConfig() {
 
     const focusField = (item) => {
         setActiveTab(item.tab);
-        if (item.tab === 'rounds') {
-            const match = item.field.match(/rounds\[(\d+)\]/);
-            if (match) setActiveCategoryIdx(parseInt(match[1], 10));
+        if (item.tab === 'rounds' || item.tab === 'categories') {
+            const match = item.field.match(/(?:rounds|categories)\[(\d+)\]/);
+            if (match) {
+                const arrIdx = parseInt(match[1], 10);
+                if (item.tab === 'categories') {
+                    setActiveCategoryIdx(arrIdx);
+                } else if (item.tab === 'rounds') {
+                    const round = formik.values.rounds[arrIdx];
+                    if (round) {
+                        const catIdx = formik.values.categories.findIndex(c => String(c.id) === String(round.categoryId));
+                        if (catIdx >= 0) setActiveCategoryIdx(catIdx);
+                    }
+                }
+            }
         }
         setTimeout(() => {
             const el = document.querySelector(`[name="${item.field}"]`);
@@ -544,7 +564,7 @@ function HackathonConfig() {
                             <input placeholder="Search contest..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowSearchDropdown(true); }} />
                             {showSearchDropdown && (searchQuery || contests.length > 0) && (
                                 <div className="hc-search-dropdown">
-                                    {(searchQuery ? filteredContests : contests).map(c => {
+                                    {(searchQuery ? filteredContests : contests.slice(0, 5)).map(c => {
                                         const st = determineStatus(c.registrationStart, c.contestEndAt);
                                         return (
                                             <div key={c.id} className={`hc-search-item${selectedContestId === c.id ? ' selected' : ''}`} onClick={() => { handleSelectContest(c.id); setSearchQuery(''); setShowSearchDropdown(false); }}>
@@ -589,9 +609,6 @@ function HackathonConfig() {
                         </div>
 
                         <div className="hc-sidebar-footer">
-                            {valItems.length > 0 && <div className="hc-save-warning">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> Please fix issues before saving
-                            </div>}
                             {formik.status?.error && <div className="hc-save-warning" style={{ color: '#ef4444' }}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.status.error}
                             </div>}
@@ -615,7 +632,7 @@ function HackathonConfig() {
 
                                 <div className="hc-section">
                                     <div className="hc-section-header"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> Basic Information</div>
-                                    <div className="hc-grid-2">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 100px 100px', gap: 20 }}>
                                         <div className="hc-field">
                                             <label className="hc-label">Event Name <span>*</span></label>
                                             <input className={`hc-input${formik.touched.name && formik.errors.name ? ' is-invalid' : ''}`} name="name" value={formik.values.name} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT Hackathon 2026" />
@@ -626,13 +643,13 @@ function HackathonConfig() {
                                             <input className={`hc-input${formik.touched.theme && formik.errors.theme ? ' is-invalid' : ''}`} name="theme" value={formik.values.theme} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. AI & Web3 Innovation" />
                                             {formik.touched.theme && formik.errors.theme && <div className="hc-err">{formik.errors.theme}</div>}
                                         </div>
-                                    </div>
-                                    <div className="hc-grid-4" style={{ marginTop: 20 }}>
                                         <div className="hc-field"><label className="hc-label">Term</label><input className="hc-input" value={formik.values.term} disabled /></div>
                                         <div className="hc-field"><label className="hc-label">Year</label><input className="hc-input" value={formik.values.year} disabled /></div>
-                                        <div className="hc-field" style={{ gridColumn: 'span 2' }}>
+                                    </div>
+                                    <div style={{ marginTop: 20 }}>
+                                        <div className="hc-field">
                                             <label className="hc-label">Location <span>*</span></label>
-                                            <input className={`hc-input${formik.touched.location && formik.errors.location ? ' is-invalid' : ''}`} name="location" value={formik.values.location} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} />
+                                            <input className={`hc-input${formik.touched.location && formik.errors.location ? ' is-invalid' : ''}`} name="location" value={formik.values.location} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT University, HCMC" />
                                             {formik.touched.location && formik.errors.location && <div className="hc-err">{formik.errors.location}</div>}
                                         </div>
                                     </div>
@@ -640,7 +657,7 @@ function HackathonConfig() {
 
                                 <div className="hc-section">
                                     <div className="hc-section-header"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> Dates & Time</div>
-                                    <div className="hc-grid-2">
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
                                         <div className="hc-field">
                                             <label className="hc-label">Registration Start <span>*</span></label>
                                             <input type="date" className={`hc-input${formik.touched.registrationStart && formik.errors.registrationStart ? ' is-invalid' : ''}`} name="registrationStart" value={formik.values.registrationStart} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
@@ -651,8 +668,6 @@ function HackathonConfig() {
                                             <input type="date" className={`hc-input${formik.touched.registrationEnd && formik.errors.registrationEnd ? ' is-invalid' : ''}`} name="registrationEnd" value={formik.values.registrationEnd} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
                                             {formik.touched.registrationEnd && formik.errors.registrationEnd && <div className="hc-err">{formik.errors.registrationEnd}</div>}
                                         </div>
-                                    </div>
-                                    <div className="hc-grid-3" style={{ marginTop: 20 }}>
                                         <div className="hc-field">
                                             <label className="hc-label">Contest Start <span>*</span></label>
                                             <input type="datetime-local" className={`hc-input${formik.touched.contestStartAt && formik.errors.contestStartAt ? ' is-invalid' : ''}`} name="contestStartAt" value={formik.values.contestStartAt} onChange={handleContestStartAtChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
@@ -673,34 +688,36 @@ function HackathonConfig() {
 
                                 <div className="hc-section">
                                     <div className="hc-section-header"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Team & Participant Setup</div>
-                                    <div className="hc-grid-3">
-                                        {['maximumAllowedTeams', 'minTeamMembers', 'maxTeamMembers'].map(fld => (
-                                            <div className="hc-field" key={fld}>
-                                                <label className="hc-label">{fld === 'maximumAllowedTeams' ? 'Max Teams' : fld === 'minTeamMembers' ? 'Min Members' : 'Max Members'} <span>*</span></label>
-                                                <input type="number" className={`hc-input${formik.touched[fld] && formik.errors[fld] ? ' is-invalid' : ''}`} name={fld} value={formik.values[fld]} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
-                                                {formik.touched[fld] && formik.errors[fld] && <div className="hc-err">{formik.errors[fld]}</div>}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="hc-field" style={{ marginTop: 20 }}>
-                                        <label className="hc-label">Allowed Universities <span>*</span></label>
-                                        <div className="hc-checklist-grid" style={{ marginTop: 12 }}>
-                                            {allUniversities.map(u => (
-                                                <label key={u.id} className="hc-check-item">
-                                                    <input type="checkbox" name="universities" value={u.name} checked={formik.values.universities.includes(u.name)} onChange={e => {
-                                                        const set = new Set(formik.values.universities);
-                                                        if (e.target.checked) set.add(u.name); else set.delete(u.name);
-                                                        formik.setFieldValue('universities', Array.from(set));
-                                                    }} disabled={isClosedContest} />
-                                                    {u.name}
-                                                </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 40 }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                            {['maximumAllowedTeams', 'minTeamMembers', 'maxTeamMembers'].map(fld => (
+                                                <div className="hc-field" key={fld}>
+                                                    <label className="hc-label">{fld === 'maximumAllowedTeams' ? 'Max Teams' : fld === 'minTeamMembers' ? 'Min Members' : 'Max Members'} <span>*</span></label>
+                                                    <input type="number" className={`hc-input${formik.touched[fld] && formik.errors[fld] ? ' is-invalid' : ''}`} name={fld} value={formik.values[fld]} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
+                                                    {formik.touched[fld] && formik.errors[fld] && <div className="hc-err">{formik.errors[fld]}</div>}
+                                                </div>
                                             ))}
+                                        </div>
+                                        <div className="hc-field">
+                                            <label className="hc-label">Allowed Universities <span>*</span></label>
+                                            <div className="hc-checklist-grid" style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                                                {allUniversities.map(u => (
+                                                    <label key={u.id} className="hc-check-item" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334155' }}>
+                                                        <input type="checkbox" name="universities" value={u.name} checked={formik.values.universities.includes(u.name)} onChange={e => {
+                                                            const set = new Set(formik.values.universities);
+                                                            if (e.target.checked) set.add(u.name); else set.delete(u.name);
+                                                            formik.setFieldValue('universities', Array.from(set));
+                                                        }} disabled={isClosedContest} />
+                                                        {u.name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            {formik.touched.universities && formik.errors.universities && typeof formik.errors.universities === 'string' && <div className="hc-err" style={{ marginTop: 12 }}>{formik.errors.universities}</div>}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
                                     <div className="hc-section">
                                         <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg> Compliance Rules</div>
@@ -1021,7 +1038,7 @@ function HackathonConfig() {
                                 </div>
                                 <div style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.5, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                                     <span>Found <strong>{valItems.length}</strong> validation errors. Please review the tabs and fields marked in red above.</span>
-                                    <button type="button" onClick={() => { if (valItems[0]) focusField(valItems[0]); }} style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '4px 12px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>Go to first error</button>
+                                    <button type="button" onClick={() => { if (valItems[0]) focusField(valItems[0]); }} style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '4px 12px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>Go to error</button>
                                 </div>
                             </div>
                         )}

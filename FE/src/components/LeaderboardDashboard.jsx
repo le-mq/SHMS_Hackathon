@@ -69,7 +69,6 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
         if (rank === 1) return `First Prize${amount}`;
         if (rank === 2) return `Second Prize${amount}`;
         if (rank === 3) return `Third Prize${amount}`;
-
         if (rank === 4 || hasConfiguredPrize) {
             return `Consolation Prize${amount}`;
         }
@@ -99,7 +98,7 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                 </div>
             </div>
             <div className="top-pods-row">
-                {top3[1] && (
+                {top3[1] ? (
                     <div className="pod-card" style={{ height: '90%' }}>
                         <div className="pod-rank-bg">2</div>
                         <div className="pod-name">{top3[1].teamName}</div>
@@ -107,8 +106,8 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                         <div className="pod-pts-label">POINTS</div>
                         {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#0ea5e9'}}>{getPrizeName(top3[1].rank)}</div>}
                     </div>
-                )}
-                {top3[0] && (
+                ) : <div />}
+                {top3[0] ? (
                     <div className="pod-card pod-1">
                         <div className="pod-rank-bg">1</div>
                         <div className="pod-name">{top3[0].teamName}</div>
@@ -116,8 +115,8 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                         <div className="pod-pts-label">POINTS</div>
                         {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#eab308'}}>{getPrizeName(top3[0].rank)}</div>}
                     </div>
-                )}
-                {top3[2] && (
+                ) : <div />}
+                {top3[2] ? (
                     <div className="pod-card" style={{ height: '75%' }}>
                         <div className="pod-rank-bg">3</div>
                         <div className="pod-name">{top3[2].teamName}</div>
@@ -125,7 +124,7 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                         <div className="pod-pts-label">POINTS</div>
                         {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#f97316'}}>{getPrizeName(top3[2].rank)}</div>}
                     </div>
-                )}
+                ) : <div />}
             </div>
             <div className="leader-table-card">
                 <div className="lt-header">
