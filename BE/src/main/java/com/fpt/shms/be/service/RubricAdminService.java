@@ -87,8 +87,6 @@ public class RubricAdminService {
         if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-        } else {
-            throw new IllegalArgumentException("Category ID is required");
         }
         RubricTemplate template = RubricTemplate.builder()
                 .name(request.getName())
@@ -96,7 +94,7 @@ public class RubricAdminService {
                 .category(category)
                 .publicVisibility(request.getPublicVisibility() != null ? request.getPublicVisibility() : true)
                 .weightedScoring(request.getWeightedScoring() != null ? request.getWeightedScoring() : true)
-                .status("DRAFT")
+                .status("TEMPLATE")
                 .criteria(new ArrayList<>())
                 .build();
         for (CreateRubricRequest.CriterionDto critDto : request.getCriteria()) {
@@ -145,7 +143,7 @@ public class RubricAdminService {
                 .category(original.getCategory())
                 .publicVisibility(original.getPublicVisibility())
                 .weightedScoring(original.getWeightedScoring())
-                .status("DRAFT")
+                .status("TEMPLATE")
                 .criteria(new ArrayList<>())
                 .build();
 
@@ -175,6 +173,8 @@ public class RubricAdminService {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             template.setCategory(category);
+        } else {
+            template.setCategory(null);
         }
 
         template.getCriteria().clear();

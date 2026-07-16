@@ -32,5 +32,6 @@ public class TeamStatusResponse {
         private String status;
         private String universityName;
         private Boolean isUnauthorized;
+        private Boolean hasAlreadyParticipated;
     }
 }

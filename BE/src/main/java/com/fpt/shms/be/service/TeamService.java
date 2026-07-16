@@ -131,11 +131,27 @@ public class TeamService{
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
             Boolean isUnauthorized = false;
+            Boolean hasAlreadyParticipated = false;
             if ("REJECTED".equalsIgnoreCase(team.getStatus()) && student != null && team.getContest() != null) {
                 try {
                     validateUniversityAllowed(student, team.getContest());
                 } catch (IllegalArgumentException e) {
                     isUnauthorized = true;
+                }
+
+                // Check if already participated
+                List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(m.getUser().getId());
+                for (TeamMembership other : otherMemberships) {
+                    Team otherTeam = other.getTeam();
+                    if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
+                        if (otherTeam.getContest().getId().equals(team.getContest().getId())) {
+                            String status = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
+                            if ("APPROVED".equals(status) || "PENDING".equals(status)) {
+                                hasAlreadyParticipated = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -147,6 +163,7 @@ public class TeamService{
                     .status(m.getStatus())
                     .universityName(student != null && student.getUniversity() != null ? student.getUniversity().getName() : "N/A")
                     .isUnauthorized(isUnauthorized)
+                    .hasAlreadyParticipated(hasAlreadyParticipated)
                     .build();
         }).toList();
 
@@ -350,7 +367,10 @@ public class TeamService{
                 }
             }
             if (!alreadyRegisteredMembers.isEmpty()) {
-                throw new IllegalArgumentException("The following members have already participated in this competition: " + String.join(", ", alreadyRegisteredMembers));
+                team.setStatus("REJECTED");
+                teamRepository.save(team);
+                auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Members already participated");
+                return new TeamRegistrationResponse("REJECTED", "The following members have already participated in this competition: " + String.join(", ", alreadyRegisteredMembers));
             }
         }
 
@@ -971,7 +991,7 @@ public class TeamService{
                 boolean alreadyInTeam = teamMembershipRepository.findByTeamId(team.getId()).stream()
                         .anyMatch(tm -> tm.getUser().getId().equals(user.getId()));
                 if (alreadyInTeam) {
-                    throw new IllegalArgumentException("You are already in the team or have a pending invitation.");
+                    throw new IllegalArgumentException("You are already in the team");
                 }
 
                 // Validate: sinh viên chưa có trong đội khác cùng Contest

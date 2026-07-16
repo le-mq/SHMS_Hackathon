@@ -161,9 +161,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                          .map(Category::getName)
+                          .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -610,5 +610,30 @@ public class JudgeService {
                         .maxScore(criteria.getMaxScore())
                         .percentageWeight(criteria.getPercentageWeight())
                         .build()));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean areScoresPublished(String username, Long contestId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
+        List<Category> categories = assignments.stream()
+                .map(JudgeAssignment::getCategory)
+                .filter(c -> c != null && c.getContest() != null)
+                .filter(c -> contestId == null || c.getContest().getId().equals(contestId))
+                .toList();
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (Category cat : categories) {
+            List<Round> rounds = roundRepository.findByContestId(cat.getContest().getId());
+            for (Round r : rounds) {
+                if (r.getReviewCalibrationAt() != null && !r.getReviewCalibrationAt().isAfter(now)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

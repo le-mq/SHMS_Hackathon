@@ -209,12 +209,17 @@ public class RankingAdminService {
         if (!readiness.isAllReady()) {
             throw new IllegalArgumentException("Not all evaluators have finalized scores");
         }
-        Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
-        String contestName = contest.getName();
 
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+
+        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Results have already been published for this round. No further modifications are allowed.");
+        }
+
+        Contest contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+        String contestName = contest.getName();
         String roundName = round.getPhaseName();
 
         List<ContestRubric> rubricsForRound = new ArrayList<>();
@@ -320,6 +325,11 @@ public class RankingAdminService {
         Round round = roundRepository.findById(request.getRoundId())
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
+        // Must publish scores first
+        if (round.getReviewCalibrationAt() == null || round.getReviewCalibrationAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("You must Publish Score before publishing results.");
+        }
+
         List<RankingResult> results = rankingResultRepository.findByRoundId(round.getId());
         if (results.isEmpty()) {
             throw new IllegalArgumentException("Leaderboard must be generated before publishing");
@@ -339,5 +349,26 @@ public class RankingAdminService {
                     rr.getTeam() != null ? rr.getTeam().getName() : "Leaderboard", "PENDING",
                     rr.getQualificationStatus(), "Published Leaderboard");
         }
+    }
+
+    @Transactional
+    public void publishScores(Long roundId) {
+        Round round = roundRepository.findById(roundId)
+                .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+
+        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Results have already been published. Cannot change the score publication state.");
+        }
+
+        if (round.getReviewCalibrationAt() != null && !round.getReviewCalibrationAt().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Scores have already been published for this round.");
+        }
+
+        round.setReviewCalibrationAt(LocalDateTime.now());
+        roundRepository.save(round);
+
+        auditLogService.log("PUBLISH_SCORES", "Round",
+                round.getPhaseName() != null ? round.getPhaseName() : "Round",
+                "UNPUBLISHED", "PUBLISHED", "Scores published - rankings not yet visible");
     }
 }

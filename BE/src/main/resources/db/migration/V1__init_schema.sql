@@ -326,7 +326,7 @@ CREATE TABLE RubricTemplate (
                                 category_id BIGINT NULL,
                                 template_name NVARCHAR(100) NOT NULL,
                                 description NVARCHAR(MAX) NULL,
-                                status VARCHAR(50) NULL,
+                                status VARCHAR(50) DEFAULT 'TEMPLATE' NULL,
                                 CONSTRAINT pk_rubric_template PRIMARY KEY (rubric_template_id),
                                 CONSTRAINT fk_rt_category FOREIGN KEY (category_id) REFERENCES Category(category_id)
 );
@@ -350,7 +350,7 @@ CREATE TABLE ContestRubric (
                                category_id BIGINT NOT NULL,
                                rubric_name NVARCHAR(100) NULL,
                                total_weight DECIMAL(18,2) NULL,
-                               status VARCHAR(50) NULL,
+                               status VARCHAR(50) DEFAULT 'TEMPLATE' NULL,
                                CONSTRAINT pk_contest_rubric PRIMARY KEY (contest_rubric_id),
                                CONSTRAINT fk_cr_template FOREIGN KEY (rubric_template_id) REFERENCES RubricTemplate(rubric_template_id),
                                CONSTRAINT fk_cr_category FOREIGN KEY (category_id) REFERENCES Category(category_id)
@@ -1523,3 +1523,11 @@ VALUES
 (8, 10, @C4_T09_ID, @Admin1_ID, 9, 76.00, 'ELIMINATED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T10_ID, @Admin1_ID, 10, 72.50, 'ELIMINATED', '2026-04-25 10:00:00');
 GO
+
+-- Normalize any DRAFT rubric status to TEMPLATE
+UPDATE RubricTemplate SET status = 'TEMPLATE' WHERE status = 'DRAFT' OR status = 'draft';
+UPDATE ContestRubric SET status = 'TEMPLATE' WHERE status = 'DRAFT' OR status = 'draft';
+UPDATE AuditLog SET old_value = 'TEMPLATE' WHERE (old_value = 'DRAFT' OR old_value = 'draft') AND entity_name LIKE '%Rubric%';
+UPDATE AuditLog SET new_value = 'TEMPLATE' WHERE (new_value = 'DRAFT' OR new_value = 'draft') AND entity_name LIKE '%Rubric%';
+GO
+
