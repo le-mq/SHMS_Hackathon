@@ -37,7 +37,7 @@ const AdminProfile = () => {
                     ...f,
                     fullName: data.fullName || localStorage.getItem('shms_fullname') || f.fullName,
                     email: data.corporateEmail || data.email || data.username || localStorage.getItem('shms_user') || f.email,
-                    telephoneNumber: data.telephoneNumber || '+84 123 456 789'
+                    telephoneNumber: data.telephoneNumber || ''
                 }));
 
                 if (data.avatarBase64) setAvatarPreview(data.avatarBase64);
@@ -344,7 +344,7 @@ const AdminProfile = () => {
                                 <div className="op-field-row single">
                                     <div className="op-field">
                                         <label className="op-label">Telephone Number</label>
-                                        <input className="op-input" name="telephoneNumber" value={form.telephoneNumber} onChange={handleChange} />
+                                        <input className="op-input" name="telephoneNumber" placeholder='e.g 0823456789' value={form.telephoneNumber} onChange={handleChange} />
                                         {form.telephoneNumber && !/^(03|05|07|08|09)\d{8}$/.test(form.telephoneNumber.trim()) && (
                                             <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                                 Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.
@@ -394,7 +394,6 @@ const AdminProfile = () => {
                                                 Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
                                             </div>
                                         )}
-                                        <p className="op-password-hint">Must be 8-32 characters long, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).</p>
                                     </div>
                                 </div>
 
