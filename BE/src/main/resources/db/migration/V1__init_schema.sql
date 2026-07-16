@@ -677,8 +677,6 @@ VALUES
 (4, 'Web3 - Smart Contracts & Security Rubric', N'Standard evaluation criteria for Smart Contract & Security projects', 'ACTIVE'),
 (5, 'Web3 - DeFi & Tokenomics Rubric', N'Standard evaluation criteria for DeFi & Tokenomics modeling projects', 'ACTIVE'),
 (6, 'Web3 - Decentralized DApps Rubric', N'Standard evaluation criteria for Decentralized Web3 DApp projects', 'ACTIVE'),
-(7, 'SEAL AI & Web3 Innovation Rubric', N'Evaluation criteria for AI & Web3 Innovation category', 'ACTIVE'),
-(8, 'SEAL Cloud & Big Data Rubric', N'Evaluation criteria for Cloud & Big Data Architecture category', 'ACTIVE'),
 (10, 'Enterprise Cloud & AI Rubric', N'Enterprise evaluation criteria for Cloud & Advanced AI solutions', 'ACTIVE');
 GO
 
@@ -688,8 +686,6 @@ DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplat
 DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 4);
 DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 5);
 DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
-DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
-DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
 DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO RubricTemplateCriteria (rubric_template_id, criteria_name, description, default_weight, max_score)
@@ -725,17 +721,6 @@ VALUES
 (@Rubric6_ID, 'Decentralized Architecture & On-chain Integration', N'Robust smart contract integration and decentralized storage efficiency', 35.00, 35.00),
 (@Rubric6_ID, 'Innovation & Market Adoption Potential', N'Unique value proposition and readiness for mass user adoption', 30.00, 30.00),
 
--- Category 7
-(@Rubric7_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
-(@Rubric7_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
-(@Rubric7_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
-(@Rubric7_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
-
--- Category 8
-(@Rubric8_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
-(@Rubric8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
-(@Rubric8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
-
 -- Category 10
 (@Rubric10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
 (@Rubric10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
@@ -749,8 +734,6 @@ DECLARE @Rubric3_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplat
 DECLARE @Rubric4_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 4);
 DECLARE @Rubric5_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 5);
 DECLARE @Rubric6_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 6);
-DECLARE @Rubric7_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 7);
-DECLARE @Rubric8_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 8);
 DECLARE @Rubric10_ID BIGINT = (SELECT TOP 1 rubric_template_id FROM RubricTemplate WHERE category_id = 10);
 
 INSERT INTO ContestRubric (rubric_template_id, category_id, rubric_name, total_weight, status)
@@ -761,8 +744,6 @@ VALUES
 (@Rubric4_ID, 4, 'Smart Contracts Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric5_ID, 5, 'DeFi & Tokenomics Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric6_ID, 6, 'Web3 DApps Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric7_ID, 7, 'SEAL AI & Web3 Judging Rubric', 100.00, 'ACTIVE'),
-(@Rubric8_ID, 8, 'Cloud & Big Data Judging Rubric', 100.00, 'ACTIVE'),
 (@Rubric10_ID, 10, 'Enterprise Cloud & AI Judging Rubric', 100.00, 'ACTIVE');
 GO
 
@@ -772,8 +753,6 @@ DECLARE @CR3_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHER
 DECLARE @CR4_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4);
 DECLARE @CR5_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 5);
 DECLARE @CR6_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 6);
-DECLARE @CR7_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 7);
-DECLARE @CR8_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 8);
 DECLARE @CR10_ID BIGINT = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 10);
 
 INSERT INTO ContestRubricDetails (contest_rubric_id, criteria_name, description, [weight], max_score)
@@ -809,17 +788,6 @@ VALUES
 (@CR6_ID, 'Decentralized Architecture & On-chain Integration', N'Robust smart contract integration and decentralized storage efficiency', 35.00, 35.00),
 (@CR6_ID, 'Innovation & Market Adoption Potential', N'Unique value proposition and readiness for mass user adoption', 30.00, 30.00),
 
--- Category 7
-(@CR7_ID, 'Problem Solving & Innovation', N'Breakthrough thinking in solving real-world challenges', 30.00, 30.00),
-(@CR7_ID, 'Engineering Excellence', N'Software architecture reliability and code cleanliness', 30.00, 30.00),
-(@CR7_ID, 'Business Feasibility', N'Commercialization potential and market scalability', 20.00, 20.00),
-(@CR7_ID, 'Live Demo & Q&A', N'Engaging live demonstration and defense during Q&A', 20.00, 20.00),
-
--- Category 8
-(@CR8_ID, 'Cloud Architecture & Scalability', N'Cloud system architecture and auto-scaling capacity', 35.00, 35.00),
-(@CR8_ID, 'Big Data Processing', N'Optimal big data ingestion and processing speed', 35.00, 35.00),
-(@CR8_ID, 'System Reliability', N'System fault tolerance, uptime, and performance stability', 30.00, 30.00),
-
 -- Category 10
 (@CR10_ID, 'Cloud Architecture & Reliability', N'Enterprise cloud scalability, fault tolerance, and DevOps practices', 35.00, 35.00),
 (@CR10_ID, 'Advanced AI & Data Mastery', N'Sophisticated AI model implementation and data processing pipelines', 35.00, 35.00),
@@ -851,12 +819,12 @@ SET IDENTITY_INSERT [Round] ON;
 INSERT INTO [Round] (round_id, contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
 (1, 1, 1, 'Qualification Round', 1, '2025-02-11 09:00:00', '2025-02-20 23:59:59', '2025-02-23 17:00:00', '2025-02-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
-(2, 1, 2, 'Final Presentation', 2, '2025-02-25 08:00:00', '2025-03-15 23:59:59', '2025-03-18 17:00:00', '2025-03-19 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
-(9, 1, 3, 'Data Science & Predictive AI Round', 3, '2025-03-20 08:00:00', '2025-03-27 23:59:59', '2025-03-28 17:00:00', '2025-03-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(2, 1, 2, 'Semifinal Round', 2, '2025-02-25 08:00:00', '2025-03-15 23:59:59', '2025-03-18 17:00:00', '2025-03-19 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(9, 1, 3, 'Final Presentation', 3, '2025-03-20 08:00:00', '2025-03-27 23:59:59', '2025-03-28 17:00:00', '2025-03-29 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
 
 (3, 2, 4, 'Qualification Round', 1, '2025-09-16 09:00:00', '2025-10-05 23:59:59', '2025-10-08 17:00:00', '2025-10-09 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
-(4, 2, 5, 'Final Presentation', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
-(10, 2, 6, 'Web3 DApps Round', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(4, 2, 5, 'Semifinal Round', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(10, 2, 6, 'Final Presentation', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
 
 (5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
 (6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
@@ -1518,12 +1486,12 @@ VALUES
 (1, 1, @PastTeam2_ID, @Admin1_ID, 2, 87.00, 'QUALIFIED', '2025-02-24 10:00:00'),
 (1, 1, @Team1_ID, @Admin1_ID, 3, 83.50, 'QUALIFIED', '2025-02-24 10:00:00'),
 
--- Contest 1 Round 2 (Final Presentation) Ranking
+-- Contest 1 Round 2 (Semifinal Round) Ranking
 (2, 2, @PastTeam1_ID, @Admin1_ID, 1, 92.50, 'QUALIFIED', '2025-03-19 10:00:00'),
 (2, 2, @PastTeam2_ID, @Admin1_ID, 2, 88.00, 'ELIMINATED', '2025-03-19 10:00:00'),
 (2, 2, @Team1_ID, @Admin1_ID, 3, 84.00, 'ELIMINATED', '2025-03-19 10:00:00'),
 
--- Contest 1 Round 9 (Data Science & Predictive AI Round) Ranking
+-- Contest 1 Round 9 (Final Presentation) Ranking
 (9, 3, @PastTeam1_ID, @Admin1_ID, 1, 94.00, 'QUALIFIED', '2025-03-29 10:00:00'),
 (9, 3, @PastTeam2_ID, @Admin1_ID, 2, 89.50, 'ELIMINATED', '2025-03-29 10:00:00'),
 (9, 3, @Team1_ID, @Admin1_ID, 3, 85.00, 'ELIMINATED', '2025-03-29 10:00:00'),
@@ -1533,12 +1501,12 @@ VALUES
 (3, 4, @Team2_ID, @Admin1_ID, 2, 89.00, 'QUALIFIED', '2025-10-21 10:00:00'),
 (3, 4, @Team3_ID, @Admin1_ID, 3, 85.00, 'QUALIFIED', '2025-10-21 10:00:00'),
 
--- Contest 2 Round 4 (Final Presentation) Ranking
+-- Contest 2 Round 4 (Semifinal Round) Ranking
 (4, 5, @PastTeam3_ID, @Admin1_ID, 1, 95.00, 'QUALIFIED', '2025-11-30 10:00:00'),
 (4, 5, @Team2_ID, @Admin1_ID, 2, 90.00, 'ELIMINATED', '2025-11-30 10:00:00'),
 (4, 5, @Team3_ID, @Admin1_ID, 3, 86.00, 'ELIMINATED', '2025-11-30 10:00:00'),
 
--- Contest 2 Round 10 (Web3 DApps Round) Ranking
+-- Contest 2 Round 10 (Final Presentation) Ranking
 (10, 6, @PastTeam3_ID, @Admin1_ID, 1, 96.00, 'QUALIFIED', '2025-11-28 10:00:00'),
 (10, 6, @Team2_ID, @Admin1_ID, 2, 91.00, 'ELIMINATED', '2025-11-28 10:00:00'),
 (10, 6, @Team3_ID, @Admin1_ID, 3, 87.00, 'ELIMINATED', '2025-11-28 10:00:00'),
