@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './Register.css';
 import { Link, useNavigate } from 'react-router-dom';
 import NavbarHome from './NavbarHome';
@@ -39,20 +39,20 @@ const convertTemplateToRegexStr = (template) => {
 
 const UNIVERSITY_EXAMPLES = {
     "FPT": {
-        codeExample: "SE185041",
-        emailExample: "nhatmysocutedl@gmail.com"
+        codeExample: "SE123456",
+        emailExample: "student@gmail.com"
     },
     "HCMUAF": {
         codeExample: "12345678",
         emailExample: "12345678@st.hcmuaf.edu.vn"
     },
     "HCMUT": {
-        codeExample: "2010001",
-        emailExample: "Leduyphuc@hcmut.edu.vn"
+        codeExample: "1234567",
+        emailExample: "student@hcmut.edu.vn"
     },
     "HCMUS": {
-        codeExample: "20120001",
-        emailExample: "20120001@student.hcmus.edu.vn"
+        codeExample: "12345678",
+        emailExample: "12345678@student.hcmus.edu.vn"
     },
     "HUFLIT": {
         codeExample: "20DH123456",
@@ -73,8 +73,8 @@ const getUniversityExamples = (uni, currentStudentCode) => {
             }
         }
         return {
-            codeExample: "SE185041",
-            emailExample: isPreK18 ? "student@fpt.edu.vn" : "nhatmysocutedl@gmail.com"
+            codeExample: "SE184567",
+            emailExample: isPreK18 ? "student@fpt.edu.vn" : "student@gmail.com"
         };
     }
     if (UNIVERSITY_EXAMPLES[code]) {
@@ -135,7 +135,9 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [universities, setUniversities] = useState([]);
     const [isExistingStudentAccount, setIsExistingStudentAccount] = useState(false);
-    const [countdown, setCountdown] = useState(5);
+    
+    // Ref quản lý timer ẩn thông báo lỗi sau 4s
+    const errorTimerRef = useRef(null);
 
     useEffect(() => {
         const fetchUniversities = async () => {
@@ -150,7 +152,20 @@ const Register = () => {
             }
         };
         fetchUniversities();
+
+        return () => {
+            if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+        };
     }, []);
+
+    // Hàm tự động xóa thông báo lỗi sau 4 giây
+    const triggerAutoClearError = () => {
+        if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+        errorTimerRef.current = setTimeout(() => {
+            setServerError('');
+            setIsExistingStudentAccount(false);
+        }, 4000);
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -395,6 +410,7 @@ const Register = () => {
         e.preventDefault();
         setServerError('');
         setSuccessMsg('');
+        setIsExistingStudentAccount(false);
 
         const cleanedData = {
             fullName: formData.fullName.trim().replace(/\s+/g, ' '),
@@ -425,18 +441,7 @@ const Register = () => {
                     setIsExistingStudentAccount(true);
                     setServerError('');
                     setSuccessMsg('');
-                    
-                    let secondsLeft = 3;
-                    setCountdown(secondsLeft);
-                    const timer = setInterval(() => {
-                        secondsLeft -= 1;
-                        if (secondsLeft < 0) {
-                            clearInterval(timer);
-                            navigate('/login');
-                        } else {
-                            setCountdown(secondsLeft);
-                        }
-                    }, 1000);
+                    triggerAutoClearError(); // Tự động xóa lỗi sau 4s
                     return;
                 }
 
@@ -520,17 +525,16 @@ const Register = () => {
                     friendlyMsg = "Registration Error: You are not verified as a current student of this university.";
                 }
 
-                // If we didn't map to a specific message, use the raw error or a generic one
                 if (!friendlyMsg) {
                     friendlyMsg = rawError;
                 }
 
-                // Update fields error state
                 if (Object.keys(fieldErrors).length > 0) {
                     setErrors(prev => ({ ...prev, ...fieldErrors }));
                 }
 
                 setServerError(friendlyMsg);
+                triggerAutoClearError(); // Tự động xóa lỗi sau 4s
                 return;
             }
 
@@ -541,6 +545,7 @@ const Register = () => {
 
         } catch (err) {
             setServerError('Unable to connect to the server. Please try again later.');
+            triggerAutoClearError(); // Tự động xóa lỗi sau 4s
         } finally {
             setIsLoading(false);
         }
@@ -625,14 +630,14 @@ const Register = () => {
                                 <input type="text" name="major" className={`form-input ${errors.major ? 'is-invalid' : ''}`} placeholder="e.g. Software Engineering" value={formData.major} onChange={handleChange} />
                                 {errors.major && <div className="invalid-feedback">{errors.major}</div>}
                             </div>
-                            <button type="submit" className="register-btn" disabled={isLoading || isFormInvalid || isExistingStudentAccount}>
+                            <button type="submit" className="register-btn" disabled={isLoading || isFormInvalid}>
                                 {isLoading ? 'Registering...' : 'Register Account'}
                             </button>
                             {isExistingStudentAccount ? (
                                 <div className="alert-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', marginTop: '15px' }}>
                                     <div style={{ fontWeight: 'bold' }}>This student already has an account.</div>
                                     <div>
-                                        Please click <Link to="/login" style={{ color: '#f20202', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in. or will redirect to login in {countdown}s
+                                        Please click <Link to="/login" style={{ color: '#f20202', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
                                     </div>
                                     <Link to="/login" className="register-btn" style={{ textDecoration: 'none', background: '#3b82f6', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', fontSize: '0.9em', marginTop: '5px', textAlign: 'center', width: 'auto' }}>
                                         Go to Login
