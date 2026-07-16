@@ -23,9 +23,10 @@ const RubricConfig = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('ALL');
+    const [filterContestId, setFilterContestId] = useState('ALL');
     const [initialLoading, setInitialLoading] = useState(true);
-
     const requestData = async (baseUrl, endpoint, fallbackPath) => {
         try {
             const res = await fetch(`${baseUrl}${endpoint}`, { headers });
@@ -60,8 +61,8 @@ const RubricConfig = () => {
                 })
                 .catch(err => console.error("Failed to load global categories", err))
         ])
-        .catch(err => console.error("Initial load error in RubricConfig", err))
-        .finally(() => setInitialLoading(false));
+            .catch(err => console.error("Initial load error in RubricConfig", err))
+            .finally(() => setInitialLoading(false));
     }, []);
 
     useEffect(() => {
@@ -95,13 +96,18 @@ const RubricConfig = () => {
         [editingTemplate]
     );
     const isBalanced = totalWeight === 100;
-    const startNew = () => {
+    const startNew = (isOfficialIntention = false) => {
         setEditingTemplate({
             id: null, name: selectedCategory ? `${selectedCategory.categoryName} Rubric` : '', description: '',
             publicVisibility: true, weightedScoring: true, bindContestId: selectedContestId || '', bindCategoryId: selectedCategoryId || '',
-            criteria: [{ ...newCriterion(), percentageWeight: '100' }]
+            criteria: [{ ...newCriterion(), percentageWeight: '100' }],
+            isOfficialBinding: isOfficialIntention
         });
         setEditorMode('new'); setError(''); setSuccess('');
+        setTimeout(() => {
+            const el = document.getElementById('rubric-editor');
+            if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
+        }, 100);
     };
 
     const startEdit = (tpl, isOfficial) => {
@@ -122,6 +128,10 @@ const RubricConfig = () => {
             criteria: (tpl.criteria || []).map((c, i) => ({ ...c, _localId: c.id ?? i, percentageWeight: c.percentageWeight !== undefined && c.percentageWeight !== null ? String(c.percentageWeight) : '' }))
         });
         setEditorMode('edit'); setError(''); setSuccess('');
+        setTimeout(() => {
+            const el = document.getElementById('rubric-editor');
+            if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
+        }, 100);
     };
 
     const cancelEditor = () => { setEditorMode(null); setEditingTemplate(null); setError(''); setSuccess(''); };
@@ -138,12 +148,16 @@ const RubricConfig = () => {
     };
 
     const handleAddCriterion = () => setEditingTemplate(prev => ({ ...prev, criteria: [...prev.criteria, newCriterion()] }));
-    const handleDeleteCriterion = (localId) => setEditingTemplate(prev => ({ ...prev, criteria: prev.criteria.filter(c => c._localId !== localId) }));
+    const handleDeleteCriterion = (localId) => {
+        if (window.confirm('Are you sure you want to remove this criterion?')) {
+            setEditingTemplate(prev => ({ ...prev, criteria: prev.criteria.filter(c => c._localId !== localId) }));
+        }
+    };
 
     const handleSave = async () => {
         if (!editingTemplate.name.trim()) return setError('Template name is required.');
         if (!isBalanced) return setError('Total weight must equal exactly 100%.');
-        if (!editingTemplate.bindCategoryId) return setError('Category is required to save the template.');
+        if (!editingTemplate.bindCategoryId && editingTemplate.bindContestId) return setError('Category is required when assigning an official rubric to a contest.');
         if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return setError('All criteria must have a name.');
         if (editingTemplate.bindContestId && editingTemplate.bindCategoryId) {
             const isDuplicateOfficial = contestRubrics.some(cr =>
@@ -161,7 +175,7 @@ const RubricConfig = () => {
             id: editingTemplate.id ? Number(editingTemplate.id) : null,
             name: editingTemplate.name, description: editingTemplate.description || '',
             publicVisibility: editingTemplate.publicVisibility, weightedScoring: editingTemplate.weightedScoring,
-            categoryId: Number(editingTemplate.bindCategoryId),
+            categoryId: editingTemplate.bindCategoryId ? Number(editingTemplate.bindCategoryId) : null,
             contestId: editingTemplate.bindContestId ? Number(editingTemplate.bindContestId) : null,
             criteria: editingTemplate.criteria.map(c => ({
                 id: c.id ? Number(c.id) : null,
@@ -225,9 +239,12 @@ const RubricConfig = () => {
         finally { setIsLoading(false); }
     };
 
-    const handleClone = (id) => handleAction(`${id}/clone`, 'POST', 'Template cloned!', () => {
+    const handleClone = (id) => handleAction(`${id}/clone`, 'POST', 'Template cloned successfully!', () => {
         const tpl = templates.find(t => t.id === id);
-        if (tpl) setTemplates(prev => [...prev, { ...tpl, id: Date.now(), name: tpl.name + ' (Copy)' }]);
+        if (tpl) {
+            setTemplates(prev => [...prev, { ...tpl, id: Date.now(), name: tpl.name + ' (Copy)' }]);
+            setSuccess('Template cloned successfully!');
+        }
     });
 
     const handleDelete = async (id) => {
@@ -272,165 +289,252 @@ const RubricConfig = () => {
     return (
         <div className="admin-container">
             <div className="config-wrapper">
-                <div className="rubric-page-header">
-                    <div>
+                <div className="rubric-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 24, marginBottom: 24 }}>
+                    <div style={{ flexShrink: 0 }}>
                         <h1 className="config-title">Rubric Configuration</h1>
                         <p className="config-subtitle">Manage reusable scoring criteria for each contest category.</p>
                     </div>
                     {editorMode === null && (
-                        <button className="rt-btn-primary" onClick={startNew}>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                            New Template
-                        </button>
+                        <div style={{ display: 'flex', flex: 1, maxWidth: 800, alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, padding: '4px 12px', gap: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" style={{ border: 'none', background: 'transparent', margin: 0, padding: '8px 0', outline: 'none', width: '100%', fontSize: 14 }} placeholder="Search rubrics, categories, contests..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                            <div style={{ width: 1, height: 24, backgroundColor: '#e5e7eb' }}></div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                <label style={{ margin: 0, fontSize: 13, color: '#4b5563', fontWeight: 600 }}>Contest:</label>
+                                <select className="form-select" style={{ border: 'none', background: 'transparent', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#111827', margin: 0, maxWidth: 300 }} value={filterContestId} onChange={e => setFilterContestId(e.target.value)}>
+                                    <option value="ALL">All Contests</option>
+                                    {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ width: 1, height: 24, backgroundColor: '#e5e7eb' }}></div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                <label style={{ margin: 0, fontSize: 13, color: '#4b5563', fontWeight: 600 }}>Show:</label>
+                                <select className="form-select" style={{ border: 'none', background: 'transparent', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#111827', margin: 0 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+                                    <option value="ALL">All Types</option>
+                                    <option value="OFFICIAL">Official</option>
+                                    <option value="DRAFT">Template</option>
+                                    <option value="CLONE">Cloned</option>
+                                </select>
+                            </div>
+                        </div>
                     )}
                 </div>
                 {!editorMode && error && <div className="alert-main alert-error">{error}</div>}
                 {!editorMode && success && <div className="alert-main alert-success">{success}</div>}
-                <div className="rt-filter-bar" style={{ marginBottom: 24 }}>
-                    <div className="rt-filter-item">
-                        <label className="form-label">Contest</label>
-                        <select className="form-select" value={selectedContestId} onChange={e => { setSelectedContestId(e.target.value); setEditorMode(null); }}>
-                            <option value="">— All Contests —</option>
-                            {contests.map(c => <option key={c.id} value={c.id}>{c.name} ({c.year} {c.season})</option>)}
-                        </select>
-                    </div>
-                    {selectedContestId && (
-                        <div className="rt-filter-item">
-                            <label className="form-label">Category</label>
-                            <select className="form-select" value={selectedCategoryId} onChange={e => { setSelectedCategoryId(e.target.value); setEditorMode(null); }}>
-                                <option value="">— All Categories —</option>
-                                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.categoryName}</option>)}
-                            </select>
-                        </div>
-                    )}
-                </div>
-                {(() => {
-                    const renderCard = (tpl, isOfficial) => {
-                        const isActived = contestRubrics.some(cr => cr.templateId === tpl.id);
-                        const isClone = tpl.name.includes('(Copy)');
+                {editorMode === null && (
+                    <>
+                        {(() => {
+                            const renderCard = (tpl, isOfficial) => {
+                                const isActived = contestRubrics.some(cr => cr.templateId === tpl.id);
+                                const isClone = tpl.name.includes('(Copy)');
+                                const catBinding = (tpl.categoryId || tpl.category?.id) ? (allGlobalCategories.find(c => String(c.id) === String(tpl.categoryId || tpl.category?.id))?.categoryName || 'Uncategorized') : 'Uncategorized';
 
-                        let cardClass = "rt-card";
-                        if (isClone) {
-                            cardClass += " rt-card-clone";
-                        } else if (isOfficial) {
-                            cardClass += " rt-card-official";
-                        } else {
-                            cardClass += " rt-card-draft";
-                        }
+                                let cardClass = "rt-card";
+                                if (isClone) cardClass += " rt-card-clone";
+                                else if (isOfficial) cardClass += " rt-card-official";
+                                else cardClass += " rt-card-draft";
 
-                        return (
-                            <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className={cardClass}>
-                                <div className="rt-card-top">
-                                    <div className="rt-card-icon">
-                                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                // Get associated contest names
+                                const associatedContests = contests.filter(c => contestRubrics.some(cr => cr.templateId === tpl.id && cr.contestId === c.id)).map(c => c.name);
+
+                                return (
+                                    <div key={`${isOfficial ? 'off' : 'bank'}-${tpl.id}`} className={cardClass}>
+                                        <div className="rt-card-top" style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                                            <div className="rt-card-info">
+                                                <div className="rt-card-row" style={{ marginBottom: 12 }}>
+                                                    <span className="rt-card-label">Name:</span>
+                                                    <h3 className="rt-card-name" style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '4px 0 0 0', lineHeight: 1.3 }}>
+                                                        {tpl.name.replace(' (Copy)', '')}
+                                                    </h3>
+                                                </div>
+                                                <div className="rt-card-row" style={{ marginBottom: 16 }}>
+                                                    <span className="rt-card-label">Description:</span>
+                                                    <p className="rt-card-desc" style={{ color: '#1f2937', fontSize: '13px', lineHeight: 1.5, margin: '4px 0 0 0' }}>{tpl.description || 'No description provided.'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="rt-card-badge">
+                                                {isOfficial ? <span className="rt-chip rt-chip-green">Official</span> : isClone ? <span className="rt-chip rt-chip-gray">Cloned</span> : <span className="rt-chip rt-chip-orange">Template</span>}
+                                            </div>
+                                        </div>
+                                        <div className="rt-card-details" style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12, paddingTop: 12 }}>
+                                            {isOfficial ? (
+                                                <div style={{ fontSize: 13, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    <span style={{ fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Used by:</span>
+                                                    <span style={{ marginLeft: 6, fontWeight: 600, color: '#111827' }}>
+                                                {associatedContests.length === 1 ? associatedContests[0] : associatedContests.length > 1 ? `${associatedContests.length} contests` : 'None'}
+                                            </span>
+                                                </div>
+                                            ) : isClone ? (
+                                                <div style={{ fontSize: 13, color: '#4b5563' }}>
+                                                    <span style={{ fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Cloned From:</span>
+                                                    <span style={{ marginLeft: 6, fontWeight: 500, color: '#4b5563' }}>Original Template</span>
+                                                </div>
+                                            ) : null}
+                                            <div style={{ fontSize: 13, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                <span style={{ fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Category:</span>
+                                                <span style={{ marginLeft: 6, fontWeight: 500, color: '#111827' }}>{catBinding}</span>
+                                            </div>
+                                            <div style={{ fontSize: 13, color: '#4b5563' }}>
+                                                <span style={{ fontWeight: 700, color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Criteria:</span>
+                                                <span style={{ marginLeft: 6, fontWeight: 500, color: '#111827' }}>{(tpl.criteria || []).length}</span>
+                                            </div>
+                                        </div>
+                                        <div className="rt-card-actions" style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+                                            <button className="rt-btn-ghost" onClick={() => startEdit(tpl, isOfficial)}>Edit</button>
+                                            <button className="rt-btn-ghost" onClick={() => handleClone(tpl.id)} disabled={isLoading}>Clone</button>
+                                            {!isActived && (
+                                                <button className="rt-btn-ghost" style={{ color: '#dc2626', marginLeft: 'auto' }} onClick={() => handleDelete(tpl.id)} disabled={isLoading}>Delete</button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="rt-card-info">
-                                        <h3 className="rt-card-name">
-                                            {tpl.name.replace(' (Copy)', '')}
-                                        </h3>
-                                        <p className="rt-card-desc" style={{ color: '#000', fontSize: '13px' }}>{tpl.description || 'No description'}</p>
-                                    </div>
-                                </div>
-                                <div className="rt-card-meta">
-                                    <span className="rt-chip">{(tpl.criteria || []).length} criteria</span>
-                                    {tpl.publicVisibility && <span className="rt-chip rt-chip-green">Public</span>}
-                                    {tpl.weightedScoring && <span className="rt-chip rt-chip-blue">Weighted</span>}
-                                </div>
-                                <div className="rt-card-actions">
-                                    <button className="rt-btn-ghost" onClick={() => startEdit(tpl, isOfficial)}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit</button>
-                                    <button className="rt-btn-ghost" onClick={() => handleClone(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Clone</button>
-                                    {!isActived && (
-                                        <button className="rt-btn-ghost" style={{ color: '#dc2626' }} onClick={() => handleDelete(tpl.id)} disabled={isLoading}><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Delete</button>
+                                );
+                            };
+
+                            const searchFilter = (tpl) => {
+                                if (filterContestId !== 'ALL') {
+                                    const isBoundToContest = contestRubrics.some(cr => cr.templateId === tpl.id && String(cr.contestId) === filterContestId);
+                                    if (!isBoundToContest) return false;
+                                }
+                                const term = searchTerm.toLowerCase();
+                                if (!term) return true;
+                                const catBinding = allGlobalCategories.find(c => String(c.id) === String(tpl.categoryId || tpl.category?.id))?.categoryName || '';
+                                const associatedContests = contests.filter(c => contestRubrics.some(cr => cr.templateId === tpl.id && cr.contestId === c.id)).map(c => c.name).join(' ');
+                                return tpl.name.toLowerCase().includes(term) ||
+                                    catBinding.toLowerCase().includes(term) ||
+                                    associatedContests.toLowerCase().includes(term);
+                            };
+
+                            let bankTemplates = templates.filter(tpl => tpl.status !== 'ACTIVE' && !contestRubrics.some(cr => cr.templateId === tpl.id)).filter(searchFilter);
+                            let cloneTemplates = bankTemplates.filter(tpl => tpl.name.includes('(Copy)'));
+                            let draftTemplates = bankTemplates.filter(tpl => !tpl.name.includes('(Copy)'));
+                            let offTemplates = officialTemplates.filter(searchFilter);
+
+                            if (filterType === 'OFFICIAL') { draftTemplates = []; cloneTemplates = []; }
+                            else if (filterType === 'TEMPLATE') { offTemplates = []; cloneTemplates = []; }
+                            else if (filterType === 'CLONE') { offTemplates = []; draftTemplates = []; }
+
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+                                    {(filterType === 'ALL' || filterType === 'OFFICIAL') && (
+                                        <div className="rt-workspace">
+                                            <div className="rt-workspace-header">
+                                                <div>
+                                                    <h2 className="rt-workspace-title">Official Rubrics</h2>
+                                                    <p className="rt-workspace-desc">Rubrics currently assigned to contests and used during evaluation.</p>
+                                                </div>
+                                                <button className="rt-btn-primary" onClick={() => startNew(true)}>Create Official</button>
+                                            </div>
+                                            {offTemplates.length > 0 ? (
+                                                <div className="rt-card-grid">{offTemplates.map(tpl => renderCard(tpl, true))}</div>
+                                            ) : (
+                                                <div className="rt-empty">
+                                                    <h3>No official rubrics found</h3>
+                                                    <p>Assign a draft rubric to a contest to make it official.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {(filterType === 'ALL' || filterType === 'TEMPLATE') && (
+                                        <div className="rt-workspace">
+                                            <div className="rt-workspace-header">
+                                                <div>
+                                                    <h2 className="rt-workspace-title">Template Rubrics</h2>
+                                                    <p className="rt-workspace-desc">Independent rubrics that are not assigned to any contest yet.</p>
+                                                </div>
+                                                <button className="rt-btn-primary" style={{ background: '#f59e0b', color: '#fff' }} onClick={() => startNew(false)}>Create Template</button>
+                                            </div>
+                                            {draftTemplates.length > 0 ? (
+                                                <div className="rt-card-grid">{draftTemplates.map(tpl => renderCard(tpl, false))}</div>
+                                            ) : (
+                                                <div className="rt-empty">
+                                                    <h3>No templates found</h3>
+                                                    <p>Create your first template to start designing evaluation criteria.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {(filterType === 'ALL' || filterType === 'CLONE') && (
+                                        <div className="rt-workspace">
+                                            <div className="rt-workspace-header">
+                                                <div>
+                                                    <h2 className="rt-workspace-title">Cloned Rubrics</h2>
+                                                    <p className="rt-workspace-desc">Private copies created from existing rubrics for customization.</p>
+                                                </div>
+                                            </div>
+                                            {cloneTemplates.length > 0 ? (
+                                                <div className="rt-card-grid">{cloneTemplates.map(tpl => renderCard(tpl, false))}</div>
+                                            ) : (
+                                                <div className="rt-empty">
+                                                    <h3>No cloned rubrics found</h3>
+                                                    <p>Clone an existing rubric to customize it safely.</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            </div>
-                        );
-                    };
-
-                    const bankTemplates = templates.filter(tpl => tpl.status !== 'ACTIVE' && !contestRubrics.some(cr => cr.templateId == tpl.id));
-                    const cloneTemplates = bankTemplates.filter(tpl => tpl.name.includes('(Copy)'));
-                    const draftTemplates = bankTemplates.filter(tpl => !tpl.name.includes('(Copy)'));
-                    return (
-                        <>
-                            {officialTemplates.length > 0 && editorMode === null && (
-                                <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#15803d', marginBottom: 16, borderBottom: '2px solid #dcfce7', paddingBottom: 8 }}>
-                                        {selectedContestId ? 'Official Contest Rubrics' : 'All Official Contest Rubrics'}
-                                    </h2>
-                                    <div className="rt-card-grid">{officialTemplates.map(tpl => renderCard(tpl, true))}</div>
-                                </div>
-                            )}
-                            {editorMode === null && (
-                                <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#c2410c', marginBottom: 16, borderBottom: '2px solid #ffedd5', paddingBottom: 8 }}>
-                                        Draft Rubrics
-                                    </h2>
-                                    {draftTemplates.length > 0 ? (
-                                        <div className="rt-card-grid">{draftTemplates.map(tpl => renderCard(tpl, false))}</div>
-                                    ) : (<div className="rt-empty" style={{ marginBottom: 24 }}><p>No draft templates found.</p></div>)}
-                                </div>
-                            )}
-                            {editorMode === null && cloneTemplates.length > 0 && (
-                                <div style={{ marginBottom: 32 }}>
-                                    <h2 style={{ fontSize: 16, fontWeight: 600, color: '#4b5563', marginBottom: 16, borderBottom: '2px solid #e5e7eb', paddingBottom: 8 }}>
-                                        Clone Templates
-                                    </h2>
-                                    <div className="rt-card-grid">{cloneTemplates.map(tpl => renderCard(tpl, false))}</div>
-                                </div>
-                            )}
-                        </>
-                    );
-                })()}
-
+                            );
+                        })()}
+                    </>
+                )}
 
                 {editorMode && editingTemplate && (
-                    <div className="rubric-grid">
+                    <div className="rubric-grid" id="rubric-editor">
                         <div>
-                            <div className="criterion-card" style={{ marginBottom: 20 }}>
-                                <div className="criterion-header">
+                            {editorMode === 'new' && editingTemplate.isOfficialBinding && (
+                                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                                    <svg style={{ color: '#3b82f6', marginTop: 2, flexShrink: 0 }} width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <h4 style={{ margin: '0 0 4px 0', color: '#1e3a8a', fontSize: 13, fontWeight: 700 }}>Creating an Official Rubric</h4>
+                                        <p style={{ margin: 0, color: '#1e40af', fontSize: 12, lineHeight: 1.4 }}>To save this as an Official Rubric, you <strong>must select both a Contest and a Category</strong> in the "Summary & Binding" panel on the right. Otherwise, it will just be saved as a Template.</p>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="criterion-card" style={{ padding: '16px 20px', marginBottom: 16 }}>
+                                <div className="criterion-header" style={{ marginBottom: 12 }}>
                                     <div className="criterion-title">
                                         {editorMode === 'edit' ? 'EDITING TEMPLATE' : 'NEW TEMPLATE'}
                                     </div>
                                     {editorMode === 'edit' && <span className="rt-editing-label">#{editingTemplate.id}</span>}
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Template Name <span style={{ color: 'red' }}>*</span></label>
-                                    <input className="form-input" type="text" value={editingTemplate.name} onChange={e => setEditingTemplate(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Standard Evaluation Rubric" />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Description</label>
-                                    <textarea className="form-textarea" value={editingTemplate.description || ''} onChange={e => setEditingTemplate(p => ({ ...p, description: e.target.value }))} placeholder="Describe when to use this template..." />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <div className="form-group" style={{ margin: 0 }}>
+                                        <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>Template Name <span style={{ color: 'red' }}>*</span></label>
+                                        <input className="form-input" style={{ margin: 0, fontWeight: 600, fontSize: 16 }} type="text" value={editingTemplate.name} onChange={e => setEditingTemplate(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Standard Evaluation Rubric" />
+                                    </div>
+                                    <div className="form-group" style={{ margin: 0 }}>
+                                        <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>Description</label>
+                                        <textarea className="form-textarea" style={{ margin: 0, minHeight: 40, padding: '8px 12px' }} value={editingTemplate.description || ''} onChange={e => setEditingTemplate(p => ({ ...p, description: e.target.value }))} placeholder="Describe when to use this template..." />
+                                    </div>
                                 </div>
                             </div>
 
                             {editingTemplate.criteria.map((c, index) => (
-                                <div key={c._localId} className="criterion-card">
-                                    <div className="criterion-header">
-                                        <div className="criterion-title">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                                            CRITERION #{index + 1}
+                                <div key={c._localId} style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: 8, backgroundColor: '#fff', marginBottom: 12 }}>
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                                        <div style={{ color: '#9ca3af', fontWeight: 600, paddingTop: 26, width: 20, textAlign: 'center' }}>{index + 1}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <label className="form-label" style={{ fontSize: 10, marginBottom: 4, color: '#6b7280', display: 'block' }}>CRITERION NAME</label>
+                                            <input type="text" className="form-input" style={{ margin: 0, fontWeight: 600, width: '100%', boxSizing: 'border-box' }} value={c.criteriaName} onChange={e => handleCriterionChange(c._localId, 'criteriaName', e.target.value)} placeholder="e.g. Code Quality" />
                                         </div>
-                                        <button className="delete-btn" onClick={() => handleDeleteCriterion(c._localId)}>
+                                        <div style={{ width: 80 }}>
+                                            <label className="form-label" style={{ fontSize: 10, marginBottom: 4, color: '#6b7280', display: 'block', textAlign: 'center' }}>MAX SCORE</label>
+                                            <input type="text" className="form-input" style={{ margin: 0, textAlign: 'center', width: '100%', boxSizing: 'border-box' }} value={c.maxScore} onChange={e => handleCriterionChange(c._localId, 'maxScore', e.target.value.replace(/[^0-9]/g, ''))} placeholder="0" />
+                                        </div>
+                                        <div style={{ width: 80 }}>
+                                            <label className="form-label" style={{ fontSize: 10, marginBottom: 4, color: '#6b7280', display: 'block', textAlign: 'center' }}>WEIGHT (%)</label>
+                                            <input type="text" className="form-input" style={{ margin: 0, textAlign: 'center', width: '100%', boxSizing: 'border-box' }} value={c.percentageWeight} onChange={e => handleCriterionChange(c._localId, 'percentageWeight', e.target.value.replace(/[^0-9]/g, ''))} placeholder="0" />
+                                        </div>
+                                        <button className="delete-btn" onClick={() => handleDeleteCriterion(c._localId)} style={{ padding: 8, marginTop: 18, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }} title="Remove Criterion">
                                             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label className="form-label">Criteria Name</label>
-                                            <input type="text" className="form-input" value={c.criteriaName} onChange={e => handleCriterionChange(c._localId, 'criteriaName', e.target.value)} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Max Score</label>
-                                            <input type="number" className="form-input" value={c.maxScore} onChange={e => handleCriterionChange(c._localId, 'maxScore', e.target.value)} />
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Criterion Description</label>
-                                        <textarea className="form-textarea" value={c.description || ''} onChange={e => handleCriterionChange(c._localId, 'description', e.target.value)} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Percentage Weight (%)</label>
-                                        <input type="text" className="form-input" placeholder="0" value={c.percentageWeight} onChange={e => handleCriterionChange(c._localId, 'percentageWeight', e.target.value)} />
+                                    <div style={{ paddingLeft: 32, marginTop: 12 }}>
+                                        <label className="form-label" style={{ fontSize: 10, marginBottom: 4, color: '#6b7280', display: 'block' }}>DESCRIPTION</label>
+                                        <textarea className="form-textarea" style={{ margin: 0, minHeight: 40, padding: '8px 12px', width: '100%', boxSizing: 'border-box', resize: 'vertical' }} value={c.description || ''} onChange={e => handleCriterionChange(c._localId, 'description', e.target.value)} placeholder="Explain the expectations for this criterion..." />
                                     </div>
                                 </div>
                             ))}
@@ -461,8 +565,8 @@ const RubricConfig = () => {
                                     <span className="stats-value">{editingTemplate.criteria.length}</span>
                                 </div>
                                 <div className="rt-action-btns">
-                                    <button className="save-btn" onClick={handleSave} disabled={isLoading || !isBalanced}>
-                                        {isLoading ? 'SAVING...' : editorMode === 'edit' ? 'UPDATE TEMPLATE' : (editingTemplate.bindContestId ? 'SAVE OFFICIAL RUBRIC' : 'SAVE DRAFT TEMPLATE')}
+                                    <button className="save-btn" onClick={handleSave} disabled={isLoading || !isBalanced} style={{ backgroundColor: (!editingTemplate.bindContestId && !(editorMode === 'edit' && editingTemplate.isOfficialBinding)) ? '#f59e0b' : '#10b981', color: '#fff', border: 'none' }}>
+                                        {isLoading ? 'SAVING...' : editorMode === 'edit' ? (editingTemplate.isOfficialBinding ? 'UPDATE OFFICIAL RUBRIC' : 'UPDATE TEMPLATE') : (editingTemplate.bindContestId ? 'SAVE OFFICIAL RUBRIC' : 'SAVE TEMPLATE')}
                                     </button>
                                     <button className="preview-btn" onClick={cancelEditor}>CANCEL</button>
                                 </div>
@@ -471,16 +575,19 @@ const RubricConfig = () => {
                             </div>
                             <div className="settings-card">
                                 <div className="settings-title">TEMPLATE CONFIGURATION</div>
-                                <div className="rt-info-badge" style={{ backgroundColor: editingTemplate.bindContestId ? '#dcfce7' : '#fef3c7' }}>
-                                    {editingTemplate.bindContestId ? (<span style={{ color: '#16a34a' }}>Saving as Official Contest Rubric</span>
-                                    ) : (<span style={{ color: '#d97706' }}>Saving as Draft in Template Bank</span>)}
+                                <div className="rt-info-badge" style={{ backgroundColor: editingTemplate.bindContestId && editingTemplate.bindCategoryId ? '#dcfce7' : '#fef3c7' }}>
+                                    {editingTemplate.bindContestId && editingTemplate.bindCategoryId ? (<span style={{ color: '#16a34a' }}>Saving as Official Contest Rubric</span>
+                                    ) : (<span style={{ color: '#d97706' }}>Saving as Template in Template Bank</span>)}
                                 </div>
                                 <p className="rt-card-desc" style={{ marginBottom: 12, fontSize: 12 }}>
-                                    Category is mandatory for template base definition. Select a contest only when establishing an official live rubric binding.</p>
+                                    {editingTemplate.isOfficialBinding
+                                        ? "Select both a Category and a Contest to bind this rubric officially."
+                                        : "Category and Contest bindings are optional for Templates. They can be assigned later."}
+                                </p>
                                 <div className="form-group">
-                                    <label className="form-label">Category <span style={{ color: 'red' }}>*</span></label>
-                                    <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
-                                        <option value="">— Choose category —</option>
+                                    <label className="form-label">Category</label>
+                                    <select className="form-select" value={editingTemplate.bindCategoryId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindCategoryId: e.target.value }))} disabled={editorMode === 'edit' && editingTemplate.isOfficialBinding}>
+                                        <option value="">{editingTemplate.isOfficialBinding ? "— Select Category (Required) —" : "— Optional Category Binding —"}</option>
                                         {allGlobalCategories.map(cat => {
                                             const isDuplicate = editingTemplate.bindContestId && contestRubrics.some(cr =>
                                                 String(cr.contestId) === String(editingTemplate.bindContestId) &&
@@ -496,8 +603,8 @@ const RubricConfig = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Contest</label>
-                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value }))} disabled={editingTemplate.isOfficialBinding}>
-                                        <option value="">— Optional (Bank Draft Template) —</option>
+                                    <select className="form-select" value={editingTemplate.bindContestId || ''} onChange={e => setEditingTemplate(p => ({ ...p, bindContestId: e.target.value }))} disabled={editorMode === 'edit' && editingTemplate.isOfficialBinding}>
+                                        <option value="">{editingTemplate.isOfficialBinding ? "— Select Contest (Required) —" : "— Leave blank for Template —"}</option>
                                         {contests.map(c => {
                                             const isDuplicate = editingTemplate.bindCategoryId && contestRubrics.some(cr =>
                                                 String(cr.contestId) === String(c.id) &&
