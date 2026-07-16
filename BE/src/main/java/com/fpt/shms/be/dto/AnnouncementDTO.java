@@ -9,12 +9,13 @@ public record AnnouncementDTO(
         String content,
         String type,
         LocalDateTime publishedAt,
-        java.util.List<String> targetRoles
+        java.util.List<String> targetRoles,
+        Long creatorId
 ) {
     public static AnnouncementDTO from(Announcement a) {
         java.util.List<String> rolesList = new java.util.ArrayList<>();
-        if (a.getTargetRoles() != null && !a.getTargetRoles().isBlank()) {
-            rolesList = java.util.Arrays.asList(a.getTargetRoles().split(","));
+        if (a.getTargets() != null && !a.getTargets().isEmpty()) {
+            rolesList = a.getTargets().stream().map(t -> t.getRole().getName()).toList();
         }
         return new AnnouncementDTO(
                 a.getId(),
@@ -22,7 +23,8 @@ public record AnnouncementDTO(
                 a.getContent(),
                 a.getType() != null ? a.getType().name() : "INFO",
                 a.getPublishedAt(),
-                rolesList
+                rolesList,
+                a.getAdminUser() != null ? a.getAdminUser().getId() : null
         );
     }
 }

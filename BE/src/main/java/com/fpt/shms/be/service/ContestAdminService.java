@@ -33,6 +33,7 @@ public class ContestAdminService {
     private final AuditLogService auditLogService;
     private final SubmissionRepository submissionRepository;
     private final RankingResultRepository rankingResultRepository;
+    private final AdminRepository adminRepository;
 
     @Transactional
     public List<Contest> getAllContests() {
@@ -125,8 +126,6 @@ public class ContestAdminService {
                                 r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
                         roundMap.put("gradingDeadlineAt",
                                 r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
-                        roundMap.put("reviewCalibrationAt",
-                                r.getReviewCalibrationAt() != null ? r.getReviewCalibrationAt().toString() : "");
                         roundMap.put("publishResultAt",
                                 r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
@@ -408,9 +407,9 @@ public class ContestAdminService {
 
         java.util.Set<Long> requestedRoundIds = (request.getRounds() == null) ? java.util.Collections.emptySet()
                 : request.getRounds().stream()
-                  .map(CreateTrackRoundRequest.RoundDto::getId)
-                  .filter(id -> id != null && id > 0)
-                  .collect(java.util.stream.Collectors.toSet());
+                .map(CreateTrackRoundRequest.RoundDto::getId)
+                .filter(id -> id != null && id > 0)
+                .collect(java.util.stream.Collectors.toSet());
 
         for (Round existing : existingRounds) {
             if (!requestedRoundIds.contains(existing.getId())) {
@@ -440,10 +439,7 @@ public class ContestAdminService {
                         throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' submission deadline cannot be after the contest end time.");
                     }
                     if (roundDto.getGradingDeadlineAt() != null && roundDto.getGradingDeadlineAt().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException(roundDto.getPhaseName() + " grading deadline cannot be after contest end time.");
-                    }
-                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getReviewCalibrationAt().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException(roundDto.getPhaseName() + " review calibration deadline cannot be after contest end time.");
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' grading deadline cannot be after the contest end time.");
                     }
                     if (roundDto.getPublishResultAt() != null && roundDto.getPublishResultAt().isAfter(contest.getContestEndAt())) {
                         throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' publish result time cannot be after the contest end time.");
@@ -492,7 +488,6 @@ public class ContestAdminService {
                 round.setSubmissionOpen(roundDto.getSubmissionOpen());
                 round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
                 round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
-                round.setReviewCalibrationAt(roundDto.getReviewCalibrationAt());
                 round.setPublishResultAt(roundDto.getPublishResultAt());
                 round.setState(state);
                 round.setContest(contest);
@@ -529,10 +524,11 @@ public class ContestAdminService {
         Contest contest = contestRepository.findById(request.getContestId())
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
 
-        String rolesString = null;
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            rolesString = String.join(",", request.getRoles());
-        }
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Admin admin = adminRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
 
         Announcement announcement = Announcement.builder()
                 .contest(contest)
@@ -542,8 +538,20 @@ public class ContestAdminService {
                 .publishedAt(java.time.LocalDateTime.now())
                 .isActive(true)
                 .status("ACTIVE")
-                .targetRoles(rolesString)
+                .adminUser(admin)
+                .targets(new ArrayList<>())
                 .build();
+
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            for (String roleName : request.getRoles()) {
+                roleRepository.findByName(roleName.toUpperCase()).ifPresent(role -> {
+                    announcement.getTargets().add(AnnouncementTarget.builder()
+                            .announcement(announcement)
+                            .role(role)
+                            .build());
+                });
+            }
+        }
 
         return announcementRepository.save(announcement);
     }
