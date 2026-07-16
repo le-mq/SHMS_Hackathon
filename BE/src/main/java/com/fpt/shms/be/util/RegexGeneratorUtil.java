@@ -1,145 +1,81 @@
 package com.fpt.shms.be.util;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class RegexGeneratorUtil {
 
-    private RegexGeneratorUtil() {
-    }
-
-    /**
-     * Generate email regex from sample emails.
-     *
-     * Example:
-     * student@fpt.edu.vn
-     * abc@hcmut.edu.vn
-     *
-     * =>
-     * ^[a-zA-Z0-9._%+-]+@(fpt\.edu\.vn|hcmut\.edu\.vn)$
-     */
     public static String generateEmailRegex(List<String> sampleEmails) {
-
         if (sampleEmails == null || sampleEmails.isEmpty()) {
             return null;
         }
 
         Set<String> domains = sampleEmails.stream()
                 .filter(email -> email != null && email.contains("@"))
-                .map(String::trim)
-                .map(email -> email.substring(email.lastIndexOf("@") + 1))
-                .map(Pattern::quote)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .map(email -> email.substring(email.lastIndexOf("@") + 1).trim())
+                .map(domain -> domain.replace(".", "\\.")) // Escape dot
+                .collect(Collectors.toSet());
 
         if (domains.isEmpty()) {
             return null;
         }
 
-        return "^[a-zA-Z0-9._%+-]+@(" +
-                String.join("|", domains) +
-                ")$";
+        String joinedDomains = String.join("|", domains);
+        return "^[a-zA-Z0-9._%+-]+@(" + joinedDomains + ")$";
     }
 
-    /**
-     * Generate Student ID regex from sample IDs.
-     *
-     * Examples:
-     *
-     * SE193544
-     * -> ^[A-Z]{2}\d{6}$
-     *
-     * HE201234
-     * -> ^[A-Z]{2}\d{6}$
-     *
-     * 12DH123456
-     * -> ^\d{2}[A-Z]{2}\d{6}$
-     *
-     * K22CNTT001
-     * -> ^[A-Z]{1}\d{2}[A-Z]{4}\d{3}$
-     */
     public static String generateStudentCodeRegex(List<String> sampleStudentIds) {
-
         if (sampleStudentIds == null || sampleStudentIds.isEmpty()) {
             return null;
         }
 
-        Set<String> generatedPatterns = sampleStudentIds.stream()
-                .filter(id -> id != null && !id.isBlank())
-                .map(String::trim)
-                .map(String::toUpperCase)
-                .map(RegexGeneratorUtil::buildPattern)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        // We want to extract prefix and suffix length.
+        // e.g., SE190001 -> prefix: SE, suffix length: 6
+        // C12345 -> prefix: C, suffix length: 5
+        // Use ^(.*?)(\\d+)$ to support empty prefixes or mixed prefixes (e.g., 12345678, 12DH123456)
+        Pattern pattern = Pattern.compile("^(.*?)(\\d+)$");
 
-        if (generatedPatterns.isEmpty()) {
+        // Group by suffix length, then collect prefixes
+        Map<Integer, Set<String>> groupedByLength = sampleStudentIds.stream()
+                .filter(id -> id != null && !id.trim().isEmpty())
+                .map(String::trim)
+                .map(pattern::matcher)
+                .filter(Matcher::matches)
+                .collect(Collectors.groupingBy(
+                        matcher -> matcher.group(2).length(),
+                        Collectors.mapping(matcher -> matcher.group(1).toUpperCase(), Collectors.toSet())
+                ));
+
+        if (groupedByLength.isEmpty()) {
+            // Fallback if none match the Prefix+Number pattern
             return null;
         }
 
-        if (generatedPatterns.size() == 1) {
-            return generatedPatterns.iterator().next();
+        List<String> parts = groupedByLength.entrySet().stream()
+                .map(entry -> {
+                    int length = entry.getKey();
+                    Set<String> prefixes = entry.getValue();
+                    String joinedPrefixes = String.join("|", prefixes);
+                    if (prefixes.size() > 1) {
+                        return "(" + joinedPrefixes + ")\\d{" + length + "}";
+                    } else {
+                        String singlePrefix = prefixes.iterator().next();
+                        if (singlePrefix.isEmpty()) {
+                            return "\\d{" + length + "}";
+                        }
+                        return singlePrefix + "\\d{" + length + "}";
+                    }
+                })
+                .collect(Collectors.toList());
+
+        if (parts.size() == 1) {
+            return "^(" + parts.get(0) + ")$";
+        } else {
+            return "^(" + String.join("|", parts) + ")$";
         }
-
-        return "^(" +
-                generatedPatterns.stream()
-                        .map(regex -> regex.substring(1, regex.length() - 1))
-                        .collect(Collectors.joining("|"))
-                + ")$";
-    }
-
-    /**
-     * Convert one student ID into regex.
-     *
-     * Example:
-     * SE193544
-     *
-     * =>
-     * ^[A-Z]{2}\d{6}$
-     */
-    private static String buildPattern(String input) {
-
-        StringBuilder regex = new StringBuilder("^");
-
-        int i = 0;
-
-        while (i < input.length()) {
-
-            char current = input.charAt(i);
-
-            if (Character.isLetter(current)) {
-
-                int count = 0;
-
-                while (i < input.length()
-                        && Character.isLetter(input.charAt(i))) {
-                    count++;
-                    i++;
-                }
-
-                regex.append("[A-Z]{").append(count).append("}");
-
-            } else if (Character.isDigit(current)) {
-
-                int count = 0;
-
-                while (i < input.length()
-                        && Character.isDigit(input.charAt(i))) {
-                    count++;
-                    i++;
-                }
-
-                regex.append("\\d{").append(count).append("}");
-
-            } else {
-
-                regex.append(Pattern.quote(String.valueOf(current)));
-                i++;
-            }
-        }
-
-        regex.append("$");
-
-        return regex.toString();
     }
 }
