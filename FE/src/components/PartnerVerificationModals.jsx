@@ -1,6 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
+export const formatEmailRegexToSamples = (regex) => {
+    if (!regex) return [];
+    if (regex.startsWith('^[a-zA-Z0-9._%+-]+@(') && regex.endsWith(')$')) {
+        let domainsStr = regex.substring(20, regex.length - 2);
+        return domainsStr.split('|').map(d => 'student@' + d.replace(/\\\./g, '.'));
+    }
+    return [regex];
+};
+
+export const formatIdRegexToSamples = (regex) => {
+    if (!regex) return [];
+    if (regex.startsWith('^(') && regex.endsWith(')$')) {
+        let core = regex.substring(2, regex.length - 2);
+        let result = [];
+        let regexPart = /((?:\([^)]+\)|[A-Za-z0-9\[\]-]*))\\d\{(\d+)\}/g;
+        let match;
+        let found = false;
+        while ((match = regexPart.exec(core)) !== null) {
+            found = true;
+            let prefixesStr = match[1];
+            let length = parseInt(match[2], 10);
+            let dummyNumber = '123456789'.substring(0, Math.min(length, 9));
+            if (length > 9) dummyNumber += Array(length - 9).fill('0').join('');
+            
+            if (prefixesStr.startsWith('(')) {
+                let prefixes = prefixesStr.substring(1, prefixesStr.length - 1).split('|');
+                prefixes.forEach(p => result.push(p.replace(/\[0-9\]/g, '0') + dummyNumber));
+            } else {
+                result.push(prefixesStr.replace(/\[0-9\]/g, '0') + dummyNumber);
+            }
+        }
+        if (found) return result;
+    }
+    return [regex];
+};
+
 // 1. ConfirmDialog Component
 export const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel", variant = "primary" }) => {
     return (
@@ -28,7 +64,7 @@ export const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confi
                         fontSize: '13px', 
                         fontWeight: 600, 
                         borderRadius: '6px',
-                        backgroundColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
+backgroundColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
                         borderColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
                         color: 'white'
                     }}
@@ -40,12 +76,48 @@ export const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confi
     );
 };
 
+// 1.5 TagInput Component
+export const TagInput = ({ tags, setTags, placeholder }) => {
+    const [inputValue, setInputValue] = useState('');
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = inputValue.trim();
+            if (val && !tags.includes(val)) {
+                setTags([...tags, val]);
+            }
+            setInputValue('');
+        }
+    };
+    const removeTag = (index) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
+    return (
+        <div style={{ border: '1px solid #dee2e6', borderRadius: '6px', padding: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px', backgroundColor: '#fff' }}>
+            {tags.map((tag, i) => (
+                <span key={i} style={{ background: '#f3f4f6', color: '#1f2937', padding: '2px 8px', borderRadius: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #e5e7eb' }}>
+                    {tag}
+                    <span style={{ cursor: 'pointer', fontWeight: 'bold', color: '#9ca3af' }} onClick={() => removeTag(i)}>&times;</span>
+                </span>
+            ))}
+            <input 
+                type="text" 
+                value={inputValue} 
+                onChange={(e) => setInputValue(e.target.value)} 
+                onKeyDown={handleKeyDown} 
+                placeholder={placeholder}
+                style={{ border: 'none', outline: 'none', flex: 1, minWidth: '150px', fontSize: '13px', padding: '4px', backgroundColor: 'transparent' }}
+            />
+        </div>
+    );
+};
+
 // 2. AddPartnerModal Component (Handles both Create and Edit)
 export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPartner }) => {
     const [name, setName] = useState('');
     const [universityCode, setUniversityCode] = useState('');
-    const [emailRegex, setEmailRegex] = useState('^[a-zA-Z0-9._%+-]+@example\\.edu\\.vn$');
-    const [studentCodeRegex, setStudentCodeRegex] = useState('^\\d+$');
+    const [sampleEmails, setSampleEmails] = useState([]);
+    const [sampleStudentIds, setSampleStudentIds] = useState([]);
 
     const [errors, setErrors] = useState({});
 
@@ -54,13 +126,13 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
             if (editPartner) {
                 setName(editPartner.name || '');
                 setUniversityCode(editPartner.universityCode || '');
-                setEmailRegex(editPartner.emailRegex || '');
-                setStudentCodeRegex(editPartner.studentCodeRegex || '');
+                setSampleEmails(editPartner.sampleEmails?.length > 0 ? editPartner.sampleEmails : formatEmailRegexToSamples(editPartner.emailRegex));
+                setSampleStudentIds(editPartner.sampleStudentIds?.length > 0 ? editPartner.sampleStudentIds : formatIdRegexToSamples(editPartner.studentCodeRegex));
             } else {
                 setName('');
                 setUniversityCode('');
-                setEmailRegex('^[a-zA-Z0-9._%+-]+@example\\.edu\\.vn$');
-                setStudentCodeRegex('^\\d+$');
+setSampleEmails([]);
+                setSampleStudentIds([]);
             }
             setErrors({});
         }
@@ -70,8 +142,6 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
         e.preventDefault();
         const trimmedName = name.trim();
         const trimmedCode = universityCode.trim();
-        const trimmedEmailRegex = emailRegex.trim();
-        const trimmedStudentCodeRegex = studentCodeRegex.trim();
 
         const newErrors = {};
 
@@ -87,24 +157,12 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
             newErrors.universityCode = 'Code (ID) already exists.';
         }
 
-        if (!trimmedEmailRegex) {
-            newErrors.emailRegex = 'Email Regex is required.';
-        } else {
-            try {
-                new RegExp(trimmedEmailRegex);
-            } catch (err) {
-                newErrors.emailRegex = 'Invalid regular expression format.';
-            }
+        if (sampleEmails.length === 0) {
+            newErrors.sampleEmails = 'Please provide at least one sample email.';
         }
 
-        if (!trimmedStudentCodeRegex) {
-            newErrors.studentCodeRegex = 'ID Regex is required.';
-        } else {
-            try {
-                new RegExp(trimmedStudentCodeRegex);
-            } catch (err) {
-                newErrors.studentCodeRegex = 'Invalid regular expression format.';
-            }
+        if (sampleStudentIds.length === 0) {
+            newErrors.sampleStudentIds = 'Please provide at least one sample student ID.';
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -116,8 +174,8 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
         onCreate({
             name: trimmedName,
             universityCode: trimmedCode,
-            emailRegex: trimmedEmailRegex,
-            studentCodeRegex: trimmedStudentCodeRegex
+            sampleEmails,
+            sampleStudentIds
         });
     };
 
@@ -145,8 +203,7 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.name}</Form.Control.Feedback>
                     </Form.Group>
-
-                    <Form.Group className="mb-3">
+<Form.Group className="mb-3">
                         <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>Code (ID) *</Form.Label>
                         <Form.Control
                             type="text"
@@ -163,33 +220,21 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>Email Regex *</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={emailRegex}
-                            onChange={(e) => {
-                                setEmailRegex(e.target.value);
-                                if (errors.emailRegex) setErrors(prev => ({ ...prev, emailRegex: '' }));
-                            }}
-                            isInvalid={!!errors.emailRegex}
-                            style={{ padding: '10px 12px', fontSize: '13px' }}
-                        />
-                        <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.emailRegex}</Form.Control.Feedback>
+                        <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>Sample Emails (Press Enter to add) *</Form.Label>
+                        <TagInput tags={sampleEmails} setTags={(tags) => { setSampleEmails(tags); if(errors.sampleEmails) setErrors(prev => ({...prev, sampleEmails: ''})) }} placeholder="e.g. student@fpt.edu.vn" />
+                        {errors.sampleEmails && <div style={{ color: '#dc3545', fontSize: '12.5px', marginTop: '4px', fontWeight: 600 }}>{errors.sampleEmails}</div>}
+                        <Form.Text className="text-muted" style={{ fontSize: '12px' }}>
+                            We will automatically generate the Email Regex based on these samples.
+                        </Form.Text>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>ID Regex *</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={studentCodeRegex}
-                            onChange={(e) => {
-                                setStudentCodeRegex(e.target.value);
-                                if (errors.studentCodeRegex) setErrors(prev => ({ ...prev, studentCodeRegex: '' }));
-                            }}
-                            isInvalid={!!errors.studentCodeRegex}
-                            style={{ padding: '10px 12px', fontSize: '13px' }}
-                        />
-                        <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.studentCodeRegex}</Form.Control.Feedback>
+                        <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>Sample Student IDs (Press Enter to add) *</Form.Label>
+                        <TagInput tags={sampleStudentIds} setTags={(tags) => { setSampleStudentIds(tags); if(errors.sampleStudentIds) setErrors(prev => ({...prev, sampleStudentIds: ''})) }} placeholder="e.g. SE190001, 123456" />
+                        {errors.sampleStudentIds && <div style={{ color: '#dc3545', fontSize: '12.5px', marginTop: '4px', fontWeight: 600 }}>{errors.sampleStudentIds}</div>}
+                        <Form.Text className="text-muted" style={{ fontSize: '12px' }}>
+                            We will automatically generate the ID Regex based on these samples.
+                        </Form.Text>
                     </Form.Group>
                 </Form>
             </Modal.Body>
@@ -197,7 +242,7 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
                 <Button 
                     variant="outline-secondary" 
                     onClick={onHide}
-                    style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
+style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
                 >
                     Cancel
                 </Button>
@@ -273,8 +318,7 @@ export const AddStudentModal = ({ show, onHide, onCreate, partners = [], selecte
 
         // Find the selected partner to run regex validations
         const partner = partners.find(p => p.name && p.name.trim().toLowerCase() === trimmedUniversity.toLowerCase());
-
-        if (!trimmedCode) {
+if (!trimmedCode) {
             newErrors.studentCode = 'Student ID is required.';
         } else if (partner && partner.studentCodeRegex) {
             try {
@@ -351,7 +395,7 @@ export const AddStudentModal = ({ show, onHide, onCreate, partners = [], selecte
                             }}
                             isInvalid={!!errors.fullName}
                             placeholder="e.g. Nguyen Van A"
-                            style={{ padding: '10px 12px', fontSize: '13px' }}
+style={{ padding: '10px 12px', fontSize: '13px' }}
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.fullName}</Form.Control.Feedback>
                     </Form.Group>
@@ -402,7 +446,7 @@ export const AddStudentModal = ({ show, onHide, onCreate, partners = [], selecte
                             }}
                             isInvalid={!!errors.major}
                             placeholder="e.g. Software Engineering"
-                            style={{ padding: '10px 12px', fontSize: '13px' }}
+style={{ padding: '10px 12px', fontSize: '13px' }}
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.major}</Form.Control.Feedback>
                     </Form.Group>
