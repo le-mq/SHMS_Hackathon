@@ -126,6 +126,8 @@ public class ContestAdminService {
                                 r.getSubmissionDeadline() != null ? r.getSubmissionDeadline().toString() : "");
                         roundMap.put("gradingDeadlineAt",
                                 r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt().toString() : "");
+                        roundMap.put("reviewCalibrationAt",
+                                r.getReviewCalibrationAt() != null ? r.getReviewCalibrationAt().toString() : "");
                         roundMap.put("publishResultAt",
                                 r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
@@ -441,8 +443,14 @@ public class ContestAdminService {
                     if (roundDto.getGradingDeadlineAt() != null && roundDto.getGradingDeadlineAt().isAfter(contest.getContestEndAt())) {
                         throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' grading deadline cannot be after the contest end time.");
                     }
+                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getReviewCalibrationAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' review calibration time cannot be after the contest end time.");
+                    }
                     if (roundDto.getPublishResultAt() != null && roundDto.getPublishResultAt().isAfter(contest.getContestEndAt())) {
                         throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' publish result time cannot be after the contest end time.");
+                    }
+                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getPublishResultAt() != null && !roundDto.getReviewCalibrationAt().isBefore(roundDto.getPublishResultAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' review calibration time must be strictly before the publish result time.");
                     }
                 }
 
@@ -488,6 +496,7 @@ public class ContestAdminService {
                 round.setSubmissionOpen(roundDto.getSubmissionOpen());
                 round.setSubmissionDeadline(roundDto.getSubmissionDeadline());
                 round.setGradingDeadlineAt(roundDto.getGradingDeadlineAt());
+                round.setReviewCalibrationAt(roundDto.getReviewCalibrationAt());
                 round.setPublishResultAt(roundDto.getPublishResultAt());
                 round.setState(state);
                 round.setContest(contest);

@@ -171,7 +171,6 @@ CREATE TABLE Announcement (
                               announcement_type VARCHAR(50) NULL,
                               status VARCHAR(50) NULL,
                               published_at DATETIME NULL,
-                              target_roles VARCHAR(255) NULL,
                               CONSTRAINT pk_announcement PRIMARY KEY (announcement_id),
                               CONSTRAINT fk_announcement_contest FOREIGN KEY (contest_id) REFERENCES Contest(contest_id),
                               CONSTRAINT fk_announcement_admin FOREIGN KEY (user_id) REFERENCES Admin(user_id)
@@ -660,12 +659,23 @@ GO
 
 -- 4. ANNOUNCEMENTS
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
-INSERT INTO Announcement (contest_id, user_id, title, content, announcement_type, status, published_at, target_roles)
+INSERT INTO Announcement (contest_id, user_id, title, content, announcement_type, status, published_at)
 VALUES
-(1, @Admin1_ID, N'Final Results Announcement: National AI Challenge 2025', N'Congratulations to AI Pioneers and Visionary Devs for winning the top awards!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00', 'STUDENT,MENTOR,JUDGE'),
-(2, @Admin1_ID, N'Summary of Global Blockchain Summit 2025', N'Blockchain Masters secured First Prize with their breakthrough DeFi solution.', 'GENERAL', 'PUBLISHED', '2025-12-01 09:00:00', 'STUDENT,MENTOR,JUDGE'),
-(3, @Admin1_ID, N'Welcome to SEAL Hackathon 2026', N'Official registration portal is now open. Please complete your team roster!', 'REGULATION', 'PUBLISHED', '2026-06-01 08:00:00', 'STUDENT,MENTOR,JUDGE'),
-(4, @Admin1_ID, N'Official Leaderboard & Winners of FPT Global Tech Championship 2026', N'Nexus AI emerged as Champion among 10 competing finalist teams in the Global Championship Round.', 'GENERAL', 'PUBLISHED', '2026-04-26 09:00:00', 'STUDENT,MENTOR,JUDGE');
+    (1, @Admin1_ID, N'Final Results Announcement: National AI Challenge 2025', N'Congratulations to AI Pioneers and Visionary Devs for winning the top awards!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00'),
+    (2, @Admin1_ID, N'Summary of Global Blockchain Summit 2025', N'Blockchain Masters secured First Prize with their breakthrough DeFi solution.', 'GENERAL', 'PUBLISHED', '2025-12-01 09:00:00'),
+    (3, @Admin1_ID, N'Welcome to SEAL Hackathon 2026', N'Official registration portal is now open. Please complete your team roster!', 'REGULATION', 'PUBLISHED', '2026-06-01 08:00:00'),
+    (4, @Admin1_ID, N'Official Leaderboard & Winners of FPT Global Tech Championship 2026', N'Nexus AI emerged as Champion among 10 competing finalist teams in the Global Championship Round.', 'GENERAL', 'PUBLISHED', '2026-04-26 09:00:00');
+
+DECLARE @StudentRole_ID BIGINT = (SELECT TOP 1 role_id FROM [Role] WHERE role_name = 'STUDENT');
+DECLARE @MentorRole_ID BIGINT = (SELECT TOP 1 role_id FROM [Role] WHERE role_name = 'MENTOR');
+DECLARE @JudgeRole_ID BIGINT = (SELECT TOP 1 role_id FROM [Role] WHERE role_name = 'JUDGE');
+
+INSERT INTO AnnouncementTarget (announcement_id, role_id)
+VALUES
+    (1, @StudentRole_ID), (1, @MentorRole_ID), (1, @JudgeRole_ID),
+    (2, @StudentRole_ID), (2, @MentorRole_ID), (2, @JudgeRole_ID),
+    (3, @StudentRole_ID), (3, @MentorRole_ID), (3, @JudgeRole_ID),
+    (4, @StudentRole_ID), (4, @MentorRole_ID), (4, @JudgeRole_ID);
 GO
 
 -- 5. RUBRICS & CRITERIA
@@ -816,20 +826,20 @@ GO
 
 -- 7. ROUNDS
 SET IDENTITY_INSERT [Round] ON;
-INSERT INTO [Round] (round_id, contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, publish_result_at, status, submission_requirements, round_format)
+INSERT INTO [Round] (round_id, contest_id, category_id, round_name, round_order, submission_open_at, submission_deadline_at, grading_deadline_at, review_calibration_at, publish_result_at, status, submission_requirements, round_format)
 VALUES
-(1, 1, 1, 'Qualification Round', 1, '2025-02-11 09:00:00', '2025-02-20 23:59:59', '2025-02-23 17:00:00', '2025-02-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
-(2, 1, 2, 'Semifinal Round', 2, '2025-02-25 08:00:00', '2025-03-15 23:59:59', '2025-03-18 17:00:00', '2025-03-19 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
-(9, 1, 3, 'Final Presentation', 3, '2025-03-20 08:00:00', '2025-03-27 23:59:59', '2025-03-28 17:00:00', '2025-03-29 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
+(1, 1, 1, 'Qualification Round', 1, '2025-02-11 09:00:00', '2025-02-20 23:59:59', '2025-02-23 17:00:00', '2025-02-24 08:00:00', '2025-02-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
+(2, 1, 2, 'Semifinal Round', 2, '2025-02-25 08:00:00', '2025-03-15 23:59:59', '2025-03-18 17:00:00', '2025-03-19 08:00:00', '2025-03-19 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(9, 1, 3, 'Final Presentation', 3, '2025-03-20 08:00:00', '2025-03-27 23:59:59', '2025-03-28 17:00:00', '2025-03-29 08:00:00', '2025-03-29 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
 
-(3, 2, 4, 'Qualification Round', 1, '2025-09-16 09:00:00', '2025-10-05 23:59:59', '2025-10-08 17:00:00', '2025-10-09 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
-(4, 2, 5, 'Semifinal Round', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
-(10, 2, 6, 'Final Presentation', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
+(3, 2, 4, 'Qualification Round', 1, '2025-09-16 09:00:00', '2025-10-05 23:59:59', '2025-10-08 17:00:00', '2025-10-09 08:00:00', '2025-10-09 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL', 'Remote Submission'),
+(4, 2, 5, 'Semifinal Round', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 08:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(10, 2, 6, 'Final Presentation', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-27 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
 
-(5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
-(6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 08:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
+(6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 08:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
 
-(8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
+(8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-23 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
 SET IDENTITY_INSERT [Round] OFF;
 GO
 
