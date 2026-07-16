@@ -234,7 +234,7 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                             <div className="ts-member-list" style={{ marginTop: '16px', borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
                                 <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Team Leader:</p>
                                 {roster.map(member => {
-                                    const isErrorMember = (error && member.fullName && error.includes(member.fullName)) || member.isUnauthorized === true;
+                                    const isErrorMember = (error && member.fullName && error.includes(member.fullName)) || member.isUnauthorized === true || member.hasAlreadyParticipated === true;
                                     return (
                                         <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
                                             <input
@@ -245,7 +245,7 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                                                 onChange={() => onSelectLeader(member.studentId)}
                                             />
                                             <span style={{ fontSize: '14px', color: isErrorMember ? '#ef4444' : '#475569', fontWeight: isErrorMember ? '600' : 'normal' }}>
-                                            {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''}
+                                            {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''} {member.hasAlreadyParticipated ? '(Already Participated)' : ''}
                                         </span>
                                         </label>
                                     );
