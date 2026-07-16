@@ -11,10 +11,18 @@ const StudentProfile = () => {
         newPassword: '',
         confirmNewPassword: ''
     });
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [error, setError] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+    const [currentPasswordError, setCurrentPasswordError] = useState('');
+    const [newPasswordError, setNewPasswordError] = useState('');
+    const [confirmPasswordError, setConfirmPasswordError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -76,6 +84,10 @@ const StudentProfile = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
         setError('');
         setSuccess('');
+        if (name === 'telephoneNumber') setPhoneError('');
+        if (name === 'currentPassword') setCurrentPasswordError('');
+        if (name === 'newPassword') setNewPasswordError('');
+        if (name === 'confirmNewPassword') setConfirmPasswordError('');
     };
 
     const handleFileChange = (e) => {
@@ -96,35 +108,24 @@ const StudentProfile = () => {
     };
 
     const isFormInvalid = () => {
-        const { telephoneNumber, currentPassword, newPassword, confirmNewPassword } = formData;
-        const trimmedPhone = telephoneNumber.trim();
-        if (trimmedPhone) {
-            if (!/^(03|05|07|08|09)\d{8}$/.test(trimmedPhone)) {
-                return true;
-            }
-        }
-        if (currentPassword || newPassword || confirmNewPassword) {
-            if (!currentPassword) return true;
-            if (!newPassword) return true;
-            if (newPassword.length < 8 || newPassword.length > 32 || /\s/.test(newPassword)) return true;
-            if (!/[a-z]/.test(newPassword)) return true;
-            if (!/[A-Z]/.test(newPassword)) return true;
-            if (!/\d/.test(newPassword)) return true;
-            if (!/[^a-zA-Z\d\s]/.test(newPassword)) return true;
-            if (newPassword !== confirmNewPassword) return true;
-        }
         return false;
     };
 
     const handleSave = async () => {
         setError('');
+        setPhoneError('');
+        setCurrentPasswordError('');
+        setNewPasswordError('');
+        setConfirmPasswordError('');
         setSuccess('');
 
         const cleanedPhone = formData.telephoneNumber.trim();
+        let hasError = false;
+
         if (cleanedPhone) {
             if (!/^(03|05|07|08|09)\d{8}$/.test(cleanedPhone)) {
-                setError('Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09');
-                return;
+                setPhoneError('Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.');
+                hasError = true;
             }
         }
 
@@ -133,49 +134,34 @@ const StudentProfile = () => {
             avatarBase64: avatarPreview
         };
 
-        if (formData.newPassword || formData.currentPassword) {
+        if (formData.newPassword || formData.currentPassword || formData.confirmNewPassword) {
             if (!formData.currentPassword) {
-                setError('Current password is required to change password');
-                return;
+                setCurrentPasswordError('Current password is required to change password');
+                hasError = true;
             }
             if (!formData.newPassword) {
-                setError('New password is required to change password');
-                return;
+                setNewPasswordError('New password is required to change password');
+                hasError = true;
             }
 
             const newPwd = formData.newPassword;
-            if (newPwd.length < 8 || newPwd.length > 32) {
-                setError('New password must be between 8 and 32 characters');
-                return;
+            if (newPwd) {
+                if (newPwd.length < 8 || newPwd.length > 32 || /\s/.test(newPwd) || !/[a-z]/.test(newPwd) || !/[A-Z]/.test(newPwd) || !/\d/.test(newPwd) || !/[^a-zA-Z\d\s]/.test(newPwd)) {
+                    setNewPasswordError('Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).');
+                    hasError = true;
+                }
             }
-            if (/\s/.test(newPwd)) {
-                setError('New password must not contain spaces');
-                return;
-            }
-            if (!/[a-z]/.test(newPwd)) {
-                setError('New password must contain at least one lowercase letter');
-                return;
-            }
-            if (!/[A-Z]/.test(newPwd)) {
-                setError('New password must contain at least one uppercase letter');
-                return;
-            }
-            if (!/\d/.test(newPwd)) {
-                setError('New password must contain at least one digit');
-                return;
-            }
-            if (!/[^a-zA-Z\d\s]/.test(newPwd)) {
-                setError('New password must contain at least one special character');
-                return;
-            }
+            
             if (formData.newPassword !== formData.confirmNewPassword) {
-                setError('New password and confirm password do not match');
-                return;
+                setConfirmPasswordError('Confirm password does not match new password');
+                hasError = true;
             }
 
             updateData.currentPassword = formData.currentPassword;
             updateData.newPassword = newPwd;
         }
+
+        if (hasError) return;
 
         setIsLoading(true);
 
@@ -210,8 +196,12 @@ const StudentProfile = () => {
         }
     };
 
-    const handleDeleteAccount = async () => {
-        if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
+    const handleDeleteAccount = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDeleteAccount = async () => {
+        setShowDeleteConfirm(false);
 
         try {
             const response = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/profile", {
@@ -306,12 +296,12 @@ const StudentProfile = () => {
                         </div>
                         <div className="form-group">
                             <label className="form-label">Corporate Email</label>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <input type="text" className="form-input" value={profile?.corporateEmail || ''} disabled style={{ flex: 1 }} />
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input type="text" className="form-input" value={profile?.corporateEmail || ''} disabled style={{ flex: 1, margin: 0 }} />
                                 {profile && profile.isEmailVerified === true && (
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', height: '32px',
-                                        padding: '0 12px', fontSize: '14px', color: '#10b981', fontWeight: '600', background: '#ecfdf5',
-                                        borderRadius: '4px', border: '1px solid #10b981',whiteSpace: 'nowrap'
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                        padding: '9px 16px', fontSize: '14px', color: '#10b981', fontWeight: '600', background: '#ecfdf5',
+                                        borderRadius: '6px', border: '1px solid #10b981', whiteSpace: 'nowrap'
                                     }}>
 
                                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,9 +312,9 @@ const StudentProfile = () => {
                                 )}
                                 {profile && profile.isEmailVerified !== true && (
                                     <div style={{
-                                        display: 'flex', alignItems: 'center',
-                                        color: '#b45309', fontWeight: '600', padding: '0 10px',
-                                        background: '#fffbeb', borderRadius: '4px', border: '1px solid #f59e0b',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        color: '#b45309', fontWeight: '600', padding: '9px 16px', fontSize: '14px',
+                                        background: '#fffbeb', borderRadius: '6px', border: '1px solid #f59e0b',
                                         whiteSpace: 'nowrap'
                                     }}>
                                         Pending
@@ -355,10 +345,11 @@ const StudentProfile = () => {
                                 placeholder="+84 90 123 4567"
                                 value={formData.telephoneNumber}
                                 onChange={handleChange}
+                                style={phoneError ? { borderColor: '#ef4444' } : {}}
                             />
-                            {formData.telephoneNumber && !/^(03|05|07|08|09)\d{8}$/.test(formData.telephoneNumber.trim()) && (
+                            {phoneError && (
                                 <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                                    Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.
+                                    {phoneError}
                                 </div>
                             )}
                         </div>
@@ -367,44 +358,91 @@ const StudentProfile = () => {
                     <div className="form-grid">
                         <div className="form-group">
                             <label className="form-label">Current Password</label>
-                            <input
-                                type="password"
-                                name="currentPassword"
-                                className="form-input"
-                                placeholder="••••••••"
-                                value={formData.currentPassword}
-                                onChange={handleChange}
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    name="currentPassword"
+                                    className="form-input"
+                                    placeholder="••••••••"
+                                    value={formData.currentPassword}
+                                    onChange={handleChange}
+                                    style={{ paddingRight: '40px', ...(currentPasswordError ? { borderColor: '#ef4444' } : {}) }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                >
+                                    {showCurrentPassword ? (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    ) : (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                                    )}
+                                </button>
+                            </div>
+                            {currentPasswordError && (
+                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                    {currentPasswordError}
+                                </div>
+                            )}
                         </div>
                         <div className="form-group">
                             <label className="form-label">New Password</label>
-                            <input
-                                type="password"
-                                name="newPassword"
-                                className="form-input"
-                                placeholder="Leave blank to keep current"
-                                value={formData.newPassword}
-                                onChange={handleChange}
-                            />
-                            {formData.newPassword && (formData.newPassword.length < 8 || formData.newPassword.length > 32 || /\s/.test(formData.newPassword) || !/[a-z]/.test(formData.newPassword) || !/[A-Z]/.test(formData.newPassword) || !/\d/.test(formData.newPassword) || !/[^a-zA-Z\d\s]/.test(formData.newPassword)) && (
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    name="newPassword"
+                                    className="form-input"
+                                    placeholder="Leave blank to keep current"
+                                    value={formData.newPassword}
+                                    onChange={handleChange}
+                                    style={{ paddingRight: '40px', ...(newPasswordError ? { borderColor: '#ef4444' } : {}) }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                >
+                                    {showNewPassword ? (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    ) : (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                                    )}
+                                </button>
+                            </div>
+                            {newPasswordError && (
                                 <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
-                                    Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                    {newPasswordError}
                                 </div>
                             )}
                         </div>
                         <div className="form-group">
                             <label className="form-label">Confirm New Password</label>
-                            <input
-                                type="password"
-                                name="confirmNewPassword"
-                                className="form-input"
-                                placeholder="Re-enter new password"
-                                value={formData.confirmNewPassword}
-                                onChange={handleChange}
-                            />
-                            {formData.confirmNewPassword && formData.newPassword !== formData.confirmNewPassword && (
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    name="confirmNewPassword"
+                                    className="form-input"
+                                    placeholder="Re-enter new password"
+                                    value={formData.confirmNewPassword}
+                                    onChange={handleChange}
+                                    style={{ paddingRight: '40px', ...(confirmPasswordError ? { borderColor: '#ef4444' } : {}) }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                >
+                                    {showConfirmPassword ? (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    ) : (
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                                    )}
+                                </button>
+                            </div>
+                            {confirmPasswordError && (
                                 <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                                    Confirm password does not match new password.
+                                    {confirmPasswordError}
                                 </div>
                             )}
                         </div>
@@ -433,6 +471,28 @@ const StudentProfile = () => {
                     </div>
                 </div>
             </div>
+
+            {showDeleteConfirm && (
+                <div className="profile-modal-overlay">
+                    <div className="profile-modal">
+                        <div className="profile-modal-header">
+                            <h3 className="profile-modal-title">Delete Account</h3>
+                            <button className="profile-modal-close" onClick={() => setShowDeleteConfirm(false)}>
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="profile-modal-body">
+                            Are you sure you want to delete this account? This action cannot be undone.
+                        </div>
+                        <div className="profile-modal-footer">
+                            <button className="profile-modal-cancel-btn" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                            <button className="profile-modal-confirm-btn" onClick={confirmDeleteAccount}>OK</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -198,6 +198,8 @@ const StudentDashboard = () => {
 
     const [isCreating, setIsCreating] = useState(false);
     const [pendingInvitations, setPendingInvitations] = useState([]);
+    const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+    const [rejectToken, setRejectToken] = useState(null);
 
     const selectedContestId = activeContest?.id != null ? String(activeContest.id) : '';
 
@@ -305,7 +307,11 @@ const StudentDashboard = () => {
             const json = await res.json();
             if (res.ok) {
                 alert(json.message || `Invitation ${action.toLowerCase()}ed.`);
-                window.location.reload();
+                if (action === 'ACCEPT') {
+                    navigate('/student/team/status');
+                } else {
+                    window.location.reload();
+                }
             } else {
                 alert(json.error || 'Failed to respond to invitation');
             }
@@ -501,9 +507,22 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
+                    <div className="create-team-card">
+                        <svg className="action-icon-bg" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" /></svg>
+                        <div style={{ marginBottom: 24 }}>
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                        </div>
+                        <h3 className="section-header" style={{ color: 'white' }}>Create a New Team</h3>
+
+                        <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setNewTeamName(''); setCreateError(''); }}>
+                            Start Building
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                        </a>
+                    </div>
+
                     {/* Pending Invitations Inbox */}
                     {pendingInvitations.length > 0 && (
-                        <div style={{ background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '12px', padding: '20px' }}>
+                        <div style={{ background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '12px', padding: '20px', marginTop: '24px' }}>
                             <h2 className="section-header" style={{ fontSize: '1.1rem', color: '#0f172a', marginBottom: '12px' }}>
                                 Pending Team Invitations ({pendingInvitations.length})
                             </h2>
@@ -518,27 +537,15 @@ const StudentDashboard = () => {
                                                 Check your email for the Invite code.
                                             </div>
                                         </div>
-                                        <div>
-                                            <button onClick={() => handleRespondInvitation(inv.invitationToken, 'REJECT')} style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}>Reject</button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <button onClick={() => window.open('https://gmail.google.com', '_blank')} style={{ padding: '6px 12px', background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Approve</button>
+                                            <button onClick={() => { setRejectToken(inv.invitationToken); setShowRejectConfirm(true); }} style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Reject</button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-
-                    <div className="create-team-card">
-                        <svg className="action-icon-bg" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" /></svg>
-                        <div style={{ marginBottom: 24 }}>
-                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                        </div>
-                        <h3 className="section-header" style={{ color: 'white' }}>Create a New Team</h3>
-
-                        <a href="#" className="create-team-link" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setNewTeamName(''); setCreateError(''); }}>
-                            Start Building
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                        </a>
-                    </div>
                 </div>
             </div>
 
@@ -575,6 +582,39 @@ const StudentDashboard = () => {
                                 style={{ padding: '10px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                             >
                                 {isCreating ? 'Creating...' : 'Create Team'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reject Confirmation Modal */}
+            {showRejectConfirm && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', padding: '24px 32px 32px', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px' }}>
+                            <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.25rem' }}>Reject Invitation</h3>
+                            <button onClick={() => setShowRejectConfirm(false)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b', lineHeight: '1' }}>&times;</button>
+                        </div>
+                        <p style={{ color: '#334155', fontSize: '1rem', marginBottom: '32px' }}>Are you sure you want to reject this invitation?</p>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-start' }}>
+                            <button
+                                onClick={() => setShowRejectConfirm(false)}
+                                style={{ flex: 1, padding: '12px 16px', background: '#fff', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowRejectConfirm(false);
+                                    if (rejectToken) {
+                                        handleRespondInvitation(rejectToken, 'REJECT');
+                                    }
+                                }}
+                                style={{ flex: 1, padding: '12px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                OK
                             </button>
                         </div>
                     </div>
