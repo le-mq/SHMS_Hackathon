@@ -7,6 +7,7 @@ import LatestAnnouncements from './LatestAnnouncements';
 const MENTOR_LINKS = [
     { label: 'Dashboard', path: '/mentor/workspace' },
     { label: 'Leaderboard', path: '/leaderboard' },
+    { label: 'Result Review', path: '/mentor/result-review' },
 ];
 
 const NavbarMentor = () => {

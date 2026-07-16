@@ -27,6 +27,8 @@ import EnforcementAuditLogs from "../components/EnforcementAuditLogs.jsx";
 import NotFound from "../components/NotFound.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import CompetitionRegistration from "../components/CompetitionRegistration.jsx";
+import JudgeResultReview from "../components/JudgeResultReview.jsx";
+import MentorResultReview from "../components/MentorResultReview.jsx";
 
 function AppRouters() {
     const routers = createBrowserRouter([
@@ -53,10 +55,12 @@ function AppRouters() {
                 { path: "judge/workspace", element: <PrivateRoute Component={EvaluatorDashboard} /> },
                 { path: "judge/evaluate/:teamId", element: <PrivateRoute Component={EvaluationWorkspace} /> },
                 { path: "judge/history", element: <PrivateRoute Component={HistoricalLog} /> },
+                { path: "judge/result-review", element: <PrivateRoute Component={JudgeResultReview} /> },
 
                 { path: "expert/profile", element: <PrivateRoute Component={ExpertProfile} /> },
 
                 { path: "mentor/workspace", element: <PrivateRoute Component={MentorCategory} /> },
+                { path: "mentor/result-review", element: <PrivateRoute Component={MentorResultReview} /> },
 
                 { path: "student/team/status", element: <PrivateRoute Component={TeamStatus} /> },
                 { path: "student/results", element: <PrivateRoute Component={StandingsFeedback} /> },

@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { Form } from 'react-bootstrap';
 import './HackathonConfig.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const todayStr = (() => { const d = new Date(); const pad = n => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
 
 const RemoveButton = ({ onClick, title }) => (
