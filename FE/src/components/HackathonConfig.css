@@ -294,7 +294,7 @@
 /* --- BUTTONS --- */
 .hc-btn-primary {
     padding: 8px 16px;
-    background: #3b82f6;
+    background: #0F172A;
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -467,8 +467,9 @@
     gap: 8px;
 }
 .hc-timeline-body {
-    padding: 24px;
+    padding: 24px 40px 24px 24px;
     overflow-x: auto;
+    box-sizing: border-box;
 }
 .hc-timeline-track {
     display: flex;
@@ -480,6 +481,7 @@
     align-items: center;
     gap: 16px;
     height: 32px;
+    padding: 0 20px 0 0;
 }
 .hc-timeline-label {
     font-size: 12px;
@@ -670,8 +672,9 @@
     text-transform: uppercase;
 }
 .hc-timeline-body {
-    padding: 24px;
+    padding: 24px 40px 24px 24px;
     overflow-x: auto;
+    box-sizing: border-box;
 }
 .hc-timeline-track {
     display: flex;
