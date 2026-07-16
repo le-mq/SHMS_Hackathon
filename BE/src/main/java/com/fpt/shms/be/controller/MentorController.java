@@ -3,6 +3,7 @@ package com.fpt.shms.be.controller;
 import com.fpt.shms.be.dto.MentorTrackResponse;
 import com.fpt.shms.be.dto.UpdateProfileRequest;
 import com.fpt.shms.be.service.MentorService;
+import com.fpt.shms.be.service.SubmissionService;
 import com.fpt.shms.be.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +25,7 @@ public class MentorController {
 
     private final MentorService mentorService;
     private final UserService userService;
+    private final SubmissionService submissionService;
 
     @GetMapping("/assigned-teams")
     @Operation(summary = "Get Assigned Teams", description = "Returns overview statistics and allocated teams for the mentor.")
@@ -74,6 +76,20 @@ public class MentorController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             var result = mentorService.submitFeedback(feedbackRequest, username);
             return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/team-score-details")
+    @Operation(summary = "Get Team Score Details (Mentor)", description = "Returns score breakdown for an assigned team after scores are published (reviewCalibrationAt).")
+    public ResponseEntity<?> getTeamScoreDetails(HttpServletRequest request,
+                                                 @org.springframework.web.bind.annotation.RequestParam Long teamId) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            return ResponseEntity.ok(submissionService.getTeamScoreDetailsByTeam(username, teamId, "MENTOR"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

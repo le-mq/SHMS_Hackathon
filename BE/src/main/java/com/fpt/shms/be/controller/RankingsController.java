@@ -74,4 +74,19 @@ public class RankingsController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/publish-scores")
+    @Operation(summary = "Publish Scores (Stage 1)", description = "Sets reviewCalibrationAt so students/judges/mentors can view scores but rankings are not shown yet.")
+    public ResponseEntity<?> publishScores(
+            HttpServletRequest request,
+            @RequestBody com.fpt.shms.be.dto.PublishLeaderboardRequest publishRequest) {
+        try {
+            rankingAdminService.publishScores(publishRequest.getRoundId());
+            return ResponseEntity.ok(Map.of("message", "Scores published successfully. Rankings are not yet public."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(422).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

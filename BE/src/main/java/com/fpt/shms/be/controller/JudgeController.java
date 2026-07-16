@@ -117,4 +117,31 @@ public class JudgeController {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
     }
+
+    @GetMapping("/result-review")
+    @Operation(summary = "Get Result Review Data", description = "Returns score details for all teams the judge has evaluated, available ONLY after admin publishes scores (reviewCalibrationAt).")
+    public ResponseEntity<?> getResultReview(HttpServletRequest request,
+                                             @org.springframework.web.bind.annotation.RequestParam(required = false) Long contestId) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            // Gate check: scores are only visible after admin publishes them (reviewCalibrationAt)
+            EvaluatorDashboardResponse data = judgeService.getDashboardData(username, contestId);
+
+            // Check if at least one round in assigned contests has reviewCalibrationAt set
+            boolean scoresPublished = judgeService.areScoresPublished(username, contestId);
+            if (!scoresPublished) {
+                return ResponseEntity.status(403).body(Map.of(
+                        "error", "Scores have not been published yet. Please wait for the admin to publish scores before reviewing.",
+                        "code", "SCORES_NOT_PUBLISHED"
+                ));
+            }
+
+            return ResponseEntity.ok(data);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
