@@ -8,6 +8,7 @@ const JUDGE_LINKS = [
     { label: 'Dashboard', path: '/judge/workspace' },
     { label: 'Historical Log', path: '/judge/history' },
     { label: 'Leaderboard', path: '/leaderboard' },
+    { label: 'Result Review', path: '/judge/result-review' },
 ];
 
 const NavbarJudge = () => {
