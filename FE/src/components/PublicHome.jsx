@@ -304,7 +304,7 @@ export default function PublicHome() {
                     )}
 
                     <div className="ph-section-header">
-                        <h2>Open Competitive Tracks</h2>
+                        <h2>Open Competitive Categories</h2>
                         <p>Categories and timeline details for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
                     </div>
                     <div className="ph-tracks-table" style={{ background: 'transparent', padding: 0, border: 'none', boxShadow: 'none' }}>
@@ -324,7 +324,7 @@ export default function PublicHome() {
                                         <div key={`cat-${idx}`} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                                                 <div>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>{catName}</h3>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}><span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 6 }}>#{idx + 1}</span> {catName}</h3>
                                                     {description && <p style={{ fontSize: '14px', color: '#4b5563', margin: '0 0 8px 0' }}>{description}</p>}
                                                 </div>
                                                 {guidelineUrl && (
@@ -347,7 +347,7 @@ export default function PublicHome() {
                                                         <tbody>
                                                         {rounds.map((r, rId) => (
                                                             <tr key={`r-${rId}`} style={{ borderBottom: rId < rounds.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
-                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}><span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 4 }}>#{rId + 1}</span> {r.phaseName}</td>
+                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}>{r.phaseName || `Round ${rId + 1}`}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{r.roundFormat || '—'}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{renderRequirements(r.submissionRequirements)}</td>
                                                                 <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionOpen)}</td>
