@@ -552,7 +552,7 @@ const RankingsConsole = () => {
     // Grading deadline passed?
     const gradingDeadlinePassed = selectedRound?.gradingDeadlineAt && new Date(selectedRound.gradingDeadlineAt) <= new Date();
     // Can publish score: (deadline passed OR all ready) AND not yet result published
-    const canPublishScore = (gradingDeadlinePassed || readinessData.allReady) && !isResultPublished && !isScorePublished;
+    const canPublishScore = (gradingDeadlinePassed || readinessData.allReady) && !isResultPublished;
     // Can publish result: score is published AND ranking generated
     const canPublishResult = isScorePublished && !!result && !isResultPublished;
 
@@ -962,7 +962,7 @@ const RankingsConsole = () => {
                                             onKeyDown={(e) => {
                                                 if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
                                             }}
-                                            onWheel={(e) => e.target.blur()}// Chặn hành vi cuộn chuột làm nhảy số
+                                            onWheel={(e) => e.target.blur()}
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 if (!/^\d*$/.test(value)) return;
@@ -982,12 +982,6 @@ const RankingsConsole = () => {
                                         >
                                             {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
                                         </button>
-                                        {isResultPublished && (
-                                            <div style={{ marginTop: '8px', padding: '8px 12px', background: '#fee2e2', color: '#b91c1c', borderRadius: '6px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                                Results published — all changes are permanently locked.
-                                            </div>
-                                        )}
                                         <div className="config-warning">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             This action will lock current scores.
@@ -1080,10 +1074,38 @@ const RankingsConsole = () => {
                                     </table>
                                 </div>
 
+                                <div className="publication-control-panel" style={{ marginTop: 24, padding: 24, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>Publication Control</h3>
+                                    <div style={{ display: 'flex', gap: 12 }}>
+                                        {!isResultPublished ? (
+                                            <>
+                                                <button
+                                                    id="btn-publish-score"
+                                                    onClick={handlePublishScore}
+                                                    disabled={!canPublishScore}
+                                                    style={{ padding: '8px 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: canPublishScore ? 'pointer' : 'not-allowed' }}
+                                                >
+                                                    {isScorePublished ? 'Update Published Scores' : 'Publish Score'}
+                                                </button>
+                                                <button
+                                                    id="btn-publish-result"
+                                                    onClick={handlePublish}
+                                                    disabled={!canPublishResult}
+                                                    style={{ padding: '8px 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: canPublishResult ? 'pointer' : 'not-allowed' }}
+                                                >
+                                                    Publish Result
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <span style={{ padding: '8px 16px', background: '#dcfce7', color: '#15803d', borderRadius: '6px', fontWeight: 600 }}>Results Published & Locked</span>
+                                        )}
+                                    </div>
+                                </div>
+
                                 {result && (
                                     <div className="result-card visible" style={{ marginTop: 24 }}>
                                         <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN} · Scores are now locked.</p>
+                                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
                                         <div className="result-stats">
                                             <div className="result-stat">
                                                 <div className="result-stat-label">Qualified</div>
@@ -1098,53 +1120,12 @@ const RankingsConsole = () => {
                                                 <div className="result-stat-val">{result.totalProcessed}</div>
                                             </div>
                                         </div>
-
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
                                             <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
-                                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                                <button className="btn-secondary" onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                    Download Full Rankings CSV
-                                                </button>
-                                                {/* Publish Score button (Stage 1) */}
-                                                {!isScorePublished && (
-                                                    <button
-                                                        id="btn-publish-score"
-                                                        onClick={handlePublishScore}
-                                                        disabled={!canPublishScore}
-                                                        style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '6px', opacity: canPublishScore ? 1 : 0.6, cursor: canPublishScore ? 'pointer' : 'not-allowed', fontWeight: 600 }}
-                                                        title={!canPublishScore ? 'Grading must be complete before publishing scores' : 'Publish scores so teams/judges/mentors can view points'}
-                                                    >
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                        Publish Score
-                                                    </button>
-                                                )}
-                                                {isScorePublished && (
-                                                    <span style={{ padding: '6px 12px', fontSize: '13px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                                        Scores Published
-                                                    </span>
-                                                )}
-                                                {/* Publish Result button (Stage 2) */}
-                                                {!isResultPublished ? (
-                                                    <button
-                                                        id="btn-publish-result"
-                                                        className="btn-primary"
-                                                        onClick={handlePublish}
-                                                        disabled={!canPublishResult}
-                                                        style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '6px', opacity: canPublishResult ? 1 : 0.6, cursor: canPublishResult ? 'pointer' : 'not-allowed', fontWeight: 600 }}
-                                                        title={!isScorePublished ? 'Must Publish Score first' : !result ? 'Must generate ranking first' : 'Publish rankings to leaderboard'}
-                                                    >
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                                                        Publish Result
-                                                    </button>
-                                                ) : (
-                                                    <span style={{ padding: '6px 12px', fontSize: '13px', background: '#dcfce7', color: '#15803d', border: '1px solid #86efac', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                                        Results Published — Locked
-                                                    </span>
-                                                )}
-                                            </div>
+                                            <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                                Download Full Rankings CSV
+                                            </button>
                                         </div>
                                         <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                                             <thead>
