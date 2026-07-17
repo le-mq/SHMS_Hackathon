@@ -88,10 +88,9 @@ const TeamRegistrationApproval = () => {
     const approvedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'APPROVED').length;
     const canceledCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CANCELED').length;
     const closedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CLOSED').length;
-    const totalTeamsCount = allTeams.filter(t => (t.status || '').toUpperCase() !== 'REJECTED').length;
+    const totalTeamsCount = allTeams.length;
     const pendingCount = Math.max(0, totalTeamsCount - approvedCount - canceledCount - closedCount);
     const totalParticipantsCount = allTeams
-        .filter(t => (t.status || '').toUpperCase() !== 'REJECTED')
         .reduce(
             (sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0),
             0
@@ -430,13 +429,13 @@ const TeamRegistrationApproval = () => {
                         <tbody>
                         {filteredTeams.map(team => {
                             const statusText = (team.status || 'Active').toLowerCase();
-                            const isCanceledOrRejected = statusText === 'canceled' || statusText === 'rejected';
+                            const isCanceled = statusText === 'canceled';
 
                             let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
                             if (statusText === 'approved') {
                                 badgeStyle.backgroundColor = '#a9f8c5';
                                 badgeStyle.color = '#15803d';
-                            } else if (isCanceledOrRejected) {
+                            } else if (isCanceled) {
                                 badgeStyle.backgroundColor = '#f9bebe';
                                 badgeStyle.color = '#b91c1c';
                             } else {
@@ -468,7 +467,7 @@ const TeamRegistrationApproval = () => {
                                             </button>
 
                                             {!isContestClosed && (
-                                                isCanceledOrRejected ? (
+                                                isCanceled ? (
                                                     <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
                                                             style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                             onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
@@ -578,7 +577,7 @@ const TeamRegistrationApproval = () => {
                                             <td style={{ padding: '12px', fontSize: '13px' }}>
                                                 {m.status === 'APPROVED' ? (
                                                     <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
-                                                ) : m.status === 'REJECTED' || m.status === 'CANCELED' ? (
+                                                ) : m.status === 'CANCELED' ? (
                                                     <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
                                                 ) : (
                                                     <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>

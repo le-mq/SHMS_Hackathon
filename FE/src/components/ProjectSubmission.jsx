@@ -345,7 +345,7 @@ const ProjectSubmission = () => {
     ).toUpperCase();
     const qualificationStatus = (selectedRound ? (selectedRound.qualificationStatus || '') : (pageData?.qualificationStatus || '')).toUpperCase();
     const hasRegisteredContest = ['PENDING', 'APPROVED'].includes(teamStatus);
-    const isNotRegistered = ['FORMING', 'NO TEAM', 'REJECTED'].includes(teamStatus);
+    const isNotRegistered = ['FORMING', 'NO TEAM'].includes(teamStatus);
     const contestName = hasRegisteredContest
         ? pageData?.contestName
         : isNotRegistered
