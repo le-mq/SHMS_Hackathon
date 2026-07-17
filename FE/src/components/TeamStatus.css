@@ -92,14 +92,6 @@
     background: #2563eb;
 }
 
-.team-badge.rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.team-badge.rejected .team-badge-dot {
-    background: #dc2626;
-}
 
 .team-badge.no-team {
     background: #f1f5f9;
@@ -563,4 +555,47 @@
 .team-card-forming .tc-footer {
     background: #eff6ff;
     border-top-color: #bfdbfe;
+}
+
+/* Canceled team card - red background */
+.team-card-canceled,
+.team-card-cancelled {
+    background: #fff1f2;
+    border-color: #fca5a5;
+}
+
+.team-card-canceled .tc-header,
+.team-card-cancelled .tc-header {
+    background: #fee2e2;
+    border-bottom-color: #fecaca;
+    opacity: 0.9;
+}
+
+.team-card-canceled .tc-body,
+.team-card-cancelled .tc-body {
+    opacity: 0.85;
+}
+
+.team-card-canceled .tc-footer,
+.team-card-cancelled .tc-footer {
+    background: #fff1f2;
+    border-top-color: #fecaca;
+}
+
+.team-card-canceled:hover,
+.team-card-cancelled:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.15);
+}
+
+/* Canceled badge style */
+.team-badge.canceled,
+.team-badge.cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.team-badge.canceled .team-badge-dot,
+.team-badge.cancelled .team-badge-dot {
+    background: #dc2626;
 }

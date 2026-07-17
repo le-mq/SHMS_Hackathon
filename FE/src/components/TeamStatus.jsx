@@ -115,7 +115,6 @@ const TeamStatus = () => {
 
                     const getRank = (status) => {
                         if (status === 'APPROVED') return 1;
-                        if (status === 'REJECTED') return 2;
                         if (status === 'CLOSED') return 4;
                         return 3;
                     };
@@ -373,7 +372,7 @@ const TeamStatus = () => {
     const status = normalizeStatus(data.status);
     const statusClass = status.toLowerCase().replace(/\s+/g, '-');
     const isSubmitted = status === 'APPROVED' || status === 'PENDING';
-    const canLeaveTeam = !['APPROVED', 'PENDING', 'CLOSED'].includes(status);
+    const canLeaveTeam = !['APPROVED', 'PENDING', 'CLOSED', 'CANCELED', 'CANCELLED'].includes(status);
 
     return (
         <div className="status-container">
@@ -423,29 +422,6 @@ const TeamStatus = () => {
                 </div>
             </div>
 
-            {status === 'REJECTED' && roster.some(m => m.isUnauthorized) && (
-                <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span>This team was rejected because some members are not from the allowed university for this contest. Please review the highlighted members below.</span>
-                </div>
-            )}
-
-            {status === 'REJECTED' && !roster.some(m => m.isUnauthorized) && (
-                (() => {
-                    const approvedCount = roster.filter(m => m.status === 'APPROVED').length;
-                    const min = selectedTeamData.data.minMembers || 3;
-                    const max = selectedTeamData.data.maxMembers || 5;
-                    if (approvedCount < min || approvedCount > max) {
-                        return (
-                            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '12px 16px', borderRadius: '8px', color: '#ef4444', marginBottom: '20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                <span>This team was rejected because it must have between {min} and {max} approved members.</span>
-                            </div>
-                        );
-                    }
-                    return null;
-                })()
-            )}
 
             <div className="roster-section">
                 <div className="roster-header">
@@ -499,7 +475,7 @@ const TeamStatus = () => {
             </div>
 
             {/* Invite Member Section */}
-            {!isSubmitted && status !== 'CLOSED' && (
+            {!isSubmitted && status !== 'CLOSED' && !['CANCELED', 'CANCELLED'].includes(status) && (
                 <div className="invite-section">
                     <h2 className="invite-title">Invite a New Member</h2>
                     {status !== 'FORMING' && status !== 'NO TEAM' && data.currentTotalMembers >= data.maxMembers ? (

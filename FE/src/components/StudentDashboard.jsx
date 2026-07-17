@@ -538,7 +538,7 @@ const StudentDashboard = () => {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <button onClick={() => window.open('https://gmail.google.com', '_blank')} style={{ padding: '6px 12px', background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Approve</button>
+                                            <button onClick={() => window.open('https://gmail.google.com', '_blank')} style={{ padding: '6px 12px', background: '#dcfce7', color: '#16a34a', border: '1px solid #86efac', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Accept</button>
                                             <button onClick={() => { setRejectToken(inv.invitationToken); setShowRejectConfirm(true); }} style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Reject</button>
                                         </div>
                                     </div>
