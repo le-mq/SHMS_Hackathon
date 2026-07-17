@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import './CompetitionRegistration.css';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
 
 const normalizeList = (json) => (Array.isArray(json) ? json : json?.data || []);
 const safeJson = async (res) => { try { return await res.json(); } catch { return {}; } };
@@ -60,7 +60,7 @@ const renderComplianceRules = (rulesStr) => {
                 ))}
             </ul>
         );
-    } catch(e) {
+    } catch (e) {
         return <p style={{ color: '#475569' }}>{rulesStr}</p>;
     }
 };
@@ -99,15 +99,15 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
                 <p className="comp-desc">An exciting competition to showcase your coding skills.</p>
                 <div className="comp-meta">
                     <div className="meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         <span>Reg: {formatDateTime(comp.registrationStart)} - {formatDateTime(comp.registrationEnd)}</span>
                     </div>
                     <div className="meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span>Date: {formatDateTime(comp.contestStartAt)} - {formatDateTime(comp.contestEndAt)}</span>
                     </div>
                     <div className="meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         <span>Team Size: {comp.minTeamMembers || 3} - {comp.maxTeamMembers || 5}</span>
                     </div>
                 </div>
@@ -206,7 +206,9 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
         <div className="team-selector-grid">
             {myTeams.map(team => {
                 const roster = Array.isArray(team.roster) ? team.roster : [];
-                const leader = roster.find(m => m.internalRole === 'LEADER') || roster[0];
+                // Only show APPROVED members (exclude PENDING invitations)
+                const approvedRoster = roster.filter(m => (m.status || '').toUpperCase() !== 'PENDING');
+                const leader = approvedRoster.find(m => m.internalRole === 'LEADER') || approvedRoster[0];
                 const tId = team.teamId || team.teamName;
                 const isSelected = selectedTeamId === String(tId);
                 const isRegistered = ['APPROVED', 'PENDING'].includes(String(team.status).toUpperCase());
@@ -225,15 +227,15 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                             {String(team.status).toUpperCase() !== 'FORMING' && (
                                 <p><strong>Leader:</strong> <strong>{leader?.fullName || 'Not Selected'}</strong></p>
                             )}
-                            <p><strong>Members:</strong> <strong>{roster.length} / {registeringComp?.maxTeamMembers || (team.maxMembers === 999 ? 5 : team.maxMembers) || 5}</strong></p>
+                            <p><strong>Members:</strong> <strong>{approvedRoster.length} / {registeringComp?.maxTeamMembers || (team.maxMembers === 999 ? 5 : team.maxMembers) || 5}</strong></p>
                             <p><strong>Status:</strong> <span className={`ts-status ts-status-${String(team.status).toLowerCase().replace(/\s+/g, '-')}`}>{team.status}</span></p>
                         </div>
                         {isRegistered && <div className="ts-overlay">Already Registered</div>}
 
-                        {isSelected && roster.length > 0 && (
+                        {isSelected && approvedRoster.length > 0 && (
                             <div className="ts-member-list" style={{ marginTop: '16px', borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
                                 <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Team Leader:</p>
-                                {roster.map(member => {
+                                {approvedRoster.map(member => {
                                     const isErrorMember = (error && member.fullName && error.includes(member.fullName)) || member.isUnauthorized === true || member.hasAlreadyParticipated === true;
                                     return (
                                         <label key={member.studentId} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px' }}>
@@ -245,8 +247,8 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                                                 onChange={() => onSelectLeader(member.studentId)}
                                             />
                                             <span style={{ fontSize: '14px', color: isErrorMember ? '#ef4444' : '#475569', fontWeight: isErrorMember ? '600' : 'normal' }}>
-                                            {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''} {member.hasAlreadyParticipated ? '(Already Participated)' : ''}
-                                        </span>
+                                                {member.fullName}{member.studentCode ? ` - ${member.studentCode}` : ''} {member.internalRole === 'LEADER' ? '(Current)' : ''} {member.isUnauthorized ? '(Unauthorized University)' : ''} {member.hasAlreadyParticipated ? '(Already Participated)' : ''}
+                                            </span>
                                         </label>
                                     );
                                 })}
@@ -258,6 +260,105 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
         </div>
     );
 };
+/* ── Ineligible Members Confirmation Modal ── */
+const IneligibleMembersModal = ({ members, onCancel, onConfirm, isSubmitting }) => {
+    return (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', zIndex: 2000
+        }}>
+            <div style={{
+                background: 'white', borderRadius: '14px', width: '100%', maxWidth: '700px',
+                boxShadow: '0 24px 48px rgba(0,0,0,0.22)', overflow: 'hidden',
+                margin: '0 20px'
+            }}>
+                {/* Header */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '22px 30px', borderBottom: '1px solid #fee2e2', background: '#fff5f5'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 700, color: '#0f172a' }}>
+                            Ineligible Team Members Found
+                        </h3>
+                    </div>
+                    <button onClick={onCancel} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: '#64748b', fontSize: '24px', lineHeight: 1, padding: '2px'
+                    }}>×</button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '24px 30px' }}>
+                    <p style={{ margin: '0 0 18px', fontSize: '15px', color: '#475569', lineHeight: 1.7 }}>
+                        The following member(s) <strong>cannot participate</strong> in this competition.
+                        If you proceed, they will be <strong>automatically removed</strong> from the team.
+                        Remaining eligible members will be kept.
+                    </p>
+
+                    <div style={{
+                        border: '1px solid #fecaca', borderRadius: '10px',
+                        overflow: 'hidden', marginBottom: '18px'
+                    }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                            <thead>
+                                <tr style={{ background: '#fef2f2' }}>
+                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member</th>
+                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Student Code</th>
+                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {members.map((m, i) => (
+                                    <tr key={i} style={{ borderBottom: i < members.length - 1 ? '1px solid #fee2e2' : 'none' }}>
+                                        <td style={{ padding: '13px 18px', color: '#0f172a', fontWeight: 700, fontSize: '15px' }}>{m.fullName}</td>
+                                        <td style={{ padding: '13px 18px', color: '#334155', fontFamily: 'monospace', fontSize: '14px' }}>{m.studentCode}</td>
+                                        <td style={{ padding: '13px 18px', color: '#dc2626', fontWeight: 600, fontSize: '14px' }}>{m.reason}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p style={{ margin: '0 0 22px', fontSize: '14px', color: '#64748b', lineHeight: 1.6 }}>
+                        Do you want to proceed and register without these members?
+                    </p>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                        <button
+                            onClick={onCancel}
+                            disabled={isSubmitting}
+                            style={{
+                                padding: '10px 24px', background: 'white', color: '#475569',
+                                border: '1px solid #cbd5e1', borderRadius: '8px',
+                                fontWeight: 600, fontSize: '15px', cursor: 'pointer'
+                            }}
+                        >Cancel</button>
+                        <button
+                            onClick={onConfirm}
+                            disabled={isSubmitting}
+                            style={{
+                                padding: '10px 24px',
+                                background: isSubmitting ? '#94a3b8' : '#1e293b',
+                                color: 'white', border: 'none', borderRadius: '8px',
+                                fontWeight: 600, fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '8px'
+                            }}
+                        >
+                            {isSubmitting ? 'Processing...' : 'Accept & Remove'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const CompetitionRegistration = () => {
     const [competitions, setCompetitions] = useState([]);
     const [myTeams, setMyTeams] = useState([]);
@@ -272,6 +373,8 @@ const CompetitionRegistration = () => {
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedLeaderId, setSelectedLeaderId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Ineligible members modal state
+    const [ineligibleModal, setIneligibleModal] = useState({ open: false, members: [], pendingRequest: null });
     const loadData = async (silent = false) => {
         try {
             if (!silent) setIsLoading(true);
@@ -293,14 +396,15 @@ const CompetitionRegistration = () => {
             );
 
             let teams = statusResults
-                .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM' && String(res.data.status).toUpperCase() !== 'CLOSED')
+                .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM' && String(res.data.status).toUpperCase() !== 'CLOSED' && !['CANCELED', 'CANCELLED'].includes(String(res.data.status).toUpperCase()))
                 .map(res => res.data);
 
             const fallbackRes = await fetch(`${API_BASE}/teams/all-forming`, { headers: { Authorization: `Bearer ${token}` } });
             const fallbackDataList = await safeJson(fallbackRes);
             if (fallbackRes.ok && Array.isArray(fallbackDataList)) {
                 fallbackDataList.forEach(data => {
-                    if (data && data.status !== 'NO TEAM' && String(data.status).toUpperCase() !== 'CLOSED') {
+                    const dataStatus = String(data.status).toUpperCase();
+                    if (data && data.status !== 'NO TEAM' && dataStatus !== 'CLOSED' && !['CANCELED', 'CANCELLED'].includes(dataStatus)) {
                         teams.push(data);
                     }
                 });
@@ -340,7 +444,7 @@ const CompetitionRegistration = () => {
         result.sort((a, b) => {
             const catA = categorizeCompetition(a);
             const catB = categorizeCompetition(b);
-            
+
             if (catA === 'ACTIVED' && catB !== 'ACTIVED') return -1;
             if (catB === 'ACTIVED' && catA !== 'ACTIVED') return 1;
 
@@ -387,18 +491,64 @@ const CompetitionRegistration = () => {
 
             if (!response.ok) throw new Error(result.error || result.message || 'Registration failed.');
 
+            // Check if there are ineligible members – show confirmation modal
+            if (result.status === 'INELIGIBLE_MEMBERS' && Array.isArray(result.ineligibleMembers)) {
+                setIneligibleModal({
+                    open: true,
+                    members: result.ineligibleMembers,
+                    pendingRequest: {
+                        teamName: team.teamName,
+                        contestId: registeringComp.id,
+                        leaderStudentId: leader.studentCode || leader.studentId
+                    }
+                });
+                return;
+            }
+
+            // Normal success
+            if (result.newToken) {
+                localStorage.setItem('shms_token', result.newToken);
+            }
             setSuccessMessage('Registered Successfully!');
             setError('');
             setRegisteringComp(null);
             setSelectedTeamId('');
             loadData(true);
-
             setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
         } catch (err) {
             setError(err.message || 'Registration failed.');
-            setTimeout(() => {
-                loadData(true);
-            }, 5000);
+            setTimeout(() => { loadData(true); }, 5000);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleForceApprove = async () => {
+        if (!ineligibleModal.pendingRequest) return;
+        try {
+            setIsSubmitting(true);
+            const token = localStorage.getItem('shms_token');
+            const response = await fetch(`${API_BASE}/teams/register-force`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(ineligibleModal.pendingRequest),
+            });
+            const result = await safeJson(response);
+
+            if (!response.ok) throw new Error(result.error || result.message || 'Registration failed.');
+
+            if (result.newToken) {
+                localStorage.setItem('shms_token', result.newToken);
+            }
+            setIneligibleModal({ open: false, members: [], pendingRequest: null });
+            setSuccessMessage('Team registered successfully! Ineligible members have been removed.');
+            setError('');
+            setRegisteringComp(null);
+            setSelectedTeamId('');
+            loadData(true);
+            setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
+        } catch (err) {
+            setError(err.message || 'Force registration failed.');
         } finally {
             setIsSubmitting(false);
         }
@@ -429,7 +579,7 @@ const CompetitionRegistration = () => {
             <div className="cr-main-content">
                 {successMessage && (
                     <div className="cr-alert cr-alert-success">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" /></svg>
                         {successMessage}
                     </div>
                 )}
@@ -496,11 +646,11 @@ const CompetitionRegistration = () => {
                                     <>
                                         <div className="summary-item">
                                             <span className="s-label">Leader:</span>
-                                            <span className="s-val">{selectedTeamFull.roster?.find(m => m.studentId === selectedLeaderId)?.fullName || 'Not Selected'}</span>
+                                            <span className="s-val">{(selectedTeamFull.roster || []).filter(m => (m.status || '').toUpperCase() !== 'PENDING').find(m => m.studentId === selectedLeaderId)?.fullName || 'Not Selected'}</span>
                                         </div>
                                         <div className="summary-item">
                                             <span className="s-label">Members:</span>
-                                            <span className="s-val">{(selectedTeamFull.roster || []).length} / {registeringComp?.maxTeamMembers || (selectedTeamFull.maxMembers === 999 ? 5 : selectedTeamFull.maxMembers) || 5}</span>
+                                            <span className="s-val">{(selectedTeamFull.roster || []).filter(m => (m.status || '').toUpperCase() !== 'PENDING').length} / {registeringComp?.maxTeamMembers || (selectedTeamFull.maxMembers === 999 ? 5 : selectedTeamFull.maxMembers) || 5}</span>
                                         </div>
                                     </>
                                 )}
@@ -522,6 +672,15 @@ const CompetitionRegistration = () => {
 
             {viewDetailsComp && (
                 <CompetitionDetailModal comp={viewDetailsComp} onClose={() => setViewDetailsComp(null)} />
+            )}
+
+            {ineligibleModal.open && (
+                <IneligibleMembersModal
+                    members={ineligibleModal.members}
+                    isSubmitting={isSubmitting}
+                    onCancel={() => setIneligibleModal({ open: false, members: [], pendingRequest: null })}
+                    onConfirm={handleForceApprove}
+                />
             )}
         </div>
     );

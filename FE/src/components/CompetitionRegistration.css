@@ -562,14 +562,6 @@
     background: #16a34a;
 }
 
-.ts-status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.ts-status-rejected::before {
-    background: #dc2626;
-}
 
 .ts-overlay {
     position: absolute;
