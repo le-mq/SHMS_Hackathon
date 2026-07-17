@@ -17,6 +17,7 @@ public record ContestDTO(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime contestEndAt,
         String status,
+        String theme,
         String description,
         Integer maximumAllowedTeams,
         Integer minTeamMembers,
@@ -63,6 +64,7 @@ public record ContestDTO(
                 c.getRegistrationEnd(),
                 c.getContestEndAt(),
                 c.getStatus() != null ? c.getStatus().name() : null,
+                c.getTheme(),
                 c.getDescription(),
                 c.getMaximumAllowedTeams(),
                 c.getMinTeamMembers(),
