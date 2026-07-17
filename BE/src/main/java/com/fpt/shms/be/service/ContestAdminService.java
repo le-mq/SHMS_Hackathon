@@ -183,7 +183,8 @@ public class ContestAdminService {
         Map<String, Object> response = new HashMap<>();
         response.put("id", contest.getId());
         response.put("name", contest.getName());
-        response.put("theme", contest.getDescription() != null ? contest.getDescription() : "");
+        response.put("theme", contest.getTheme() != null ? contest.getTheme() : "");
+        response.put("description", contest.getDescription() != null ? contest.getDescription() : "");
         response.put("term", contest.getSeason() != null ? contest.getSeason().name() : "");
         response.put("year", contest.getYear() != null ? contest.getYear() : "");
         response.put("registrationStart",
@@ -225,14 +226,15 @@ public class ContestAdminService {
         Contest contest;
         String oldStatus = null;
         boolean isNewContest = (request.getId() == null);
-        String oldName = null, oldTheme = null;
+        String oldName = null, oldTheme = null, oldDescription = null;
         Integer oldYear = null;
         if (!isNewContest) {
             contest = contestRepository.findById(request.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
             oldStatus = contest.getStatus() != null ? contest.getStatus().name() : null;
             oldName = contest.getName();
-            oldTheme = contest.getDescription();
+            oldTheme = contest.getTheme();
+            oldDescription = contest.getDescription();
             oldYear = contest.getYear();
             if (!contest.getSemester().getId().equals(semester.getId())) {
                 if (contestRepository.findBySemesterId(semester.getId()).isPresent()) {
@@ -253,7 +255,8 @@ public class ContestAdminService {
         }
 
         contest.setName(request.getName());
-        contest.setDescription(request.getTheme());
+        contest.setTheme(request.getTheme());
+        contest.setDescription(request.getDescription());
         contest.setSeason(parseSeason(request.getTerm()));
         contest.setYear(request.getYear());
         contest.setMaximumAllowedTeams(request.getMaximumAllowedTeams());
@@ -317,7 +320,8 @@ public class ContestAdminService {
 
         boolean contestModified = isNewContest ||
                 !java.util.Objects.equals(oldName, contest.getName()) ||
-                !java.util.Objects.equals(oldTheme, contest.getDescription()) ||
+                !java.util.Objects.equals(oldTheme, contest.getTheme()) ||
+                !java.util.Objects.equals(oldDescription, contest.getDescription()) ||
                 !java.util.Objects.equals(oldYear, contest.getYear()) ||
                 !java.util.Objects.equals(oldStatus, contest.getStatus() != null ? contest.getStatus().name() : null);
 

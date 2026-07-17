@@ -210,10 +210,25 @@ public class StudentController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             TeamRegistrationResponse response = teamService.registerOfficialTeam(registrationRequest, username);
 
-            if ("REJECTED".equals(response.getStatus())) {
-                return ResponseEntity.badRequest().body(Map.of("error", response.getMessage()));
+            if ("INELIGIBLE_MEMBERS".equals(response.getStatus())) {
+                // Return 200 with the list of ineligible members so FE can show confirmation modal
+                return ResponseEntity.ok(response);
             }
 
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        }
+    }
+
+    @PostMapping("/teams/register-force")
+    @Operation(summary = "Force Register Team", description = "Removes ineligible members and approves the team registration.")
+    public ResponseEntity<?> registerForceApproveTeam(HttpServletRequest request, @Valid @RequestBody TeamRegistrationRequest registrationRequest) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            TeamRegistrationResponse response = teamService.registerForceApprove(registrationRequest, username);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

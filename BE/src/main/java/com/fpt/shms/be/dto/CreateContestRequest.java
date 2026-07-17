@@ -14,6 +14,7 @@ public class CreateContestRequest {
     private String name;
 
     private String theme;
+    private String description;
 
     @NotBlank(message = "Term is required")
     private String term; // SPRING, SUMMER, FALL, WINTER

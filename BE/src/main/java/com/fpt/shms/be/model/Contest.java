@@ -50,9 +50,11 @@ public class Contest {
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "theme", length = 100)
-    private String description;
+    private String theme;
 
     @org.hibernate.annotations.Nationalized
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
+    private String description;
 
     @Column(name = "max_teams")
     private Integer maximumAllowedTeams;

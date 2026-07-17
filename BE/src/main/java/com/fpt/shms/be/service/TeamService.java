@@ -132,28 +132,6 @@ public class TeamService{
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
             Boolean isUnauthorized = false;
             Boolean hasAlreadyParticipated = false;
-            if ("REJECTED".equalsIgnoreCase(team.getStatus()) && student != null && team.getContest() != null) {
-                try {
-                    validateUniversityAllowed(student, team.getContest());
-                } catch (IllegalArgumentException e) {
-                    isUnauthorized = true;
-                }
-
-                // Check if already participated
-                List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(m.getUser().getId());
-                for (TeamMembership other : otherMemberships) {
-                    Team otherTeam = other.getTeam();
-                    if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
-                        if (otherTeam.getContest().getId().equals(team.getContest().getId())) {
-                            String status = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
-                            if ("APPROVED".equals(status) || "PENDING".equals(status)) {
-                                hasAlreadyParticipated = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
 
             return TeamStatusResponse.MemberDto.builder()
                     .fullName(student != null ? student.getFullName() : m.getUser().getUsername())
@@ -300,22 +278,20 @@ public class TeamService{
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .toList();
 
-        List<String> unauthorizedMembers = new java.util.ArrayList<>();
+        List<TeamRegistrationResponse.IneligibleMemberDto> ineligibleMembers = new java.util.ArrayList<>();
         for (TeamMembership tm : approvedMembers) {
             Student memberStudent = studentRepository.findByUser(tm.getUser()).orElse(null);
             if (memberStudent != null) {
                 try {
                     validateUniversityAllowed(memberStudent, contest);
                 } catch (IllegalArgumentException e) {
-                    unauthorizedMembers.add(e.getMessage());
+                    ineligibleMembers.add(new TeamRegistrationResponse.IneligibleMemberDto(
+                            memberStudent.getFullName(),
+                            memberStudent.getStudentCode(),
+                            "Unauthorized university"
+                    ));
                 }
             }
-        }
-        if (!unauthorizedMembers.isEmpty()) {
-            team.setStatus("REJECTED");
-            teamRepository.save(team);
-            auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Unauthorized universities");
-            return new TeamRegistrationResponse("REJECTED", String.join("\n", unauthorizedMembers));
         }
 
         List<String> invalidMembersInfo = new java.util.ArrayList<>();
@@ -344,34 +320,45 @@ public class TeamService{
         }
 
         if (contest != null) {
-            List<String> alreadyRegisteredMembers = new java.util.ArrayList<>();
             for (TeamMembership tm : approvedMembers) {
                 Long userId = tm.getUser().getId();
                 List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(userId);
+                boolean alreadyParticipated = false;
                 for (TeamMembership other : otherMemberships) {
                     Team otherTeam = other.getTeam();
                     if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
                         if (otherTeam.getContest().getId().equals(contest.getId())) {
-                            String status = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
-                            if ("APPROVED".equals(status) || "PENDING".equals(status)) {
-                                Student student = studentRepository.findByUser(tm.getUser()).orElse(null);
-                                if (student != null && student.getFullName() != null) {
-                                    alreadyRegisteredMembers.add(student.getFullName());
-                                } else {
-                                    alreadyRegisteredMembers.add(tm.getUser().getUsername());
-                                }
+                            String otherStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
+                            if ("APPROVED".equals(otherStatus) || "PENDING".equals(otherStatus)) {
+                                alreadyParticipated = true;
                                 break;
                             }
                         }
                     }
                 }
+                if (alreadyParticipated) {
+                    Student student = studentRepository.findByUser(tm.getUser()).orElse(null);
+                    // Only add if not already flagged for unauthorized university
+                    boolean alreadyFlagged = student != null && ineligibleMembers.stream()
+                            .anyMatch(m -> m.getStudentCode().equals(student.getStudentCode()));
+                    if (!alreadyFlagged) {
+                        ineligibleMembers.add(new TeamRegistrationResponse.IneligibleMemberDto(
+                                student != null ? student.getFullName() : tm.getUser().getUsername(),
+                                student != null ? student.getStudentCode() : tm.getUser().getUsername(),
+                                "Already participated in this competition"
+                        ));
+                    }
+                }
             }
-            if (!alreadyRegisteredMembers.isEmpty()) {
-                team.setStatus("REJECTED");
-                teamRepository.save(team);
-                auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Members already participated");
-                return new TeamRegistrationResponse("REJECTED", "The following members have already participated in this competition: " + String.join(", ", alreadyRegisteredMembers));
-            }
+        }
+
+        // If there are ineligible members, return warning without changing team status
+        if (!ineligibleMembers.isEmpty()) {
+            TeamRegistrationResponse response = new TeamRegistrationResponse();
+            response.setStatus("INELIGIBLE_MEMBERS");
+            response.setMessage("Some team members are not eligible to participate.");
+            response.setIneligibleMembers(ineligibleMembers);
+            return response;
         }
 
         // Check member count
@@ -379,10 +366,7 @@ public class TeamService{
         int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
 
         if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
-            team.setStatus("REJECTED");
-            teamRepository.save(team);
-            auditLogService.log("TEAM_REJECTED", "Team", team.getName(), "FORMING", "REJECTED", "System: Invalid member count");
-            return new TeamRegistrationResponse("REJECTED", "Team must have between " + minMembers + " and " + maxMembers + " approved members.");
+            throw new IllegalArgumentException("Team must have between " + minMembers + " and " + maxMembers + " approved members.");
         }
 
         // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
@@ -449,6 +433,150 @@ public class TeamService{
         TeamRegistrationResponse response = new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
         response.setNewToken(newToken);
         return response;
+    }
+
+    /**
+     * Force-approve a team by removing ineligible members (unauthorized university / already participated)
+     * and setting team status to APPROVED.
+     */
+    @Transactional
+    public TeamRegistrationResponse registerForceApprove(TeamRegistrationRequest request, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Team team = teamRepository.findByName(request.getTeamName())
+                .stream()
+                .filter(t -> {
+                    List<TeamMembership> ms = teamMembershipRepository.findByTeamId(t.getId());
+                    return ms.stream().anyMatch(m -> m.getUser().getId().equals(user.getId()));
+                })
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+
+        Contest contest = contestRepository.findById(request.getContestId())
+                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+
+        if (Contest.ContestStatus.CLOSED.equals(contest.getStatus())) {
+            throw new IllegalArgumentException("Contest is closed and no longer accepts registrations.");
+        }
+
+        team.setContest(contest);
+
+        List<TeamMembership> allMemberships = teamMembershipRepository.findByTeamId(team.getId());
+        List<TeamMembership> approvedMembers = allMemberships.stream()
+                .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
+                .toList();
+
+        // Identify and remove ineligible members
+        List<TeamMembership> toRemove = new java.util.ArrayList<>();
+        for (TeamMembership tm : approvedMembers) {
+            Student memberStudent = studentRepository.findByUser(tm.getUser()).orElse(null);
+            boolean ineligible = false;
+
+            // Check unauthorized university
+            if (memberStudent != null) {
+                try {
+                    validateUniversityAllowed(memberStudent, contest);
+                } catch (IllegalArgumentException e) {
+                    ineligible = true;
+                }
+            }
+
+            // Check already participated in this contest
+            if (!ineligible) {
+                List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(tm.getUser().getId());
+                for (TeamMembership other : otherMemberships) {
+                    Team otherTeam = other.getTeam();
+                    if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
+                        if (otherTeam.getContest().getId().equals(contest.getId())) {
+                            String st = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
+                            if ("APPROVED".equals(st) || "PENDING".equals(st)) {
+                                ineligible = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (ineligible) {
+                toRemove.add(tm);
+            }
+        }
+
+        // Remove ineligible members
+        for (TeamMembership tm : toRemove) {
+            teamMembershipRepository.delete(tm);
+        }
+
+        // Re-check member count after removal
+        long remainingCount = approvedMembers.size() - toRemove.size();
+        int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
+        int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
+        if (remainingCount < minMembers) {
+            throw new IllegalArgumentException("After removing ineligible members, the team has only " + remainingCount
+                    + " member(s), which is below the minimum required (" + minMembers + ").");
+        }
+
+        // Remove PENDING members
+        allMemberships.stream()
+                .filter(tm -> "PENDING".equalsIgnoreCase(tm.getStatus()))
+                .forEach(teamMembershipRepository::delete);
+
+        // Validate registration period
+        java.time.LocalDate now = java.time.LocalDate.now();
+        if (contest.getRegistrationStart() != null && now.isBefore(contest.getRegistrationStart())) {
+            throw new IllegalArgumentException("Registration period has not started yet.");
+        }
+        if (contest.getRegistrationEnd() != null && now.isAfter(contest.getRegistrationEnd())) {
+            throw new IllegalArgumentException("Outside of registration period.");
+        }
+
+        // Assign leader role
+        String leaderStudentCode = request.getLeaderStudentId();
+        if (leaderStudentCode != null && !leaderStudentCode.isEmpty()) {
+            Student leaderStudent = studentRepository.findByStudentCode(leaderStudentCode).orElse(null);
+            if (leaderStudent != null) {
+                List<TeamMembership> currentMembers = teamMembershipRepository.findByTeamId(team.getId());
+                for (TeamMembership tm : currentMembers) {
+                    User mUser = tm.getUser();
+                    if (mUser.getId().equals(leaderStudent.getUser().getId())) {
+                        tm.setRole("LEADER");
+                        Role leaderRole = roleRepository.findByName("LEADER").orElseThrow();
+                        Role studentRole = roleRepository.findByName("STUDENT").orElseThrow();
+                        mUser.getRoles().remove(studentRole);
+                        mUser.getRoles().add(leaderRole);
+                        userRepository.save(mUser);
+                    } else {
+                        tm.setRole("MEMBER");
+                    }
+                    teamMembershipRepository.save(tm);
+                }
+            }
+        }
+
+        team.setStatus("APPROVED");
+        teamRepository.save(team);
+
+        auditLogService.log("REGISTER_TEAM_FORCE", "Team", team.getName(), "FORMING", "APPROVED",
+                "Force-approved by: " + username + " (ineligible members removed: " + toRemove.size() + ")");
+
+        // Send email notification
+        List<TeamMembership> finalMembers = teamMembershipRepository.findByTeamId(team.getId());
+        for (TeamMembership tm : finalMembers) {
+            User memberUser = tm.getUser();
+            if (memberUser != null && memberUser.getEmail() != null) {
+                Student s = studentRepository.findByUser(memberUser).orElse(null);
+                String fullName = s != null ? s.getFullName() : memberUser.getUsername();
+                emailService.sendTeamStatusNotificationAsync(memberUser.getEmail(), fullName, team.getName(), "APPROVED", null);
+            }
+        }
+
+        User updatedLeader = userRepository.findByUsername(username).get();
+        String newToken = jwtUtils.generateToken(updatedLeader.getUsername(), "LEADER");
+        TeamRegistrationResponse resp = new TeamRegistrationResponse("APPROVED", "Team registered and approved successfully.");
+        resp.setNewToken(newToken);
+        return resp;
     }
 
     @Transactional(readOnly = true)
@@ -554,12 +682,12 @@ public class TeamService{
         }
         String currentStatus = team.getStatus() != null ? team.getStatus().toUpperCase() : "";
 
-        if ("CANCELED".equals(newStatus) || "CANCELLED".equals(newStatus) || "REJECTED".equals(newStatus)) {
+        if ("CANCELED".equals(newStatus) || "CANCELLED".equals(newStatus)) {
             if (!"APPROVED".equals(currentStatus)) {
                 throw new IllegalArgumentException("Can only cancel a team that is currently approved.");
             }
         } else if ("APPROVED".equals(newStatus)) {
-            if (!"CANCELED".equals(currentStatus) && !"CANCELLED".equals(currentStatus) && !"REJECTED".equals(currentStatus)) {
+            if (!"CANCELED".equals(currentStatus) && !"CANCELLED".equals(currentStatus)) {
                 throw new IllegalArgumentException("Can only approve a team that is currently canceled.");
             }
         }
@@ -591,7 +719,7 @@ public class TeamService{
                     auditLogService.logChangeUserRole(leader.getUsername(), "STUDENT", "LEADER", "Promoted upon team approval");
                 }
             }
-        } else if ("CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+        } else if ("CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status)) {
             for (TeamMembership tm : memberships) {
                 if("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
@@ -635,7 +763,7 @@ public class TeamService{
 
             int pendingReview = 0;
             int approved = 0;
-            int rejectedAndCancelled = 0;
+            int cancelledCount = 0;
             int totalParticipants = 0;
 
             List<com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity> capacities = new java.util.ArrayList<>();
@@ -665,7 +793,7 @@ public class TeamService{
                 String st = team.getStatus();
                 if ("PENDING".equalsIgnoreCase(st)) pendingReview++;
                 if ("APPROVED".equalsIgnoreCase(st)) approved++;
-                if ("CANCELLED".equalsIgnoreCase(st) || "CANCELED".equalsIgnoreCase(st) || "REJECTED".equalsIgnoreCase(st) || "ELIMINATED".equalsIgnoreCase(st)) rejectedAndCancelled++;
+                if ("CANCELLED".equalsIgnoreCase(st) || "CANCELED".equalsIgnoreCase(st) || "ELIMINATED".equalsIgnoreCase(st)) cancelledCount++;
 
                 List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
                 if ("APPROVED".equalsIgnoreCase(st)) {
@@ -705,7 +833,7 @@ public class TeamService{
                     .status(contest.getStatus() != null ? contest.getStatus().name() : "ACTIVED")
                     .pendingReview(pendingReview)
                     .approved(approved)
-                    .rejectedAndCancelled(rejectedAndCancelled)
+                    .rejectedAndCancelled(cancelledCount)
                     .totalParticipants(totalParticipants)
                     .capacities(capacities)
                     .teams(teamsData)
