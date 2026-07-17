@@ -217,7 +217,16 @@ const StandingsFeedback = () => {
                     })
                 );
                 const validTeams = statusResults
-                    .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM')
+                    .filter(res => {
+                        if (!res || !res.data || res.data.error) return false;
+                        const status = (res.data.status || '').toUpperCase();
+                        // Exclude teams not in a contest or canceled
+                        if (status === 'NO TEAM' || status === 'CANCELED' || status === 'CANCELLED') return false;
+                        // Only show if the team has at least one scored round (finalScore exists or rounds with scores)
+                        const hasFinalScore = res.data.finalScore != null;
+                        const hasRoundScore = Array.isArray(res.data.rounds) && res.data.rounds.some(r => r.totalScore != null || r.resultPublished === true);
+                        return hasFinalScore || hasRoundScore;
+                    })
                     .sort(sortLogic);
                 if (!cancelled) {
                     setJoinedCompetitions(validTeams);
@@ -232,7 +241,14 @@ const StandingsFeedback = () => {
                     const mockTeamsByContest = localJson.teamStatusByContest || {};
                     let mockJoinedTeams = mockContests
                         .map(contest => ({ contest, data: mockTeamsByContest[String(contest.id)] }))
-                        .filter(item => item.data && item.data.status !== 'NO TEAM');
+                        .filter(item => {
+                            if (!item.data) return false;
+                            const status = (item.data.status || '').toUpperCase();
+                            if (status === 'NO TEAM' || status === 'CANCELED' || status === 'CANCELLED') return false;
+                            const hasFinalScore = item.data.finalScore != null;
+                            const hasRoundScore = Array.isArray(item.data.rounds) && item.data.rounds.some(r => r.totalScore != null || r.resultPublished === true);
+                            return hasFinalScore || hasRoundScore;
+                        });
 
                     if (mockJoinedTeams.length === 0 && mockContests.length > 0 && localJson.teamStatus?.data) {
                         mockJoinedTeams = [{ contest: mockContests[0], data: localJson.teamStatus.data }];
@@ -408,7 +424,7 @@ const StandingsFeedback = () => {
 
                             {(() => {
                                 const visibleRounds = [];
-                                for (const r of rounds) {
+                                for (const [originalIdx, r] of rounds.entries()) {
                                     const nowTime = new Date().getTime();
                                     const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
                                     const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
@@ -417,7 +433,7 @@ const StandingsFeedback = () => {
                                     const isPublished = r.resultPublished === true || isPublishedOnLeaderboard || (r.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
                                     
                                     if (r.hasSubmission === true || isPublished) {
-                                        visibleRounds.push(r);
+                                        visibleRounds.push({ ...r, originalIndex: originalIdx });
                                     }
 
                                     const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
@@ -492,7 +508,7 @@ const StandingsFeedback = () => {
                                                                     transition: 'all 0.2s',
                                                                     boxShadow: isSelected ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
                                                                 }}
-                                                            >{r.roundName}</div>
+                                                            >{`#${r.originalIndex + 1} ${r.roundName}`}</div>
                                                         );
                                                     })}
                                                 </div>
