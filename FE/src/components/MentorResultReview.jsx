@@ -26,14 +26,15 @@ const MentorResultReview = () => {
                 }
                 const data = await res.json();
                 // Data is array of MentorTrackResponse objects, each with allocatedTeams
-                const allTeams = (Array.isArray(data) ? data : []).flatMap(track =>
-                    (track.allocatedTeams || []).map(t => ({
-                        ...t,
-                        contestName: track.contestName,
-                        reviewCalibrationAt: track.reviewCalibrationAt || track.publishScoreAt,
-                        publishResultAt: track.publishResultAt
-                    }))
-                );
+                // Only include teams from ACTIVE contests
+                const allTeams = (Array.isArray(data) ? data : [])
+                    .filter(track => track.contestStatus === 'ACTIVED')
+                    .flatMap(track =>
+                        (track.allocatedTeams || []).map(t => ({
+                            ...t,
+                            contestName: track.contestName
+                        }))
+                    );
                 setAssignedTeams(allTeams);
             } catch (e) {
                 setError(e.message || 'Failed to load data');
@@ -77,11 +78,12 @@ const MentorResultReview = () => {
         return t && new Date(t) <= new Date();
     };
 
-    const publishedTeams = assignedTeams.filter(t => isScorePublished(t));
+    // Show teams where scores are published (Stage 1) but results are NOT yet published (Stage 2)
+    // Once admin clicks Publish Result, scores move to the Leaderboard — no need to show here
+    const publishedTeams = assignedTeams.filter(t => isScorePublished(t) && !isResultPublished(t));
 
     return (
         <div className="mrr-page">
-            <NavbarMentor />
             <div className="mrr-container">
                 <div className="mrr-header">
                     <div>
@@ -125,7 +127,6 @@ const MentorResultReview = () => {
                             </div>
                         ) : (
                             <div className="mrr-layout">
-                                {/* Team list */}
                                 <div className="mrr-team-list">
                                     {publishedTeams.map((team, idx) => (
                                         <div
@@ -148,7 +149,6 @@ const MentorResultReview = () => {
                                     ))}
                                 </div>
 
-                                {/* Score detail panel */}
                                 <div className="mrr-detail-panel">
                                     {!selectedTeam && (
                                         <div className="mrr-detail-placeholder">
@@ -198,11 +198,6 @@ const MentorResultReview = () => {
                                                                 <div className="mrr-round-meta">
                                                                     {round.totalScore != null && (
                                                                         <span className="mrr-round-score">{round.totalScore?.toFixed(2)} pts</span>
-                                                                    )}
-                                                                    {round.qualificationStatus && (
-                                                                        <span className={`mrr-qual-badge ${round.qualificationStatus === 'QUALIFIED' ? 'qualified' : 'eliminated'}`}>
-                                                                            {round.qualificationStatus}
-                                                                        </span>
                                                                     )}
                                                                 </div>
                                                             </div>

@@ -52,7 +52,7 @@
 }
 
 .jrr-container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 40px 24px;
 }
@@ -417,3 +417,150 @@
     color: #94a3b8;
     font-size: 14px;
 }
+
+/* Rounds styling */
+.jrr-rounds {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.jrr-round-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.jrr-round-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.jrr-round-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.jrr-round-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.jrr-round-score {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7c3aed;
+}
+
+.jrr-qual-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.jrr-qual-badge.qualified {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.jrr-qual-badge.eliminated {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.jrr-no-detail {
+    padding: 16px 18px;
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Side-by-side layout styling */
+.jrr-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .jrr-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.jrr-team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.jrr-detail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 300px;
+    color: #cbd5e1;
+    gap: 12px;
+}
+
+.jrr-detail-placeholder p {
+    font-size: 15px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.jrr-total-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.jrr-total-val {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.jrr-total-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.jrr-empty-full {
+    text-align: center;
+    padding: 80px 24px;
+    background: white;
+    border-radius: 14px;
+    border: 1.5px dashed #cbd5e1;
+    color: #64748b;
+}
+
+.jrr-empty-full h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.jrr-empty-full p {
+    font-size: 14px;
+    margin: 0;
+}
+
