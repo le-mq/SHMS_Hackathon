@@ -360,12 +360,79 @@ public class RankingAdminService {
             throw new IllegalArgumentException("Results have already been published. Cannot change the score publication state.");
         }
 
-        if (round.getReviewCalibrationAt() != null && !round.getReviewCalibrationAt().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Scores have already been published for this round.");
-        }
-
         round.setReviewCalibrationAt(LocalDateTime.now());
         roundRepository.save(round);
+
+        // Snapshot current average scores into historyLog of each team's latest submission for this round
+        List<Submission> allSubmissions = submissionRepository.findByRoundId(roundId);
+        java.util.Map<Long, Submission> latestSubByTeam = new java.util.HashMap<>();
+        for (Submission s : allSubmissions) {
+            if (s.getTeam() == null) continue;
+            Long teamId = s.getTeam().getId();
+            Submission existing = latestSubByTeam.get(teamId);
+            if (existing == null) {
+                latestSubByTeam.put(teamId, s);
+            } else if (s.getVersion() != null && existing.getVersion() != null) {
+                if (s.getVersion() > existing.getVersion()) {
+                    latestSubByTeam.put(teamId, s);
+                } else if (s.getVersion().equals(existing.getVersion()) && s.getId() > existing.getId()) {
+                    latestSubByTeam.put(teamId, s);
+                }
+            }
+        }
+
+        for (Submission sub : latestSubByTeam.values()) {
+            boolean hasSubmission = !"MISSED_DEADLINE".equals(sub.getStatus());
+            List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
+            List<Score> judgeScores = scores.stream().filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus())).toList();
+            boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus());
+            List<Score> validJudgeScores = judgeScores.stream().filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus())).toList();
+            boolean isGraded = !validJudgeScores.isEmpty();
+            Double avgRoundScore = null;
+            if (isGraded) {
+                avgRoundScore = validJudgeScores.stream().map(Score::getTotalScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
+            } else if (isAutoZero) {
+                avgRoundScore = 0.0;
+                isGraded = true;
+            }
+
+            List<java.util.Map<String, Object>> detailedScores = new ArrayList<>();
+            if (isGraded || isAutoZero) {
+                java.util.Map<Long, List<ScoreDetail>> groupedByRubric = judgeScores.stream()
+                        .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
+                        .filter(d -> d.getContestRubricDetail() != null)
+                        .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
+
+                for (List<ScoreDetail> detailList : groupedByRubric.values()) {
+                    if (detailList.isEmpty()) continue;
+                    ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
+                    double avgPoints = detailList.stream().map(ScoreDetail::getRawScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
+                    String combinedFeedback = detailList.stream().map(ScoreDetail::getFeedback).filter(f -> f != null && !f.trim().isEmpty()).collect(Collectors.joining("\n- "));
+                    if (!combinedFeedback.isEmpty()) combinedFeedback = "- " + combinedFeedback;
+
+                    java.util.Map<String, Object> ds = new java.util.HashMap<>();
+                    ds.put("criteriaName", rubricInfo.getCriteriaName());
+                    ds.put("weight", rubricInfo.getPercentageWeight());
+                    ds.put("pointsAwarded", Math.round(avgPoints * 100.0) / 100.0);
+                    ds.put("feedback", combinedFeedback);
+                    detailedScores.add(ds);
+                }
+            }
+
+            java.util.Map<String, Object> snapshot = new java.util.HashMap<>();
+            snapshot.put("avgRoundScore", avgRoundScore != null ? Math.round(avgRoundScore * 100.0) / 100.0 : null);
+            snapshot.put("isGraded", isGraded);
+            snapshot.put("hasSubmission", hasSubmission);
+            snapshot.put("detailedScores", detailedScores);
+
+            try {
+                String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(snapshot);
+                sub.setHistoryLog(json);
+                submissionRepository.save(sub);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         auditLogService.log("PUBLISH_SCORES", "Round",
                 round.getPhaseName() != null ? round.getPhaseName() : "Round",
