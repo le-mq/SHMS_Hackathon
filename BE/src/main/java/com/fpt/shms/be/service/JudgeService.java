@@ -161,9 +161,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                          .map(Category::getName)
-                          .collect(Collectors.joining(", "));
+                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                        .map(Category::getName)
+                        .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -636,4 +636,162 @@ public class JudgeService {
         }
         return false;
     }
+
+    @Transactional(readOnly = true)
+    public EvaluatorDashboardResponse getJudgeResultReviewData(String username, Long contestId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
+        List<Category> allCategories = assignments.stream().map(JudgeAssignment::getCategory).toList();
+
+        List<Contest> allContests = allCategories.stream()
+                .map(Category::getContest)
+                .filter(c -> c != null)
+                .distinct()
+                .toList();
+
+        List<EvaluatorDashboardResponse.ContestDto> contestDtos = allContests.stream()
+                .map(c -> EvaluatorDashboardResponse.ContestDto.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .status(c.getStatus() != null ? c.getStatus().name() : null)
+                        .contestStatus(c.getStatus() != null ? c.getStatus().name() : null)
+                        .build())
+                .toList();
+
+        List<Category> categories = allCategories;
+        if (contestId != null) {
+            categories = categories.stream()
+                    .filter(c -> c.getContest() != null && c.getContest().getId().equals(contestId))
+                    .toList();
+        }
+
+        List<Long> assignedContestIds = categories.stream().map(c -> c.getContest().getId()).distinct().toList();
+
+        List<Team> assignedTeams = new ArrayList<>();
+        for (Long cId : assignedContestIds) {
+            assignedTeams.addAll(teamRepository.findByContestId(cId).stream()
+                    .filter(t -> "APPROVED".equalsIgnoreCase(t.getStatus()))
+                    .toList());
+        }
+
+        List<Long> teamIds = assignedTeams.stream().map(Team::getId).toList();
+        List<Submission> submissions = teamIds.isEmpty() ? new ArrayList<>() : submissionRepository.findByTeamIdIn(teamIds);
+
+        java.util.Map<Long, List<Round>> contestRoundsCache = new java.util.HashMap<>();
+        List<EvaluatorDashboardResponse.AssignedTeamQueueDto> queue = new ArrayList<>();
+        final List<Category> finalCategories = categories;
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (Team team : assignedTeams) {
+            Long teamContestId = team.getContest().getId();
+            List<Round> allContestRounds = contestRoundsCache.computeIfAbsent(teamContestId, roundRepository::findByContestIdOrderBySubmissionOpenAsc);
+
+            for (Round round : allContestRounds) {
+                // Check reviewCalibrationAt first: Judge can only see teams if score is published
+                if (round.getReviewCalibrationAt() == null || round.getReviewCalibrationAt().isAfter(now)) {
+                    continue;
+                }
+
+                // If result is published (Publish Result clicked), remove from result review — it's now on Leaderboard
+                if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(now)) {
+                    continue;
+                }
+
+                // Make sure round matches judge's categories
+                if (round.getCategory() != null && finalCategories.stream().noneMatch(c -> c.getId().equals(round.getCategory().getId()))) {
+                    continue;
+                }
+
+                Submission latestSub = submissions.stream()
+                        .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
+                        .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
+                        .max((s1, s2) -> {
+                            int cmp = s1.getVersion().compareTo(s2.getVersion());
+                            return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
+                        })
+                        .orElse(null);
+
+                if (latestSub == null) continue;
+
+                // Find if THIS judge evaluated this submission
+                List<Score> myScores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(), latestSub.getId());
+                if (myScores == null || myScores.isEmpty()) {
+                    continue; // Judge did not grade this submission, do not show in result review
+                }
+
+                // Compute aggregated average score of all judges
+                Double avgScore = null;
+                boolean usedSnapshot = false;
+                if (latestSub.getHistoryLog() != null && !latestSub.getHistoryLog().trim().isEmpty()) {
+                    try {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        java.util.Map<String, Object> snapshot = mapper.readValue(latestSub.getHistoryLog(), java.util.Map.class);
+                        if (snapshot != null && snapshot.containsKey("avgRoundScore")) {
+                            avgScore = snapshot.get("avgRoundScore") != null ? ((Number) snapshot.get("avgRoundScore")).doubleValue() : null;
+                            usedSnapshot = true;
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                if (!usedSnapshot) {
+                    List<Score> allScores = scoreRepository.findBySubmissionId(latestSub.getId());
+                    List<Score> judgeScores = allScores.stream()
+                            .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
+                            .toList();
+
+                    boolean isAutoZero = "MISSED_DEADLINE".equals(latestSub.getStatus()) || judgeScores.stream().anyMatch(sc -> "MISSED_DEADLINE".equals(sc.getStatus()));
+                    List<Score> validJudgeScores = judgeScores.stream()
+                            .filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus()))
+                            .toList();
+
+                    if (!validJudgeScores.isEmpty()) {
+                        avgScore = validJudgeScores.stream()
+                                .map(Score::getTotalScore)
+                                .filter(java.util.Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .average()
+                                .orElse(0.0);
+                        avgScore = Math.round(avgScore * 100.0) / 100.0;
+                    } else if (isAutoZero) {
+                        avgScore = 0.0;
+                    }
+                }
+
+                String abbreviation = team.getName() != null && team.getName().length() >= 2
+                        ? team.getName().substring(0, 2).toUpperCase()
+                        : "TM";
+
+                String trackName = round.getCategory() != null ? round.getCategory().getName() : "Unknown Track";
+
+                queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
+                        .teamId(team.getId())
+                        .submissionId(latestSub.getId())
+                        .roundId(round.getId())
+                        .teamName(team.getName())
+                        .abbreviation(abbreviation)
+                        .trackName(trackName)
+                        .roundName(round.getPhaseName())
+                        .submissionState("Evaluated")
+                        .themeClass("ai")
+                        .gradingDeadlineAt(round.getGradingDeadlineAt())
+                        .roundFormat(round.getRoundFormat() != null ? round.getRoundFormat() : "Not Specified")
+                        .score(avgScore)
+                        .build());
+            }
+        }
+
+        return EvaluatorDashboardResponse.builder()
+                .assignedTrackCount(categories.size())
+                .totalAllocatedTeams(queue.size())
+                .evaluatedCount(queue.size())
+                .contests(contestDtos)
+                .queue(queue)
+                .rounds(new ArrayList<>())
+                .build();
+    }
 }
+
