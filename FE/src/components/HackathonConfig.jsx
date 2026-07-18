@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useFormik, FieldArray, FormikProvider } from 'formik';
+import { useFormik, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { Form } from 'react-bootstrap';
 import './HackathonConfig.css';
@@ -133,7 +133,7 @@ function HackathonConfig() {
 
     const formik = useFormik({
         initialValues: {
-            name: '', theme: '', term: 'Auto setup', year: new Date().getFullYear(),
+            name: '', theme: '', description: '', term: 'Auto setup', year: new Date().getFullYear(),
             maximumAllowedTeams: 100, minTeamMembers: 3, maxTeamMembers: 5, registrationStart: '', registrationEnd: '', contestEndAt: '',
             complianceRules: [{ rule: '', penalty: '' }], tieredPrizeStructures: [{ rank: '', amount: '' }], status: 'UNSAVED',
             location: '', contestStartAt: '', publishedAt: '', universities: [],
@@ -314,7 +314,7 @@ function HackathonConfig() {
 
             const parseJsonList = (str, fallback) => { if (!str) return fallback; try { return JSON.parse(str); } catch { return fallback; } };
             formik.setValues({
-                name: data.name || '', theme: data.theme || '', term: data.term || 'Auto setup', year: data.year || new Date().getFullYear(), maximumAllowedTeams: data.maximumAllowedTeams || 100, minTeamMembers: data.minTeamMembers || 3, maxTeamMembers: data.maxTeamMembers || 5, location: data.location || '', status: data.status || 'UPCOMING', universities: data.universities || [], categories: fetchedCategories, rounds: fetchedRounds,
+                name: data.name || '', theme: data.theme || '', description: data.description || '', term: data.term || 'Auto setup', year: data.year || new Date().getFullYear(), maximumAllowedTeams: data.maximumAllowedTeams || 100, minTeamMembers: data.minTeamMembers || 3, maxTeamMembers: data.maxTeamMembers || 5, location: data.location || '', status: data.status || 'UPCOMING', universities: data.universities || [], categories: fetchedCategories, rounds: fetchedRounds,
                 registrationStart: data.registrationStart ? data.registrationStart.slice(0, 10) : '', registrationEnd: data.registrationEnd ? data.registrationEnd.slice(0, 10) : '', contestEndAt: data.contestEndAt ? data.contestEndAt.slice(0, 16) : '', contestStartAt: data.contestStartAt ? data.contestStartAt.slice(0, 16) : '', publishedAt: data.publishedAt ? data.publishedAt.slice(0, 16) : '',
                 complianceRules: parseJsonList(data.complianceRules, [{ rule: '', penalty: '' }]), tieredPrizeStructures: parseJsonList(data.tieredPrizeStructures, [{ rank: '', amount: '' }])
             });
@@ -562,9 +562,9 @@ function HackathonConfig() {
                         <div className="hc-search-wrap" onClick={() => setShowSearchDropdown(true)}>
                             <span className="hc-search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></span>
                             <input placeholder="Search contest..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowSearchDropdown(true); }} />
-                            {showSearchDropdown && (searchQuery || contests.length > 0) && (
+                            {showSearchDropdown && searchQuery && (
                                 <div className="hc-search-dropdown">
-                                    {(searchQuery ? filteredContests : contests.slice(0, 5)).map(c => {
+                                    {filteredContests.length > 0 ? filteredContests.map(c => {
                                         const st = determineStatus(c.registrationStart, c.contestEndAt);
                                         return (
                                             <div key={c.id} className={`hc-search-item${selectedContestId === c.id ? ' selected' : ''}`} onClick={() => { handleSelectContest(c.id); setSearchQuery(''); setShowSearchDropdown(false); }}>
@@ -572,7 +572,9 @@ function HackathonConfig() {
                                                 <div className={`hc-badge ${st}`}>{st}</div>
                                             </div>
                                         );
-                                    })}
+                                    }) : (
+                                        <div className="hc-search-item" style={{justifyContent: 'center', color: '#64748b', cursor: 'default'}}>No results found</div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -632,25 +634,27 @@ function HackathonConfig() {
 
                                 <div className="hc-section">
                                     <div className="hc-section-header"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> Basic Information</div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 100px 100px', gap: 20 }}>
-                                        <div className="hc-field">
-                                            <label className="hc-label">Event Name <span>*</span></label>
-                                            <input className={`hc-input${formik.touched.name && formik.errors.name ? ' is-invalid' : ''}`} name="name" value={formik.values.name} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT Hackathon 2026" />
-                                            {formik.touched.name && formik.errors.name && <div className="hc-err">{formik.errors.name}</div>}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                            <div className="hc-field">
+                                                <label className="hc-label">Event Name <span>*</span></label>
+                                                <input className={`hc-input${formik.touched.name && formik.errors.name ? ' is-invalid' : ''}`} name="name" value={formik.values.name} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT Hackathon 2026" />
+                                                {formik.touched.name && formik.errors.name && <div className="hc-err">{formik.errors.name}</div>}
+                                            </div>
+                                            <div className="hc-field">
+                                                <label className="hc-label">Theme <span>*</span></label>
+                                                <input className={`hc-input${formik.touched.theme && formik.errors.theme ? ' is-invalid' : ''}`} name="theme" value={formik.values.theme} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. AI & Web3 Innovation" />
+                                                {formik.touched.theme && formik.errors.theme && <div className="hc-err">{formik.errors.theme}</div>}
+                                            </div>
+                                            <div className="hc-field">
+                                                <label className="hc-label">Location <span>*</span></label>
+                                                <input className={`hc-input${formik.touched.location && formik.errors.location ? ' is-invalid' : ''}`} name="location" value={formik.values.location} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT University, HCMC" />
+                                                {formik.touched.location && formik.errors.location && <div className="hc-err">{formik.errors.location}</div>}
+                                            </div>
                                         </div>
-                                        <div className="hc-field">
-                                            <label className="hc-label">Theme <span>*</span></label>
-                                            <input className={`hc-input${formik.touched.theme && formik.errors.theme ? ' is-invalid' : ''}`} name="theme" value={formik.values.theme} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. AI & Web3 Innovation" />
-                                            {formik.touched.theme && formik.errors.theme && <div className="hc-err">{formik.errors.theme}</div>}
-                                        </div>
-                                        <div className="hc-field"><label className="hc-label">Term</label><input className="hc-input" value={formik.values.term} disabled /></div>
-                                        <div className="hc-field"><label className="hc-label">Year</label><input className="hc-input" value={formik.values.year} disabled /></div>
-                                    </div>
-                                    <div style={{ marginTop: 20 }}>
-                                        <div className="hc-field">
-                                            <label className="hc-label">Location <span>*</span></label>
-                                            <input className={`hc-input${formik.touched.location && formik.errors.location ? ' is-invalid' : ''}`} name="location" value={formik.values.location} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="e.g. FPT University, HCMC" />
-                                            {formik.touched.location && formik.errors.location && <div className="hc-err">{formik.errors.location}</div>}
+                                        <div className="hc-field" style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <label className="hc-label">Description</label>
+                                            <textarea className="hc-textarea" name="description" value={formik.values.description} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} placeholder="Enter a brief description for this contest" style={{ flex: 1, resize: 'vertical' }} />
                                         </div>
                                     </div>
                                 </div>
@@ -658,6 +662,8 @@ function HackathonConfig() {
                                 <div className="hc-section">
                                     <div className="hc-section-header"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> Dates & Time</div>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
+                                        <div className="hc-field"><label className="hc-label">Term</label><input className="hc-input" value={formik.values.term} disabled /></div>
+                                        <div className="hc-field"><label className="hc-label">Year</label><input className="hc-input" value={formik.values.year} disabled /></div>
                                         <div className="hc-field">
                                             <label className="hc-label">Registration Start <span>*</span></label>
                                             <input type="date" className={`hc-input${formik.touched.registrationStart && formik.errors.registrationStart ? ' is-invalid' : ''}`} name="registrationStart" value={formik.values.registrationStart} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} />
@@ -794,7 +800,7 @@ function HackathonConfig() {
                                                     );
                                                 })()}
                                             </div>
-                                            <div className="hc-grid-1-2" style={{ marginBottom: 16 }}>
+                                            <div className="hc-grid-1-1" style={{ marginBottom: 16 }}>
                                                 <div className="hc-field">
                                                     <label className="hc-label">Category Name <span>*</span></label>
                                                     <input className={`hc-input${formik.touched.categories?.[idx]?.trackName && formik.errors.categories?.[idx]?.trackName ? ' is-invalid' : ''}`} name={`categories[${idx}].trackName`} value={cat.trackName} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest} placeholder="e.g. AI Track" />
@@ -808,7 +814,7 @@ function HackathonConfig() {
                                             </div>
                                             <div className="hc-field">
                                                 <label className="hc-label">Category Description</label>
-                                                <textarea className="hc-textarea" name={`categories[${idx}].trackDescription`} value={cat.trackDescription || ''} onChange={formik.handleChange} disabled={isClosedContest} />
+                                                <textarea className="hc-textarea" name={`categories[${idx}].trackDescription`} value={cat.trackDescription || ''} onChange={formik.handleChange} disabled={isClosedContest} placeholder="Briefly describe the focus of this category..." />
                                             </div>
                                         </div>
                                     ))

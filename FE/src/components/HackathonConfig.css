@@ -215,7 +215,7 @@
 .hc-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 .hc-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .hc-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.hc-grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+.hc-grid-1-1 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 /* --- SECTIONS --- */
 .hc-section {
@@ -345,7 +345,7 @@
     height: 38px;
     transition: background 0.2s;
 }
-.hc-list-add-btn:hover { background: #bae6fd; }
+.hc-list-add-btn:hover { background: #1b4bbc; }
 
 .hc-remove-btn {
     background: transparent;

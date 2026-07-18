@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
 function PenaltyActionModal({ show, onHide, team, complianceRules, onApplyPenalty }) {
@@ -46,8 +46,8 @@ function PenaltyActionModal({ show, onHide, team, complianceRules, onApplyPenalt
                     <Form.Group className="mb-3">
                         <Form.Label>Select Violation Rule <span style={{ color: 'red' }}>*</span></Form.Label>
                         <Form.Select value={selectedRule}
-                            onChange={(e) => setSelectedRule(e.target.value)}
-                            required
+                                     onChange={(e) => setSelectedRule(e.target.value)}
+                                     required
                         >
                             <option value="">-- Select Rule --</option>
                             {complianceRules && complianceRules.map((cr, idx) => (
@@ -63,9 +63,9 @@ function PenaltyActionModal({ show, onHide, team, complianceRules, onApplyPenalt
                         <Form.Group className="mb-3">
                             <Form.Label>Custom Rule Description <span style={{ color: 'red' }}>*</span></Form.Label>
                             <Form.Control type="text" placeholder="Enter custom rule..."
-                                required onChange={(e) => {
-                                    // Handle custom rule description change if needed
-                                }}
+                                          required onChange={(e) => {
+                                // Handle custom rule description change if needed
+                            }}
                             />
                         </Form.Group>
                     )}
@@ -73,8 +73,8 @@ function PenaltyActionModal({ show, onHide, team, complianceRules, onApplyPenalt
                     <Form.Group className="mb-3">
                         <Form.Label>Penalty to Apply <span style={{ color: 'red' }}>*</span></Form.Label>
                         <Form.Control type="text" value={penalty}
-                            onChange={(e) => setPenalty(e.target.value)}
-                            placeholder="e.g. Disqualification, -10 points" required
+                                      onChange={(e) => setPenalty(e.target.value)}
+                                      placeholder="e.g. Disqualification, -10 points" required
                         />
                         <Form.Text className="text-muted">
                             You can modify the default penalty for this specific case.
@@ -84,9 +84,9 @@ function PenaltyActionModal({ show, onHide, team, complianceRules, onApplyPenalt
                     <Form.Group className="mb-3">
                         <Form.Label>Additional Notes / Reason</Form.Label>
                         <Form.Control as="textarea"
-                            rows={3} value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            placeholder="Enter detailed reason or evidence..."
+                                      rows={3} value={note}
+                                      onChange={(e) => setNote(e.target.value)}
+                                      placeholder="Enter detailed reason or evidence..."
                         />
                     </Form.Group>
                 </Form>
