@@ -106,7 +106,6 @@ export default function ContestDetailModal({ contest, onClose }) {
                     {contest.name}
                 </h2>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={handleJoin} style={{ padding: '8px 24px', background: 'linear-gradient(135deg, #1e88e5, #42a5f5)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 4px 12px rgba(30,136,229,0.3)' }}>Join Hackathon</button>
                 </div>
             </div>
 
@@ -286,8 +285,47 @@ export default function ContestDetailModal({ contest, onClose }) {
 
                 {/* FOOTER CTA */}
                 <div style={{ textAlign: 'center', marginTop: '40px', padding: '40px', background: 'linear-gradient(to top, rgba(255,255,255,1), transparent)' }}>
-                    <button onClick={handleJoin} style={{ padding: '16px 48px', fontSize: '18px', background: 'linear-gradient(135deg, #1e88e5, #42a5f5)', border: 'none', color: '#fff', borderRadius: '40px', cursor: 'pointer', fontWeight: 800, boxShadow: '0 10px 25px rgba(30,136,229,0.4)', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e => e.currentTarget.style.transform='translateY(0)'}>Register For This Hackathon</button>
-                    <p style={{ fontSize: '14px', color: '#64748b', marginTop: '16px' }}>Don't have an account yet? You can create one during registration.</p>
+                    {(() => {
+                        const isRegClosed = (() => {
+                            if (!contest.registrationEnd) return false;
+                            const end = new Date(contest.registrationEnd);
+                            end.setHours(23, 59, 59, 999);
+                            return new Date() > end;
+                        })();
+                        return (
+                            <>
+                                <button
+                                    onClick={isRegClosed ? undefined : handleJoin}
+                                    disabled={isRegClosed}
+                                    style={{
+                                        padding: '16px 48px',
+                                        fontSize: '18px',
+                                        background: isRegClosed ? 'linear-gradient(135deg, #94a3b8, #cbd5e1)' : 'linear-gradient(135deg, #1e88e5, #42a5f5)',
+                                        border: 'none',
+                                        color: isRegClosed ? '#e2e8f0' : '#fff',
+                                        borderRadius: '40px',
+                                        cursor: isRegClosed ? 'not-allowed' : 'pointer',
+                                        fontWeight: 800,
+                                        boxShadow: isRegClosed ? 'none' : '0 10px 25px rgba(30,136,229,0.4)',
+                                        transition: 'transform 0.2s'
+                                    }}
+                                    onMouseEnter={e => { if (!isRegClosed) e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                >
+                                    {isRegClosed ? 'Registration Closed' : 'Register For This Hackathon'}
+                                </button>
+                                {isRegClosed ? (
+                                    <p style={{ fontSize: '14px', color: '#ef4444', marginTop: '16px', fontWeight: 600 }}>
+                                        Registration closed on <strong>{fmtDateTime(contest.registrationEnd)}</strong>.
+                                    </p>
+                                ) : (
+                                    <p style={{ fontSize: '14px', color: '#64748b', marginTop: '16px' }}>
+                                        Don't have an account yet? You can create one during registration.
+                                    </p>
+                                )}
+                            </>
+                        );
+                    })()}
                 </div>
             </div>
         </div>
