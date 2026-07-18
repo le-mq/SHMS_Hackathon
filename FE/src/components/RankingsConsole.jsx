@@ -108,6 +108,7 @@ const RankingsConsole = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('rankingsSelectedContestId') || '');
     const [contestSearchQuery, setContestSearchQuery] = useState('');
+    const [contestStatusFilter, setContestStatusFilter] = useState('ALL');
     const [selectedRoundId, setSelectedRoundId] = useState('');
     const [contestDetails, setContestDetails] = useState(null);
 
@@ -191,6 +192,21 @@ const RankingsConsole = () => {
 
         return `https://${trimmedUrl}`;
     };
+
+    const filteredContests = useMemo(() => {
+        return contests
+            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+            .filter(c => contestStatusFilter === 'ALL' || getLiveStatus(c) === contestStatusFilter)
+            .sort((a, b) => {
+                const aLiveStatus = getLiveStatus(a);
+                const bLiveStatus = getLiveStatus(b);
+                const isAClosed = aLiveStatus === 'CLOSED';
+                const isBClosed = bLiveStatus === 'CLOSED';
+                if (isAClosed && !isBClosed) return 1;
+                if (!isAClosed && isBClosed) return -1;
+                return Number(b.id) - Number(a.id);
+            });
+    }, [contests, contestSearchQuery, contestStatusFilter]);
 
     const [initialLoading, setInitialLoading] = useState(true);
 
@@ -601,161 +617,176 @@ const RankingsConsole = () => {
     if (!selectedContestId) {
         return (
             <div className="rankings-container">
-                <div className="rankings-content" style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
+                <div className="rankings-content" style={{ padding: '40px', maxWidth: 1800, margin: 'auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                         <div>
                             <h1 className="rankings-title" style={{ fontSize: '32px', margin: 0 }}>Rankings & Rounds Console</h1>
                             <p className="rankings-subtitle" style={{ fontSize: '15px', color: '#64748b', margin: '4px 0 0 0' }}>Select a contest to manage competition rounds, track submissions, and publish leaderboard rankings.</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '320px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                            <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search contests..."
-                                value={contestSearchQuery}
-                                onChange={(e) => setContestSearchQuery(e.target.value)}
-                                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
-                            />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {/* Search Box */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '280px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search contests..."
+                                    value={contestSearchQuery}
+                                    onChange={(e) => setContestSearchQuery(e.target.value)}
+                                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
+                                />
+                            </div>
+
+                            {/* Status Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '220px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>Status:</span>
+                                <select
+                                    value={contestStatusFilter}
+                                    onChange={(e) => setContestStatusFilter(e.target.value)}
+                                    style={{
+                                        border: 'none',
+                                        outline: 'none',
+                                        background: 'transparent',
+                                        fontSize: '14px',
+                                        color: '#0f172a',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="ACTIVE">Actived</option>
+                                    <option value="UPCOMING">Upcoming</option>
+                                    <option value="CLOSED">Closed</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div className="contests-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-                        {contests
-                            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
-                            .sort((a, b) => {
-                                const aLiveStatus = getLiveStatus(a);
-                                const bLiveStatus = getLiveStatus(b);
-                                const isAClosed = aLiveStatus === 'CLOSED';
-                                const isBClosed = bLiveStatus === 'CLOSED';
-                                if (isAClosed && !isBClosed) return 1;
-                                if (!isAClosed && isBClosed) return -1;
-                                return Number(b.id) - Number(a.id);
-                            })
-                            .map(c => {
-                                const liveStatus = getLiveStatus(c);
-                                const isClosed = liveStatus === 'CLOSED';
-                                const isUpcoming = liveStatus === 'UPCOMING';
-                                const isActive = liveStatus === 'ACTIVE';
+                        {filteredContests.map(c => {
+                            const liveStatus = getLiveStatus(c);
+                            const isClosed = liveStatus === 'CLOSED';
+                            const isUpcoming = liveStatus === 'UPCOMING';
+                            const isActive = liveStatus === 'ACTIVE';
 
-                                let cardBg = 'white';
-                                let cardBorderColor = '#cbd5e1';
-                                let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                let statusText = 'ACTIVE';
-                                let badgeBg = '#dcfce7';
-                                let badgeColor = '#166534';
+                            let cardBg = 'white';
+                            let cardBorderColor = '#cbd5e1';
+                            let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
+                            let statusText = 'ACTIVE';
+                            let badgeBg = '#dcfce7';
+                            let badgeColor = '#166534';
 
-                                if (isClosed) {
-                                    cardBg = '#f8fafc';
-                                    cardBorderColor = '#e2e8f0';
-                                    statusText = 'CLOSED';
-                                    badgeBg = '#fee2e2';
-                                    badgeColor = '#ef4444';
-                                } else if (isUpcoming) {
-                                    statusText = 'UPCOMING';
-                                    badgeBg = '#fef3c7';
-                                    badgeColor = '#d97706';
-                                } else if (isActive) {
-                                    cardBg = 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)';
-                                    cardBorderColor = '#86efac';
-                                    glowShadow = '0 10px 20px -3px rgba(34, 197, 94, 0.08)';
-                                    statusText = 'ACTIVED';
-                                    badgeBg = '#dcfce7';
-                                    badgeColor = '#15803d';
-                                }
+                            if (isClosed) {
+                                cardBg = '#f8fafc';
+                                cardBorderColor = '#e2e8f0';
+                                statusText = 'CLOSED';
+                                badgeBg = '#fee2e2';
+                                badgeColor = '#ef4444';
+                            } else if (isUpcoming) {
+                                statusText = 'UPCOMING';
+                                badgeBg = '#fef3c7';
+                                badgeColor = '#d97706';
+                            } else if (isActive) {
+                                cardBg = 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)';
+                                cardBorderColor = '#86efac';
+                                glowShadow = '0 10px 20px -3px rgba(34, 197, 94, 0.08)';
+                                statusText = 'ACTIVED';
+                                badgeBg = '#dcfce7';
+                                badgeColor = '#15803d';
+                            }
 
-                                return (
-                                    <div
-                                        key={c.id}
-                                        style={{
-                                            background: cardBg,
-                                            padding: '28px',
-                                            borderRadius: '16px',
-                                            border: `1.5px solid ${cardBorderColor}`,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            boxShadow: glowShadow,
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between',
-                                            minHeight: '180px',
-                                            position: 'relative',
-                                            overflow: 'hidden'
-                                        }}
-                                        onClick={() => {
-                                            setSelectedContestId(c.id.toString());
-                                            sessionStorage.setItem('rankingsSelectedContestId', c.id.toString());
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#2563eb';
-                                            e.currentTarget.style.transform = 'translateY(-3px)';
-                                            e.currentTarget.style.boxShadow = isActive
-                                                ? '0 12px 24px -4px rgba(34, 197, 94, 0.16)'
-                                                : '0 12px 24px -4px rgba(37, 99, 235, 0.16)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = cardBorderColor;
-                                            e.currentTarget.style.transform = 'none';
-                                            e.currentTarget.style.boxShadow = glowShadow;
-                                        }}
-                                    >
-                                        {isActive && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '4px',
-                                                height: '100%',
-                                                background: '#22c55e'
-                                            }} />
-                                        )}
-                                        <div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
-                                                <span style={{
-                                                    fontSize: '11px',
-                                                    background: badgeBg,
-                                                    color: badgeColor,
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontWeight: 700,
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.5px',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px'
-                                                }}>
-                                                    {isActive && <span className="glow-dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />}
-                                                    {statusText}
-                                                </span>
-                                            </div>
-                                            {c.year && (
-                                                <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
-                                                    {c.season ? `${c.season} ` : ''}{c.year}
-                                                </p>
-                                            )}
-                                            {c.description && (
-                                                <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
-                                                    {c.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                                            <span style={{ color: isActive ? '#16a34a' : '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Manage Rankings
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                                                </svg>
+                            return (
+                                <div
+                                    key={c.id}
+                                    style={{
+                                        background: cardBg,
+                                        padding: '28px',
+                                        borderRadius: '16px',
+                                        border: `1.5px solid ${cardBorderColor}`,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: glowShadow,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        minHeight: '180px',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}
+                                    onClick={() => {
+                                        setSelectedContestId(c.id.toString());
+                                        sessionStorage.setItem('rankingsSelectedContestId', c.id.toString());
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#2563eb';
+                                        e.currentTarget.style.transform = 'translateY(-3px)';
+                                        e.currentTarget.style.boxShadow = isActive
+                                            ? '0 12px 24px -4px rgba(34, 197, 94, 0.16)'
+                                            : '0 12px 24px -4px rgba(37, 99, 235, 0.16)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.borderColor = cardBorderColor;
+                                        e.currentTarget.style.transform = 'none';
+                                        e.currentTarget.style.boxShadow = glowShadow;
+                                    }}
+                                >
+                                    {isActive && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '4px',
+                                            height: '100%',
+                                            background: '#22c55e'
+                                        }} />
+                                    )}
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                            <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
+                                            <span style={{
+                                                fontSize: '11px',
+                                                background: badgeBg,
+                                                color: badgeColor,
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}>
+                                                {isActive && <span className="glow-dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />}
+                                                {statusText}
                                             </span>
                                         </div>
+                                        {c.year && (
+                                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+                                                {c.season ? `${c.season} ` : ''}{c.year}
+                                            </p>
+                                        )}
+                                        {c.description && (
+                                            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
+                                                {c.description}
+                                            </p>
+                                        )}
                                     </div>
-                                );
-                            })
-                        }
-                        {contests.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                                        <span style={{ color: isActive ? '#16a34a' : '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            Manage Rankings
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {filteredContests.length === 0 && (
                             <div style={{ gridColumn: '1 / -1', padding: '60px 40px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', color: '#64748b', fontWeight: '600', border: '1.5px dashed #cbd5e1' }}>
-                                No contests found matching your search query.
+                                No contests found matching your filters.
                             </div>
                         )}
                     </div>

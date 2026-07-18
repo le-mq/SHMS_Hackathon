@@ -27,6 +27,7 @@ const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('panelAllocSelectedContest') || '');
     const [contestSearchQuery, setContestSearchQuery] = useState('');
+    const [contestStatusFilter, setContestStatusFilter] = useState('ALL');
     const [rounds, setRounds] = useState([]);
     const [selectedRoundId, setSelectedRoundId] = useState('');
     const [selectedRound, setSelectedRound] = useState(null);
@@ -314,6 +315,19 @@ const PanelAllocation = () => {
         ), [experts, searchQuery]
     );
 
+    const filteredContests = useMemo(() => {
+        return contests
+            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+            .filter(c => contestStatusFilter === 'ALL' || getLiveStatus(c) === contestStatusFilter)
+            .sort((a, b) => {
+                const aLiveStatus = getLiveStatus(a);
+                const bLiveStatus = getLiveStatus(b);
+                if (aLiveStatus === 'CLOSED' && bLiveStatus !== 'CLOSED') return 1;
+                if (aLiveStatus !== 'CLOSED' && bLiveStatus === 'CLOSED') return -1;
+                return 0;
+            });
+    }, [contests, contestSearchQuery, contestStatusFilter]);
+
     const isJudgeForRound = allocations[String(selectedExpertId)]?.[roundCategoryId]?.isJudge || false;
     const isJudgeDisabled = !hasJudgeRole || currentMentoredTeamIds.length > 0;
 
@@ -331,114 +345,130 @@ const PanelAllocation = () => {
     if (!selectedContestId) {
         return (
             <div className="admin-container">
-                <div style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
+                <div style={{ padding: '40px', maxWidth: 1800, margin: 'auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                         <div>
                             <h1 className="config-title" style={{ fontSize: '32px' }}>Panel Allocation</h1>
                             <p className="config-subtitle" style={{ fontSize: '15px', color: '#64748b' }}>Select a contest to manage expert panel allocations and track assignment progress.</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '320px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                            <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search contests..."
-                                value={contestSearchQuery}
-                                onChange={(e) => setContestSearchQuery(e.target.value)}
-                                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
-                            />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {/* Search Box */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '280px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search contests..."
+                                    value={contestSearchQuery}
+                                    onChange={(e) => setContestSearchQuery(e.target.value)}
+                                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
+                                />
+                            </div>
+
+                            {/* Status Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '220px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>Status:</span>
+                                <select
+                                    value={contestStatusFilter}
+                                    onChange={(e) => setContestStatusFilter(e.target.value)}
+                                    style={{
+                                        border: 'none',
+                                        outline: 'none',
+                                        background: 'transparent',
+                                        fontSize: '14px',
+                                        color: '#0f172a',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="ACTIVED">Actived</option>
+                                    <option value="UPCOMING">Upcoming</option>
+                                    <option value="CLOSED">Closed</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-                        {contests
-                            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
-                            .sort((a, b) => {
-                                const aLiveStatus = getLiveStatus(a);
-                                const bLiveStatus = getLiveStatus(b);
-                                if (aLiveStatus === 'CLOSED' && bLiveStatus !== 'CLOSED') return 1;
-                                if (aLiveStatus !== 'CLOSED' && bLiveStatus === 'CLOSED') return -1;
-                                return 0;
-                            })
-                            .map(c => {
-                                const liveStatus = getLiveStatus(c);
-                                const isClosed = liveStatus === 'CLOSED';
-                                return (
-                                    <div
-                                        key={c.id}
-                                        style={{
-                                            background: 'white',
-                                            padding: '28px',
-                                            borderRadius: '16px',
-                                            border: '1.5px solid #cbd5e1',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between',
-                                            minHeight: '160px'
-                                        }}
-                                        onClick={() => {
-                                            setSelectedContestId(c.id.toString());
-                                            sessionStorage.setItem('panelAllocSelectedContest', c.id.toString());
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = '#2563eb';
-                                            e.currentTarget.style.transform = 'translateY(-3px)';
-                                            e.currentTarget.style.boxShadow = '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = '#cbd5e1';
-                                            e.currentTarget.style.transform = 'none';
-                                            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                        }}
-                                    >
-                                        <div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
-                                                {(() => {
-                                                    const contestStatus = getLiveStatus(c);
-                                                    const contestStyles = getStatusStyles(contestStatus);
-                                                    return (
-                                                        <span style={{
-                                                            fontSize: '11px',
-                                                            background: contestStyles.bg,
-                                                            color: contestStyles.color,
-                                                            border: `1px solid ${contestStyles.border}`,
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontWeight: 700,
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.5px'
-                                                        }}>
-                                                            {contestStatus}
-                                                        </span>
-                                                    );
-                                                })()}
-                                            </div>
-                                            {c.year && (
-                                                <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
-                                                    {c.season ? `${c.season} ` : ''}{c.year}
-                                                </p>
-                                            )}
+                        {filteredContests.map(c => {
+                            const liveStatus = getLiveStatus(c);
+                            return (
+                                <div
+                                    key={c.id}
+                                    style={{
+                                        background: 'white',
+                                        padding: '28px',
+                                        borderRadius: '16px',
+                                        border: '1.5px solid #cbd5e1',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        minHeight: '160px'
+                                    }}
+                                    onClick={() => {
+                                        setSelectedContestId(c.id.toString());
+                                        sessionStorage.setItem('panelAllocSelectedContest', c.id.toString());
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.borderColor = '#2563eb';
+                                        e.currentTarget.style.transform = 'translateY(-3px)';
+                                        e.currentTarget.style.boxShadow = '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.borderColor = '#cbd5e1';
+                                        e.currentTarget.style.transform = 'none';
+                                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                            <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4' }}>{c.name}</h3>
+                                            {(() => {
+                                                const contestStatus = getLiveStatus(c);
+                                                const contestStyles = getStatusStyles(contestStatus);
+                                                return (
+                                                    <span style={{
+                                                        fontSize: '11px',
+                                                        background: contestStyles.bg,
+                                                        color: contestStyles.color,
+                                                        border: `1px solid ${contestStyles.border}`,
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontWeight: 700,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.5px'
+                                                    }}>
+                                                        {contestStatus}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                                            <span style={{ color: '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Manage Allocations
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                                                </svg>
-                                            </span>
-                                        </div>
+                                        {c.year && (
+                                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+                                                {c.season ? `${c.season} ` : ''}{c.year}
+                                            </p>
+                                        )}
                                     </div>
-                                );
-                            })
-                        }
-                        {contests.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                                        <span style={{ color: '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            Manage Allocations
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {filteredContests.length === 0 && (
                             <div style={{ gridColumn: '1 / -1', padding: '60px 40px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', color: '#64748b', fontWeight: '600', border: '1.5px dashed #cbd5e1' }}>
-                                No contests found matching your search query.
+                                No contests found matching your filters.
                             </div>
                         )}
                     </div>

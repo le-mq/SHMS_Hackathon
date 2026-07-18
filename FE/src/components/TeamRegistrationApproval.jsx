@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import './TeamRegistrationApproval.css';
 import LatestAnnouncements from './LatestAnnouncements';
@@ -17,6 +17,7 @@ const TeamRegistrationApproval = () => {
     const [dashboardData, setDashboardData] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('teamApprovalSelectedContest') || '');
     const [contestSearchQuery, setContestSearchQuery] = useState('');
+    const [contestStatusFilter, setContestStatusFilter] = useState('ALL');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -76,6 +77,21 @@ const TeamRegistrationApproval = () => {
         fetchDashboardData();
         return () => { canceled = true; };
     }, []);
+
+    const filteredContests = useMemo(() => {
+        return dashboardData
+            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+            .filter(c => contestStatusFilter === 'ALL' || getDatabaseStatus(c) === contestStatusFilter)
+            .sort((a, b) => {
+                const aLiveStatus = getDatabaseStatus(a);
+                const bLiveStatus = getDatabaseStatus(b);
+                const aActive = (aLiveStatus === 'ACTIVED');
+                const bActive = (bLiveStatus === 'ACTIVED');
+                if (aActive && !bActive) return -1;
+                if (!aActive && bActive) return 1;
+                return Number(b.id) - Number(a.id);
+            });
+    }, [dashboardData, contestSearchQuery, contestStatusFilter]);
 
     const selectedContest = dashboardData.find(c => String(c.id) === String(selectedContestId));
     let filteredTeams = [];
@@ -196,130 +212,145 @@ const TeamRegistrationApproval = () => {
     if (!selectedContestId) {
         return (
             <div className="approval-container">
-                <div style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
+                <div style={{ padding: '40px', maxWidth: 1800, margin: 'auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                         <div>
                             <h1 className="approval-title" style={{ fontSize: '32px' }}>Team Registration Approval</h1>
                             <p className="approval-subtitle" style={{ fontSize: '15px', color: '#64748b' }}>Select a contest to review and manage student team registration approvals.</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '320px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                            <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search contests..."
-                                value={contestSearchQuery}
-                                onChange={(e) => setContestSearchQuery(e.target.value)}
-                                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
-                            />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {/* Search Box */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '280px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search contests..."
+                                    value={contestSearchQuery}
+                                    onChange={(e) => setContestSearchQuery(e.target.value)}
+                                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', width: '100%', color: '#0f172a', fontWeight: '500' }}
+                                />
+                            </div>
+
+                            {/* Status Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '220px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>Status:</span>
+                                <select
+                                    value={contestStatusFilter}
+                                    onChange={(e) => setContestStatusFilter(e.target.value)}
+                                    style={{
+                                        border: 'none',
+                                        outline: 'none',
+                                        background: 'transparent',
+                                        fontSize: '14px',
+                                        color: '#0f172a',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="ACTIVED">Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
+                                    <option value="CLOSED">Closed</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-                        {dashboardData
-                            .filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
-                            .sort((a, b) => {
-                                const aLiveStatus = getDatabaseStatus(a);
-                                const bLiveStatus = getDatabaseStatus(b);
-                                const aActive = (aLiveStatus === 'ACTIVED');
-                                const bActive = (bLiveStatus === 'ACTIVED');
-                                if (aActive && !bActive) return -1;
-                                if (!aActive && bActive) return 1;
-                                return Number(b.id) - Number(a.id);
-                            })
-                            .map(c => {
-                                const liveStatus = getDatabaseStatus(c);
-                                const isClosed = liveStatus === 'CLOSED';
-                                const isActive = liveStatus === 'ACTIVED';
-                                const totalTeams = Array.isArray(c.teams)
-                                    ? c.teams.length
-                                    : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
-                                return (
-                                    <div
-                                        key={c.id}
-                                        style={{
-                                            background: isActive ? 'linear-gradient(to bottom right, #ffffff, #f0fdf4)' : 'white',
-                                            padding: '28px',
-                                            borderRadius: '16px',
-                                            border: isActive ? '2px solid #22c55e' : '1.5px solid #cbd5e1',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            boxShadow: isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.05)' : '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between',
-                                            minHeight: '180px'
-                                        }}
-                                        onClick={() => {
-                                            setSelectedContestId(c.id.toString());
-                                            sessionStorage.setItem('teamApprovalSelectedContest', c.id.toString());
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = isActive ? '#16a34a' : '#2563eb';
-                                            e.currentTarget.style.transform = 'translateY(-3px)';
-                                            e.currentTarget.style.boxShadow = isActive ? '0 10px 20px -3px rgba(34, 197, 94, 0.2)' : '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#cbd5e1';
-                                            e.currentTarget.style.transform = 'none';
-                                            e.currentTarget.style.boxShadow = isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1)' : '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                        }}
-                                    >
-                                        <div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4', flex: 1 }}>{c.name}</h3>
-                                                <span style={{
-                                                    fontSize: '11px',
-                                                    background: isClosed ? '#fee2e2' : '#dcfce7',
-                                                    color: isClosed ? '#ef4444' : '#166534',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontWeight: 700,
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.5px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    border: `1px solid ${isClosed ? '#fecaca' : '#bbf7d0'}`,
-                                                    marginLeft: '12px',
-                                                    whiteSpace: 'nowrap'
-                                                }}>
-                                                    {isActive && <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>}
-                                                    {liveStatus}
-                                                </span>
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>Total Teams:</span>
-                                                    <span style={{ fontWeight: 700, color: '#eab308' }}>{totalTeams} Teams</span>
-                                                </div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>Total Participants:</span>
-                                                    <span style={{ fontWeight: 700, color: '#2563eb' }}>
-                                                        {Array.isArray(c.teams)
-                                                            ? c.teams.reduce((sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0), 0)
-                                                            : 0
-                                                        } Students
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9', marginTop: '16px' }}>
-                                            <span style={{ color: isActive ? '#16a34a' : '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Manage Approvals
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                                                </svg>
+                        {filteredContests.map(c => {
+                            const liveStatus = getDatabaseStatus(c);
+                            const isClosed = liveStatus === 'CLOSED';
+                            const isActive = liveStatus === 'ACTIVED';
+                            const totalTeams = Array.isArray(c.teams)
+                                ? c.teams.length
+                                : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
+                            return (
+                                <div
+                                    key={c.id}
+                                    style={{
+                                        background: isActive ? 'linear-gradient(to bottom right, #ffffff, #f0fdf4)' : 'white',
+                                        padding: '28px',
+                                        borderRadius: '16px',
+                                        border: isActive ? '2px solid #22c55e' : '1.5px solid #cbd5e1',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.05)' : '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        minHeight: '180px'
+                                    }}
+                                    onClick={() => {
+                                        setSelectedContestId(c.id.toString());
+                                        sessionStorage.setItem('teamApprovalSelectedContest', c.id.toString());
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.borderColor = isActive ? '#16a34a' : '#2563eb';
+                                        e.currentTarget.style.transform = 'translateY(-3px)';
+                                        e.currentTarget.style.boxShadow = isActive ? '0 10px 20px -3px rgba(34, 197, 94, 0.2)' : '0 10px 20px -3px rgba(37, 99, 235, 0.12)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.borderColor = isActive ? '#22c55e' : '#cbd5e1';
+                                        e.currentTarget.style.transform = 'none';
+                                        e.currentTarget.style.boxShadow = isActive ? '0 4px 12px -1px rgba(34, 197, 94, 0.1)' : '0 4px 6px -1px rgba(0,0,0,0.05)';
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                            <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4', flex: 1 }}>{c.name}</h3>
+                                            <span style={{
+                                                fontSize: '11px',
+                                                background: isClosed ? '#fee2e2' : '#dcfce7',
+                                                color: isClosed ? '#ef4444' : '#166534',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                border: `1px solid ${isClosed ? '#fecaca' : '#bbf7d0'}`,
+                                                marginLeft: '12px',
+                                                whiteSpace: 'nowrap'
+                                            }}>
+                                                {isActive && <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>}
+                                                {liveStatus}
                                             </span>
                                         </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#475569', fontWeight: '500' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>Total Teams:</span>
+                                                <span style={{ fontWeight: 700, color: '#eab308' }}>{totalTeams} Teams</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>Total Participants:</span>
+                                                <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                                                    {Array.isArray(c.teams)
+                                                        ? c.teams.reduce((sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0), 0)
+                                                        : 0
+                                                    } Students
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                );
-                            })
-                        }
-                        {dashboardData.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase())).length === 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9', marginTop: '16px' }}>
+                                        <span style={{ color: isActive ? '#16a34a' : '#2563eb', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            Manage Approvals
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {filteredContests.length === 0 && (
                             <div style={{ gridColumn: '1 / -1', padding: '60px 40px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', color: '#64748b', fontWeight: '600', border: '1.5px dashed #cbd5e1' }}>
-                                No contests found matching your search query.
+                                No contests found matching your filters.
                             </div>
                         )}
                     </div>
