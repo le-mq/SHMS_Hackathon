@@ -32,6 +32,7 @@ const EvaluatorDashboard = () => {
     const [previewRoundId, setPreviewRoundId] = useState(null);
     const [previewContestId, setPreviewContestId] = useState(null);
     const [contestSearchQuery, setContestSearchQuery] = useState('');
+    const [contestStatusFilter, setContestStatusFilter] = useState('All');
     const [teamFilter, setTeamFilter] = useState('ALL');
 
     useEffect(() => {
@@ -182,7 +183,21 @@ const EvaluatorDashboard = () => {
 
     return (
         <div className="evaluator-container">
-            <div style={{ padding: '20px', maxWidth: 1200, margin: 'auto' }}><LatestAnnouncements /></div>
+            <div style={{ padding: '20px', maxWidth: 1200, margin: 'auto' }}>
+                {/* Floating Explore Button */}
+                <div className="fab-animated" style={{ position: 'fixed', bottom: '40px', right: '40px', zIndex: 999, borderRadius: '30px' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: 'white', border: 'none', padding: '16px 28px', borderRadius: '30px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2)', transition: 'all 0.2s', fontSize: '16px', letterSpacing: '0.5px' }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(37, 99, 235, 0.4), 0 10px 10px -5px rgba(37, 99, 235, 0.2)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2)'; }}
+                    >
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        Explore Hackathons
+                    </button>
+                </div>
+                <LatestAnnouncements />
+            </div>
             <div className="evaluator-content">
                 {isLoading ? (
                     <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b', background: 'white', borderRadius: '12px', border: '1.5px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
@@ -197,15 +212,33 @@ const EvaluatorDashboard = () => {
                                 <h1 className="evaluator-title">Your Assigned Contests</h1>
                                 <p className="evaluator-subtitle">Select a contest to begin grading or track evaluation progress.</p>
                             </div>
-                            <div className="search-box" style={{ width: '300px' }}>
-                                <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input type="text" placeholder="Search contests..." value={contestSearchQuery} onChange={(e) => setContestSearchQuery(e.target.value)} />
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                <select
+                                    className="evaluator-select"
+                                    style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', fontSize: '14px', color: '#334155', outline: 'none', cursor: 'pointer', minWidth: '150px' }}
+                                    value={contestStatusFilter}
+                                    onChange={(e) => setContestStatusFilter(e.target.value)}
+                                >
+                                    <option value="All">All Statuses</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
+                                    <option value="CLOSED">Closed</option>
+                                </select>
+                                <div className="search-box" style={{ width: '300px', margin: 0 }}>
+                                    <svg width="16" height="16" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" placeholder="Search contests..." value={contestSearchQuery} onChange={(e) => setContestSearchQuery(e.target.value)} />
+                                </div>
                             </div>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-                            {dashboardData?.contests?.filter(c => !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase()))
+                            {dashboardData?.contests?.filter(c => {
+                                const matchesSearch = !contestSearchQuery || c.name?.toLowerCase().includes(contestSearchQuery.toLowerCase());
+                                const status = c.status || 'ACTIVE';
+                                const matchesStatus = contestStatusFilter === 'All' || status.toUpperCase() === contestStatusFilter.toUpperCase();
+                                return matchesSearch && matchesStatus;
+                            })
                                 .sort((a, b) => {
                                     if (a.status === 'CLOSED' && b.status !== 'CLOSED') return 1;
                                     if (a.status !== 'CLOSED' && b.status === 'CLOSED') return -1;
@@ -217,20 +250,28 @@ const EvaluatorDashboard = () => {
                                     const evalTeams = teamsInContest.filter(t => t.submissionState?.toUpperCase() === 'EVALUATED').length;
                                     const isClosed = c.status === 'CLOSED';
                                     return (
-                                        <div key={c.id} style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1.5px solid #94a3b8', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }} onClick={() => { setSelectedContest(c.id.toString()); sessionStorage.setItem('judgeSelectedContest', c.id.toString()); }} onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseLeave={e => e.currentTarget.style.borderColor = '#94a3b8'}>
+                                        <div key={c.id} style={{ background: 'white', padding: '28px 24px', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }} onClick={() => { setSelectedContest(c.id.toString()); sessionStorage.setItem('judgeSelectedContest', c.id.toString()); }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(0,0,0,0.12)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(0,0,0,0.08)'; }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                                <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, lineHeight: '1.4' }}>{c.name}</h3>
-                                                <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.status || 'ACTIVE'}</span>
+                                                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                                    </div>
+                                                    <h3 style={{ margin: 0, fontSize: '17px', color: '#0f172a', fontWeight: 800, lineHeight: '1.4', letterSpacing: '-0.3px' }}>{c.name}</h3>
+                                                </div>
+                                                <span style={{ fontSize: '11px', background: isClosed ? '#fee2e2' : '#dcfce7', color: isClosed ? '#ef4444' : '#166534', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{c.status || 'ACTIVE'}</span>
                                             </div>
-                                            <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end' }}>
+                                            <div style={{ marginTop: 'auto', display: 'flex', gap: '24px', color: '#64748b', fontSize: '14px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Assigned Evaluator</div>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setPreviewContestId(c.id);
                                                     }}
-                                                    style={{ padding: '6px 12px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                    style={{ padding: '8px 16px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = '#dbeafe'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = '#eff6ff'}
                                                 >
-                                                    View Contest Info
+                                                    View Details
                                                 </button>
                                             </div>
                                         </div>

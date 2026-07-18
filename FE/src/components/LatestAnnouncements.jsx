@@ -111,7 +111,7 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
 
     const displayedAnnouncements = showAll
         ? announcements
-        : announcements.slice(0, 3);
+        : announcements.slice(0, 2);
 
     const content = (
         <div className={`latest-announcements-container ${isModal ? 'is-modal' : ''}`}>
@@ -145,98 +145,64 @@ const LatestAnnouncements = ({ isModal = false, onClose = () => { } }) => {
                 </div>
             </div>
 
-            <div className="announcements-table-wrapper">
-                <table className="announcements-table">
-                    <thead>
-                    <tr>
-                        <th>Announcement Title</th>
-                        <th>Category</th>
-                        <th>Date Posted</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {loading && (
-                        <tr>
-                            <td colSpan="4" className="text-center">
-                                Loading...
-                            </td>
-                        </tr>
-                    )}
-
-                    {!loading && announcements.length === 0 && (
-                        <tr>
-                            <td colSpan="4" className="text-center">
-                                No announcements found.
-                            </td>
-                        </tr>
-                    )}
-
-                    {!loading && displayedAnnouncements.map(announcement => {
-                        const isRead = readIds.includes(announcement.id);
-
-                        return (
-
-                            <tr
-                                key={announcement.id}
-                                className="announcement-row"
-                                onClick={() => openDetail(announcement)}
-                            >
-                                <td className="announcement-title-cell">
-                                    <div className="ann-title">
-                                        {announcement.title}
-                                    </div>
-
-                                    <div className="ann-desc">
-                                        {announcement.content || 'No content'}
-                                    </div>
-                                </td>
-
-
-                                <td>
-                                        <span className={`ann-category ${getCategoryClass(announcement.type)}`}>
+            <div className="announcements-list-wrapper" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                {loading && (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>Loading...</div>
+                )}
+                {!loading && announcements.length === 0 && (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>No announcements found.</div>
+                )}
+                {!loading && displayedAnnouncements.map((announcement, idx) => {
+                    const isRead = readIds.includes(announcement.id);
+                    return (
+                        <div
+                            key={announcement.id}
+                            style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '12px 20px',
+                                borderBottom: idx === displayedAnnouncements.length - 1 ? 'none' : '1px solid #e2e8f0',
+                                background: isRead ? '#ffffff' : '#f8fafc',
+                                cursor: 'pointer', transition: 'background 0.2s'
+                            }}
+                            onClick={() => openDetail(announcement)}
+                            onMouseEnter={e => e.currentTarget.style.background='#f1f5f9'}
+                            onMouseLeave={e => e.currentTarget.style.background=isRead ? '#ffffff' : '#f8fafc'}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                        {!isRead && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }}></div>}
+                                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{announcement.title}</div>
+                                        <span className={`ann-category ${getCategoryClass(announcement.type)}`} style={{ flexShrink: 0, padding: '2px 8px', fontSize: '10px', borderRadius: '20px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                                             {formatType(announcement.type)}
                                         </span>
-                                </td>
-
-                                <td>
-                                        <span className="ann-date">
-                                            {formatDate(announcement.publishedAt)}
-                                        </span>
-                                </td>
-
-                                <td className="announcement-action-cell">
-                                    <div className="announcement-action-buttons">
-                                        <button
-                                            className={`announcement-action-btn ${isRead ? 'unread-btn' : 'read-btn'}`}
-                                            onClick={(e) => toggleRead(e, announcement.id)}
-                                            title={isRead ? 'Mark as unread' : 'Mark as read'}
-                                        >
-                                            {isRead ? (
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19h18M3 19V9.172a2 2 0 01.586-1.414l3.828-3.828A2 2 0 018.828 3h6.344a2 2 0 011.414.586l3.828 3.828A2 2 0 0121 9.172V19M3 19l4-4m14 4l-4-4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v4" /></svg>
-                                            ) : (
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                            )}
-                                        </button>
-
-                                        <button
-                                            className="announcement-action-btn view-detail-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openDetail(announcement);
-                                            }}
-                                            title="View Detail"
-                                        >
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
                                     </div>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
-                </table>
+                                    <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingLeft: isRead ? '0' : '14px' }}>{announcement.content || 'No content'}</div>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, marginLeft: '16px' }}>
+                                <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>{formatDate(announcement.publishedAt)}</div>
+                                <button
+                                    onClick={(e) => toggleRead(e, announcement.id)}
+                                    title={isRead ? 'Mark as unread' : 'Mark as read'}
+                                    style={{
+                                        width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        borderRadius: '6px', border: '1px solid', cursor: 'pointer',
+                                        background: isRead ? '#fee2e2' : '#dcfce7',
+                                        color: isRead ? '#ef4444' : '#16a34a',
+                                        borderColor: isRead ? '#fecaca' : '#bbf7d0'
+                                    }}
+                                >
+                                    {isRead ? (
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19h18M3 19V9.172a2 2 0 01.586-1.414l3.828-3.828A2 2 0 018.828 3h6.344a2 2 0 011.414.586l3.828 3.828A2 2 0 0121 9.172V19M3 19l4-4m14 4l-4-4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v4" /></svg>
+                                    ) : (
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
             {selectedAnnouncement && (
                 <div

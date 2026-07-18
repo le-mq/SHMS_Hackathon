@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import './CompetitionRegistration.css';
+import { useSearchParams } from 'react-router-dom';
+import ContestDetailModal from './ContestDetailModal';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
 
@@ -137,61 +139,7 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
     );
 };
 
-const CompetitionDetailModal = ({ comp, onClose }) => {
-    if (!comp) return null;
-    return (
-        <div className="cr-modal-overlay" onClick={onClose}>
-            <div className="cr-modal" onClick={e => e.stopPropagation()}>
-                <div className="cr-modal-header">
-                    <h2>{comp.name}</h2>
-                    <button className="close-btn" onClick={onClose}>&times;</button>
-                </div>
-                <div className="cr-modal-body">
-                    <section>
-                        <h3>Description</h3>
-                        <p>{comp.description || `Welcome to ${comp.name}. This is an exciting opportunity to showcase your talent, solve challenging problems, and compete with peers.`}</p>
-                    </section>
-                    <div className="modal-grid">
-                        <div className="modal-info-box">
-                            <h4>Timeline</h4>
-                            <p><strong>Registration:</strong> {formatDateTime(comp.registrationStart)} - {formatDateTime(comp.registrationEnd)}</p>
-                            <p><strong>Competition:</strong> {formatDateTime(comp.contestStartAt)} - {formatDateTime(comp.contestEndAt)}</p>
-                        </div>
-                        <div className="modal-info-box">
-                            <h4>Requirements & Categories</h4>
-                            <p><strong>Team Size:</strong> {comp.minTeamMembers || 3} - {comp.maxTeamMembers || 5} members</p>
-                            <p><strong>Category:</strong> {comp.categories?.length > 0 ? comp.categories.join(', ') : 'Not specified'}</p>
-                        </div>
-                    </div>
-                    <section className="modal-section">
-                        <div className="section-header" style={{ marginBottom: '16px' }}>
-                            <h3>Compliance Rules</h3>
-                        </div>
-                        <div className="rules-box" style={{ marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            {renderComplianceRules(comp.complianceRules)}
-                        </div>
-                    </section>
-                    <section className="modal-section">
-                        <div className="section-header" style={{ marginBottom: '16px' }}>
-                            <h3>Location & Prizes</h3>
-                        </div>
-                        <div className="location-box" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '1.2rem' }}>📍</span>
-                            <strong>Location:</strong> <span>{comp.location || 'Online / TBA'}</span>
-                        </div>
-                        <div className="prizes-box">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '1.2rem' }}>💵</span>
-                                <strong>Prizes:</strong>
-                            </div>
-                            {renderPrizes(comp.tieredPrizeStructures)}
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </div>
-    );
-};
+// using ContestDetailModal from external component
 
 const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, selectedLeaderId, onSelectLeader, error }) => {
     if (!myTeams || myTeams.length === 0) {
@@ -306,20 +254,20 @@ const IneligibleMembersModal = ({ members, onCancel, onConfirm, isSubmitting }) 
                     }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                             <thead>
-                                <tr style={{ background: '#fef2f2' }}>
-                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member</th>
-                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Student Code</th>
-                                    <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reason</th>
-                                </tr>
+                            <tr style={{ background: '#fef2f2' }}>
+                                <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member</th>
+                                <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Student Code</th>
+                                <th style={{ padding: '13px 18px', textAlign: 'left', color: '#7f1d1d', fontWeight: 700, borderBottom: '1px solid #fecaca', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reason</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {members.map((m, i) => (
-                                    <tr key={i} style={{ borderBottom: i < members.length - 1 ? '1px solid #fee2e2' : 'none' }}>
-                                        <td style={{ padding: '13px 18px', color: '#0f172a', fontWeight: 700, fontSize: '15px' }}>{m.fullName}</td>
-                                        <td style={{ padding: '13px 18px', color: '#334155', fontFamily: 'monospace', fontSize: '14px' }}>{m.studentCode}</td>
-                                        <td style={{ padding: '13px 18px', color: '#dc2626', fontWeight: 600, fontSize: '14px' }}>{m.reason}</td>
-                                    </tr>
-                                ))}
+                            {members.map((m, i) => (
+                                <tr key={i} style={{ borderBottom: i < members.length - 1 ? '1px solid #fee2e2' : 'none' }}>
+                                    <td style={{ padding: '13px 18px', color: '#0f172a', fontWeight: 700, fontSize: '15px' }}>{m.fullName}</td>
+                                    <td style={{ padding: '13px 18px', color: '#334155', fontFamily: 'monospace', fontSize: '14px' }}>{m.studentCode}</td>
+                                    <td style={{ padding: '13px 18px', color: '#dc2626', fontWeight: 600, fontSize: '14px' }}>{m.reason}</td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
@@ -373,6 +321,7 @@ const CompetitionRegistration = () => {
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedLeaderId, setSelectedLeaderId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [searchParams] = useSearchParams();
     // Ineligible members modal state
     const [ineligibleModal, setIneligibleModal] = useState({ open: false, members: [], pendingRequest: null });
     const loadData = async (silent = false) => {
@@ -418,6 +367,15 @@ const CompetitionRegistration = () => {
 
             setMyTeams(Array.from(uniqueTeamsMap.values()));
             setError('');
+
+            const autoRegId = searchParams.get('contestId');
+            if (autoRegId) {
+                const target = contestList.find(c => String(c.id) === String(autoRegId));
+                if (target) {
+                    setRegisteringComp(target);
+                    setTimeout(() => { document.getElementById('reg-flow-section')?.scrollIntoView({ behavior: 'smooth' }); }, 100);
+                }
+            }
         } catch (err) {
             console.error(err);
             setError('Could not connect to server.');
@@ -426,7 +384,7 @@ const CompetitionRegistration = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [searchParams]);
 
     // Filter & Sort Logic
     const filteredCompetitions = useMemo(() => {
@@ -671,7 +629,7 @@ const CompetitionRegistration = () => {
             </div>
 
             {viewDetailsComp && (
-                <CompetitionDetailModal comp={viewDetailsComp} onClose={() => setViewDetailsComp(null)} />
+                <ContestDetailModal contest={viewDetailsComp} onClose={() => setViewDetailsComp(null)} />
             )}
 
             {ineligibleModal.open && (

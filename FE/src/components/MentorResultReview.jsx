@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import NavbarMentor from './NavbarMentor';
 import './MentorResultReview.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1');

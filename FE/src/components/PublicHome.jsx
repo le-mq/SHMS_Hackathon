@@ -1,7 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './PublicHome.css';
 import NavbarHome from './NavbarHome.jsx';
-
+import NavbarStudent from './NavbarStudent.jsx';
+import NavbarJudge from './NavbarJudge.jsx';
+import NavbarMentor from './NavbarMentor.jsx';
+import NavbarAdmin from './NavbarAdmin.jsx';
+import ContestDetailModal from './ContestDetailModal';
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
@@ -25,6 +30,7 @@ function progress(start, end) {
 }
 
 function ContestCard({ contest, onSelectContest }) {
+    const navigate = useNavigate();
     const { name, season, year, registrationStart, registrationEnd, status, rounds = [] } = contest;
     const validRounds = rounds.filter(r => r.submissionOpen && r.submissionDeadline);
     const compStart = validRounds.length ? new Date(Math.min(...validRounds.map(r => new Date(r.submissionOpen)))).toISOString() : null;
@@ -32,6 +38,37 @@ function ContestCard({ contest, onSelectContest }) {
     const cStart = registrationStart || contest.contestStartAt || contest.startDate;
     const cEnd = contest.contestEndAt || contest.endDate || compEnd;
     const pct = progress(cStart, cEnd);
+
+    const role = localStorage.getItem('shms_role');
+    const upperStatus = status ? status.toUpperCase() : '';
+
+    let ctaText = 'View Details';
+    let ctaAction = null;
+
+    if (upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED') {
+        ctaText = 'View Final Leaderboard';
+        ctaAction = `/leaderboard?contestId=${contest.id}`;
+    } else if (!role) {
+        ctaText = 'Register';
+        ctaAction = '/login';
+    } else if (role === 'STUDENT' && upperStatus === 'UPCOMING') {
+        ctaText = 'Register for Contest';
+        ctaAction = '/student/competitions';
+    } else if (role === 'STUDENT' && upperStatus === 'ACTIVED') {
+        ctaText = 'Go to Workspace';
+        ctaAction = '/student/dashboard';
+    } else if (role === 'JUDGE' || role === 'MENTOR') {
+        ctaText = 'Go to Workspace';
+        ctaAction = role === 'JUDGE' ? '/judge/workspace' : '/mentor/workspace';
+    }
+
+    const handlePrimaryClick = () => {
+        if (ctaAction) navigate(ctaAction);
+    };
+
+    const handleViewDetails = () => {
+        onSelectContest(contest);
+    };
 
     return (
         <div className="ph-contest-card">
@@ -51,16 +88,26 @@ function ContestCard({ contest, onSelectContest }) {
                 </div>
             </div>
 
-            {status !== 'UPCOMING' && (
+            {upperStatus !== 'UPCOMING' && (
                 <div className="ph-progress-bar-wrap" title={`${pct}% through contest`}>
                     <div className="ph-progress-bar" style={{ width: `${pct}%` }} />
                 </div>
             )}
 
-            <div className="ph-contest-action">
-                <button className={`ph-btn-card ${status === 'CLOSED' ? 'ph-btn-card-closed' : ''}`}
-                        onClick={() => onSelectContest(contest)}
-                >View Details</button>
+            <div className="ph-contest-action" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <button
+                    className="ph-btn-card"
+                    onClick={handleViewDetails}
+                    style={{ background: 'transparent', color: '#0284c7', border: '1px solid #0284c7' }}
+                >
+                    View Details
+                </button>
+                <button
+                    className={`ph-btn-card ${upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED' ? 'ph-btn-card-closed' : ''}`}
+                    onClick={handlePrimaryClick}
+                >
+                    {ctaText}
+                </button>
             </div>
         </div>
     );
@@ -126,11 +173,51 @@ function renderRequirements(reqsStr) {
     return reqsStr.split(',').map(r => r.trim()).filter(Boolean).join(', ');
 }
 
+function ContextBar() {
+    const navigate = useNavigate();
+    const token = localStorage.getItem('shms_token');
+    const role = localStorage.getItem('shms_role') || '';
+
+    if (!token) return null;
+
+    const handleReturn = () => {
+        if (role === 'STUDENT') navigate('/student/dashboard');
+        else if (role === 'JUDGE') navigate('/judge/workspace');
+        else if (role === 'MENTOR') navigate('/mentor/workspace');
+        else if (role === 'ADMIN') navigate('/admin/config');
+        else navigate('/');
+    };
+
+    return (
+        <div style={{ position: 'fixed', bottom: '40px', right: '40px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
+            <div className="fab-animated" style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #334155', padding: '12px 20px', borderRadius: '40px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)', display: 'flex', alignItems: 'center', gap: '20px', transition: 'transform 0.2s', cursor: 'pointer' }}
+                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.5)'; }}
+                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4)'; }}
+                 onClick={handleReturn}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', display: 'inline-block', boxShadow: '0 0 8px #34d399' }}></span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>Explore Mode</span>
+                    </div>
+                    <span style={{ color: 'white', fontSize: '15px', fontWeight: 600 }}>Return to Workspace</span>
+                </div>
+                <div style={{ background: '#3b82f6', padding: '10px', borderRadius: '50%', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.5)' }}>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function PublicHome() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedContest, setSelectedContest] = useState(null);
+    const [displayContest, setDisplayContest] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [isFading, setIsFading] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -172,10 +259,36 @@ export default function PublicHome() {
     }, [contests, searchTerm]);
 
     useEffect(() => {
-        if (filteredContests.length > 0 && !selectedContest) {
-            setSelectedContest(filteredContests[0]);
+        if (contests.length === 0) return;
+        const urlId = searchParams.get('contestId');
+
+        if (filteredContests.length > 0) {
+            const inFiltered = urlId ? filteredContests.find(c => String(c.id) === String(urlId)) : null;
+            if (inFiltered) {
+                if (!selectedContest || selectedContest.id !== inFiltered.id) {
+                    setSelectedContest(inFiltered);
+                }
+            } else {
+                const first = filteredContests[0];
+                if (!selectedContest || selectedContest.id !== first.id) {
+                    setSelectedContest(first);
+                }
+            }
+        } else {
+            if (selectedContest) setSelectedContest(null);
         }
-    }, [filteredContests, selectedContest]);
+    }, [filteredContests, searchParams, contests]);
+
+    useEffect(() => {
+        if (contests.length > 0 && searchParams.get('contestId') && !displayContest) {
+            const urlId = searchParams.get('contestId');
+            const target = contests.find(c => String(c.id) === String(urlId));
+            if (target && !window.hasAutoOpenedModal) {
+                setDisplayContest(target);
+                window.hasAutoOpenedModal = true;
+            }
+        }
+    }, [contests, searchParams]);
 
     if (loading) {
         return (
@@ -188,9 +301,23 @@ export default function PublicHome() {
         );
     }
 
+    const renderNavbar = () => {
+        const token = localStorage.getItem('shms_token');
+        const role = localStorage.getItem('shms_role') || '';
+        if (!token) return <NavbarHome />;
+        switch (role) {
+            case 'STUDENT': return <NavbarStudent />;
+            case 'JUDGE': return <NavbarJudge />;
+            case 'MENTOR': return <NavbarMentor />;
+            case 'ADMIN': return <NavbarAdmin />;
+            default: return <NavbarHome />;
+        }
+    };
+
     return (
         <div className="ph-page">
-            <NavbarHome />
+            {renderNavbar()}
+            <ContextBar />
             <section className="ph-hero">
                 <div className="ph-hero-inner">
                     <div>
@@ -226,149 +353,18 @@ export default function PublicHome() {
                         <div className="ph-no-data">No contests found matching your search.</div>
                     ) : (<div className="ph-contests-grid">
                             {filteredContests.map(c => (<ContestCard key={c.id} contest={c}
-                                                                     onSelectContest={() => {setSelectedContest(c);
-                                                                         document.getElementById("categories-section")?.scrollIntoView({ behavior: 'smooth' });
+                                                                     onSelectContest={() => {
+                                                                         setSelectedContest(c);
+                                                                         setDisplayContest(c);
+                                                                         setSearchParams({ contestId: c.id });
                                                                      }} />))}
                         </div>
                     )}
                 </div>
             </section>
-            <section className="ph-section" id="categories-section">
-                <div className="ph-container">
-                    {selectedContest && (
-                        <>
-                            <div className="ph-section-header">
-                                <h2>Contest Information</h2>
-                                <p>Comprehensive details about {selectedContest.name}</p>
-                            </div>
-                            <div className="ph-contest-details-card" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', marginBottom: '40px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Theme</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.theme || selectedContest.description || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Term</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.term || selectedContest.season || '—'} {selectedContest.year || ''}</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Location</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.location || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Team Size</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.minTeamMembers && selectedContest.maxTeamMembers ? `${selectedContest.minTeamMembers} - ${selectedContest.maxTeamMembers} members` : '—'}</div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '4px' }}>Max Teams</h4>
-                                        <div style={{ fontSize: '16px', fontWeight: 500, color: '#111827' }}>{selectedContest.maximumAllowedTeams || '—'}</div>
-                                    </div>
-                                </div>
-                                <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
-                                    <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '12px' }}>Contest Milestones</h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
-                                        <div>
-                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Registration Open</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDate(selectedContest.registrationStart)}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Registration Deadline</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDate(selectedContest.registrationEnd)}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Contest Start</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDateTime(selectedContest.contestStartAt || selectedContest.startDate)}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '14px', color: '#6b7280' }}>Contest End</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827' }}>{fmtDateTime(selectedContest.contestEndAt || selectedContest.endDate)}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Compliance Rules</h4>
-                                        <div style={{ fontSize: '14px', color: '#374151', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                                            {renderComplianceRules(selectedContest.complianceRules)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280', marginBottom: '8px' }}>Prize Structures</h4>
-                                        <div style={{ fontSize: '14px', color: '#374151', background: '#f9fafb', padding: '16px', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                                            {renderPrizeStructures(selectedContest.tieredPrizeStructures)}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    <div className="ph-section-header">
-                        <h2>Open Competitive Categories</h2>
-                        <p>Categories and timeline details for {selectedContest ? selectedContest.name : 'the selected contest'}</p>
-                    </div>
-                    <div className="ph-tracks-table" style={{ background: 'transparent', padding: 0, border: 'none', boxShadow: 'none' }}>
-                        {!selectedContest || !selectedContest.categories || selectedContest.categories.length === 0 ? (
-                            <div style={{ textAlign: 'center', color: '#9ca3af', padding: 32, background: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                                No categories available for this contest.
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                {selectedContest.categories.map((cat, idx) => {
-                                    const catName = typeof cat === 'string' ? cat : (cat.name || cat.categoryName || `Category ${idx + 1}`);
-                                    const rounds = cat.rounds || selectedContest.rounds || [];
-                                    const description = typeof cat === 'object' ? cat.description : null;
-                                    const guidelineUrl = typeof cat === 'object' ? cat.guidelineUrl : null;
-
-                                    return (
-                                        <div key={`cat-${idx}`} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                                <div>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}><span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 6 }}>#{idx + 1}</span> {catName}</h3>
-                                                    {description && <p style={{ fontSize: '14px', color: '#4b5563', margin: '0 0 8px 0' }}>{description}</p>}
-                                                </div>
-                                                {guidelineUrl && (
-                                                    <a href={guidelineUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#f3f4f6', color: '#374151', borderRadius: '6px', fontSize: '13px', fontWeight: 500, textDecoration: 'none', border: '1px solid #e5e7eb', whiteSpace: 'nowrap', marginLeft: '16px' }}>View Guidelines</a>
-                                                )}
-                                            </div>
-                                            {rounds.length > 0 ? (
-                                                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-                                                        <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                                        <tr>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Round</th>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Format</th>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Requirements</th>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Open</th>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Submission Deadline</th>
-                                                            <th style={{ padding: '12px 16px', fontWeight: 600, color: '#374151' }}>Result Announcement</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {rounds.map((r, rId) => (
-                                                            <tr key={`r-${rId}`} style={{ borderBottom: rId < rounds.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
-                                                                <td style={{ padding: '12px 16px', color: '#111827', fontWeight: 500 }}>{r.phaseName || `Round ${rId + 1}`}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{r.roundFormat || '—'}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{renderRequirements(r.submissionRequirements)}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionOpen)}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.submissionDeadline)}</td>
-                                                                <td style={{ padding: '12px 16px', color: '#4b5563' }}>{fmtDateTime(r.publishResultAt)}</td>
-                                                            </tr>
-                                                        ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            ) : (
-                                                <div style={{ fontSize: '14px', color: '#6b7280' }}>No rounds defined for this category.</div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
+            {displayContest && (
+                <ContestDetailModal contest={displayContest} onClose={() => { setDisplayContest(null); setSelectedContest(null); }} />
+            )}
 
             <section className="ph-section">
                 <div className="ph-container">

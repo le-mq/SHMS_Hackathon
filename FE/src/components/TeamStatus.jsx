@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import './TeamStatus.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
@@ -430,46 +430,46 @@ const TeamStatus = () => {
 
                 <table className="roster-table">
                     <thead>
-                        <tr>
-                            <th>FULL NAME</th>
-                            <th>STUDENT ID</th>
-                            <th>EMAIL</th>
-                            <th>INTERNAL ROLE</th>
-                        </tr>
+                    <tr>
+                        <th>FULL NAME</th>
+                        <th>STUDENT ID</th>
+                        <th>EMAIL</th>
+                        <th>INTERNAL ROLE</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {roster.length > 0 ? roster.map((member, idx) => {
-                            const isPending = member.status === 'PENDING';
-                            const displayRole = isPending ? 'PENDING' : member.internalRole;
+                    {roster.length > 0 ? roster.map((member, idx) => {
+                        const isPending = member.status === 'PENDING';
+                        const displayRole = isPending ? 'PENDING' : member.internalRole;
 
-                            return (
-                                <tr key={idx} style={{ opacity: isPending ? 0.6 : 1, backgroundColor: (member.isUnauthorized || member.hasAlreadyParticipated) ? '#fef2f2' : 'transparent' }}>
-                                    <td>
-                                        <div className="member-name-col">
-                                            <div className="member-avatar">{getInitials(member.fullName)}</div>
-                                            <span className="member-name" style={{ color: (member.isUnauthorized || member.hasAlreadyParticipated) ? '#ef4444' : 'inherit' }}>
+                        return (
+                            <tr key={idx} style={{ opacity: isPending ? 0.6 : 1, backgroundColor: (member.isUnauthorized || member.hasAlreadyParticipated) ? '#fef2f2' : 'transparent' }}>
+                                <td>
+                                    <div className="member-name-col">
+                                        <div className="member-avatar">{getInitials(member.fullName)}</div>
+                                        <span className="member-name" style={{ color: (member.isUnauthorized || member.hasAlreadyParticipated) ? '#ef4444' : 'inherit' }}>
                                                 {member.fullName}
-                                                {member.isUnauthorized && <span style={{ fontSize: '12px', marginLeft: '6px', fontWeight: 500 }}>(Your university is not allowed to participate in this competition)</span>}
-                                                {member.hasAlreadyParticipated && <span style={{ fontSize: '12px', marginLeft: '6px', fontWeight: 500 }}>(This member has already participated in this competition)</span>}
+                                            {member.isUnauthorized && <span style={{ fontSize: '12px', marginLeft: '6px', fontWeight: 500 }}>(Your university is not allowed to participate in this competition)</span>}
+                                            {member.hasAlreadyParticipated && <span style={{ fontSize: '12px', marginLeft: '6px', fontWeight: 500 }}>(This member has already participated in this competition)</span>}
                                             </span>
-                                        </div>
-                                    </td>
-                                    <td><span className="member-id">{member.studentId}</span></td>
-                                    <td><span className="member-email">{member.email}</span></td>
-                                    <td>
+                                    </div>
+                                </td>
+                                <td><span className="member-id">{member.studentId}</span></td>
+                                <td><span className="member-email">{member.email}</span></td>
+                                <td>
                                         <span className={`role-badge ${displayRole === 'LEADER' ? 'role-leader' : (displayRole === 'PENDING' ? 'role-pending' : 'role-member')}`}>
                                             {displayRole}
                                         </span>
-                                    </td>
-                                </tr>
-                            );
-                        }) : (
-                            <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                    No team members available
                                 </td>
                             </tr>
-                        )}
+                        );
+                    }) : (
+                        <tr>
+                            <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                No team members available
+                            </td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -496,35 +496,35 @@ const TeamStatus = () => {
                             {searchResults.length > 0 && (
                                 <table className="invite-table">
                                     <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Code</th>
-                                            <th>Email</th>
-                                            <th>University</th>
-                                            <th style={{ textAlign: 'center', width: '100px' }}>Action</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Email</th>
+                                        <th>University</th>
+                                        <th style={{ textAlign: 'center', width: '100px' }}>Action</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {searchResults.map((s, idx) => {
-                                            const isAlreadyInTeam = roster.some(m => m.email === s.email);
-                                            return (
-                                                <tr key={idx}>
-                                                    <td>{s.fullName}</td>
-                                                    <td>{s.studentCode}</td>
-                                                    <td>{s.email}</td>
-                                                    <td>{s.universityName}</td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        {isAlreadyInTeam ? (
-                                                            <button disabled className="btn-invited">Invited</button>
-                                                        ) : (
-                                                            <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading} className="btn-invite">
-                                                                Invite
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                    {searchResults.map((s, idx) => {
+                                        const isAlreadyInTeam = roster.some(m => m.email === s.email);
+                                        return (
+                                            <tr key={idx}>
+                                                <td>{s.fullName}</td>
+                                                <td>{s.studentCode}</td>
+                                                <td>{s.email}</td>
+                                                <td>{s.universityName}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    {isAlreadyInTeam ? (
+                                                        <button disabled className="btn-invited">Invited</button>
+                                                    ) : (
+                                                        <button onClick={() => handleSendInvitation(s.userId)} disabled={inviteLoading} className="btn-invite">
+                                                            Invite
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                     </tbody>
                                 </table>
                             )}

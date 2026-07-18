@@ -451,7 +451,7 @@ const Register = () => {
                 if (errorStr.includes("username is already taken")) {
                     fieldErrors.username = (
                         <span>
-                            Username already exists. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> if this is your account.
+                            Username already exists. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> if this is your account.
                         </span>
                     );
                     friendlyMsg = "Error: Username is already registered.";
@@ -463,7 +463,7 @@ const Register = () => {
                 if (errorStr.includes("student code is already registered") || errorStr.includes("student_code is already registered")) {
                     fieldErrors.studentCode = (
                         <span>
-                            This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                            This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> to sign in.
                         </span>
                     );
                     friendlyMsg = "Error: Student Identification Number is already registered.";
@@ -471,7 +471,7 @@ const Register = () => {
                     if (errorStr.includes("already registered")) {
                         fieldErrors.studentCode = (
                             <span>
-                                This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                                This Student ID has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> to sign in.
                             </span>
                         );
                         friendlyMsg = "Error: Student ID is already registered.";
@@ -484,7 +484,7 @@ const Register = () => {
                 if (errorStr.includes("email is already registered")) {
                     fieldErrors.corporateEmail = (
                         <span>
-                            This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                            This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> to sign in.
                         </span>
                     );
                     friendlyMsg = "Error: Corporate email is already registered.";
@@ -492,7 +492,7 @@ const Register = () => {
                     if (errorStr.includes("already registered")) {
                         fieldErrors.corporateEmail = (
                             <span>
-                                This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                                This email has already been registered. Please click <Link to="/login" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> to sign in.
                             </span>
                         );
                         friendlyMsg = "Error: Email is already registered.";
@@ -637,10 +637,10 @@ const Register = () => {
                                 <div className="alert-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '15px', marginTop: '15px' }}>
                                     <div style={{ fontWeight: 'bold' }}>This student already has an account.</div>
                                     <div>
-                                        Please click <Link to="/login" style={{ color: '#f20202', textDecoration: 'underline', fontWeight: 'bold' }}>Login</Link> to sign in.
+                                        Please click <Link to="/login" style={{ color: '#f20202', textDecoration: 'underline', fontWeight: 'bold' }}>Sign In</Link> to sign in.
                                     </div>
                                     <Link to="/login" className="register-btn" style={{ textDecoration: 'none', background: '#3b82f6', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', fontSize: '0.9em', marginTop: '5px', textAlign: 'center', width: 'auto' }}>
-                                        Go to Login
+                                        Go to Sign In
                                     </Link>
                                 </div>
                             ) : serverError ? (
@@ -650,7 +650,7 @@ const Register = () => {
                             ) : null}
                         </form>
                         <div className="login-link-container">
-                            Already have an account? <Link to="/login" className="login-link">Login</Link>
+                            Already have an account? <Link to="/login" className="login-link">Sign In</Link>
                         </div>
                     </div>
                 </div>

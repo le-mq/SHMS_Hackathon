@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
 export const formatEmailRegexToSamples = (regex) => {
@@ -24,7 +24,7 @@ export const formatIdRegexToSamples = (regex) => {
             let length = parseInt(match[2], 10);
             let dummyNumber = '123456789'.substring(0, Math.min(length, 9));
             if (length > 9) dummyNumber += Array(length - 9).fill('0').join('');
-            
+
             if (prefixesStr.startsWith('(')) {
                 let prefixes = prefixesStr.substring(1, prefixesStr.length - 1).split('|');
                 prefixes.forEach(p => result.push(p.replace(/\[0-9\]/g, '0') + dummyNumber));
@@ -58,13 +58,13 @@ export const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confi
                 <Button
                     variant={variant}
                     onClick={onConfirm}
-                    style={{ 
-                        flex: 1, 
-                        padding: '8px', 
-                        fontSize: '13px', 
-                        fontWeight: 600, 
+                    style={{
+                        flex: 1,
+                        padding: '8px',
+                        fontSize: '13px',
+                        fontWeight: 600,
                         borderRadius: '6px',
-backgroundColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
+                        backgroundColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
                         borderColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
                         color: 'white'
                     }}
@@ -100,11 +100,11 @@ export const TagInput = ({ tags, setTags, placeholder }) => {
                     <span style={{ cursor: 'pointer', fontWeight: 'bold', color: '#9ca3af' }} onClick={() => removeTag(i)}>&times;</span>
                 </span>
             ))}
-            <input 
-                type="text" 
-                value={inputValue} 
-                onChange={(e) => setInputValue(e.target.value)} 
-                onKeyDown={handleKeyDown} 
+            <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 style={{ border: 'none', outline: 'none', flex: 1, minWidth: '150px', fontSize: '13px', padding: '4px', backgroundColor: 'transparent' }}
             />
@@ -131,7 +131,7 @@ export const AddPartnerModal = ({ show, onHide, onCreate, partners = [], editPar
             } else {
                 setName('');
                 setUniversityCode('');
-setSampleEmails([]);
+                setSampleEmails([]);
                 setSampleStudentIds([]);
             }
             setErrors({});
@@ -203,7 +203,7 @@ setSampleEmails([]);
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.name}</Form.Control.Feedback>
                     </Form.Group>
-<Form.Group className="mb-3">
+                    <Form.Group className="mb-3">
                         <Form.Label style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>Code (ID) *</Form.Label>
                         <Form.Control
                             type="text"
@@ -239,23 +239,23 @@ setSampleEmails([]);
                 </Form>
             </Modal.Body>
             <Modal.Footer style={{ borderTop: 'none', padding: '0 24px 24px 24px', display: 'flex', gap: '12px' }}>
-                <Button 
-                    variant="outline-secondary" 
+                <Button
+                    variant="outline-secondary"
                     onClick={onHide}
-style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
+                    style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
                 >
                     Cancel
                 </Button>
-                <Button 
-                    type="submit" 
+                <Button
+                    type="submit"
                     form="add-partner-form"
-                    style={{ 
-                        flex: 1, 
-                        padding: '10px', 
-                        fontSize: '13px', 
-                        fontWeight: 600, 
-                        backgroundColor: '#0d1b2a', 
-                        borderColor: '#0d1b2a', 
+                    style={{
+                        flex: 1,
+                        padding: '10px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        backgroundColor: '#0d1b2a',
+                        borderColor: '#0d1b2a',
                         borderRadius: '6px',
                         color: 'white'
                     }}
@@ -318,7 +318,7 @@ export const AddStudentModal = ({ show, onHide, onCreate, partners = [], selecte
 
         // Find the selected partner to run regex validations
         const partner = partners.find(p => p.name && p.name.trim().toLowerCase() === trimmedUniversity.toLowerCase());
-if (!trimmedCode) {
+        if (!trimmedCode) {
             newErrors.studentCode = 'Student ID is required.';
         } else if (partner && partner.studentCodeRegex) {
             try {
@@ -395,7 +395,7 @@ if (!trimmedCode) {
                             }}
                             isInvalid={!!errors.fullName}
                             placeholder="e.g. Nguyen Van A"
-style={{ padding: '10px 12px', fontSize: '13px' }}
+                            style={{ padding: '10px 12px', fontSize: '13px' }}
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.fullName}</Form.Control.Feedback>
                     </Form.Group>
@@ -446,7 +446,7 @@ style={{ padding: '10px 12px', fontSize: '13px' }}
                             }}
                             isInvalid={!!errors.major}
                             placeholder="e.g. Software Engineering"
-style={{ padding: '10px 12px', fontSize: '13px' }}
+                            style={{ padding: '10px 12px', fontSize: '13px' }}
                         />
                         <Form.Control.Feedback type="invalid" style={{ fontWeight: 600 }}>{errors.major}</Form.Control.Feedback>
                     </Form.Group>
@@ -479,23 +479,23 @@ style={{ padding: '10px 12px', fontSize: '13px' }}
                 </Form>
             </Modal.Body>
             <Modal.Footer style={{ borderTop: 'none', padding: '0 24px 24px 24px', display: 'flex', gap: '12px' }}>
-                <Button 
-                    variant="outline-secondary" 
+                <Button
+                    variant="outline-secondary"
                     onClick={onHide}
                     style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
                 >
                     Cancel
                 </Button>
-                <Button 
-                    type="submit" 
+                <Button
+                    type="submit"
                     form="add-student-form"
-                    style={{ 
-                        flex: 1, 
-                        padding: '10px', 
-                        fontSize: '13px', 
-                        fontWeight: 600, 
-                        backgroundColor: '#0d1b2a', 
-                        borderColor: '#0d1b2a', 
+                    style={{
+                        flex: 1,
+                        padding: '10px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        backgroundColor: '#0d1b2a',
+                        borderColor: '#0d1b2a',
                         borderRadius: '6px',
                         color: 'white'
                     }}

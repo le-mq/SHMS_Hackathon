@@ -6,8 +6,8 @@ import LatestAnnouncements from './LatestAnnouncements';
 
 const MENTOR_LINKS = [
     { label: 'Dashboard', path: '/mentor/workspace' },
-    { label: 'Leaderboard', path: '/leaderboard' },
     { label: 'Result Review', path: '/mentor/result-review' },
+    { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
 const NavbarMentor = () => {
@@ -66,7 +66,8 @@ const NavbarMentor = () => {
         <>
             <nav className="mentor-nav">
                 <div className="mentor-nav-brand" onClick={() => handleNav('/mentor/workspace')} style={{cursor:'pointer'}}>
-                    S-HMS | <span>SEAL Hackathon</span>
+                    <img src="/shms_logo.svg" alt="S-HMS Logo" style={{ height: '50px', width: 'auto', display: 'block' }} />
+                    <span>SEAL Hackathon</span>
                 </div>
                 <div className="mentor-nav-links">
                     {MENTOR_LINKS.map(link => (

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './LeaderboardDashboard.css';
 import NavbarHome from './NavbarHome.jsx';
 import NavbarStudent from './NavbarStudent';
@@ -6,15 +7,22 @@ import NavbarMentor from './NavbarMentor';
 import NavbarJudge from './NavbarJudge';
 
 export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => {
+    const [searchParams] = useSearchParams();
+    const urlContestId = searchParams.get('contestId');
     const [selectedContestId, setSelectedContestId] = useState(null);
     const [selectedRound, setSelectedRound] = useState(null);
+
     useEffect(() => {
         if (leaderboards && leaderboards.length > 0) {
-            const firstBoard = leaderboards[0];
-            setSelectedContestId(firstBoard.contestId);
-            setSelectedRound(firstBoard.roundName);
+            let targetBoard = leaderboards[0];
+            if (urlContestId) {
+                const found = leaderboards.find(lb => String(lb.contestId) === String(urlContestId));
+                if (found) targetBoard = found;
+            }
+            setSelectedContestId(targetBoard.contestId);
+            setSelectedRound(targetBoard.roundName);
         }
-    }, [leaderboards]);
+    }, [leaderboards, urlContestId]);
     if (!leaderboards || leaderboards.length === 0) {
         return (
             <div className="leader-content" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
@@ -145,7 +153,7 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                     {others.map((team, idx) => (
                         <tr key={idx}>
                             <td><div className="rank-box">{team.rank}</div></td>
-                            {isFinalRound && <td style={{fontWeight: 'bold', color: '#64748b'}}>{getPrizeName(team.rank)}</td>}
+                            {isFinalRound && <td style={{fontWeight: 'bold', color: '#1b4bbc'}}>{getPrizeName(team.rank)}</td>}
                             <td><div className="team-main"><div className="team-name-str"><strong>{team.teamName}</strong></div></div></td>
                             <td style={{ fontSize: '13px', color: '#475569' }}>{team.categoryName}</td>
                             <td><span className={`tbl-status ${team.status === 'QUALIFIED' ? 'st-stable' : 'st-steady'}`}>{team.status}</span>

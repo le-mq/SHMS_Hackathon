@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import NavbarJudge from './NavbarJudge';
+
 import './JudgeResultReview.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1');

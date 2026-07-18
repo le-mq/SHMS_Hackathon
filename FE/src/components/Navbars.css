@@ -31,6 +31,9 @@
     margin: 0;
     white-space: nowrap;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .admin-nav-brand span,
@@ -38,7 +41,7 @@
 .evaluator-nav-brand span,
 .mentor-nav-brand span,
 .public-nav-brand span {
-    color: #38bdf8;
+    color: #ffffff;
 }
 
 .admin-nav-links,
@@ -122,7 +125,7 @@
 .evaluator-nav-links .active,
 .mentor-nav-links .active {
     color: white !important;
-    border-color: #38bdf8 !important;
+    border-color: #2598F5 !important;
     transform: translateY(-1px) !important;
 }
 

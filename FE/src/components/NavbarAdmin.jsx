@@ -22,7 +22,6 @@ const NavbarAdmin = () => {
     const userEmail = localStorage.getItem('shms_user') || 'admin@s-hms.vn';
     const username = localStorage.getItem('shms_fullname_' + userEmail) || localStorage.getItem('shms_fullname') || 'Admin';
     const role = localStorage.getItem('shms_role') || 'ADMIN';
-
     const [showDropdown, setShowDropdown] = useState(false);
     const [showAnnouncements, setShowAnnouncements] = useState(false);
     const notifs = useUnreadAnnouncements();
@@ -38,7 +37,7 @@ const NavbarAdmin = () => {
     return (
         <nav className="admin-nav">
             <div className="admin-nav-brand" onClick={() => navigate('/admin/config')} style={{ cursor: 'pointer' }}>
-                S-HMS | <span>SEAL Hackathon</span>
+                <img src="/shms_logo.svg" alt="S-HMS Logo" style={{ height: '24px', width: 'auto', display: 'block' }} /> <span>SEAL Hackathon</span>
             </div>
             <div className="admin-nav-links">
                 {ADMIN_LINKS.map(link => (

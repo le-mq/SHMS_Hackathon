@@ -99,9 +99,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(30,136,229,.2);
-    border: 1px solid rgba(66,165,245,.35);
-    color: var(--accent-2);
+    background: rgba(243, 111, 33, 0.15);
+    border: 1px solid rgba(243, 111, 33, 0.4);
+    color: #f36f21;
     font-size: 12px;
     font-weight: 600;
     padding: 4px 12px;
@@ -202,19 +202,32 @@
 }
 .ph-contest-card {
     background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
+    border: 1px solid rgba(0,0,0,.04);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,.08);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}
+.ph-contest-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 .ph-contest-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--accent);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,.15);
+    border-color: transparent;
+}
+.ph-contest-card:hover::before {
+    opacity: 1;
 }
 .ph-contest-card-header {
     display: flex;
@@ -279,6 +292,44 @@
 .ph-btn-card:disabled { opacity: .5; cursor: not-allowed; }
 .ph-btn-card-closed { border-color: var(--red); color: var(--red); }
 
+/* ── SEARCH BAR ────────────────────────────────────────────────── */
+.ph-search-bar {
+    max-width: 320px;
+    width: 100%;
+}
+.ph-search-bar .op-input-wrap {
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    box-shadow: 0 4px 20px rgba(0,0,0,.05);
+    transition: var(--transition);
+}
+.ph-search-bar .op-input-wrap:hover {
+    box-shadow: 0 6px 24px rgba(30,136,229,.15);
+}
+.ph-search-bar input {
+    border: 1px solid rgba(0,0,0,.06);
+    background: transparent;
+    border-radius: var(--radius-lg);
+    padding: 12px 16px 12px 44px;
+    width: 100%;
+    font-size: 14px;
+    color: var(--navy);
+    outline: none;
+    transition: var(--transition);
+}
+.ph-search-bar input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(30,136,229,.1);
+}
+.ph-search-bar svg {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-500);
+}
+
 /* ── TRACKS TABLE ──────────────────────────────────────────────── */
 .ph-tracks-table {
     background: var(--white);
@@ -334,38 +385,64 @@
 .ph-track-action:hover { color: var(--navy); text-decoration: underline; }
 .ph-track-action-waitlist { color: var(--gray-500); cursor: default; }
 
-/* ── PARTNER UNIVERSITIES ──────────────────────────────────────── */
+/* ── PARTNERS ──────────────────────────────────────────────────── */
 .ph-partners-grid {
     display: flex;
-    gap: 20px;
     flex-wrap: wrap;
+    gap: 16px;
     justify-content: center;
+    margin-top: 24px;
 }
 .ph-partner-card {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 20px 28px;
+    gap: 12px;
+    padding: 14px 28px;
     background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    min-width: 120px;
-    transition: var(--transition);
+    border: 1px solid rgba(0,0,0,.05);
+    border-radius: 40px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.03);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
-.ph-partner-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+.ph-partner-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 40px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(243,111,33,0.8), rgba(56,189,248,0.8));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.ph-partner-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(0,0,0,.08);
+}
+.ph-partner-card:hover::after {
+    opacity: 1;
+}
 .ph-partner-logo {
-    width: 56px; height: 56px;
-    background: var(--gray-100);
-    border-radius: var(--radius-sm);
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 20px;
+    color: var(--navy-light);
 }
-.ph-partner-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+.ph-partner-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.2px;
+}
 
 /* ── GEOGRAPHIC SCOPES ─────────────────────────────────────────── */
 .ph-scopes-row {
