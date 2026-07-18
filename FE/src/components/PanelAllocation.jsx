@@ -4,13 +4,11 @@ import './PanelAllocation.css';
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
 const getStatusStyles = (status) => {
-    const s = status?.toUpperCase() || 'ACTIVE';
-    switch (s) {
+    switch (status) {
         case 'CLOSED':
             return { bg: '#fee2e2', color: '#ef4444', border: '#fecaca' };
         case 'UPCOMING':
             return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
-        case 'ACTIVE':
         case 'ACTIVED':
         default:
             return { bg: '#dcfce7', color: '#166534', border: '#bbf7d0' };
@@ -18,11 +16,11 @@ const getStatusStyles = (status) => {
 };
 
 const getLiveStatus = (c) => {
-    if (!c) return 'ACTIVE';
-    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (!c) return 'ACTIVED';
+    const s = c.status?.toUpperCase() || 'ACTIVED';
     if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
     if (s === 'UPCOMING') return 'UPCOMING';
-    return 'ACTIVE';
+    return 'ACTIVED';
 };
 
 const PanelAllocation = () => {
@@ -526,7 +524,7 @@ const PanelAllocation = () => {
                             {rounds.map((r, idx) => {
                                 const isActive = String(selectedRoundId) === String(r.roundId);
 
-                                const statusText = r.status ? r.status.toUpperCase() : 'ACTIVE';
+                                const statusText = r.status ? r.status.toUpperCase() : 'ACTIVED';
                                 const statusStyle = getStatusStyles(statusText);
 
                                 return (
@@ -615,7 +613,7 @@ const PanelAllocation = () => {
                     <div className="expert-list">
                         {filteredExperts.map(expert => (
                             <div key={expert.userId}
-                                 className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'active' : ''}`}
+                                 className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'ACTIVED' : ''}`}
                                  onClick={() => setSelectedExpertId(expert.userId)}
                             >
                                 <div className="expert-info">
@@ -656,7 +654,7 @@ const PanelAllocation = () => {
                                             const isTakenByAnother = allAssignedTeamIds.has(String(team.id));
                                             const isMentorDisabled = !hasMentorRole || isActingAsJudgeAnywhere || isTakenByAnother;
                                             return (
-                                                <label key={team.id} className={`team-card-global ${isChecked ? 'active' : ''}`}>
+                                                <label key={team.id} className={`team-card-global ${isChecked ? 'ACTIVED' : ''}`}>
                                                     <input type="checkbox" checked={isChecked}
                                                            onChange={() => handleGlobalTeamToggle(team.id)}
                                                            disabled={isMentorDisabled}

@@ -6,11 +6,11 @@ import LatestAnnouncements from './LatestAnnouncements';
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 
 const getDatabaseStatus = (c) => {
-    if (!c) return 'ACTIVE';
-    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (!c) return 'ACTIVED';
+    const s = c.status?.toUpperCase() || 'ACTIVED';
     if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
     if (s === 'UPCOMING') return 'UPCOMING';
-    return 'ACTIVE';
+    return 'ACTIVED';
 };
 
 const TeamRegistrationApproval = () => {
@@ -135,7 +135,7 @@ const TeamRegistrationApproval = () => {
             }, { headers: { Authorization: `Bearer ${token}` } });
 
             const targetTeam = selectedContest?.teams?.find(t => t.id === cancelModal.teamId);
-            const prevStatus = (targetTeam?.status || 'Active').toUpperCase();
+            const prevStatus = (targetTeam?.status || 'ACTIVED').toUpperCase();
 
             setDashboardData(prevData =>
                 prevData.map(contest => {
@@ -161,7 +161,7 @@ const TeamRegistrationApproval = () => {
                                     ? {
                                         ...team,
                                         status: isCancelAct ? 'CANCELED' : 'APPROVED',
-                                        track: isCancelAct ? 'Disqualified' : (team.track || 'Active')
+                                        track: isCancelAct ? 'Disqualified' : (team.track || 'ACTIVED')
                                     }
                                     : team
                             )
@@ -193,12 +193,10 @@ const TeamRegistrationApproval = () => {
     }
     if (error) return <div className="approval-container"><div style={{ padding: '40px', color: 'red' }}>{error}</div></div>;
 
-    // 1. If no contest is selected, show contest list view
     if (!selectedContestId) {
         return (
             <div className="approval-container">
                 <div style={{ padding: '40px', maxWidth: 1200, margin: 'auto' }}>
-                    <LatestAnnouncements style={{ width: '100%', marginBottom: '24px' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                         <div>
                             <h1 className="approval-title" style={{ fontSize: '32px' }}>Team Registration Approval</h1>
@@ -224,8 +222,8 @@ const TeamRegistrationApproval = () => {
                             .sort((a, b) => {
                                 const aLiveStatus = getDatabaseStatus(a);
                                 const bLiveStatus = getDatabaseStatus(b);
-                                const aActive = (aLiveStatus === 'ACTIVE');
-                                const bActive = (bLiveStatus === 'ACTIVE');
+                                const aActive = (aLiveStatus === 'ACTIVED');
+                                const bActive = (bLiveStatus === 'ACTIVED');
                                 if (aActive && !bActive) return -1;
                                 if (!aActive && bActive) return 1;
                                 return Number(b.id) - Number(a.id);
@@ -233,7 +231,7 @@ const TeamRegistrationApproval = () => {
                             .map(c => {
                                 const liveStatus = getDatabaseStatus(c);
                                 const isClosed = liveStatus === 'CLOSED';
-                                const isActive = liveStatus === 'ACTIVE';
+                                const isActive = liveStatus === 'ACTIVED';
                                 const totalTeams = Array.isArray(c.teams)
                                     ? c.teams.length
                                     : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
@@ -333,8 +331,6 @@ const TeamRegistrationApproval = () => {
     return (
         <div className="approval-container">
             <div className="approval-content">
-                <LatestAnnouncements style={{ marginTop: '32px', width: '100%' }} />
-
                 <div className="approval-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
                     <div className="approval-title-area">
                         <h1 className="approval-title">Team Registration Approval Desk</h1>
@@ -428,7 +424,7 @@ const TeamRegistrationApproval = () => {
                         </thead>
                         <tbody>
                         {filteredTeams.map(team => {
-                            const statusText = (team.status || 'Active').toLowerCase();
+                            const statusText = (team.status || 'ACTIVED').toLowerCase();
                             const isCanceled = statusText === 'canceled';
 
                             let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
@@ -453,7 +449,7 @@ const TeamRegistrationApproval = () => {
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
                                             <span style={badgeStyle}>
-                                                {team.status || 'Active'}
+                                                {team.status || 'ACTIVED'}
                                             </span>
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
