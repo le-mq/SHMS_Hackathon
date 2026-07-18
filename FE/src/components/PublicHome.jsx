@@ -44,22 +44,35 @@ function ContestCard({ contest, onSelectContest }) {
 
     let ctaText = 'View Details';
     let ctaAction = null;
+    let isDisabled = false;
+    let customStyle = {};
+
+    const isRegClosed = (() => {
+        if (!registrationEnd) return false;
+        const end = new Date(registrationEnd);
+        end.setHours(23, 59, 59, 999);
+        return new Date() > end;
+    })();
 
     if (upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED') {
         ctaText = 'View Final Leaderboard';
         ctaAction = `/leaderboard?contestId=${contest.id}`;
-    } else if (!role) {
-        ctaText = 'Register';
-        ctaAction = '/login';
-    } else if (role === 'STUDENT' && upperStatus === 'UPCOMING') {
-        ctaText = 'Register for Contest';
-        ctaAction = '/student/competitions';
     } else if (role === 'STUDENT' && upperStatus === 'ACTIVED') {
         ctaText = 'Go to Workspace';
         ctaAction = '/student/dashboard';
     } else if (role === 'JUDGE' || role === 'MENTOR') {
         ctaText = 'Go to Workspace';
         ctaAction = role === 'JUDGE' ? '/judge/workspace' : '/mentor/workspace';
+    } else if (!role || (role === 'STUDENT' && upperStatus === 'UPCOMING')) {
+        if (isRegClosed) {
+            ctaText = 'View Leaderboard';
+            ctaAction = `/leaderboard?contestId=${contest.id}`;
+            customStyle = { borderColor: 'var(--red)', color: 'var(--red)' };
+        } else {
+            ctaText = 'Register';
+            ctaAction = !role ? '/login' : '/student/competitions';
+            customStyle = { background: 'var(--navy)', color: 'var(--white)', border: 'none' };
+        }
     }
 
     const handlePrimaryClick = () => {
@@ -105,6 +118,8 @@ function ContestCard({ contest, onSelectContest }) {
                 <button
                     className={`ph-btn-card ${upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED' ? 'ph-btn-card-closed' : ''}`}
                     onClick={handlePrimaryClick}
+                    disabled={isDisabled}
+                    style={Object.keys(customStyle).length > 0 ? customStyle : {}}
                 >
                     {ctaText}
                 </button>
