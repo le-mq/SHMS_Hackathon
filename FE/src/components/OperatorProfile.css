@@ -276,9 +276,6 @@
     transition: all 0.2s;
 }
 
-.ph-nav-brand span {
-    color: var(--accent-2);
-}
 
 .op-save-btn:hover:not(:disabled) {
     background: #1e293b;

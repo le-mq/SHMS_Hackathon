@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUnreadAnnouncements } from './useUnreadAnnouncements';
 import './Navbars.css';
@@ -6,9 +6,9 @@ import LatestAnnouncements from './LatestAnnouncements';
 
 const JUDGE_LINKS = [
     { label: 'Dashboard', path: '/judge/workspace' },
-    { label: 'Historical Log', path: '/judge/history' },
-    { label: 'Leaderboard', path: '/leaderboard' },
+    { label: 'Historical', path: '/judge/history' },
     { label: 'Result Review', path: '/judge/result-review' },
+    { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
 const NavbarJudge = () => {
@@ -57,7 +57,6 @@ const NavbarJudge = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showAnnouncements, setShowAnnouncements] = useState(false);
     const notifs = useUnreadAnnouncements();
-
     const handleNav = (path) => {
         navigate(path)
     };
@@ -65,8 +64,8 @@ const NavbarJudge = () => {
     return (
         <>
             <nav className="evaluator-nav">
-                <div className="ph-nav-brand" onClick={() => navigate('/judge/workspace')}
-                     style={{ cursor: 'pointer' }}>S-HMS | <span>SEAL Hackathon</span></div>
+                <div className="evaluator-nav-brand" onClick={() => navigate('/judge/workspace')}
+                     style={{ cursor: 'pointer' }}><img src="/shms_logo.svg" alt="S-HMS Logo" style={{ height: '50px', width: 'auto', display: 'block' }} /> <span>SEAL Hackathon</span></div>
                 <div className="evaluator-nav-links">
                     {JUDGE_LINKS.map(link => (
                         <div key={link.path}  className={`evaluator-nav-link ${location.pathname === link.path ? 'active' : ''}`}

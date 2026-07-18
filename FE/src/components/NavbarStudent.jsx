@@ -37,13 +37,13 @@ const NavbarStudent = () => {
         <>
             <nav className="student-nav">
                 <div className="student-nav-brand" onClick={() => handleNav('/student/dashboard')} style={{ cursor: 'pointer' }}>
-                    S-HMS | <span>SEAL Hackathon</span>
+                    <img src="/shms_logo.svg" alt="S-HMS Logo" style={{ height: '50px', width: 'auto', display: 'block' }} /> <span>SEAL Hackathon</span>
                 </div>
                 <div className="student-nav-links">
                     {STUDENT_LINKS.map(link => (
                         <div
                             key={link.path}
-                           className={`student-nav-link ${location.pathname === link.path ? 'active' : ''}`}
+                            className={`student-nav-link ${location.pathname === link.path ? 'active' : ''}`}
                             onClick={() => handleNav(link.path)}
                             style={{ cursor: 'pointer' }}
                         >
