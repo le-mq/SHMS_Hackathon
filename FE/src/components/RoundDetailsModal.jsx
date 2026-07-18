@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import ContestDetailModal from './ContestDetailModal';
 
 const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
     const [evalData, setEvalData] = useState(null);
@@ -28,16 +29,7 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
                     const data = await res.json();
                     const c = (data.data?.contests || data.contests || []).find(x => x.id === parseInt(contestId));
                     if (c) {
-                        setEvalData({
-                            contestName: c.name,
-                            contestTheme: c.description,
-                            contestLocation: c.location,
-                            contestStart: c.contestStartAt,
-                            contestEnd: c.contestEndAt,
-                            contestRules: c.complianceRules,
-                            tieredPrizeStructures: c.tieredPrizeStructures,
-                            rounds: c.rounds?.map(r => ({ name: r.phaseName, format: r.roundFormat }))
-                        });
+                        setEvalData(c);
                         setLoading(false);
                         return;
                     }
@@ -61,6 +53,10 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
         };
         fetchData();
     }, [roundId]);
+
+    if (mode === 'contest' && evalData) {
+        return <ContestDetailModal contest={evalData} onClose={onClose} />;
+    }
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>

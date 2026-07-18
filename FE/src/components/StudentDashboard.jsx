@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './StudentDashboard.css';
+import './CompetitionRegistration.css';
 import LatestAnnouncements from './LatestAnnouncements';
+import ContestDetailModal from './ContestDetailModal';
 
 const API_PUBLIC = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/public";
 const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
@@ -75,32 +77,32 @@ function getMilestoneStatus(dateStr) {
 
 function calculateProgress(contest) {
     if (contest.status === 'UPCOMING') return 0;
-    
+
     let milestones = [];
     if (contest.registrationStart) milestones.push(new Date(contest.registrationStart).getTime());
     if (contest.registrationEnd) milestones.push(new Date(contest.registrationEnd).getTime());
-    
+
     const startObj = contest.contestStartAt || contest.startDate;
     if (startObj) milestones.push(new Date(startObj).getTime());
-    
+
     if (contest.rounds && contest.rounds.length > 0) {
         contest.rounds.forEach(r => {
             const rOpen = r.submissionOpen || r.startDate;
             if (rOpen) milestones.push(new Date(rOpen).getTime());
-            
+
             const rDead = r.submissionDeadline || r.endDate;
             if (rDead) milestones.push(new Date(rDead).getTime());
-            
+
             const rRes = r.publishResultAt || r.resultPublishAt;
             if (rRes) milestones.push(new Date(rRes).getTime());
         });
     }
-    
+
     const endObj = contest.contestEndAt || contest.endDate;
     if (endObj) milestones.push(new Date(endObj).getTime());
-    
+
     milestones = milestones.filter(m => !isNaN(m)).sort((a, b) => a - b);
-    
+
     if (milestones.length < 2) {
         const cStart = contest.registrationStart || contest.contestStartAt || contest.startDate;
         const cEnd = contest.contestEndAt || contest.endDate;
@@ -113,11 +115,11 @@ function calculateProgress(contest) {
         if (now >= e) return 100;
         return Math.round(((now - s) / (e - s)) * 100);
     }
-    
+
     const now = Date.now();
     if (now <= milestones[0]) return 0;
     if (now >= milestones[milestones.length - 1]) return 100;
-    
+
     let currentIdx = 0;
     for (let i = 0; i < milestones.length - 1; i++) {
         if (now >= milestones[i] && now < milestones[i + 1]) {
@@ -125,17 +127,17 @@ function calculateProgress(contest) {
             break;
         }
     }
-    
+
     const segmentStart = milestones[currentIdx];
     const segmentEnd = milestones[currentIdx + 1];
     let segmentProgress = 0;
-    
+
     if (segmentEnd > segmentStart) {
         segmentProgress = (now - segmentStart) / (segmentEnd - segmentStart);
     } else {
         segmentProgress = 1;
     }
-    
+
     const totalProgress = ((currentIdx + segmentProgress) / (milestones.length - 1)) * 100;
     return Math.round(totalProgress);
 }
@@ -191,6 +193,7 @@ const StudentDashboard = () => {
     const [activeContests, setActiveContests] = useState([]);
     const [loadingContest, setLoadingContest] = useState(true);
     const [joinCode, setJoinCode] = useState('');
+    const [previewContest, setPreviewContest] = useState(null);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
@@ -355,12 +358,22 @@ const StudentDashboard = () => {
         <div className="student-dash-container" style={{ paddingTop: '40px' }}>
             <div className="dash-grid">
                 <div className="dash-left" style={{ gridColumn: '1 / 2' }}>
+                    {/* Floating Explore Button */}
+                    <div className="fab-animated" style={{ position: 'fixed', bottom: '40px', right: '40px', zIndex: 999, borderRadius: '30px' }}>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: 'white', border: 'none', padding: '16px 28px', borderRadius: '30px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2)', transition: 'all 0.2s', fontSize: '16px', letterSpacing: '0.5px' }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(37, 99, 235, 0.4), 0 10px 10px -5px rgba(37, 99, 235, 0.2)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2)'; }}
+                        >
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            Explore Hackathons
+                        </button>
+                    </div>
                     <div className="dashboard-announcements-row">
                         <LatestAnnouncements />
                     </div>
-                </div>
 
-                <div className="dash-left" style={{ gridColumn: '1 / 2' }}>
                     <div className="dash-cards-row">
                         {loadingContest ? (
                             <div className="info-card">
@@ -373,47 +386,73 @@ const StudentDashboard = () => {
                         ) : activeContests.length > 0 ? (
                             activeContests.map(contest => (
                                 <div
-                                    className={`info-card contest-card ${selectedContestId === String(contest.id) ? 'selected' : ''} ${contest.status === 'ACTIVED' ? 'active-contest-card' : ''}`}
+                                    className={`comp-card ${selectedContestId === String(contest.id) ? 'highlight' : ''}`}
                                     key={contest.id}
                                     role="button"
                                     tabIndex={0}
-                                    aria-pressed={selectedContestId === String(contest.id)}
                                     onClick={() => setActiveContest(contest)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            setActiveContest(contest);
-                                        }
-                                    }}
+                                    style={{ cursor: 'pointer', textAlign: 'left' }}
                                 >
-                                    <div className="ic-header">
-                                        {contest.status} CONTEST
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                            />
-                                        </svg>
+                                    <div className="comp-card-banner">
+                                        <span className={`comp-badge badge-${(contest.status || '').toLowerCase()}`}>{contest.status}</span>
                                     </div>
-
-                                    <div className="ic-title">
-                                        {contest.name}
+                                    <div className="comp-card-content">
+                                        <h3 className="comp-title">{contest.name}</h3>
+                                        <p className="comp-desc">{contest.theme || contest.description || 'An exciting competition to showcase your coding skills.'}</p>
+                                        <div className="comp-meta">
+                                            <div className="meta-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                <span>Reg: {formatDateOnly(contest.registrationStart)} - {formatDateOnly(contest.registrationEnd)}</span>
+                                            </div>
+                                            <div className="meta-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <span>Date: {formatDateOnly(contest.contestStartAt || contest.startDate)} - {formatDateOnly(contest.contestEndAt || contest.endDate)}</span>
+                                            </div>
+                                            <div className="meta-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                                <span>Team Size: {contest.minTeamMembers || 3} - {contest.maxTeamMembers || 5}</span>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <div className="comp-card-actions" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                        <button
+                                            className="btn-secondary"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPreviewContest(contest);
+                                            }}
+                                        >
+                                            View Details
+                                        </button>
+                                        {(() => {
+                                            const cat = String(contest.status || '').toUpperCase();
+                                            let isRegistrationExpired = false;
+                                            if (contest.registrationEnd) {
+                                                const endDate = new Date(contest.registrationEnd);
+                                                endDate.setHours(23, 59, 59, 999);
+                                                isRegistrationExpired = endDate < new Date();
+                                            }
+                                            let isRegistrationNotStarted = false;
+                                            if (contest.registrationStart) {
+                                                const startDate = new Date(contest.registrationStart);
+                                                isRegistrationNotStarted = startDate > new Date();
+                                            }
+                                            const canRegister = (cat === 'ACTIVED' || cat === 'UPCOMING') && !isRegistrationExpired && !isRegistrationNotStarted;
 
-                                    <div className="ic-subtitle">
-                                        <span style={{ width: 8, height: 8, background: contest.status === 'ACTIVED' ? '#16a34a' : '#94a3b8', borderRadius: '50%' }}></span>
-                                        <span style={{ color: contest.status === 'ACTIVED' ? '#16a34a' : '#475569', fontWeight: '700' }}>
-                                            {contest.status}
-                                        </span>
-                                    </div>
-
-                                    <div className="progress-bar-bg" title={`${calculateProgress(contest)}% through contest`}>
-                                        <div 
-                                            className={`progress-bar-fill ${contest.status === 'ACTIVED' ? 'is-active' : ''}`}
-                                            style={{ width: `${calculateProgress(contest)}%` }}
-                                        ></div>
+                                            return (
+                                                <button
+                                                    className="btn-primary"
+                                                    disabled={!canRegister}
+                                                    style={!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (canRegister) navigate('/student/competitions?contestId=' + contest.id);
+                                                    }}
+                                                >
+                                                    {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : 'Register')}
+                                                </button>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             ))
@@ -488,7 +527,7 @@ const StudentDashboard = () => {
                     )}
                 </div>
 
-                <div className="dash-right" style={{ gridColumn: '2 / 3', gridRow: '2 / 3' }}>
+                <div className="dash-right">
                     <div className="join-card join-card-highlighted">
                         <div style={{ marginBottom: 24 }}>
                             <svg width="24" height="24" fill="none" stroke="#2563eb" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
@@ -619,6 +658,9 @@ const StudentDashboard = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {previewContest && (
+                <ContestDetailModal contest={previewContest} onClose={() => setPreviewContest(null)} />
             )}
         </div>
     );
