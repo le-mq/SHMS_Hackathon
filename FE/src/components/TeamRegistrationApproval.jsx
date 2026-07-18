@@ -442,9 +442,43 @@ const TeamRegistrationApproval = () => {
                         <div className="stat-label">TOTAL PARTICIPANTS</div>
                         <div className="stat-value">{totalParticipantsCount} Students</div>
                     </div>
-                </div>
-
-                <div className="table-section">
+                </div>                <div className="table-section">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #d1d5db', background: '#f8fafc' }}>
+                        <button
+                            onClick={() => {
+                                const token = localStorage.getItem('shms_token');
+                                window.open(`${API_BASE}/admin/results/export-csv?type=teams&contestId=${selectedContestId}&token=${token}`, '_blank');
+                            }}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 16px',
+                                background: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = '#059669';
+                                e.currentTarget.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.3)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = '#10b981';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                            }}
+                        >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download Team List (CSV)
+                        </button>
+                    </div>
                     <table className="teams-table">
                         <thead>
                         <tr>

@@ -19,6 +19,8 @@ const MAP_TYPE_TO_READABLE = {
     'RULE_CHANGE': 'Rule Change',
     'RESULT_ANNOUNCEMENT': 'Result Announcement',
     'SYSTEM_MAINTENANCE': 'System Maintenance',
+    'GENERAL': 'General Update',
+    'REGULATION': 'Rule Change',
     'INFO': 'General Update'
 };
 
@@ -37,10 +39,9 @@ const PublicationDataExport = () => {
 
     const [announcements, setAnnouncements] = useState([]);
     const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
-
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedDetailAnnouncement, setSelectedDetailAnnouncement] = useState(null);
-
+    const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedContestFilter, setSelectedContestFilter] = useState('');
     const [selectedTypeFilter, setSelectedTypeFilter] = useState('');
@@ -146,6 +147,54 @@ const PublicationDataExport = () => {
                 return { ...prev, roles: [...prev.roles, role] };
             }
         });
+    };    const handleOpenCreateModal = () => {
+        setEditingAnnouncementId(null);
+        setFormData({
+            contestId: contests[0]?.id || '',
+            title: '',
+            content: '',
+            type: ANNOUNCEMENT_TYPES[0],
+            roles: []
+        });
+        setIsCreateModalOpen(true);
+    };
+
+    const handleOpenEditModal = (ann) => {
+        setEditingAnnouncementId(ann.id);
+        const mappedRoles = (ann.targetRoles || []).map(r => {
+            const roleLower = r.toLowerCase();
+            return roleLower.charAt(0).toUpperCase() + roleLower.slice(1);
+        });
+        setFormData({
+            contestId: ann.contestId || contests[0]?.id || '',
+            title: ann.title || '',
+            content: ann.content || '',
+            type: MAP_TYPE_TO_READABLE[ann.type] || ANNOUNCEMENT_TYPES[0],
+            roles: mappedRoles
+        });
+        setIsCreateModalOpen(true);
+    };
+
+    const handleDeleteAnnouncement = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
+        try {
+            const token = localStorage.getItem("shms_token");
+            const res = await fetch(`${API_BASE}/admin/contests/announcements/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (res.ok) {
+                alert('Announcement deleted successfully!');
+                fetchAnnouncements();
+            } else {
+                alert('Failed to delete announcement.');
+            }
+        } catch (error) {
+            console.error('Error deleting announcement:', error);
+            alert('An error occurred.');
+        }
     };
 
     const handlePublishAnnouncement = async () => {
@@ -157,11 +206,15 @@ const PublicationDataExport = () => {
         setIsPublishing(true);
 
         const mappedType = MAP_READABLE_TO_TYPE[formData.type] || 'GENERAL_UPDATE';
+        const token = localStorage.getItem("shms_token");
+        const url = editingAnnouncementId 
+            ? `${API_BASE}/admin/contests/announcements/${editingAnnouncementId}` 
+            : `${API_BASE}/admin/contests/announcements`;
+        const method = editingAnnouncementId ? 'PUT' : 'POST';
 
         try {
-            const token = localStorage.getItem("shms_token");
-            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/admin/contests/announcements", {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -176,8 +229,8 @@ const PublicationDataExport = () => {
             });
 
             if (res.ok) {
-                alert('Announcement broadcasted successfully!');
-                window.dispatchEvent(new Event('shms_announcements_updated'));
+                alert(editingAnnouncementId ? 'Announcement updated successfully!' : 'Announcement broadcasted successfully!');
+                fetchAnnouncements();
                 setFormData({
                     ...formData,
                     title: '',
@@ -186,20 +239,15 @@ const PublicationDataExport = () => {
                 });
                 setIsCreateModalOpen(false);
             } else {
-                alert('Failed to broadcast announcement.');
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.error || `Failed to ${editingAnnouncementId ? 'update' : 'broadcast'} announcement.`);
             }
         } catch (error) {
-            console.error('Error broadcasting announcement:', error);
+            console.error('Error saving announcement:', error);
             alert('An error occurred.');
         } finally {
             setIsPublishing(false);
         }
-    };
-
-    const handleExport = (type) => {
-        const token = localStorage.getItem('shms_token');
-        const contestParam = formData.contestId ? `&contestId=${formData.contestId}` : '';
-        window.open((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + `/admin/results/export-csv?type=${type}${contestParam}&token=${token}`, '_blank');
     };
 
     const formatType = (type) => {
@@ -252,7 +300,7 @@ const PublicationDataExport = () => {
                         <p className="pub-subtitle">Manage system-wide announcements and generate CSV exports for administrative compliance.</p>
                     </div>
                     <div className="pub-header-actions">
-                        <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+                        <button className="btn-primary" onClick={handleOpenCreateModal}>
                             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                             Create Announcement
                         </button>
@@ -269,7 +317,7 @@ const PublicationDataExport = () => {
                             <svg className="search-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input
                                 type="text"
-                                className="search-input"
+                                className="search-inputt"
                                 placeholder="Search by title or content..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
@@ -314,12 +362,10 @@ const PublicationDataExport = () => {
                             <table className="announcements-table">
                                 <thead>
                                     <tr>
-                                        <th>Title</th>
-                                        <th>Type</th>
-                                        <th>Contest</th>
-                                        <th>Target Roles</th>
-                                        <th>Published At</th>
-                                        <th style={{ textAlign: 'right' }}>Actions</th>
+                                        <th style={{textAlign: 'center'}}>Title</th>
+                                        <th style={{textAlign: 'center'}}>Type</th>
+                                        <th style={{textAlign: 'center'}}>Contest</th>
+                                        <th style={{textAlign: 'center'}}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -332,32 +378,52 @@ const PublicationDataExport = () => {
                                                     <div className="ann-content-snippet">{ann.content}</div>
                                                 </td>
                                                 <td>
-                                                    <span className={`ann-category ${getCategoryClass(ann.type)}`}>
+                                                    <span className={`ann-category ${getCategoryClass(ann.type)}`} style={{justifyContent: 'center' }}>
                                                         {formatType(ann.type)}
                                                     </span>
                                                 </td>
                                                 <td className="ann-contest-cell">{contestName}</td>
-                                                <td>
-                                                    <div className="ann-roles-cell">
-                                                        {ann.targetRoles && ann.targetRoles.length > 0 ? (
-                                                            ann.targetRoles.map(role => (
-                                                                <span key={role} className="role-badge">{role}</span>
-                                                            ))
-                                                        ) : (
-                                                            <span className="role-badge all">All Roles</span>
-                                                        )}
+                                                <td onClick={e => e.stopPropagation()}>
+                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                                        <button
+                                                            onClick={() => handleOpenEditModal(ann)}
+                                                            className="btn-action-update"
+                                                            style={{
+                                                                background: '#eff6ff',
+                                                                color: '#2563eb',
+                                                                border: '1px solid #bfdbfe',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '13px',
+                                                                fontWeight: 700,
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.15s'
+                                                            }}
+                                                            onMouseEnter={e => { e.target.style.background = '#2563eb'; e.target.style.color = '#fff'; }}
+                                                            onMouseLeave={e => { e.target.style.background = '#eff6ff'; e.target.style.color = '#2563eb'; }}
+                                                        >
+                                                            Update
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteAnnouncement(ann.id)}
+                                                            className="btn-action-delete"
+                                                            style={{
+                                                                background: '#fef2f2',
+                                                                color: '#dc2626',
+                                                                border: '1px solid #fecaca',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '13px',
+                                                                fontWeight: 700,
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.15s'
+                                                            }}
+                                                            onMouseEnter={e => { e.target.style.background = '#dc2626'; e.target.style.color = '#fff'; }}
+                                                            onMouseLeave={e => { e.target.style.background = '#fef2f2'; e.target.style.color = '#dc2626'; }}
+                                                        >
+                                                            Delete
+                                                        </button>
                                                     </div>
-                                                </td>
-                                                <td className="ann-date-cell">
-                                                    {ann.publishedAt ? new Date(ann.publishedAt).toLocaleString() : '--'}
-                                                </td>
-                                                <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
-                                                    <button
-                                                        className="btn-view-detail"
-                                                        onClick={() => setSelectedDetailAnnouncement(ann)}
-                                                    >
-                                                        View Detail
-                                                    </button>
                                                 </td>
                                             </tr>
                                         );
@@ -365,47 +431,6 @@ const PublicationDataExport = () => {
                                 </tbody>
                             </table>
                         )}
-                    </div>
-                </div>
-
-                <div className="export-card">
-                    <div className="export-header">
-                        <div className="export-icon-box">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <div className="export-title-wrap" style={{ flex: 1 }}>
-                            <h2>Export Dataset Utility</h2>
-                            <p>Generate final CSV reports for administrative compliance and auditing.</p>
-                        </div>
-                        <div className="export-contest-select">
-                            <select
-                                className="form-select"
-                                value={formData.contestId}
-                                onChange={e => setFormData({ ...formData, contestId: e.target.value })}
-                                style={{ minWidth: '200px' }}
-                            >
-                                {contests.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="export-grid">
-                        <button className="export-btn" onClick={() => handleExport('teams')}>
-                            <div className="export-btn-content">
-                                <h3>Team List</h3>
-                                <p>Export all teams (name, category, registration date) for the selected contest.</p>
-                            </div>
-                            <svg className="export-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        </button>
-                        <button className="export-btn" onClick={() => handleExport('scores')}>
-                            <div className="export-btn-content">
-                                <h3>Detailed Scores</h3>
-                                <p>Export detailed scores (by criteria) of all teams across all categories in the selected contest.</p>
-                            </div>
-                            <svg className="export-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -454,7 +479,7 @@ const PublicationDataExport = () => {
                 <div className="ann-modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
                     <div className="ann-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="ann-modal-header">
-                            <h3 className="ann-modal-title">Create Announcement</h3>
+                            <h3 className="ann-modal-title">{editingAnnouncementId ? 'Update Announcement' : 'Create Announcement'}</h3>
                             <button className="ann-modal-close" onClick={() => setIsCreateModalOpen(false)}>&times;</button>
                         </div>
                         <div className="ann-modal-form-body">
@@ -531,7 +556,7 @@ const PublicationDataExport = () => {
                                 style={{ margin: 0, width: 'auto' }}
                             >
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                                {isPublishing ? 'Broadcasting...' : 'Broadcast Announcement'}
+                                {isPublishing ? (editingAnnouncementId ? 'Updating...' : 'Broadcasting...') : (editingAnnouncementId ? 'Update Announcement' : 'Broadcast Announcement')}
                             </button>
                         </div>
                     </div>

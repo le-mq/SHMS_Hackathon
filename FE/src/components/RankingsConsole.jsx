@@ -1152,7 +1152,7 @@ const RankingsConsole = () => {
 
                                 <div className="publication-control-panel" style={{ marginTop: 24, padding: 24, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
                                     <h3 style={{ marginTop: 0, marginBottom: 16 }}>Publication Control</h3>
-                                    <div style={{ display: 'flex', gap: 12 }}>
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                                         {!isResultPublished ? (
                                             <>
                                                 <button
@@ -1175,6 +1175,40 @@ const RankingsConsole = () => {
                                         ) : (
                                             <span style={{ padding: '8px 16px', background: '#dcfce7', color: '#15803d', borderRadius: '6px', fontWeight: 600 }}>Results Published & Locked</span>
                                         )}
+                                        <button
+                                            onClick={() => {
+                                                const token = localStorage.getItem('shms_token');
+                                                const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
+                                                window.open(`${apiBaseUrl}/admin/results/export-csv?type=scores&contestId=${selectedContestId}&token=${token}`, '_blank');
+                                            }}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                padding: '8px 16px',
+                                                background: '#10b981',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.background = '#059669';
+                                                e.currentTarget.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.3)';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.background = '#10b981';
+                                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                                            }}
+                                        >
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Download Score (CSV)
+                                        </button>
                                     </div>
                                 </div>
 
