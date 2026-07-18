@@ -36,6 +36,7 @@ public class StudentController {
     private final com.fpt.shms.be.repository.UserRepository userRepository;
     private final com.fpt.shms.be.repository.StudentRepository studentRepository;
     private final com.fpt.shms.be.repository.ContestUniversityRepository contestUniversityRepository;
+    private final com.fpt.shms.be.repository.RoundRepository roundRepository;
 
     @GetMapping("/profile")
     @Operation(summary = "Get Student Profile", description = "Retrieves the profile of the currently authenticated student.")
@@ -99,26 +100,64 @@ public class StudentController {
                                 .stream()
                                 .map(cu -> cu.getUniversity().getName())
                                 .toList();
-                        java.util.Map<String, Object> map = new java.util.HashMap<>();
-                        map.put("id", c.getId());
-                        map.put("name", c.getName());
-                        map.put("status", c.getStatus() != null ? c.getStatus().name() : "CLOSED");
-                        map.put("allowedUniversities", allowedUnis);
-                        map.put("registrationStart", c.getRegistrationStart());
-                        map.put("registrationEnd", c.getRegistrationEnd());
-                        map.put("contestStartAt", c.getContestStartAt());
-                        map.put("contestEndAt", c.getContestEndAt());
-                        map.put("minTeamMembers", c.getMinTeamMembers());
-                        map.put("maxTeamMembers", c.getMaxTeamMembers());
-                        map.put("description", c.getDescription());
-                        map.put("location", c.getLocation());
-                        map.put("tieredPrizeStructures", c.getTieredPrizeStructures());
-                        map.put("complianceRules", c.getComplianceRules());
-                        java.util.List<String> categoryNames = categoryRepository.findByContestId(c.getId())
-                                .stream()
-                                .map(com.fpt.shms.be.model.Category::getName)
+
+                        List<com.fpt.shms.be.model.Category> categoriesModel = categoryRepository.findByContestId(c.getId());
+                        List<com.fpt.shms.be.model.Round> contestRounds = roundRepository.findByContestId(c.getId());
+
+                        List<ContestDTO.CategoryDTO> categories = categoriesModel.stream().map(cat -> {
+                            List<ContestDTO.RoundDTO> catRounds = contestRounds.stream()
+                                    .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(cat.getId()))
+                                    .map(r -> new ContestDTO.RoundDTO(
+                                            r.getPhaseName(),
+                                            r.getSubmissionOpen(),
+                                            r.getSubmissionDeadline(),
+                                            r.getGradingDeadlineAt(),
+                                            r.getReviewCalibrationAt(),
+                                            r.getPublishResultAt(),
+                                            r.getSubmissionRequirements(),
+                                            r.getRoundFormat()
+                                    ))
+                                    .toList();
+                            return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), cat.getDescription(), cat.getGuidelineUrl(), catRounds);
+                        }).toList();
+
+                        List<ContestDTO.RoundDTO> dtoRounds = contestRounds.stream()
+                                .map(r -> new ContestDTO.RoundDTO(
+                                        r.getPhaseName(),
+                                        r.getSubmissionOpen(),
+                                        r.getSubmissionDeadline(),
+                                        r.getGradingDeadlineAt(),
+                                        r.getReviewCalibrationAt(),
+                                        r.getPublishResultAt(),
+                                        r.getSubmissionRequirements(),
+                                        r.getRoundFormat()
+                                ))
                                 .toList();
-                        map.put("categories", categoryNames);
+
+                        ContestDTO dto = ContestDTO.from(c, categories, dtoRounds);
+
+                        // We also need to embed allowedUniversities which is specific to this API
+                        java.util.Map<String, Object> map = new java.util.HashMap<>();
+                        map.put("id", dto.id());
+                        map.put("name", dto.name());
+                        map.put("theme", dto.theme());
+                        map.put("season", dto.season());
+                        map.put("year", dto.year());
+                        map.put("status", dto.status());
+                        map.put("allowedUniversities", allowedUnis);
+                        map.put("registrationStart", dto.registrationStart());
+                        map.put("registrationEnd", dto.registrationEnd());
+                        map.put("contestStartAt", dto.contestStartAt());
+                        map.put("contestEndAt", dto.contestEndAt());
+                        map.put("minTeamMembers", dto.minTeamMembers());
+                        map.put("maxTeamMembers", dto.maxTeamMembers());
+                        map.put("maximumAllowedTeams", dto.maximumAllowedTeams());
+                        map.put("description", dto.description());
+                        map.put("location", dto.location());
+                        map.put("tieredPrizeStructures", dto.tieredPrizeStructures());
+                        map.put("complianceRules", dto.complianceRules());
+                        map.put("categories", dto.categories());
+                        map.put("rounds", dto.rounds());
                         return map;
                     })
                     .toList());
