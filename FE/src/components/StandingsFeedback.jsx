@@ -438,7 +438,7 @@ const StandingsFeedback = () => {
 
                                     const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
                                     const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
-                                    const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED') || (effectiveScore === 0 && isPublished);
+                                    const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED');
                                     
                                     if (isEliminated) {
                                         break;
@@ -487,7 +487,7 @@ const StandingsFeedback = () => {
                                                         const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
                                                         const isAvailable = isPublished && effectiveScore != null;
                                                         
-                                                        const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED') || (effectiveScore === 0 && isPublished);
+                                                        const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED');
                                                         const isSelected = selectedResultRound === r;
                                                         const bgColor = isEliminated ? (isSelected ? '#fecaca' : '#fee2e2') : (isAvailable ? (isSelected ? '#bbf7d0' : '#dcfce7') : '#f1f5f9');
                                                         const borderColor = isEliminated ? '#ef4444' : (isAvailable ? '#22c55e' : '#cbd5e1');
@@ -590,7 +590,7 @@ const StandingsFeedback = () => {
                                                                                             <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#dcfce7', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
                                                                                                 Qualified
                                                                                             </div>
-                                                                                        ) : (effectiveScore === 0 || selectedResultRound.qualificationStatus === 'ELIMINATED') ? (
+                                                                                        ) : (selectedResultRound.qualificationStatus === 'ELIMINATED') ? (
                                                                                             <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
                                                                                                 {selectedResultRound.hasSubmission === false ? `Eliminated - No submission` : `Eliminated`}
                                                                                             </div>
