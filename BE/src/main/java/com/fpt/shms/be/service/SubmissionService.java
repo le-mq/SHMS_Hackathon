@@ -26,6 +26,9 @@ public class SubmissionService {
     private final RankingResultRepository rankingResultRepository;
     private final com.fpt.shms.be.repository.ContestRubricRepository contestRubricRepository;
     private final com.fpt.shms.be.repository.ContestRubricDetailsRepository contestRubricDetailsRepository;
+    private final TeamRepository teamRepository;
+    private final TeamMentorRepository teamMentorRepository;
+    private final JudgeAssignmentRepository judgeAssignmentRepository;
 
     @Transactional
     public SubmissionPageResponse submitProject(SubmitProjectRequest request, String username) {
@@ -48,9 +51,14 @@ public class SubmissionService {
         final Long finalContestId = contestId;
 
         TeamMembership membership = memberships.stream()
-                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
-                .filter(m -> finalContestId == null || (m.getTeam().getContest() != null && m.getTeam().getContest().getId().equals(finalContestId)))
-                .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus())
+                        && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED
+                        .equals(m.getTeam().getContest().getStatus())))
+                .filter(m -> finalContestId == null || (m.getTeam().getContest() != null
+                        && m.getTeam().getContest().getId().equals(finalContestId)))
+                .max(java.util.Comparator
+                        .<TeamMembership, Integer>comparing(
+                                m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
                         .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
                         .thenComparing(m -> m.getTeam().getId()))
                 .orElse(memberships.get(0));
@@ -77,8 +85,12 @@ public class SubmissionService {
 
         validateRoundSubmissionAccess(team, round);
 
-        if (round != null && round.getSubmissionRequirements() != null && !round.getSubmissionRequirements().trim().isEmpty() && !round.getSubmissionRequirements().trim().equals("[]")) {
-            if (request.getSubmissionData() == null || request.getSubmissionData().trim().isEmpty() || request.getSubmissionData().trim().equals("{}") || request.getSubmissionData().trim().equals("[]")) {
+        if (round != null && round.getSubmissionRequirements() != null
+                && !round.getSubmissionRequirements().trim().isEmpty()
+                && !round.getSubmissionRequirements().trim().equals("[]")) {
+            if (request.getSubmissionData() == null || request.getSubmissionData().trim().isEmpty()
+                    || request.getSubmissionData().trim().equals("{}")
+                    || request.getSubmissionData().trim().equals("[]")) {
                 throw new IllegalArgumentException("Submission data is required for this round.");
             }
         }
@@ -96,7 +108,8 @@ public class SubmissionService {
 
         if (existingSub != null) {
             int oldVersion = existingSub.getVersion() != null ? existingSub.getVersion() : 1;
-            String oldTime = existingSub.getSubmittedAt() != null ? existingSub.getSubmittedAt().toString() : LocalDateTime.now().toString();
+            String oldTime = existingSub.getSubmittedAt() != null ? existingSub.getSubmittedAt().toString()
+                    : LocalDateTime.now().toString();
             String oldStatus = existingSub.getStatus() != null ? existingSub.getStatus() : "SUBMITTED";
             String currentLog = existingSub.getHistoryLog() != null ? existingSub.getHistoryLog() : "";
 
@@ -104,13 +117,15 @@ public class SubmissionService {
             existingSub.setVersion(oldVersion + 1);
             existingSub.setSubmissionData(request.getSubmissionData());
             existingSub.setSubmittedAt(LocalDateTime.now());
-            String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
+            String newStatus = (request.getSubmissionType() != null
+                    && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
             existingSub.setStatus(newStatus);
             existingSub.setMentorFeedback(null);
             existingSub.setMentor(null);
             submissionRepository.save(existingSub);
         } else {
-            String newStatus = (request.getSubmissionType() != null && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
+            String newStatus = (request.getSubmissionType() != null
+                    && request.getSubmissionType().equalsIgnoreCase("DRAFT")) ? "DRAFT" : "SUBMITTED";
             Submission submission = Submission.builder()
                     .team(team)
                     .round(round)
@@ -137,16 +152,22 @@ public class SubmissionService {
 
         TeamMembership membership = memberships.stream()
                 .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
-                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus()))
+                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED
+                        .equals(m.getTeam().getContest().getStatus()))
                 .filter(m -> contestId == null || m.getTeam().getContest().getId().equals(contestId))
-                .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                .max(java.util.Comparator
+                        .<TeamMembership, Integer>comparing(
+                                m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
                         .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
                         .thenComparing(m -> m.getTeam().getId()))
                 .orElseGet(() -> memberships.stream()
                         .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
-                        .filter(m -> !com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
+                        .filter(m -> !com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING
+                                .equals(m.getTeam().getContest().getStatus()))
                         .filter(m -> contestId == null || m.getTeam().getContest().getId().equals(contestId))
-                        .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                        .max(java.util.Comparator
+                                .<TeamMembership, Integer>comparing(
+                                        m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
                                 .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
                                 .thenComparing(m -> m.getTeam().getId()))
                         .orElse(null));
@@ -208,7 +229,8 @@ public class SubmissionService {
             if (s.getHistoryLog() != null && !s.getHistoryLog().isEmpty()) {
                 String[] logs = s.getHistoryLog().split(";");
                 for (String log : logs) {
-                    if (log.isEmpty()) continue;
+                    if (log.isEmpty())
+                        continue;
                     String[] parts = log.split("\\|");
                     if (parts.length >= 2) {
                         try {
@@ -219,7 +241,8 @@ public class SubmissionService {
                                     .timestamp(LocalDateTime.parse(parts[1]))
                                     .status(histStatus)
                                     .build());
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
@@ -233,11 +256,14 @@ public class SubmissionService {
                 List<Score> scores = scoreRepository.findBySubmissionId(s.getId());
 
                 List<Score> judgeScores = scores.stream()
-                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()) && !"MISSED_DEADLINE".equals(sc.getStatus()) && sc.getGeneralFeedback() != null && !sc.getGeneralFeedback().isEmpty())
+                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus())
+                                && !"MISSED_DEADLINE".equals(sc.getStatus()) && sc.getGeneralFeedback() != null
+                                && !sc.getGeneralFeedback().isEmpty())
                         .toList();
 
                 if (!judgeScores.isEmpty()) {
-                    judgeFeedback = judgeScores.stream().map(Score::getGeneralFeedback).collect(Collectors.joining("\n\n"));
+                    judgeFeedback = judgeScores.stream().map(Score::getGeneralFeedback)
+                            .collect(Collectors.joining("\n\n"));
                 }
             }
 
@@ -354,7 +380,8 @@ public class SubmissionService {
             return new EligibilityResult(true, null);
         }
 
-        String previousRoundName = previousRound.getPhaseName() != null ? previousRound.getPhaseName() : "the previous round";
+        String previousRoundName = previousRound.getPhaseName() != null ? previousRound.getPhaseName()
+                : "the previous round";
         return new EligibilityResult(false, "Your team has been eliminated from " + previousRoundName + ".");
     }
 
@@ -438,7 +465,8 @@ public class SubmissionService {
         List<Submission> allSubmissions = submissionRepository.findByTeamId(team.getId());
         java.util.Map<Long, Submission> latestSubByRound = new java.util.HashMap<>();
         for (Submission s : allSubmissions) {
-            if (s.getRound() == null) continue;
+            if (s.getRound() == null)
+                continue;
             Submission existing = latestSubByRound.get(s.getRound().getId());
             if (existing == null) {
                 latestSubByRound.put(s.getRound().getId(), s);
@@ -450,16 +478,20 @@ public class SubmissionService {
                 }
             }
         }
-        List<Round> rounds = team.getContest() != null ? roundRepository.findByContestId(team.getContest().getId()) : new ArrayList<>();
+        List<Round> rounds = team.getContest() != null ? roundRepository.findByContestId(team.getContest().getId())
+                : new ArrayList<>();
         rounds.sort(java.util.Comparator.comparing(Round::getId));
         List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto> roundScores = new ArrayList<>();
 
         for (Round r : rounds) {
             Submission sub = latestSubByRound.get(r.getId());
 
+            java.time.LocalDateTime reviewCal = r.getReviewCalibrationAt();
+            boolean isPublished = reviewCal != null && !reviewCal.isAfter(java.time.LocalDateTime.now());
             java.time.LocalDateTime publishDateTime = r.getPublishResultAt();
-            boolean isPublished = publishDateTime != null && !publishDateTime.isAfter(java.time.LocalDateTime.now());
-            java.util.Date publishDate = publishDateTime != null ? java.util.Date.from(publishDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) : null;
+            java.util.Date publishDate = publishDateTime != null
+                    ? java.util.Date.from(publishDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant())
+                    : null;
 
             Double avgRoundScore = null;
             boolean isGraded = false;
@@ -467,110 +499,162 @@ public class SubmissionService {
             String qualificationStatus = null;
             List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto> detailedScores = new ArrayList<>();
 
-            if (sub != null) {
-                hasSubmission = !"MISSED_DEADLINE".equals(sub.getStatus());
-                List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
-                List<Score> judgeScores = scores.stream()
-                        .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
-                        .toList();
+            boolean usedSnapshot = false;
+            if (isPublished && sub != null && sub.getHistoryLog() != null && !sub.getHistoryLog().trim().isEmpty()) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    java.util.Map<String, Object> snapshot = mapper.readValue(sub.getHistoryLog(), java.util.Map.class);
+                    if (snapshot != null && snapshot.containsKey("isGraded")) {
+                        avgRoundScore = snapshot.get("avgRoundScore") != null
+                                ? ((Number) snapshot.get("avgRoundScore")).doubleValue()
+                                : null;
+                        isGraded = (Boolean) snapshot.get("isGraded");
+                        hasSubmission = (Boolean) snapshot.get("hasSubmission");
 
-                boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus()) || judgeScores.stream().anyMatch(sc -> "MISSED_DEADLINE".equals(sc.getStatus()));
-                List<Score> validJudgeScores = judgeScores.stream()
-                        .filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus()))
-                        .toList();
-
-                isGraded = !validJudgeScores.isEmpty();
-
-                if (isGraded) {
-                    avgRoundScore = validJudgeScores.stream()
-                            .map(Score::getTotalScore)
-                            .filter(java.util.Objects::nonNull)
-                            .mapToDouble(Double::doubleValue)
-                            .average()
-                            .orElse(0.0);
-                } else if (isAutoZero) {
-                    avgRoundScore = 0.0;
-                    isGraded = true;
+                        List<java.util.Map<String, Object>> detailsJson = (List<java.util.Map<String, Object>>) snapshot
+                                .get("detailedScores");
+                        if (detailsJson != null) {
+                            for (java.util.Map<String, Object> dj : detailsJson) {
+                                detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                        .criteriaName((String) dj.get("criteriaName"))
+                                        .weight(dj.get("weight") != null ? ((Number) dj.get("weight")).doubleValue()
+                                                : null)
+                                        .pointsAwarded(dj.get("pointsAwarded") != null
+                                                ? ((Number) dj.get("pointsAwarded")).doubleValue()
+                                                : null)
+                                        .feedback((String) dj.get("feedback"))
+                                        .build());
+                            }
+                        }
+                        usedSnapshot = true;
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
+            }
 
-                if (avgRoundScore != null) {
-                    overallTotalScore += avgRoundScore;
-                }
+            if (!usedSnapshot) {
+                if (sub != null) {
+                    hasSubmission = !"MISSED_DEADLINE".equals(sub.getStatus());
+                    List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
+                    List<Score> judgeScores = scores.stream()
+                            .filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
+                            .toList();
 
-                List<ScoreDetail> allDetails = judgeScores.stream()
-                        .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
-                        .toList();
+                    boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus())
+                            || judgeScores.stream().anyMatch(sc -> "MISSED_DEADLINE".equals(sc.getStatus()));
+                    List<Score> validJudgeScores = judgeScores.stream()
+                            .filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus()))
+                            .toList();
 
-                java.util.Map<Long, List<ScoreDetail>> groupedByRubric = allDetails.stream()
-                        .filter(d -> d.getContestRubricDetail() != null)
-                        .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
+                    isGraded = !validJudgeScores.isEmpty();
 
-                for (List<ScoreDetail> detailList : groupedByRubric.values()) {
-                    if (detailList.isEmpty()) continue;
-                    ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
-                    double avgPoints = detailList.stream()
-                            .map(ScoreDetail::getRawScore)
-                            .filter(java.util.Objects::nonNull)
-                            .mapToDouble(Double::doubleValue)
-                            .average()
-                            .orElse(0.0);
-
-                    String combinedFeedback = detailList.stream()
-                            .map(ScoreDetail::getFeedback)
-                            .filter(f -> f != null && !f.trim().isEmpty())
-                            .collect(Collectors.joining("\n- "));
-
-                    if (!combinedFeedback.isEmpty()) {
-                        combinedFeedback = "- " + combinedFeedback;
+                    if (isGraded) {
+                        avgRoundScore = validJudgeScores.stream()
+                                .map(Score::getTotalScore)
+                                .filter(java.util.Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .average()
+                                .orElse(0.0);
+                    } else if (isAutoZero) {
+                        avgRoundScore = 0.0;
+                        isGraded = true;
                     }
 
-                    detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                            .criteriaName(rubricInfo.getCriteriaName())
-                            .weight(rubricInfo.getPercentageWeight())
-                            .pointsAwarded(Math.round(avgPoints * 100.0) / 100.0)
-                            .feedback(combinedFeedback)
-                            .build());
-                }
+                    if (avgRoundScore != null) {
+                        overallTotalScore += avgRoundScore;
+                    }
 
-                if (detailedScores.isEmpty() && isAutoZero) {
-                    if (r.getCategory() != null && contestRubricRepository != null && contestRubricDetailsRepository != null) {
-                        List<com.fpt.shms.be.model.ContestRubric> rubrics = contestRubricRepository.findByCategoryId(r.getCategory().getId());
-                        if (!rubrics.isEmpty()) {
-                            List<com.fpt.shms.be.model.ContestRubricDetails> details = contestRubricDetailsRepository.findByContestRubricId(rubrics.get(0).getId());
-                            for (com.fpt.shms.be.model.ContestRubricDetails d : details) {
-                                detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                                        .criteriaName(d.getCriteriaName())
-                                        .weight(d.getPercentageWeight())
-                                        .pointsAwarded(0.0)
-                                        .feedback("- Missed Deadline")
-                                        .build());
+                    List<ScoreDetail> allDetails = judgeScores.stream()
+                            .flatMap(s -> s.getDetails() != null ? s.getDetails().stream()
+                                    : java.util.stream.Stream.empty())
+                            .toList();
+
+                    java.util.Map<Long, List<ScoreDetail>> groupedByRubric = allDetails.stream()
+                            .filter(d -> d.getContestRubricDetail() != null)
+                            .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
+
+                    for (List<ScoreDetail> detailList : groupedByRubric.values()) {
+                        if (detailList.isEmpty())
+                            continue;
+                        ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
+                        double avgPoints = detailList.stream()
+                                .map(ScoreDetail::getRawScore)
+                                .filter(java.util.Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .average()
+                                .orElse(0.0);
+
+                        String combinedFeedback = detailList.stream()
+                                .map(ScoreDetail::getFeedback)
+                                .filter(f -> f != null && !f.trim().isEmpty())
+                                .collect(Collectors.joining("\n- "));
+
+                        if (!combinedFeedback.isEmpty()) {
+                            combinedFeedback = "- " + combinedFeedback;
+                        }
+
+                        detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                .criteriaName(rubricInfo.getCriteriaName())
+                                .weight(rubricInfo.getPercentageWeight())
+                                .pointsAwarded(Math.round(avgPoints * 100.0) / 100.0)
+                                .feedback(combinedFeedback)
+                                .build());
+                    }
+
+                    if (detailedScores.isEmpty() && isAutoZero) {
+                        if (r.getCategory() != null && contestRubricRepository != null
+                                && contestRubricDetailsRepository != null) {
+                            List<com.fpt.shms.be.model.ContestRubric> rubrics = contestRubricRepository
+                                    .findByCategoryId(r.getCategory().getId());
+                            if (!rubrics.isEmpty()) {
+                                List<com.fpt.shms.be.model.ContestRubricDetails> details = contestRubricDetailsRepository
+                                        .findByContestRubricId(rubrics.get(0).getId());
+                                for (com.fpt.shms.be.model.ContestRubricDetails d : details) {
+                                    detailedScores
+                                            .add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                                    .criteriaName(d.getCriteriaName())
+                                                    .weight(d.getPercentageWeight())
+                                                    .pointsAwarded(0.0)
+                                                    .feedback("- Missed Deadline")
+                                                    .build());
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (isPublished) {
+                        avgRoundScore = 0.0;
+                        isGraded = true;
+                        if (r.getCategory() != null && contestRubricRepository != null
+                                && contestRubricDetailsRepository != null) {
+                            List<com.fpt.shms.be.model.ContestRubric> rubrics = contestRubricRepository
+                                    .findByCategoryId(r.getCategory().getId());
+                            if (!rubrics.isEmpty()) {
+                                List<com.fpt.shms.be.model.ContestRubricDetails> details = contestRubricDetailsRepository
+                                        .findByContestRubricId(rubrics.get(0).getId());
+                                for (com.fpt.shms.be.model.ContestRubricDetails d : details) {
+                                    detailedScores
+                                            .add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                                    .criteriaName(d.getCriteriaName())
+                                                    .weight(d.getPercentageWeight())
+                                                    .pointsAwarded(0.0)
+                                                    .feedback("- No Submission")
+                                                    .build());
+                                }
                             }
                         }
                     }
                 }
             } else {
-                if (isPublished) {
-                    avgRoundScore = 0.0;
-                    isGraded = true;
-                    if (r.getCategory() != null && contestRubricRepository != null && contestRubricDetailsRepository != null) {
-                        List<com.fpt.shms.be.model.ContestRubric> rubrics = contestRubricRepository.findByCategoryId(r.getCategory().getId());
-                        if (!rubrics.isEmpty()) {
-                            List<com.fpt.shms.be.model.ContestRubricDetails> details = contestRubricDetailsRepository.findByContestRubricId(rubrics.get(0).getId());
-                            for (com.fpt.shms.be.model.ContestRubricDetails d : details) {
-                                detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                                        .criteriaName(d.getCriteriaName())
-                                        .weight(d.getPercentageWeight())
-                                        .pointsAwarded(0.0)
-                                        .feedback("- No Submission")
-                                        .build());
-                            }
-                        }
-                    }
+                if (avgRoundScore != null) {
+                    overallTotalScore += avgRoundScore;
                 }
             }
 
             if (rankingResultRepository != null) {
-                java.util.List<com.fpt.shms.be.model.RankingResult> teamRankings = rankingResultRepository.findByTeamId(team.getId());
+                java.util.List<com.fpt.shms.be.model.RankingResult> teamRankings = rankingResultRepository
+                        .findByTeamId(team.getId());
                 for (com.fpt.shms.be.model.RankingResult rr : teamRankings) {
                     if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {
                         qualificationStatus = rr.getQualificationStatus();
@@ -602,21 +686,40 @@ public class SubmissionService {
                 .build();
     }
 
-    public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetailsByTeam(String username, Long teamId, String callerRole) {
-        // Find team via membership
-        com.fpt.shms.be.model.Team team = teamMembershipRepository.findAll().stream()
-                .filter(m -> m.getTeam() != null && m.getTeam().getId().equals(teamId))
-                .map(m -> m.getTeam())
-                .findFirst()
+    public com.fpt.shms.be.dto.TeamScoreDetailsResponse getTeamScoreDetailsByTeam(String username, Long teamId,
+                                                                                  String callerRole) {
+        com.fpt.shms.be.model.Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found with id: " + teamId));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if ("MENTOR".equalsIgnoreCase(callerRole)) {
+            List<TeamMentor> mentorTeams = teamMentorRepository.findByMentorId(user.getId());
+            boolean isAssigned = mentorTeams.stream()
+                    .anyMatch(tm -> tm.getTeam() != null && tm.getTeam().getId().equals(teamId));
+            if (!isAssigned) {
+                throw new IllegalArgumentException("Access Denied: You are not assigned to mentor this team.");
+            }
+        } else if ("JUDGE".equalsIgnoreCase(callerRole)) {
+            List<JudgeAssignment> assignments = judgeAssignmentRepository.findByUserId(user.getId());
+            boolean isAssigned = assignments.stream()
+                    .anyMatch(ja -> ja.getCategory() != null && ja.getCategory().getContest() != null
+                            && team.getContest() != null
+                            && ja.getCategory().getContest().getId().equals(team.getContest().getId()));
+            if (!isAssigned) {
+                throw new IllegalArgumentException(
+                        "Access Denied: You are not assigned as a judge for this team's contest.");
+            }
+        }
 
         // Check that scores are published for at least one round
         List<Round> rounds = team.getContest() != null
                 ? roundRepository.findByContestId(team.getContest().getId())
                 : new ArrayList<>();
 
-        boolean anyRoundPublished = rounds.stream().anyMatch(r ->
-                r.getReviewCalibrationAt() != null && !r.getReviewCalibrationAt().isAfter(LocalDateTime.now()));
+        boolean anyRoundPublished = rounds.stream().anyMatch(
+                r -> r.getReviewCalibrationAt() != null && !r.getReviewCalibrationAt().isAfter(LocalDateTime.now()));
 
         if (!anyRoundPublished) {
             throw new IllegalArgumentException("Scores have not been published yet for this team's contest.");
@@ -628,7 +731,8 @@ public class SubmissionService {
         List<Submission> allSubmissions = submissionRepository.findByTeamId(team.getId());
         java.util.Map<Long, Submission> latestSubByRound = new java.util.HashMap<>();
         for (Submission s : allSubmissions) {
-            if (s.getRound() == null) continue;
+            if (s.getRound() == null)
+                continue;
             Submission existing = latestSubByRound.get(s.getRound().getId());
             if (existing == null) {
                 latestSubByRound.put(s.getRound().getId(), s);
@@ -645,9 +749,14 @@ public class SubmissionService {
         List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto> roundScores = new ArrayList<>();
 
         for (Round r : rounds) {
-            boolean scorePublished = r.getReviewCalibrationAt() != null && !r.getReviewCalibrationAt().isAfter(LocalDateTime.now());
-            boolean resultPublished = r.getPublishResultAt() != null && !r.getPublishResultAt().isAfter(LocalDateTime.now());
-            if (!scorePublished) continue;
+            boolean scorePublished = r.getReviewCalibrationAt() != null
+                    && !r.getReviewCalibrationAt().isAfter(LocalDateTime.now());
+            boolean resultPublished = r.getPublishResultAt() != null
+                    && !r.getPublishResultAt().isAfter(LocalDateTime.now());
+            if (!scorePublished)
+                continue;
+            if (resultPublished)
+                continue;
 
             Submission sub = latestSubByRound.get(r.getId());
             java.util.Date publishDate = r.getPublishResultAt() != null
@@ -660,40 +769,87 @@ public class SubmissionService {
             String qualificationStatus = null;
             List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto> detailedScores = new ArrayList<>();
 
-            if (sub != null) {
-                hasSubmission = !"MISSED_DEADLINE".equals(sub.getStatus());
-                List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
-                List<Score> judgeScores = scores.stream().filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus())).toList();
-                boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus());
-                List<Score> validJudgeScores = judgeScores.stream().filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus())).toList();
-                isGraded = !validJudgeScores.isEmpty();
-                if (isGraded) {
-                    avgRoundScore = validJudgeScores.stream().map(Score::getTotalScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
-                } else if (isAutoZero) {
-                    avgRoundScore = 0.0;
-                    isGraded = true;
-                }
-                if (avgRoundScore != null) overallTotalScore += avgRoundScore;
+            boolean usedSnapshot = false;
+            if (scorePublished && sub != null && sub.getHistoryLog() != null && !sub.getHistoryLog().trim().isEmpty()) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    java.util.Map<String, Object> snapshot = mapper.readValue(sub.getHistoryLog(), java.util.Map.class);
+                    if (snapshot != null && snapshot.containsKey("isGraded")) {
+                        avgRoundScore = snapshot.get("avgRoundScore") != null
+                                ? ((Number) snapshot.get("avgRoundScore")).doubleValue()
+                                : null;
+                        isGraded = (Boolean) snapshot.get("isGraded");
+                        hasSubmission = (Boolean) snapshot.get("hasSubmission");
 
-                java.util.Map<Long, List<ScoreDetail>> groupedByRubric = judgeScores.stream()
-                        .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
-                        .filter(d -> d.getContestRubricDetail() != null)
-                        .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
-
-                for (List<ScoreDetail> detailList : groupedByRubric.values()) {
-                    if (detailList.isEmpty()) continue;
-                    ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
-                    double avgPoints = detailList.stream().map(ScoreDetail::getRawScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
-                    String combinedFeedback = detailList.stream().map(ScoreDetail::getFeedback).filter(f -> f != null && !f.trim().isEmpty()).collect(Collectors.joining("\n- "));
-                    if (!combinedFeedback.isEmpty()) combinedFeedback = "- " + combinedFeedback;
-                    detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
-                            .criteriaName(rubricInfo.getCriteriaName())
-                            .weight(rubricInfo.getPercentageWeight())
-                            .pointsAwarded(Math.round(avgPoints * 100.0) / 100.0)
-                            .feedback(combinedFeedback)
-                            .build());
+                        List<java.util.Map<String, Object>> detailsJson = (List<java.util.Map<String, Object>>) snapshot
+                                .get("detailedScores");
+                        if (detailsJson != null) {
+                            for (java.util.Map<String, Object> dj : detailsJson) {
+                                detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                        .criteriaName((String) dj.get("criteriaName"))
+                                        .weight(dj.get("weight") != null ? ((Number) dj.get("weight")).doubleValue()
+                                                : null)
+                                        .pointsAwarded(dj.get("pointsAwarded") != null
+                                                ? ((Number) dj.get("pointsAwarded")).doubleValue()
+                                                : null)
+                                        .feedback((String) dj.get("feedback"))
+                                        .build());
+                            }
+                        }
+                        usedSnapshot = true;
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
+
+            if (!usedSnapshot) {
+                if (sub != null) {
+                    hasSubmission = !"MISSED_DEADLINE".equals(sub.getStatus());
+                    List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
+                    List<Score> judgeScores = scores.stream().filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus()))
+                            .toList();
+                    boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus());
+                    List<Score> validJudgeScores = judgeScores.stream()
+                            .filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus())).toList();
+                    isGraded = !validJudgeScores.isEmpty();
+                    if (isGraded) {
+                        avgRoundScore = validJudgeScores.stream().map(Score::getTotalScore)
+                                .filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average()
+                                .orElse(0.0);
+                    } else if (isAutoZero) {
+                        avgRoundScore = 0.0;
+                        isGraded = true;
+                    }
+
+                    java.util.Map<Long, List<ScoreDetail>> groupedByRubric = judgeScores.stream()
+                            .flatMap(s -> s.getDetails() != null ? s.getDetails().stream()
+                                    : java.util.stream.Stream.empty())
+                            .filter(d -> d.getContestRubricDetail() != null)
+                            .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
+
+                    for (List<ScoreDetail> detailList : groupedByRubric.values()) {
+                        if (detailList.isEmpty())
+                            continue;
+                        ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
+                        double avgPoints = detailList.stream().map(ScoreDetail::getRawScore)
+                                .filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average()
+                                .orElse(0.0);
+                        String combinedFeedback = detailList.stream().map(ScoreDetail::getFeedback)
+                                .filter(f -> f != null && !f.trim().isEmpty()).collect(Collectors.joining("\n- "));
+                        if (!combinedFeedback.isEmpty())
+                            combinedFeedback = "- " + combinedFeedback;
+                        detailedScores.add(com.fpt.shms.be.dto.TeamScoreDetailsResponse.RubricScoreDto.builder()
+                                .criteriaName(rubricInfo.getCriteriaName())
+                                .weight(rubricInfo.getPercentageWeight())
+                                .pointsAwarded(Math.round(avgPoints * 100.0) / 100.0)
+                                .feedback(combinedFeedback)
+                                .build());
+                    }
+                }
+            }
+            if (avgRoundScore != null)
+                overallTotalScore += avgRoundScore;
 
             for (com.fpt.shms.be.model.RankingResult rr : rankingResultRepository.findByTeamId(team.getId())) {
                 if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {

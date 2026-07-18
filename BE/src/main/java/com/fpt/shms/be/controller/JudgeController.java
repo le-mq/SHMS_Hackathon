@@ -25,6 +25,7 @@ public class JudgeController {
 
     private final JudgeService judgeService;
     private final UserService userService;
+    private final com.fpt.shms.be.service.SubmissionService submissionService;
 
     @GetMapping("/assigned-submissions")
     @Operation(summary = "Get Assigned Submissions", description = "Returns teams and submissions allocated to the judge.")
@@ -126,7 +127,7 @@ public class JudgeController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             // Gate check: scores are only visible after admin publishes them (reviewCalibrationAt)
-            EvaluatorDashboardResponse data = judgeService.getDashboardData(username, contestId);
+            EvaluatorDashboardResponse data = judgeService.getJudgeResultReviewData(username, contestId);
 
             // Check if at least one round in assigned contests has reviewCalibrationAt set
             boolean scoresPublished = judgeService.areScoresPublished(username, contestId);
@@ -142,6 +143,20 @@ public class JudgeController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/team-score-details")
+    @Operation(summary = "Get Team Score Details (Judge)", description = "Returns score breakdown for an evaluated team after scores are published (reviewCalibrationAt).")
+    public ResponseEntity<?> getTeamScoreDetails(HttpServletRequest request,
+                                                 @org.springframework.web.bind.annotation.RequestParam Long teamId) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            return ResponseEntity.ok(submissionService.getTeamScoreDetailsByTeam(username, teamId, "JUDGE"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal Error: " + e.getMessage()));
         }
     }
 }

@@ -165,6 +165,8 @@ public class MentorService {
                         .canGiveFeedback(canGiveFeedback)
                         .hasGivenFeedback(hasGivenFeedback)
                         .mentorFeedback(mentorFeedbackText)
+                        .reviewCalibrationAt(targetRound != null && targetRound.getReviewCalibrationAt() != null ? targetRound.getReviewCalibrationAt().toString() : null)
+                        .publishResultAt(targetRound != null && targetRound.getPublishResultAt() != null ? targetRound.getPublishResultAt().toString() : null)
                         .build());
             }
 
