@@ -28,6 +28,7 @@ const ExpertProvisioning = () => {
 
     const [experts, setExperts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedRoleFilter, setSelectedRoleFilter] = useState('');
     const [newExpiries, setNewExpiries] = useState({});
     const [managedRoles, setManagedRoles] = useState({});
     const [extendLoading, setExtendLoading] = useState({});
@@ -348,11 +349,29 @@ const ExpertProvisioning = () => {
     };
 
     const filteredExperts = useMemo(() => {
-        return experts.filter(exp => !searchQuery || (
-            (exp.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (exp.username || '').toLowerCase().includes(searchQuery.toLowerCase())
-        ));
-    }, [experts, searchQuery]);
+        return experts.filter(exp => {
+            const matchesSearch = !searchQuery || (
+                (exp.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (exp.username || '').toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            const matchesRole = !selectedRoleFilter || (exp.roles || []).some(role => {
+                let userRole = role.toUpperCase();
+                let filterRole = selectedRoleFilter.toUpperCase();
+
+                const hasLifespan = exp.accessExpiry !== null && exp.accessExpiry !== undefined;
+                if (hasLifespan && userRole === 'JUDGE') {
+                    userRole = 'GUEST JUDGE';
+                }
+
+                return userRole === filterRole;
+            });
+
+            return matchesSearch && matchesRole;
+        });
+    }, [experts, searchQuery, selectedRoleFilter]);
+
+
 
     if (initialLoading) {
         return (
@@ -366,6 +385,7 @@ const ExpertProvisioning = () => {
             </div>
         );
     }
+
 
     return (
         <div className="admin-container">
@@ -389,7 +409,7 @@ const ExpertProvisioning = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Full Name</label>
-                                    <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} autoComplete="one-time-code"/>
+                                    <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} autoComplete="one-time-code" />
                                     {formData.fullName && (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(formData.fullName.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
@@ -398,7 +418,7 @@ const ExpertProvisioning = () => {
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Professional Email</label>
-                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} autoComplete="one-time-code"/>
+                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} autoComplete="one-time-code" />
                                     {formData.professionalEmail && (/\s/.test(formData.professionalEmail) || !/^[^\s@]+@[^\s@]+$/.test(formData.professionalEmail.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Email must not contain spaces and must be a valid format (e.g. name@domain.com).
@@ -410,7 +430,7 @@ const ExpertProvisioning = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Username</label>
-                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} autoComplete="one-time-code"/>
+                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} autoComplete="one-time-code" />
                                     {formData.username && (formData.username.trim().length < 4 || formData.username.trim().length > 30 || /\s/.test(formData.username) || !/^[a-zA-Z0-9._]+$/.test(formData.username.trim())) && (
                                         <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                             Username must be 4-30 characters, no spaces, and only alphanumeric, underscores, or dots.
@@ -493,18 +513,33 @@ const ExpertProvisioning = () => {
                                 <span className="step-badge">{filteredExperts.length} Expert{filteredExperts.length !== 1 ? 's' : ''}</span>
                             </div>
 
-                            <div className="expert-search-wrap">
-                                <svg className="expert-search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input type="text" className="form-input" placeholder="Search by name or username..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                            <div className="expert-find-row">
+                                <div className="expert-find">
+                                    <svg className="expert-search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" className="form-input" placeholder="Search by name or username..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                                </div>
+
+                                <div className="expert-find-2">
+                                    <select
+                                        className="form-select filter"
+                                        value={selectedRoleFilter}
+                                        onChange={e => setSelectedRoleFilter(e.target.value)}
+                                    >
+                                        <option value="">All Roles</option>
+                                        <option value="Judge">Judge</option>
+                                        <option value="Mentor">Mentor</option>
+                                        <option value="Guest Judge">Guest Judge</option>
+                                    </select>
+                                </div>
                             </div>
 
 
 
                             <div>
                                 {filteredExperts.map(exp => {
-                                    const hasLifespan = exp.accessExpiry && !exp.accessExpiry.startsWith('2099');
+                                    const hasLifespan = exp.accessExpiry !== null && exp.accessExpiry !== undefined;
                                     let currentSelected = managedRoles[exp.userId] || exp.roles || [];
 
                                     if (!managedRoles[exp.userId]) {
@@ -518,6 +553,18 @@ const ExpertProvisioning = () => {
 
                                     const isGuestJudge = currentSelected.some(r => r.toUpperCase() === 'GUEST JUDGE');
                                     const initials = (exp.fullName || exp.username || '??').substring(0, 2).toUpperCase();
+
+                                    const originalRoles = (exp.roles || []).map(r => r.replace('ROLE_', ''));
+
+                                    // Hàm so sánh hai mảng xem có giống nhau hoàn toàn hay không
+                                    const areRolesIdentical = (arr1, arr2) => {
+                                        if (arr1.length !== arr2.length) return false;
+                                        const s1 = new Set(arr1.map(r => r.toUpperCase()));
+                                        const s2 = new Set(arr2.map(r => r.toUpperCase()));
+                                        return s1.size === s2.size && [...s1].every(r => s2.has(r));
+                                    };
+
+                                    const isSaveDisabled = extendLoading[exp.userId] || areRolesIdentical(currentSelected, originalRoles);
 
                                     return (
                                         <div key={exp.userId} className="expert-manage-card">
@@ -546,19 +593,19 @@ const ExpertProvisioning = () => {
                                                         return (
                                                             <label key={r} className="expert-role-option">
                                                                 <input type="checkbox" checked={isChecked}
-                                                                       onChange={(e) => {
-                                                                           const checked = e.target.checked;
-                                                                           setManagedRoles(prev => {
-                                                                               let updated = [...(prev[exp.userId] || exp.roles || [])];
-                                                                               if (checked) {
-                                                                                   updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
-                                                                                   if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
-                                                                               } else {
-                                                                                   updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
-                                                                               }
-                                                                               return { ...prev, [exp.userId]: updated };
-                                                                           });
-                                                                       }}
+                                                                    onChange={(e) => {
+                                                                        const checked = e.target.checked;
+                                                                        setManagedRoles(prev => {
+                                                                            let updated = [...(prev[exp.userId] || exp.roles || [])];
+                                                                            if (checked) {
+                                                                                updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
+                                                                                if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
+                                                                            } else {
+                                                                                updated = updated.filter(x => x.toUpperCase() !== r.toUpperCase());
+                                                                            }
+                                                                            return { ...prev, [exp.userId]: updated };
+                                                                        });
+                                                                    }}
                                                                 /> {r}
                                                             </label>
                                                         );
@@ -572,8 +619,8 @@ const ExpertProvisioning = () => {
                                                     <div className="expert-expiry-controls">
                                                         <label>{hasLifespan ? 'Extend Expiry:' : 'Set Expiry:'}</label>
                                                         <input type="date" className="form-input" min={todayStr}
-                                                               onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
-                                                               value={newExpiries[exp.userId] || ''}
+                                                            onChange={(e) => setNewExpiries(prev => ({ ...prev, [exp.userId]: e.target.value }))}
+                                                            value={newExpiries[exp.userId] || ''}
                                                         />
                                                         <button className="expert-extend-btn" onClick={() => handleExtendSubmit(exp.userId)} disabled={!newExpiries[exp.userId] || extendLoading[exp.userId]}>
                                                             {extendLoading[exp.userId] ? 'Wait...' : (hasLifespan ? 'Extend' : 'Update Expiry')}
@@ -586,7 +633,7 @@ const ExpertProvisioning = () => {
                                                             {cardMessages[exp.userId]}
                                                         </span>
                                                     )}
-                                                    <button className="generate-btn-save" onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={extendLoading[exp.userId]}>
+                                                    <button className="generate-btn-save" onClick={() => handleUpdateRolesSubmit(exp.userId)} disabled={isSaveDisabled}>
                                                         {extendLoading[exp.userId] ? 'Wait...' : 'Save Roles'}
                                                     </button>
                                                     <button className="ph-btn-delete" onClick={() => handleDeleteSubmit(exp.userId)} disabled={extendLoading[exp.userId]}>
@@ -598,7 +645,7 @@ const ExpertProvisioning = () => {
                                     );
                                 })}
                                 {filteredExperts.length === 0 && (
-                                    <div className="expert-empty-state">No experts found matching your search.</div>
+                                    <div className="expert-empty-state">No experts found matching.</div>
                                 )}
                             </div>
                         </div>

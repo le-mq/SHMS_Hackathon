@@ -541,8 +541,15 @@
 }
 
 @keyframes fadeInMsg {
-    from { opacity: 0; transform: translateX(8px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* --- SAVE ROLES BUTTON --- */
@@ -576,7 +583,6 @@
     box-shadow: none;
 }
 
-/* --- DELETE BUTTON --- */
 .ph-btn-delete {
     border: 2px solid #ef4444;
     color: #ef4444;
@@ -694,20 +700,59 @@
     cursor: pointer;
 }
 
-.expert-search-wrap {
+.expert-find-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    /* Tự xuống hàng nếu màn hình quá nhỏ */
+}
+.expert-find-2{
     position: relative;
-    margin-bottom: 20px;
-    width: 500px;
-    height: 50px;
+    width: 200px;
+    height: 46px;
     border: 1.5px solid #64748b;
-    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.25); 
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.25);
+    border-radius: 8px;
+}
+.expert-find {
+    position: relative;
+    width: 400px;
+    height: 46px;
+    border: 1.5px solid #64748b;
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.25);
     border-radius: 8px;
 }
 
-.expert-search-wrap .form-input {
+.expert-find .form-input {
     height: 100%;
+    border: none;
     padding-left: 42px;
 }
+
+.filter {
+    height: 100%;
+    width: 50%;
+    border: 1.5px solid #64748b;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.filter:focus {
+    border-color: #5b5e64;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+
 
 .expert-search-icon {
     position: absolute;
