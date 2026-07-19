@@ -296,6 +296,51 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/contests/announcements")
+    @Operation(summary = "Get all Announcements", description = "Requires ADMIN role.")
+    public ResponseEntity<?> getAllAnnouncements(HttpServletRequest request) {
+        try {
+            return ResponseEntity.ok(contestAdminService.getAllAnnouncements());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "An error occurred while fetching announcements"));
+        }
+    }
+
+    @PutMapping("/contests/announcements/{announcementId}")
+    @Operation(summary = "Update an Announcement", description = "Requires ADMIN role.")
+    public ResponseEntity<?> updateAnnouncement(HttpServletRequest request,
+                                                @PathVariable Long announcementId,
+                                                @Valid @RequestBody CreateAnnouncementRequest announcementRequest) {
+        try {
+            var announcement = contestAdminService.updateAnnouncement(announcementId, announcementRequest);
+            return ResponseEntity.ok(
+                    Map.of("message", "Announcement updated successfully", "announcementId", announcement.getId()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "An error occurred while updating announcement"));
+        }
+    }
+
+    @DeleteMapping("/contests/announcements/{announcementId}")
+    @Operation(summary = "Delete an Announcement", description = "Requires ADMIN role.")
+    public ResponseEntity<?> deleteAnnouncement(HttpServletRequest request, @PathVariable Long announcementId) {
+        try {
+            contestAdminService.deleteAnnouncement(announcementId);
+            return ResponseEntity.ok(Map.of("message", "Announcement deleted successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "An error occurred while deleting announcement"));
+        }
+    }
+
     @PostMapping("/contests/{contestId}/partners")
     @Operation(summary = "Configure Partner Universities for a Contest", description = "Requires ADMIN role.")
     public ResponseEntity<?> configurePartnersForContest(HttpServletRequest request, @PathVariable Long contestId,

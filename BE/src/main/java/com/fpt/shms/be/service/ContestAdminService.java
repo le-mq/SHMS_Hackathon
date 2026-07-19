@@ -570,6 +570,48 @@ public class ContestAdminService {
     }
 
     @Transactional
+    public Announcement updateAnnouncement(Long announcementId, CreateAnnouncementRequest request) {
+        Announcement announcement = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new IllegalArgumentException("Announcement not found"));
+
+        Contest contest = contestRepository.findById(request.getContestId())
+                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+
+        announcement.setContest(contest);
+        announcement.setTitle(request.getTitle());
+        announcement.setContent(request.getContent());
+        announcement.setType(request.getType());
+
+        announcement.getTargets().clear();
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            for (String roleName : request.getRoles()) {
+                roleRepository.findByName(roleName.toUpperCase()).ifPresent(role -> {
+                    announcement.getTargets().add(AnnouncementTarget.builder()
+                            .announcement(announcement)
+                            .role(role)
+                            .build());
+                });
+            }
+        }
+
+        return announcementRepository.save(announcement);
+    }
+
+    @Transactional
+    public void deleteAnnouncement(Long announcementId) {
+        Announcement announcement = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new IllegalArgumentException("Announcement not found"));
+        announcementRepository.delete(announcement);
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.fpt.shms.be.dto.AnnouncementDTO> getAllAnnouncements() {
+        return announcementRepository.findAllOrderByPublishedAtDesc().stream()
+                .map(com.fpt.shms.be.dto.AnnouncementDTO::from)
+                .toList();
+    }
+
+    @Transactional
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));

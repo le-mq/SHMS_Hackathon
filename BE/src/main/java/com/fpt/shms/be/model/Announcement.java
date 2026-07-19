@@ -54,7 +54,7 @@ public class Announcement {
     private Admin adminUser;
 
     public enum AnnouncementType {
-        GENERAL_UPDATE, DEADLINE_REMINDER, RULE_CHANGE, RESULT_ANNOUNCEMENT, SYSTEM_MAINTENANCE
+        GENERAL_UPDATE, DEADLINE_REMINDER, RULE_CHANGE, RESULT_ANNOUNCEMENT, SYSTEM_MAINTENANCE, GENERAL, REGULATION
     }
 
     public Boolean getIsActive() {
