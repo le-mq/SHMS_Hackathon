@@ -10,7 +10,9 @@ public record AnnouncementDTO(
         String type,
         LocalDateTime publishedAt,
         java.util.List<String> targetRoles,
-        Long creatorId
+        Long creatorId,
+        Long contestId,
+        String contestName
 ) {
     public static AnnouncementDTO from(Announcement a) {
         java.util.List<String> rolesList = new java.util.ArrayList<>();
@@ -24,7 +26,9 @@ public record AnnouncementDTO(
                 a.getType() != null ? a.getType().name() : "INFO",
                 a.getPublishedAt(),
                 rolesList,
-                a.getAdminUser() != null ? a.getAdminUser().getId() : null
+                a.getAdminUser() != null ? a.getAdminUser().getId() : null,
+                a.getContest() != null ? a.getContest().getId() : null,
+                a.getContest() != null ? a.getContest().getName() : null
         );
     }
 }
