@@ -6,8 +6,8 @@ import './CompetitionRegistration.css';
 import LatestAnnouncements from './LatestAnnouncements';
 import ContestDetailModal from './ContestDetailModal';
 
-const API_PUBLIC = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/public";
-const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
+const API_PUBLIC = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/public";
+const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
 
 function getContestList(json) {
     if (Array.isArray(json)) {
@@ -276,7 +276,7 @@ const StudentDashboard = () => {
         const fetchPendingInvitations = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
-                const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/teams/invitations/pending", {
+                const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student/teams/invitations/pending", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -302,7 +302,7 @@ const StudentDashboard = () => {
     const handleRespondInvitation = async (invitationToken, action) => {
         try {
             const token = localStorage.getItem('shms_token');
-            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student/teams/invitations/respond", {
+            const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student/teams/invitations/respond", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ invitationToken, action })
@@ -443,7 +443,7 @@ const StudentDashboard = () => {
                                                 <button
                                                     className="btn-primary"
                                                     disabled={!canRegister}
-                                                    style={!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
+                                                    style={{ ...(!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}), display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (canRegister) navigate('/student/competitions?contestId=' + contest.id);
@@ -475,52 +475,52 @@ const StudentDashboard = () => {
                             </div>
                             <table className="mc-table">
                                 <thead>
-                                <tr>
-                                    <th>Milestone</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
+                                    <tr>
+                                        <th>Milestone</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td><strong>Registration Open</strong></td>
-                                    <td>{formatDateOnly(activeContest?.registrationStart)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Registration Deadline</strong></td>
-                                    <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Contest Start</strong></td>
-                                    <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
-                                </tr>
-                                {activeContest?.rounds?.map((round, idx) => (
-                                    <React.Fragment key={idx}>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
-                                            <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
-                                            <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
-                                            <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
-                                            <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
-                                            <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
-                                            <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
-                                        </tr>
-                                    </React.Fragment>
-                                ))}
-                                <tr>
-                                    <td><strong>Contest End</strong></td>
-                                    <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                    <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
-                                </tr>
+                                    <tr>
+                                        <td><strong>Registration Open</strong></td>
+                                        <td>{formatDateOnly(activeContest?.registrationStart)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.registrationStart)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Registration Deadline</strong></td>
+                                        <td>{formatDateOnly(activeContest?.registrationEnd)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.registrationEnd)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Contest Start</strong></td>
+                                        <td>{formatDateTime(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.contestStartAt || activeContest?.startDate)}</td>
+                                    </tr>
+                                    {activeContest?.rounds?.map((round, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Open</strong></td>
+                                                <td>{formatDateTime(round.submissionOpen || round.startDate)}</td>
+                                                <td>{getMilestoneStatus(round.submissionOpen || round.startDate)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Deadline</strong></td>
+                                                <td>{formatDateTime(round.submissionDeadline || round.endDate)}</td>
+                                                <td>{getMilestoneStatus(round.submissionDeadline || round.endDate)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ paddingLeft: '24px' }}><strong>{round.phaseName || round.name} - Results</strong></td>
+                                                <td>{formatDateTime(round.publishResultAt || round.resultPublishAt)}</td>
+                                                <td>{getMilestoneStatus(round.publishResultAt || round.resultPublishAt)}</td>
+                                            </tr>
+                                        </React.Fragment>
+                                    ))}
+                                    <tr>
+                                        <td><strong>Contest End</strong></td>
+                                        <td>{formatDateTime(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                        <td>{getMilestoneStatus(activeContest?.contestEndAt || activeContest?.endDate)}</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -572,12 +572,12 @@ const StudentDashboard = () => {
                                             <div style={{ fontWeight: '700', color: '#111827' }}>
                                                 {inv.inviterName || 'A team member'} has invited you to join the team {inv.teamName}.
                                             </div>
-                                            <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px', fontWeight: '500' }}>
+                                            <div style={{ fontSize: '13px', color: '#d97706', marginTop: '4px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 Check your email for the Invite code.
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <button onClick={() => window.open('https://gmail.google.com', '_blank')} style={{ padding: '6px 12px', background: '#dcfce7', color: '#16a34a', border: '1px solid #86efac', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Accept</button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '16px' }}>
+                                            <button onClick={() => window.open('https://gmail.google.com', '_blank')} style={{ padding: '6px 12px', background: '#dcfce7', color: '#16a34a', border: '1px solid #86efac', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%', whiteSpace: 'nowrap' }}>Get Code</button>
                                             <button onClick={() => { setRejectToken(inv.invitationToken); setShowRejectConfirm(true); }} style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', width: '100%' }}>Reject</button>
                                         </div>
                                     </div>
