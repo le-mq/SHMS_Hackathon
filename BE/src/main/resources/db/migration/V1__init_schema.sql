@@ -659,6 +659,7 @@ GO
 
 -- 4. ANNOUNCEMENTS
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
+
 INSERT INTO Announcement (contest_id, user_id, title, content, announcement_type, status, published_at)
 VALUES
     (1, @Admin1_ID, N'Final Results Announcement: National AI Challenge 2025', N'Congratulations to AI Pioneers and Visionary Devs for winning the top awards!', 'GENERAL', 'PUBLISHED', '2026-03-31 09:00:00'),
@@ -847,7 +848,7 @@ GO
 DECLARE @PastTeam1_ID BIGINT, @PastTeam2_ID BIGINT, @PastTeam3_ID BIGINT;
 DECLARE @Team1_ID BIGINT, @Team2_ID BIGINT, @Team3_ID BIGINT, @Team4_ID BIGINT, @Team5_ID BIGINT, @Team6_ID BIGINT;
 DECLARE @C4_T01_ID BIGINT, @C4_T02_ID BIGINT, @C4_T03_ID BIGINT, @C4_T04_ID BIGINT, @C4_T05_ID BIGINT;
-DECLARE @C4_T06_ID BIGINT, @C4_T07_ID BIGINT, @C4_T08_ID BIGINT, @C4_T09_ID BIGINT, @C4_T10_ID BIGINT;
+DECLARE @C4_T06_ID BIGINT;
 DECLARE @SEAL_T01_ID BIGINT, @SEAL_T02_ID BIGINT, @SEAL_T03_ID BIGINT, @SEAL_T04_ID BIGINT, @SEAL_T05_ID BIGINT, @SEAL_T06_ID BIGINT;
 
 -- Historical Team 1: AI Pioneers (Contest 1, Category 1) - CLOSED
@@ -914,10 +915,6 @@ INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES (
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T04', 'Cyber Synapse', 4, 'CLOSED', '2026-02-06 10:00:00'); SET @C4_T04_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T05', 'Vanguard Devs', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T05_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T06', 'Apex Dynamics', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T06_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T07', 'Byte Builders', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T07_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T08', 'Spark Matrix', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T08_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T09', 'Zero Latency', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T09_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T10', 'Titan Coders', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T10_ID = SCOPE_IDENTITY();
 
 -- Assign Members to Contest 4 Teams
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -950,25 +947,6 @@ SELECT @C4_T06_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-07 10:00:00' FROM [
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @C4_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [User] u WHERE u.email IN ('20DH123456@st.huflit.edu.vn', '20DH123457@st.huflit.edu.vn');
 
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T07_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email = '20120001@student.hcmus.edu.vn';
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T07_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email IN ('nhatmysocutedl@gmail.com', 'huongtuongyen1982@gmail.com');
-
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T08_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email = 'vuxuanbach2508@gmail.com';
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T08_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-08 10:00:00' FROM [User] u WHERE u.email IN ('nguyendangduyquang@gmail.com', 'buianhtuan123@gmail.com');
-
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T09_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T09_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', 'thuhien456@gmail.com');
-
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T10_ID, u.user_id, 'LEADER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email = '20120002@student.hcmus.edu.vn';
-INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @C4_T10_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-09 10:00:00' FROM [User] u WHERE u.email IN ('12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn');
 
 -- 6 TEAMS IN FORMING STATUS (Not yet enrolled into any specific contest)
 INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 'FORMING', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
@@ -1007,6 +985,28 @@ INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email = 'Leduyphuc@hcmut.edu.vn';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 15:00:00' FROM [User] u WHERE u.email IN ('20DH123456@st.huflit.edu.vn', '20DH123457@st.huflit.edu.vn');
+
+
+-- C1 NEW TEAMS (Using existing FPT & HCMUAF & HUFLIT students)
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C1_NEW1', 'C1 New Team 1', 1, 'CLOSED', '2025-02-05 10:00:00'); DECLARE @C1_NEW1_ID BIGINT = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C1_NEW2', 'C1 New Team 2', 1, 'CLOSED', '2025-02-05 10:00:00'); DECLARE @C1_NEW2_ID BIGINT = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C1_NEW1_ID, user_id, 'LEADER', 'APPROVED', '2025-02-05 10:00:00' FROM [User] WHERE email = 'buianhtuan123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C1_NEW1_ID, user_id, 'MEMBER', 'APPROVED', '2025-02-05 10:00:00' FROM [User] WHERE email = '12345678@st.hcmuaf.edu.vn';
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C1_NEW2_ID, user_id, 'LEADER', 'APPROVED', '2025-02-05 10:00:00' FROM [User] WHERE email = '09876543@st.hcmuaf.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C1_NEW2_ID, user_id, 'MEMBER', 'APPROVED', '2025-02-05 10:00:00' FROM [User] WHERE email = '20DH123456@st.huflit.edu.vn';
+
+-- C2 NEW TEAMS (Using existing HUFLIT & HCMUS & HCMUT & FPT students)
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C2_NEW1', 'C2 New Team 1', 2, 'CLOSED', '2025-09-05 10:00:00'); DECLARE @C2_NEW1_ID BIGINT = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C2_NEW2', 'C2 New Team 2', 2, 'CLOSED', '2025-09-05 10:00:00'); DECLARE @C2_NEW2_ID BIGINT = SCOPE_IDENTITY();
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C2_NEW1_ID, user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] WHERE email = 'buianhtuan123@gmail.com';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C2_NEW1_ID, user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] WHERE email IN ('12345678@st.hcmuaf.edu.vn', '09876543@st.hcmuaf.edu.vn');
+
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C2_NEW2_ID, user_id, 'LEADER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] WHERE email = '20DH123456@st.huflit.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at) SELECT @C2_NEW2_ID, user_id, 'MEMBER', 'APPROVED', '2025-09-05 10:00:00' FROM [User] WHERE email IN ('Phamgiahan@hcmut.edu.vn', '20120001@student.hcmus.edu.vn');
+
 
 -- Forming Team 4: Tech Titans (No contest yet) - FORMING
 INSERT INTO Team (team_code, team_name, status, created_at)
@@ -1051,19 +1051,19 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
-DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
-DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
-DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
-DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 
 INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
 (@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'), (@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'), (@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
 (@Team1_ID, @Mentor1_ID, 1, 'ACTIVE'), (@Team2_ID, @Mentor2_ID, 4, 'ACTIVE'), (@Team3_ID, @Mentor1_ID, 4, 'ACTIVE'),
 (@C4_T01_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T02_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T03_ID, @Mentor1_ID, 10, 'ACTIVE'),
-(@C4_T04_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T05_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T06_ID, @Mentor2_ID, 10, 'ACTIVE'),
-(@C4_T07_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T08_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T09_ID, @Mentor1_ID, 10, 'ACTIVE'),
-(@C4_T10_ID, @Mentor2_ID, 10, 'ACTIVE');
+(@C4_T04_ID, @Mentor2_ID, 10, 'ACTIVE'), (@C4_T05_ID, @Mentor1_ID, 10, 'ACTIVE'), (@C4_T06_ID, @Mentor2_ID, 10, 'ACTIVE');
 GO
+
+
+DECLARE @C1_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW1');
+DECLARE @C1_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW2');
+DECLARE @C2_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW1');
+DECLARE @C2_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW2');
 
 -- 9. SUBMISSIONS (Full Submissions across all completed & active rounds)
 DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
@@ -1078,10 +1078,6 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
-DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
-DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
-DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
-DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
 DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
 
@@ -1109,14 +1105,39 @@ VALUES
 (@C4_T03_ID, 8, N'{"Project Repository":"https://github.com/quantumleap/neural-ops","Architecture Diagram":"https://docs.google.com/drawings/quantum-leap","Demo Video":"https://youtube.com/watch?v=quantum_leap"}', 1, '2026-04-11 09:00:00', 'GRADED', N'Highly innovative predictive maintenance system for cloud clusters.', @Mentor1_ID),
 (@C4_T04_ID, 8, N'{"Project Repository":"https://github.com/cybersynapse/cloud-guard","Architecture Diagram":"https://docs.google.com/drawings/cyber-synapse","Demo Video":"https://youtube.com/watch?v=cyber_synapse"}', 1, '2026-04-11 14:00:00', 'GRADED', N'Very strong security compliance and automated threat mitigation.', @Mentor2_ID),
 (@C4_T05_ID, 8, N'{"Project Repository":"https://github.com/vanguard/ai-analytics","Architecture Diagram":"https://docs.google.com/drawings/vanguard-devs","Demo Video":"https://youtube.com/watch?v=vanguard_devs"}', 1, '2026-04-12 10:30:00', 'GRADED', N'Solid big data processing pipeline and clear dashboard visualizer.', @Mentor1_ID),
-(@C4_T06_ID, 8, N'{"Project Repository":"https://github.com/apexdynamics/serverless-ai","Architecture Diagram":"https://docs.google.com/drawings/apex-dynamics","Demo Video":"https://youtube.com/watch?v=apex_dynamics"}', 1, '2026-04-12 15:00:00', 'GRADED', N'Good serverless design, optimize cold-start latency further.', @Mentor2_ID),
-(@C4_T07_ID, 8, N'{"Project Repository":"https://github.com/bytebuilders/cloud-monitor","Architecture Diagram":"https://docs.google.com/drawings/byte-builders","Demo Video":"https://youtube.com/watch?v=byte_builders"}', 1, '2026-04-13 09:30:00', 'GRADED', N'Reliable monitoring suite, improve UI responsiveness.', @Mentor1_ID),
-(@C4_T08_ID, 8, N'{"Project Repository":"https://github.com/sparkmatrix/data-flow","Architecture Diagram":"https://docs.google.com/drawings/spark-matrix","Demo Video":"https://youtube.com/watch?v=spark_matrix"}', 1, '2026-04-13 13:00:00', 'GRADED', N'Clean data ingestion architecture, enhance error handling.', @Mentor2_ID),
-(@C4_T09_ID, 8, N'{"Project Repository":"https://github.com/zerolatency/edge-cloud","Architecture Diagram":"https://docs.google.com/drawings/zero-latency","Demo Video":"https://youtube.com/watch?v=zero_latency"}', 1, '2026-04-14 10:00:00', 'GRADED', N'Interesting edge computing concept, documentation could be more detailed.', @Mentor1_ID),
-(@C4_T10_ID, 8, N'{"Project Repository":"https://github.com/titancoders/cloud-storage","Architecture Diagram":"https://docs.google.com/drawings/titan-coders","Demo Video":"https://youtube.com/watch?v=titan_coders"}', 1, '2026-04-14 16:00:00', 'GRADED', N'Solid storage utility, continue polishing performance.', @Mentor2_ID);
+(@C4_T06_ID, 8, N'{"Project Repository":"https://github.com/apexdynamics/serverless-ai","Architecture Diagram":"https://docs.google.com/drawings/apex-dynamics","Demo Video":"https://youtube.com/watch?v=apex_dynamics"}', 1, '2026-04-12 15:00:00', 'GRADED', N'Good serverless design, optimize cold-start latency further.', @Mentor2_ID);
 GO
 
--- 10. SCORES & SCORE DETAILS (Full Scores for ALL Completed Rounds across Contest 1, 2, and 4)
+
+
+DECLARE @C1_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW1');
+DECLARE @C1_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW2');
+DECLARE @C2_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW1');
+DECLARE @C2_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW2');
+DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
+DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
+
+-- C1 NEW TEAMS SUBMISSIONS
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES 
+(@C1_NEW1_ID, 1, N'{"Project Repository":"https://github.com/c1_new1"}', 1, '2025-02-18 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
+(@C1_NEW2_ID, 1, N'{"Project Repository":"https://github.com/c1_new2"}', 1, '2025-02-18 10:00:00', 'GRADED', N'Good.', @Mentor2_ID),
+(@C1_NEW1_ID, 2, N'{"Project Repository":"https://github.com/c1_new1_r2"}', 1, '2025-03-10 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
+(@C1_NEW1_ID, 9, N'{"Project Repository":"https://github.com/c1_new1_r9"}', 1, '2025-03-20 10:00:00', 'GRADED', N'Good.', @Mentor1_ID);
+
+-- C2 NEW TEAMS SUBMISSIONS
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES 
+(@C2_NEW1_ID, 3, N'{"Project Repository":"https://github.com/c2_new1"}', 1, '2025-10-10 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
+(@C2_NEW2_ID, 3, N'{"Project Repository":"https://github.com/c2_new2"}', 1, '2025-10-10 10:00:00', 'GRADED', N'Good.', @Mentor2_ID),
+(@C2_NEW1_ID, 4, N'{"Project Repository":"https://github.com/c2_new1_r4"}', 1, '2025-11-20 10:00:00', 'GRADED', N'Good.', @Mentor1_ID);
+GO
+
+-- 10. SCORES
+
+DECLARE @C1_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW1');
+DECLARE @C1_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW2');
+DECLARE @C2_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW1');
+DECLARE @C2_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW2');
+-- & SCORE DETAILS (Full Scores for ALL Completed Rounds across Contest 1, 2, and 4)
 DECLARE @Judge1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
 DECLARE @Judge2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
 DECLARE @JudgeMentor_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge_mentor');
@@ -1148,10 +1169,6 @@ DECLARE @Sub_C4_T03 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE t
 DECLARE @Sub_C4_T04 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T04') AND round_id = 8);
 DECLARE @Sub_C4_T05 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T05') AND round_id = 8);
 DECLARE @Sub_C4_T06 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T06') AND round_id = 8);
-DECLARE @Sub_C4_T07 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T07') AND round_id = 8);
-DECLARE @Sub_C4_T08 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T08') AND round_id = 8);
-DECLARE @Sub_C4_T09 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T09') AND round_id = 8);
-DECLARE @Sub_C4_T10 BIGINT = (SELECT TOP 1 submission_id FROM Submission WHERE team_id = (SELECT team_id FROM Team WHERE team_code = 'C4_T10') AND round_id = 8);
 
 INSERT INTO Score (submission_id, user_id, total_score, general_feedback, status)
 VALUES
@@ -1217,19 +1234,7 @@ VALUES
 (@Sub_C4_T05, @JudgeMentor_ID, 87.00, N'Robust enterprise analytics platform with high data processing speed.', 'PUBLISHED'),
 (@Sub_C4_T06, @Judge1_ID, 84.50, N'Solid serverless microservices setup, optimize function cold-start slightly.', 'PUBLISHED'),
 (@Sub_C4_T06, @Judge2_ID, 84.80, N'Clean event-driven architecture using serverless cloud functions.', 'PUBLISHED'),
-(@Sub_C4_T06, @JudgeMentor_ID, 84.20, N'Good scalability metrics and clean code structure.', 'PUBLISHED'),
-(@Sub_C4_T07, @Judge1_ID, 81.80, N'Real-time cloud monitoring tool with insightful visualization graphs.', 'PUBLISHED'),
-(@Sub_C4_T07, @Judge2_ID, 82.00, N'Effective cloud infrastructure monitoring suite with good utility.', 'PUBLISHED'),
-(@Sub_C4_T07, @JudgeMentor_ID, 82.20, N'Useful resource tracking utility, continue polishing UI layout.', 'PUBLISHED'),
-(@Sub_C4_T08, @Judge1_ID, 79.20, N'Streamlined data ingestion flow and reliable buffer management.', 'PUBLISHED'),
-(@Sub_C4_T08, @Judge2_ID, 79.80, N'Good data pipeline architecture, improve error logging mechanisms.', 'PUBLISHED'),
-(@Sub_C4_T08, @JudgeMentor_ID, 79.50, N'Clean data ingestion system, error recovery can be polished further.', 'PUBLISHED'),
-(@Sub_C4_T09, @Judge1_ID, 76.00, N'Promising edge cloud architecture, presentation and docs need more depth.', 'PUBLISHED'),
-(@Sub_C4_T09, @Judge2_ID, 76.50, N'Good edge computing concept with low latency data transmission.', 'PUBLISHED'),
-(@Sub_C4_T09, @JudgeMentor_ID, 75.50, N'Solid prototype, expand documentation and architectural diagrams.', 'PUBLISHED'),
-(@Sub_C4_T10, @Judge1_ID, 72.80, N'Decent cloud storage utility with encrypted file transfer support.', 'PUBLISHED'),
-(@Sub_C4_T10, @Judge2_ID, 72.50, N'Functional cloud storage utility, UI and read/write speeds require optimization.', 'PUBLISHED'),
-(@Sub_C4_T10, @JudgeMentor_ID, 72.20, N'Good baseline storage app, further enhance throughput and error handling.', 'PUBLISHED');
+(@Sub_C4_T06, @JudgeMentor_ID, 84.20, N'Good scalability metrics and clean code structure.', 'PUBLISHED');
 GO
 
 -- 10.5. SCORE DETAILS (Detailed rubric criteria evaluations precisely matching Score and Rubric criteria)
@@ -1470,7 +1475,15 @@ VALUES
 (@S_C2_R4_Byt_JM, @CR5_D3, 25.50, 25.50, N'Good baseline risk management');
 GO
 
--- 11. RANKING RESULTS (Complete Leaderboards for ALL Completed Rounds & 10-Team Championship)
+-- 11. RANKING RESULTS
+
+DECLARE @C1_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW1');
+DECLARE @C1_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW2');
+DECLARE @C2_NEW1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW1');
+DECLARE @C2_NEW2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW2');
+
+
+-- (Complete Leaderboards for ALL Completed Rounds & 10-Team Championship)
 DECLARE @PastTeam1_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST01');
 DECLARE @PastTeam2_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST02');
 DECLARE @PastTeam3_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'PAST03');
@@ -1483,11 +1496,20 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
-DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
-DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
-DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
-DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
+
+-- C1 NEW TEAMS RANKINGS
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES 
+(1, 1, @C1_NEW1_ID, @Admin1_ID, 4, 75.00, 'QUALIFIED', '2025-02-28 10:00:00'),
+(1, 1, @C1_NEW2_ID, @Admin1_ID, 5, 70.00, 'ELIMINATED', '2025-02-28 10:00:00'),
+(2, 2, @C1_NEW1_ID, @Admin1_ID, 4, 75.00, 'ELIMINATED', '2025-03-15 10:00:00'),
+(9, 3, @C1_NEW1_ID, @Admin1_ID, 3, 75.00, 'QUALIFIED', '2025-03-25 10:00:00');
+
+-- C2 NEW TEAMS RANKINGS
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES 
+(3, 4, @C2_NEW1_ID, @Admin1_ID, 4, 75.00, 'QUALIFIED', '2025-10-31 10:00:00'),
+(3, 4, @C2_NEW2_ID, @Admin1_ID, 5, 70.00, 'ELIMINATED', '2025-10-31 10:00:00'),
+(4, 5, @C2_NEW1_ID, @Admin1_ID, 3, 75.00, 'QUALIFIED', '2025-11-25 10:00:00');
 
 INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at)
 VALUES
@@ -1527,17 +1549,13 @@ VALUES
 (8, 10, @C4_T03_ID, @Admin1_ID, 3, 91.80, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T04_ID, @Admin1_ID, 4, 89.50, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T05_ID, @Admin1_ID, 5, 87.00, 'QUALIFIED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T07_ID, @Admin1_ID, 7, 82.00, 'ELIMINATED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T08_ID, @Admin1_ID, 8, 79.50, 'ELIMINATED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T09_ID, @Admin1_ID, 9, 76.00, 'ELIMINATED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T10_ID, @Admin1_ID, 10, 72.50, 'ELIMINATED', '2026-04-25 10:00:00');
+(8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00');
 GO
 
 -- Normalize any DRAFT rubric status to TEMPLATE
-UPDATE RubricTemplate SET status = 'TEMPLATE' WHERE status = 'DRAFT' OR status = 'draft';
-UPDATE ContestRubric SET status = 'TEMPLATE' WHERE status = 'DRAFT' OR status = 'draft';
-UPDATE AuditLog SET old_value = 'TEMPLATE' WHERE (old_value = 'DRAFT' OR old_value = 'draft') AND entity_name LIKE '%Rubric%';
-UPDATE AuditLog SET new_value = 'TEMPLATE' WHERE (new_value = 'DRAFT' OR new_value = 'draft') AND entity_name LIKE '%Rubric%';
+UPDATE RubricTemplate SET status = 'TEMPLATE' WHERE status = 'TEMPLATE' OR status = 'TEMPLATE';
+UPDATE ContestRubric SET status = 'TEMPLATE' WHERE status = 'TEMPLATE' OR status = 'TEMPLATE';
+UPDATE AuditLog SET old_value = 'TEMPLATE' WHERE (old_value = 'TEMPLATE' OR old_value = 'draft') AND entity_name LIKE '%Rubric%';
+UPDATE AuditLog SET new_value = 'TEMPLATE' WHERE (new_value = 'TEMPLATE' OR new_value = 'draft') AND entity_name LIKE '%Rubric%';
 GO
 
