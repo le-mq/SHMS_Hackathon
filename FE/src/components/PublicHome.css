@@ -216,10 +216,16 @@
 .ph-contest-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
     opacity: 0;
-    transition: opacity 0.4s ease;
+    inset: 0;
+    border-radius: 20px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(243,111,33,0.8), rgba(56,189,248,0.8));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 .ph-contest-card:hover {
     transform: translateY(-8px);
@@ -288,7 +294,7 @@
     background: var(--white);
     color: var(--navy);
 }
-.ph-btn-card:hover:not(:disabled) { background: var(--navy); color: var(--white); border-color: var(--navy); }
+.ph-btn-card:hover:not(:disabled) { background: var(--navy) !important; color: white !important; border-color: var(--navy); }
 .ph-btn-card:disabled { opacity: .5; cursor: not-allowed; }
 .ph-btn-card-closed { border-color: var(--red); color: var(--red); }
 
