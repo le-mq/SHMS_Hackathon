@@ -71,7 +71,7 @@ function ContestCard({ contest, onSelectContest }) {
         } else {
             ctaText = 'Register';
             ctaAction = !role ? '/login' : '/student/competitions';
-            customStyle = { background: 'var(--navy)', color: 'var(--white)', border: 'none' };
+            customStyle = { background: '#F36628', color: 'var(--white)', border: 'none' };
         }
     }
 
@@ -197,6 +197,7 @@ function ContextBar() {
 
     const handleReturn = () => {
         if (role === 'STUDENT') navigate('/student/dashboard');
+        else if(role === 'LEADER') navigate('/student/dashboard');
         else if (role === 'JUDGE') navigate('/judge/workspace');
         else if (role === 'MENTOR') navigate('/mentor/workspace');
         else if (role === 'ADMIN') navigate('/admin/config');
@@ -322,6 +323,7 @@ export default function PublicHome() {
         if (!token) return <NavbarHome />;
         switch (role) {
             case 'STUDENT': return <NavbarStudent />;
+            case 'LEADER': return <NavbarStudent />;
             case 'JUDGE': return <NavbarJudge />;
             case 'MENTOR': return <NavbarMentor />;
             case 'ADMIN': return <NavbarAdmin />;
