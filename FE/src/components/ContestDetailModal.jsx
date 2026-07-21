@@ -292,31 +292,41 @@ export default function ContestDetailModal({ contest, onClose }) {
                             end.setHours(23, 59, 59, 999);
                             return new Date() > end;
                         })();
+                        const isRegNotStarted = (() => {
+                            if (!contest.registrationStart) return false;
+                            const start = new Date(contest.registrationStart);
+                            return new Date() < start;
+                        })();
+                        const isDisabled = isRegClosed || isRegNotStarted;
                         return (
                             <>
                                 <button
-                                    onClick={isRegClosed ? undefined : handleJoin}
-                                    disabled={isRegClosed}
+                                    onClick={isDisabled ? undefined : handleJoin}
+                                    disabled={isDisabled}
                                     style={{
                                         padding: '16px 48px',
                                         fontSize: '18px',
-                                        background: isRegClosed ? 'linear-gradient(135deg, #94a3b8, #cbd5e1)' : 'linear-gradient(135deg, #1e88e5, #42a5f5)',
+                                        background: isDisabled ? 'linear-gradient(135deg, #94a3b8, #cbd5e1)' : 'linear-gradient(135deg, #1e88e5, #42a5f5)',
                                         border: 'none',
-                                        color: isRegClosed ? '#e2e8f0' : '#fff',
+                                        color: isDisabled ? '#e2e8f0' : '#fff',
                                         borderRadius: '40px',
-                                        cursor: isRegClosed ? 'not-allowed' : 'pointer',
+                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
                                         fontWeight: 800,
-                                        boxShadow: isRegClosed ? 'none' : '0 10px 25px rgba(30,136,229,0.4)',
+                                        boxShadow: isDisabled ? 'none' : '0 10px 25px rgba(30,136,229,0.4)',
                                         transition: 'transform 0.2s'
                                     }}
-                                    onMouseEnter={e => { if (!isRegClosed) e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                                    onMouseEnter={e => { if (!isDisabled) e.currentTarget.style.transform = 'translateY(-4px)'; }}
                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                                 >
-                                    {isRegClosed ? 'Registration Closed' : 'Register For This Hackathon'}
+                                    {isRegClosed ? 'Registration Closed' : isRegNotStarted ? 'Registration Not Started' : 'Register For This Hackathon'}
                                 </button>
                                 {isRegClosed ? (
                                     <p style={{ fontSize: '14px', color: '#ef4444', marginTop: '16px', fontWeight: 600 }}>
                                         Registration closed on <strong>{fmtDateTime(contest.registrationEnd)}</strong>.
+                                    </p>
+                                ) : isRegNotStarted ? (
+                                    <p style={{ fontSize: '14px', color: '#d97706', marginTop: '16px', fontWeight: 600 }}>
+                                        Registration opens on <strong>{fmtDateTime(contest.registrationStart)}</strong>.
                                     </p>
                                 ) : (
                                     <p style={{ fontSize: '14px', color: '#64748b', marginTop: '16px' }}>
