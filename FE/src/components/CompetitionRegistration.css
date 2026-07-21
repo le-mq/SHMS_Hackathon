@@ -154,8 +154,8 @@
 .badge-open, .badge-actived { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .badge-open::before, .badge-actived::before { background: #16a34a; }
 
-.badge-upcoming { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-.badge-upcoming::before { background: #94a3b8; }
+.badge-upcoming { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-upcoming::before { background: #d97706; }
 
 .badge-past { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 .badge-past::before { background: #64748b; }

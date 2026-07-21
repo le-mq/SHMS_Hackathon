@@ -73,7 +73,7 @@ function renderRequirements(reqsStr) {
     return reqsStr.split(',').map(r => r.trim()).filter(Boolean).join(', ');
 }
 
-export default function ContestDetailModal({ contest, onClose }) {
+export default function ContestDetailModal({ contest, onClose, hasParticipated }) {
     const navigate = useNavigate();
     const role = localStorage.getItem('shms_role');
 
@@ -297,6 +297,27 @@ export default function ContestDetailModal({ contest, onClose }) {
                             const start = new Date(contest.registrationStart);
                             return new Date() < start;
                         })();
+                        // If user has participated in this closed contest
+                        if (hasParticipated) {
+                            return (
+                                <button
+                                    disabled
+                                    style={{
+                                        padding: '16px 48px',
+                                        fontSize: '18px',
+                                        background: 'linear-gradient(135deg, #94a3b8, #cbd5e1)',
+                                        border: 'none',
+                                        color: '#e2e8f0',
+                                        borderRadius: '40px',
+                                        cursor: 'not-allowed',
+                                        fontWeight: 800,
+                                        boxShadow: 'none'
+                                    }}
+                                >
+                                    Participated
+                                </button>
+                            );
+                        }
                         const isDisabled = isRegClosed || isRegNotStarted;
                         return (
                             <>
@@ -318,7 +339,7 @@ export default function ContestDetailModal({ contest, onClose }) {
                                     onMouseEnter={e => { if (!isDisabled) e.currentTarget.style.transform = 'translateY(-4px)'; }}
                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                                 >
-                                    {isRegClosed ? 'Registration Closed' : isRegNotStarted ? 'Registration Not Started' : 'Register For This Hackathon'}
+                                    {isRegClosed ? 'Registration Closed' : isRegNotStarted ? 'Not Started' : 'Register For This Hackathon'}
                                 </button>
                                 {isRegClosed ? (
                                     <p style={{ fontSize: '14px', color: '#ef4444', marginTop: '16px', fontWeight: 600 }}>

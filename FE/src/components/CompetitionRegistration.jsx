@@ -67,7 +67,7 @@ const renderComplianceRules = (rulesStr) => {
     }
 };
 
-const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams }) => {
+const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTeams, participatedContestIds }) => {
     const cat = categorizeCompetition(comp);
     const isOpen = cat === 'ACTIVED';
 
@@ -90,15 +90,16 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
     }
 
     const canRegister = (cat === 'ACTIVED' || cat === 'UPCOMING') && !isRegistrationExpired && !isRegistrationNotStarted;
+    const hasParticipated = cat === 'PAST' && participatedContestIds?.has(comp.id);
 
     return (
         <div className={`comp-card ${isRegistering ? 'highlight' : ''}`}>
             <div className="comp-card-banner">
-                <span className={`comp-badge badge-${cat.toLowerCase()}`}>{cat}</span>
+                <span className={`comp-badge badge-${cat.toLowerCase()}`}>{cat === 'PAST' ? (comp.status || 'CLOSED').toUpperCase() : cat}</span>
             </div>
             <div className="comp-card-content">
                 <h3 className="comp-title">{comp.name}</h3>
-                <p className="comp-desc">An exciting competition to showcase your coding skills.</p>
+                <p className="comp-desc">{comp.theme || comp.description || 'An exciting competition to showcase your coding skills.'}</p>
                 <div className="comp-meta">
                     <div className="meta-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -116,22 +117,31 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
             </div>
             <div className="comp-card-actions">
                 <button className="btn-secondary" onClick={() => onViewDetails(comp)}>View Details</button>
-                {isAlreadyRegistered ? (
+                {(isAlreadyRegistered || hasParticipated) ? (
                     <button
                         className="btn-primary"
                         disabled
-                        style={{ backgroundColor: '#ef4444', borderColor: '#ef4444', color: 'white', opacity: 0.9 }}
+                        style={{
+                            backgroundColor: cat === 'PAST' ? '#94a3b8' : '#ef4444',
+                            borderColor: cat === 'PAST' ? '#94a3b8' : '#ef4444',
+                            color: 'white',
+                            opacity: 0.9,
+                            cursor: 'not-allowed',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}
                     >
-                        Already Registered
+                        {cat === 'PAST' ? 'Participated' : 'Participated'}
                     </button>
                 ) : (
                     <button
                         className="btn-primary"
                         disabled={!canRegister}
-                        style={!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}}
+                        style={{ ...(!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}), display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                         onClick={() => onRegister(comp)}
                     >
-                        {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Registration Not Started' : (canRegister ? 'Register' : 'Closed'))}
+                        {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : (canRegister ? 'Register' : 'Closed'))}
                     </button>
                 )}
             </div>
@@ -178,7 +188,7 @@ const TeamSelector = ({ myTeams, selectedTeamId, onSelectTeam, registeringComp, 
                             <p><strong>Members:</strong> <strong>{approvedRoster.length} / {registeringComp?.maxTeamMembers || (team.maxMembers === 999 ? 5 : team.maxMembers) || 5}</strong></p>
                             <p><strong>Status:</strong> <span className={`ts-status ts-status-${String(team.status).toLowerCase().replace(/\s+/g, '-')}`}>{team.status}</span></p>
                         </div>
-                        {isRegistered && <div className="ts-overlay">Already Registered</div>}
+                        {isRegistered && <div className="ts-overlay">Participated</div>}
 
                         {isSelected && approvedRoster.length > 0 && (
                             <div className="ts-member-list" style={{ marginTop: '16px', borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
@@ -324,6 +334,7 @@ const CompetitionRegistration = () => {
     const [searchParams] = useSearchParams();
     // Ineligible members modal state
     const [ineligibleModal, setIneligibleModal] = useState({ open: false, members: [], pendingRequest: null });
+    const [participatedContestIds, setParticipatedContestIds] = useState(new Set());
     const loadData = async (silent = false) => {
         try {
             if (!silent) setIsLoading(true);
@@ -343,6 +354,15 @@ const CompetitionRegistration = () => {
                     } catch { return null; }
                 })
             );
+
+            // Extract participated contest IDs (including closed/past ones)
+            const participated = new Set(
+                statusResults
+                    .filter(res => res && res.data && !res.data.error &&
+                        ['APPROVED', 'PENDING', 'CLOSED'].includes(String(res.data.status || '').toUpperCase()))
+                    .map(res => res.contest.id)
+            );
+            setParticipatedContestIds(participated);
 
             let teams = statusResults
                 .filter(res => res && res.data && !res.data.error && res.data.status !== 'NO TEAM' && String(res.data.status).toUpperCase() !== 'CLOSED' && !['CANCELED', 'CANCELLED'].includes(String(res.data.status).toUpperCase()))
@@ -513,13 +533,20 @@ const CompetitionRegistration = () => {
     };
 
     const stats = useMemo(() => {
-        let open = 0, upcoming = 0;
+        let open = 0, upcoming = 0, past = 0;
         competitions.forEach(c => {
             const cat = categorizeCompetition(c);
             if (cat === 'ACTIVED') open++;
             if (cat === 'UPCOMING') upcoming++;
+            if (cat === 'PAST') past++;
         });
-        return { total: competitions.length, open, upcoming };
+        return { total: competitions.length, open, upcoming, past };
+    }, [competitions]);
+
+    const pastCompetitions = useMemo(() => {
+        return competitions
+            .filter(c => categorizeCompetition(c) === 'PAST')
+            .sort((a, b) => new Date(b.contestEndAt || b.endDate || 0) - new Date(a.contestEndAt || a.endDate || 0));
     }, [competitions]);
 
     const selectedTeamFull = selectedTeamId ? myTeams.find(t => String(t.teamId) === String(selectedTeamId) || t.teamName === selectedTeamId) : null;
@@ -557,10 +584,34 @@ const CompetitionRegistration = () => {
                                 onRegister={handleRegisterClick}
                                 isRegistering={registeringComp?.id === comp.id}
                                 myTeams={myTeams}
+                                participatedContestIds={participatedContestIds}
                             />
                         ))
                     )}
                 </div>
+
+                {/* Past / Closed Competitions Section */}
+                {pastCompetitions.length > 0 && (
+                    <div style={{ marginTop: '40px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>Past Competitions</h2>
+                            <span style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2px 12px', fontSize: '13px', fontWeight: '600' }}>{pastCompetitions.length}</span>
+                        </div>
+                        <div className="cr-grid">
+                            {pastCompetitions.map(comp => (
+                                <CompetitionCard
+                                    key={comp.id}
+                                    comp={comp}
+                                    onViewDetails={setViewDetailsComp}
+                                    onRegister={handleRegisterClick}
+                                    isRegistering={false}
+                                    myTeams={myTeams}
+                                    participatedContestIds={participatedContestIds}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {registeringComp && (
                     <div id="reg-flow-section" className="reg-flow-section">
@@ -619,6 +670,7 @@ const CompetitionRegistration = () => {
                                     className="btn-primary btn-large btn-block mt-4"
                                     disabled={!selectedTeamId || isSubmitting}
                                     onClick={handleSubmitRegistration}
+                                    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                 >
                                     {isSubmitting ? 'Processing...' : 'Register Competition'}
                                 </button>
@@ -629,7 +681,11 @@ const CompetitionRegistration = () => {
             </div>
 
             {viewDetailsComp && (
-                <ContestDetailModal contest={viewDetailsComp} onClose={() => setViewDetailsComp(null)} />
+                <ContestDetailModal
+                    contest={viewDetailsComp}
+                    onClose={() => setViewDetailsComp(null)}
+                    hasParticipated={participatedContestIds?.has(viewDetailsComp.id)}
+                />
             )}
 
             {ineligibleModal.open && (
