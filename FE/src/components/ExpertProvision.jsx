@@ -33,6 +33,7 @@ const ExpertProvisioning = () => {
     const [managedRoles, setManagedRoles] = useState({});
     const [extendLoading, setExtendLoading] = useState({});
     const [cardMessages, setCardMessages] = useState({});
+    const [showForm, setShowForm] = useState(false);
 
     const formatExpiryDate = (date) => date ? `${date}T23:59:59` : null;
 
@@ -390,127 +391,156 @@ const ExpertProvisioning = () => {
     return (
         <div className="admin-container">
             <div className="config-wrapper">
-                <div className="config-header-v">
-                    <h1 className="config-title">Expert Credentials Provisioning</h1>
-                    <p className="config-subtitle">
-                        Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.
-                    </p>
+                <div className="config-header-row">
+                    <div className="config-header-v">
+                        <h1 className="config-title">Expert Credentials Provisioning</h1>
+                        <p className="config-subtitle">
+                            Generate secure administrative access for evaluation committee members, technical mentors, and temporary guest judges.
+                        </p>
+                    </div>
+                    <button 
+                        className="add-expert-header-btn"
+                        onClick={() => setShowForm(true)}
+                    >
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Expert
+                    </button>
                 </div>
 
                 <div>
                     <div>
-                        {/* ===== PROVISIONING FORM ===== */}
-                        <div className="form-card-v">
-                            <div className="form-header">
-                                <div className="form-title">System Provisioning Form</div>
-                                <span className="step-badge">New Expert</span>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="form-label">Full Name</label>
-                                    <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} autoComplete="one-time-code" />
-                                    {formData.fullName && (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(formData.fullName.trim())) && (
-                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                                            Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
+                        {/* ===== PROVISIONING FORM MODAL ===== */}
+                        {showForm && (
+                            <div className="expert-modal-overlay" onClick={() => setShowForm(false)}>
+                                <div className="expert-modal-card animate-modal-scale" onClick={e => e.stopPropagation()}>
+                                    <div className="form-header">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div className="form-title">System Provisioning Form</div>
+                                            <span className="step-badge">New Expert</span>
                                         </div>
-                                    )}
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Professional Email</label>
-                                    <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} autoComplete="one-time-code" />
-                                    {formData.professionalEmail && (/\s/.test(formData.professionalEmail) || !/^[^\s@]+@[^\s@]+$/.test(formData.professionalEmail.trim())) && (
-                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                                            Email must not contain spaces and must be a valid format (e.g. name@domain.com).
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="form-label">Username</label>
-                                    <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} autoComplete="one-time-code" />
-                                    {formData.username && (formData.username.trim().length < 4 || formData.username.trim().length > 30 || /\s/.test(formData.username) || !/^[a-zA-Z0-9._]+$/.test(formData.username.trim())) && (
-                                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                                            Username must be 4-30 characters, no spaces, and only alphanumeric, underscores, or dots.
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Password</label>
-                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            name="password"
-                                            className="form-input"
-                                            placeholder="Enter secure password"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            autoComplete="one-time-code"
-                                            style={{ paddingRight: '40px', width: '100%' }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            style={{ position: 'absolute', right: '12px', top: '40%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowForm(false)} 
+                                            className="close-form-icon-btn"
+                                            title="Close Modal"
                                         >
-                                            {showPassword ? (
-                                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                            ) : (
-                                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                                                </svg>
-                                            )}
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
                                         </button>
                                     </div>
-                                    {formData.password && (formData.password.length < 8 || formData.password.length > 32 || /\s/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^a-zA-Z\d\s]/.test(formData.password)) && (
-                                        <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
-                                            Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Full Name</label>
+                                            <input type="text" name="fullName" className="form-input" placeholder="e.g. Dr. Alistair Sterling" value={formData.fullName} onChange={handleChange} autoComplete="one-time-code" />
+                                            {formData.fullName && (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100 || !/^[\p{L} '-]+$/u.test(formData.fullName.trim())) && (
+                                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                    Full Name must be 2-100 characters, containing only letters, spaces, apostrophes, and hyphens.
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Professional Email</label>
+                                            <input type="email" name="professionalEmail" className="form-input" placeholder="a.sterling@university.edu" value={formData.professionalEmail} onChange={handleChange} autoComplete="one-time-code" />
+                                            {formData.professionalEmail && (/\s/.test(formData.professionalEmail) || !/^[^\s@]+@[^\s@]+$/.test(formData.professionalEmail.trim())) && (
+                                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                    Email must not contain spaces and must be a valid format (e.g. name@domain.com).
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Username</label>
+                                            <input type="text" name="username" className="form-input" placeholder="e.g. asterling_expert" value={formData.username} onChange={handleChange} autoComplete="one-time-code" />
+                                            {formData.username && (formData.username.trim().length < 4 || formData.username.trim().length > 30 || /\s/.test(formData.username) || !/^[a-zA-Z0-9._]+$/.test(formData.username.trim())) && (
+                                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                                    Username must be 4-30 characters, no spaces, and only alphanumeric, underscores, or dots.
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Password</label>
+                                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    name="password"
+                                                    className="form-input"
+                                                    placeholder="Enter secure password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    autoComplete="one-time-code"
+                                                    style={{ paddingRight: '40px', width: '100%' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    style={{ position: 'absolute', right: '12px', top: '40%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}
+                                                >
+                                                    {showPassword ? (
+                                                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {formData.password && (formData.password.length < 8 || formData.password.length > 32 || /\s/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^a-zA-Z\d\s]/.test(formData.password)) && (
+                                                <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', lineHeight: '1.4' }}>
+                                                    Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">Role Selection</label>
+                                            <div className="role-selection-row">
+                                                {['Judge', 'Guest Judge', 'Mentor'].map(role => (
+                                                    <label key={role} className="role-checkbox-label">
+                                                        <input type="checkbox" name="roleSelection" value={role} checked={formData.roleSelection.includes(role)} onChange={handleRoleChange} /> {role}
+                                                    </label>
+                                                ))}
+                                                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                    {(error || success) && (
+                                                        <span className={`expert-inline-msg ${success ? 'success' : 'error'}`}>
+                                                            {error || success}
+                                                        </span>
+                                                    )}
+                                                    <button className="generate-btn" onClick={handleGenerate} disabled={isLoading || isFormInvalid()}>
+                                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                                                        {isLoading ? 'Generating...' : 'Generate Account Credentials'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {formData.roleSelection.includes('Guest Judge') && (
+                                        <div className="form-group" style={{ marginBottom: '20px' }}>
+                                            <label className="form-label">Access Token Expiry Lifespan ⓘ</label>
+                                            <input type="date" name="accessExpiry" className="form-input" min={todayStr} value={formData.accessExpiry} onChange={handleChange} style={{ maxWidth: '300px' }} />
                                         </div>
                                     )}
                                 </div>
                             </div>
+                        )}
 
-                            <div style={{ marginBottom: '20px' }}>
-                                <div className="form-group">
-                                    <label className="form-label">Role Selection</label>
-                                    <div className="role-selection-row">
-                                        {['Judge', 'Guest Judge', 'Mentor'].map(role => (
-                                            <label key={role} className="role-checkbox-label">
-                                                <input type="checkbox" name="roleSelection" value={role} checked={formData.roleSelection.includes(role)} onChange={handleRoleChange} /> {role}
-                                            </label>
-                                        ))}
-                                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            {(error || success) && (
-                                                <span className={`expert-inline-msg ${success ? 'success' : 'error'}`}>
-                                                    {error || success}
-                                                </span>
-                                            )}
-                                            <button className="generate-btn" onClick={handleGenerate} disabled={isLoading || isFormInvalid()}>
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                                                {isLoading ? 'Generating...' : 'Generate Account Credentials'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {formData.roleSelection.includes('Guest Judge') && (
-                                <div className="form-group" style={{ marginBottom: '20px' }}>
-                                    <label className="form-label">Access Token Expiry Lifespan ⓘ</label>
-                                    <input type="date" name="accessExpiry" className="form-input" min={todayStr} value={formData.accessExpiry} onChange={handleChange} style={{ maxWidth: '300px' }} />
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="form-card-v" style={{ marginTop: '24px' }}>
+                        <div className="form-card-v">
                             <div className="form-header">
                                 <div className="form-title">Manage Experts</div>
-                                <span className="step-badge">{filteredExperts.length} Expert{filteredExperts.length !== 1 ? 's' : ''}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <span className="step-badge">{filteredExperts.length} Expert{filteredExperts.length !== 1 ? 's' : ''}</span>
+                                </div>
                             </div>
 
                             <div className="expert-find-row">
