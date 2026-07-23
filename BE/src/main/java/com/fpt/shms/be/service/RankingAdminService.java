@@ -26,7 +26,6 @@ public class RankingAdminService {
     private final ContestRubricRepository contestRubricRepository;
     private final AuditLogService auditLogService;
     private final TeamRepository teamRepository;
-    private final TeamMentorRepository teamMentorRepository;
 
     private List<Team> getParticipatingTeams(Round round) {
         if (round.getCategory() == null) {
@@ -108,7 +107,8 @@ public class RankingAdminService {
                 .filter(s -> s.getStatus() != null &&
                         ("OFFICIAL".equalsIgnoreCase(s.getStatus()) ||
                                 "SUBMITTED".equalsIgnoreCase(s.getStatus()) ||
-                                "EVALUATED".equalsIgnoreCase(s.getStatus()))
+                                "EVALUATED".equalsIgnoreCase(s.getStatus()) ||
+                                "GRADED".equalsIgnoreCase(s.getStatus()))
                         &&
                         s.getTeam() != null && participatingTeamIds.contains(s.getTeam().getId()))
                 .count();
@@ -128,7 +128,8 @@ public class RankingAdminService {
                     if (s.getStatus() != null && "DRAFT".equalsIgnoreCase(s.getStatus())) {
                         continue;
                     }
-                    if ("MISSED_DEADLINE".equalsIgnoreCase(s.getStatus()) && !scoreRepository.existsBySubmissionId(s.getId())) {
+                    if ("MISSED_DEADLINE".equalsIgnoreCase(s.getStatus())
+                            && !scoreRepository.existsBySubmissionId(s.getId())) {
                         continue;
                     }
                     if (!scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), s.getId())) {
@@ -214,7 +215,8 @@ public class RankingAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Results have already been published for this round. No further modifications are allowed.");
+            throw new IllegalArgumentException(
+                    "Results have already been published for this round. No further modifications are allowed.");
         }
 
         Contest contest = contestRepository.findById(contestId)
@@ -357,17 +359,20 @@ public class RankingAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Results have already been published. Cannot change the score publication state.");
+            throw new IllegalArgumentException(
+                    "Results have already been published. Cannot change the score publication state.");
         }
 
         round.setReviewCalibrationAt(LocalDateTime.now());
         roundRepository.save(round);
 
-        // Snapshot current average scores into historyLog of each team's latest submission for this round
+        // Snapshot current average scores into historyLog of each team's latest
+        // submission for this round
         List<Submission> allSubmissions = submissionRepository.findByRoundId(roundId);
         java.util.Map<Long, Submission> latestSubByTeam = new java.util.HashMap<>();
         for (Submission s : allSubmissions) {
-            if (s.getTeam() == null) continue;
+            if (s.getTeam() == null)
+                continue;
             Long teamId = s.getTeam().getId();
             Submission existing = latestSubByTeam.get(teamId);
             if (existing == null) {
@@ -386,11 +391,13 @@ public class RankingAdminService {
             List<Score> scores = scoreRepository.findBySubmissionId(sub.getId());
             List<Score> judgeScores = scores.stream().filter(sc -> !"MENTOR_FEEDBACK".equals(sc.getStatus())).toList();
             boolean isAutoZero = "MISSED_DEADLINE".equals(sub.getStatus());
-            List<Score> validJudgeScores = judgeScores.stream().filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus())).toList();
+            List<Score> validJudgeScores = judgeScores.stream().filter(sc -> !"MISSED_DEADLINE".equals(sc.getStatus()))
+                    .toList();
             boolean isGraded = !validJudgeScores.isEmpty();
             Double avgRoundScore = null;
             if (isGraded) {
-                avgRoundScore = validJudgeScores.stream().map(Score::getTotalScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
+                avgRoundScore = validJudgeScores.stream().map(Score::getTotalScore).filter(java.util.Objects::nonNull)
+                        .mapToDouble(Double::doubleValue).average().orElse(0.0);
             } else if (isAutoZero) {
                 avgRoundScore = 0.0;
                 isGraded = true;
@@ -399,16 +406,21 @@ public class RankingAdminService {
             List<java.util.Map<String, Object>> detailedScores = new ArrayList<>();
             if (isGraded || isAutoZero) {
                 java.util.Map<Long, List<ScoreDetail>> groupedByRubric = judgeScores.stream()
-                        .flatMap(s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
+                        .flatMap(
+                                s -> s.getDetails() != null ? s.getDetails().stream() : java.util.stream.Stream.empty())
                         .filter(d -> d.getContestRubricDetail() != null)
                         .collect(Collectors.groupingBy(d -> d.getContestRubricDetail().getId()));
 
                 for (List<ScoreDetail> detailList : groupedByRubric.values()) {
-                    if (detailList.isEmpty()) continue;
+                    if (detailList.isEmpty())
+                        continue;
                     ContestRubricDetails rubricInfo = detailList.get(0).getContestRubricDetail();
-                    double avgPoints = detailList.stream().map(ScoreDetail::getRawScore).filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
-                    String combinedFeedback = detailList.stream().map(ScoreDetail::getFeedback).filter(f -> f != null && !f.trim().isEmpty()).collect(Collectors.joining("\n- "));
-                    if (!combinedFeedback.isEmpty()) combinedFeedback = "- " + combinedFeedback;
+                    double avgPoints = detailList.stream().map(ScoreDetail::getRawScore)
+                            .filter(java.util.Objects::nonNull).mapToDouble(Double::doubleValue).average().orElse(0.0);
+                    String combinedFeedback = detailList.stream().map(ScoreDetail::getFeedback)
+                            .filter(f -> f != null && !f.trim().isEmpty()).collect(Collectors.joining("\n- "));
+                    if (!combinedFeedback.isEmpty())
+                        combinedFeedback = "- " + combinedFeedback;
 
                     java.util.Map<String, Object> ds = new java.util.HashMap<>();
                     ds.put("criteriaName", rubricInfo.getCriteriaName());
