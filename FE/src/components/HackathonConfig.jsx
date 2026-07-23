@@ -158,11 +158,11 @@ function HackathonConfig() {
             rounds: Yup.array().of(Yup.object().shape({
                 phaseName: Yup.string().required('Phase Name is required'),
                 categoryId: Yup.string().required('Required').test('uniq-cat', 'Category unique error', function (val) { return !val || this.from[1].value.rounds.filter(r => String(r.categoryId) === String(val)).length <= 1; }),
-                submissionOpen: Yup.date().required('Required').test('after-reg-end', 'Must be after Registration End', function (val) { if (!val || !this.from[1].value.registrationEnd) return true; const d = new Date(this.from[1].value.registrationEnd); d.setHours(0, 0, 0, 0); return new Date(val) > d; }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                submissionOpen: Yup.date().required('Required').test('after-reg-end', 'Must be after Registration End', function (val) { if (!val || !this.from[1].value.registrationEnd) return true; const d = new Date(this.from[1].value.registrationEnd); d.setHours(0, 0, 0, 0); return new Date(val) > d; }).test('after-prev', 'Must be after previous round result', function (val) { if (!val) return true; const m = this.path.match(/rounds\[(\d+)\]/); if (m) { const idx = parseInt(m[1], 10); if (idx > 0) { const prev = this.from[1].value.rounds[idx - 1]; if (prev && prev.publishResultAt && new Date(val) <= new Date(prev.publishResultAt)) return false; } } return true; }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
                 submissionDeadline: Yup.date().required('Required').test('after-open', 'Must be after open', function (val) { return !val || !this.parent.submissionOpen || new Date(val) > new Date(this.parent.submissionOpen); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
                 gradingDeadlineAt: Yup.date().required('Required').test('after-dl', 'Must be after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) > new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
-                reviewCalibrationAt: Yup.date().required('Required').test('after-dl', 'Must be on/after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) >= new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
-                publishResultAt: Yup.date().required('Required').test('after-dl', 'Must be on/after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) >= new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                reviewCalibrationAt: Yup.date().required('Required').test('after-grading', 'Must be after grading deadline', function (val) { return !val || !this.parent.gradingDeadlineAt || new Date(val) > new Date(this.parent.gradingDeadlineAt); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                publishResultAt: Yup.date().required('Required').test('after-review', 'Must be after review time', function (val) { return !val || !this.parent.reviewCalibrationAt || new Date(val) > new Date(this.parent.reviewCalibrationAt); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
                 roundFormat: Yup.string().required('Round Format is required'),
                 submissionRequirements: Yup.array().min(1, 'Add at least one requirement')
             })).min(1, 'Add at least one round')
@@ -961,8 +961,18 @@ function HackathonConfig() {
 
                                                     <div className="hc-grid-3">
                                                         {['submissionOpen', 'submissionDeadline', 'gradingDeadlineAt', 'reviewCalibrationAt', 'publishResultAt'].map((field) => {
-                                                            const isMinFld = field === 'submissionOpen';
-                                                            const minVal = isMinFld ? (formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min) : (formik.values.rounds[rIdx]?.[isMinFld ? '' : 'submissionOpen'] || bounds.min);
+                                                            let minVal = bounds.min;
+                                                            if (field === 'submissionOpen') {
+                                                                minVal = rIdx > 0 && formik.values.rounds[rIdx - 1]?.publishResultAt ? formik.values.rounds[rIdx - 1].publishResultAt : (formik.values.registrationEnd ? `${formik.values.registrationEnd}T00:00` : bounds.min);
+                                                            } else if (field === 'submissionDeadline') {
+                                                                minVal = round.submissionOpen || bounds.min;
+                                                            } else if (field === 'gradingDeadlineAt') {
+                                                                minVal = round.submissionDeadline || bounds.min;
+                                                            } else if (field === 'reviewCalibrationAt') {
+                                                                minVal = round.gradingDeadlineAt || bounds.min;
+                                                            } else if (field === 'publishResultAt') {
+                                                                minVal = round.reviewCalibrationAt || bounds.min;
+                                                            }
                                                             return (
                                                                 <div className="hc-field" key={field}>
                                                                     <label className="hc-label">{field.charAt(0).toUpperCase() + field.replace(/At$|AtUrgent$/, '').slice(1).replace(/([A-Z])/g, ' $1')} <span>*</span></label>

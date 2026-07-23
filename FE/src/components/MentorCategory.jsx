@@ -20,7 +20,7 @@ const getProgressBadge = (status) => {
     return { bg: '#fee2e2', color: '#991b1b', label };
 };
 
-const TeamAssetLinks = ({ team }) => {
+const TeamAssetLinks = ({ team, hideLabels = false }) => {
     let subData = {};
     try {
         if (team.submissionData) {
@@ -45,9 +45,9 @@ const TeamAssetLinks = ({ team }) => {
         return (
             <a key={label} className="asset-link-item" href={assetUrl} target="_blank"
                rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
-               style={{ padding: '6px 12px', borderRadius: '6px', color: '#334155', backgroundColor: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500 }}>
+               style={{ padding: hideLabels ? '6px' : '6px 12px', borderRadius: '6px', color: '#334155', backgroundColor: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500 }}>
                 <span style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>{icon}</span>
-                <span>{label}</span>
+                {!hideLabels && <span>{label}</span>}
             </a>
         );
     };
@@ -432,7 +432,7 @@ const MentorCategory = () => {
                                                     {badge.label}
                                                 </span>
                                                 </td>
-                                                <td>{badge.label === 'Not Submitted' ? <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> : <TeamAssetLinks team={team} />}</td>
+                                                <td>{badge.label === 'Not Submitted' ? <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> : <TeamAssetLinks team={team} hideLabels={true} />}</td>
                                                 <td>{canGiveFeedback ? (
                                                     <span className={`feedback-badge ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
                                                     {team.hasGivenFeedback ? 'Reviewed' : 'Pending'}
