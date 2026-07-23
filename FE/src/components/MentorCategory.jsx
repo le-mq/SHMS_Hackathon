@@ -43,10 +43,11 @@ const TeamAssetLinks = ({ team }) => {
         const assetUrl = getAssetUrl(url);
         if (!assetUrl) return null;
         return (
-            <a key={label} className="asset-link-icon" href={assetUrl} target="_blank"
+            <a key={label} className="asset-link-item" href={assetUrl} target="_blank"
                rel="noopener noreferrer" title={`Open ${label}`} aria-label={`Open ${label}`}
-               style={{ width: '24px', height: '24px', borderRadius: '6px', color: '#64748b', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                {icon}
+               style={{ padding: '6px 12px', borderRadius: '6px', color: '#334155', backgroundColor: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500 }}>
+                <span style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>{icon}</span>
+                <span>{label}</span>
             </a>
         );
     };

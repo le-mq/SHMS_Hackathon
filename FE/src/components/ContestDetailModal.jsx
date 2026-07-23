@@ -297,6 +297,11 @@ export default function ContestDetailModal({ contest, onClose, hasParticipated }
                             const start = new Date(contest.registrationStart);
                             return new Date() < start;
                         })();
+
+                        if (['ADMIN', 'JUDGE', 'MENTOR'].includes(role)) {
+                            return null;
+                        }
+
                         // If user has participated in this closed contest
                         if (hasParticipated) {
                             return (
