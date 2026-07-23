@@ -194,6 +194,7 @@ const StudentDashboard = () => {
     const [loadingContest, setLoadingContest] = useState(true);
     const [joinCode, setJoinCode] = useState('');
     const [previewContest, setPreviewContest] = useState(null);
+    const [participatedContestIds, setParticipatedContestIds] = useState(new Set());
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
@@ -236,6 +237,32 @@ const StudentDashboard = () => {
                 if (!cancelled) {
                     setActiveContest(active);
                     setActiveContests(activeList);
+                }
+
+                try {
+                    const statusPromises = activeList.map(async (contest) => {
+                        try {
+                            const res = await axios.get(API_STUDENT + `/teams/status?contestId=${contest.id}`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            return { contest, data: res.data };
+                        } catch {
+                            return null;
+                        }
+                    });
+                    
+                    const statusResults = await Promise.all(statusPromises);
+                    const participated = new Set(
+                        statusResults
+                            .filter(res => res && res.data && !res.data.error &&
+                                ['APPROVED', 'PENDING', 'CLOSED'].includes(String(res.data.status || '').toUpperCase()))
+                            .map(res => res.contest.id)
+                    );
+                    if (!cancelled) {
+                        setParticipatedContestIds(participated);
+                    }
+                } catch (err) {
+                    console.warn('Failed to fetch participation status:', err);
                 }
 
             } catch (error) {
@@ -437,9 +464,18 @@ const StudentDashboard = () => {
                                                 const startDate = new Date(contest.registrationStart);
                                                 isRegistrationNotStarted = startDate > new Date();
                                             }
-                                            const canRegister = (cat === 'ACTIVED' || cat === 'UPCOMING') && !isRegistrationExpired && !isRegistrationNotStarted;
+                                            const hasParticipated = participatedContestIds.has(contest.id);
+                                            const canRegister = (cat === 'ACTIVED' || cat === 'UPCOMING') && !isRegistrationExpired && !isRegistrationNotStarted && !hasParticipated;
 
-                                            return (
+                                            return hasParticipated ? (
+                                                <button
+                                                    className="btn-primary"
+                                                    disabled
+                                                    style={{ backgroundColor: '#ef4444', borderColor: '#ef4444', color: 'white', cursor: 'not-allowed', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                                                >
+                                                    Participated
+                                                </button>
+                                            ) : (
                                                 <button
                                                     className="btn-primary"
                                                     disabled={!canRegister}
@@ -449,7 +485,7 @@ const StudentDashboard = () => {
                                                         if (canRegister) navigate('/student/competitions?contestId=' + contest.id);
                                                     }}
                                                 >
-                                                    {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : 'Register')}
+                                                    {isRegistrationExpired ? 'Ended' : (isRegistrationNotStarted ? 'Not Started' : 'Register')}
                                                 </button>
                                             );
                                         })()}

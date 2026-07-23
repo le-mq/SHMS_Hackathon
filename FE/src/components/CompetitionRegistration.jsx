@@ -141,7 +141,7 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
                         style={{ ...(!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}), display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                         onClick={() => onRegister(comp)}
                     >
-                        {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : (canRegister ? 'Register' : 'Closed'))}
+                        {isRegistrationExpired ? 'Ended' : (isRegistrationNotStarted ? 'Not Started' : (canRegister ? 'Register' : 'Closed'))}
                     </button>
                 )}
             </div>
@@ -527,6 +527,7 @@ const CompetitionRegistration = () => {
             setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
         } catch (err) {
             setError(err.message || 'Force registration failed.');
+            setIneligibleModal({ open: false, members: [], pendingRequest: null });
         } finally {
             setIsSubmitting(false);
         }

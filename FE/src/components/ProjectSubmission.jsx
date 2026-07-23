@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './ProjectSubmission.css';
 import './LeaderWorkspace.css';
 
-const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/student";
+const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
 const SUCCESS_MESSAGE_DURATION_MS = 5000;
 const SUCCESS_RELOAD_DELAY_MS = 5000;
 const ERROR_MESSAGE_DURATION_MS = 5000;
@@ -31,7 +31,7 @@ const parseRequirements = (reqString) => {
     try {
         const parsed = JSON.parse(reqString);
         if (Array.isArray(parsed)) return parsed;
-    } catch (e) {}
+    } catch (e) { }
     if (typeof reqString === 'string') {
         return reqString.split(',').map(s => s.trim()).filter(Boolean);
     }
@@ -175,7 +175,7 @@ const ProjectSubmission = () => {
                     if (item.submissionData) {
                         parsedData = JSON.parse(item.submissionData);
                     }
-                } catch (e) {}
+                } catch (e) { }
                 return { ...item, ...parsedData };
             });
             setHistory(processedHistory);
@@ -572,10 +572,10 @@ const ProjectSubmission = () => {
 
         return (
             <a className={`asset-link-icon ${showLabel ? 'with-label' : ''}`}
-               href={assetUrl} target="_blank"
-               rel="noopener noreferrer" title={`Open ${label}`}
-               aria-label={`Open ${label}`}
-               style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
+                href={assetUrl} target="_blank"
+                rel="noopener noreferrer" title={`Open ${label}`}
+                aria-label={`Open ${label}`}
+                style={showLabel ? { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#334155', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 500, border: '1px solid #e2e8f0' } : {}}
             >
                 {icon}
                 {showLabel && <span>{label}</span>}
@@ -691,7 +691,7 @@ const ProjectSubmission = () => {
                 const url = val.trim();
                 const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
                 let isValidUrl = urlRegex.test(url);
-                
+
                 try {
                     new URL(url.startsWith('http') ? url : `https://${url}`);
                 } catch (e) {
@@ -713,7 +713,7 @@ const ProjectSubmission = () => {
                         hasError = true;
                     }
                 }
-                
+
                 if (lowerReq.includes('video') || lowerReq.includes('demo')) {
                     if (!/youtube\.com|youtu\.be|vimeo\.com|loom\.com|drive\.google\.com|dropbox\.com|1drv\.ms|sharepoint\.com/i.test(lowerUrl)) {
                         // Optional: could add stricter validation, but URL format is usually enough for videos
@@ -792,7 +792,7 @@ const ProjectSubmission = () => {
                         if (item.submissionData) {
                             parsedData = JSON.parse(item.submissionData);
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                     return { ...item, ...parsedData };
                 });
                 setHistory(processedHistory);
@@ -818,12 +818,12 @@ const ProjectSubmission = () => {
     return (
         <div className="submission-container">
             <div className="submission-content">
-                  {isLoading ? (
-                      <div className="global-loading">
-                          <div className="global-spinner"></div>
-                          <span>Loading submission data...</span>
-                      </div>
-                  ) : !hasRegisteredContest ? (
+                {isLoading ? (
+                    <div className="global-loading">
+                        <div className="global-spinner"></div>
+                        <span>Loading submission data...</span>
+                    </div>
+                ) : !hasRegisteredContest ? (
                     teamStatus === 'CLOSED' ? (
                         <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', textAlign: 'center', fontWeight: '500' }}>
                             This competition has been closed. You can no longer submit projects.
@@ -870,14 +870,14 @@ const ProjectSubmission = () => {
                                                 fontWeight: '700',
                                                 marginLeft: '8px'
                                             }}>
-                                        <span style={{
-                                            width: '6px',
-                                            height: '6px',
-                                            borderRadius: '50%',
-                                            backgroundColor: String(contestStatus).toUpperCase() === 'ACTIVED' ? '#16a34a' : '#94a3b8'
-                                        }}></span>
+                                                <span style={{
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: String(contestStatus).toUpperCase() === 'ACTIVED' ? '#16a34a' : '#94a3b8'
+                                                }}></span>
                                                 {contestStatus}
-                                    </span>
+                                            </span>
                                         )}
                                     </div>
                                 )}
@@ -912,14 +912,14 @@ const ProjectSubmission = () => {
                                                     fontSize: '15px',
                                                     fontWeight: '700'
                                                 }}>
-                                            <span style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                borderRadius: '50%',
-                                                backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#16a34a' : '#ef4444'
-                                            }}></span>
+                                                    <span style={{
+                                                        width: '8px',
+                                                        height: '8px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: ['QUALIFIED', 'PROMOTED'].includes(qualificationStatus) ? '#16a34a' : '#ef4444'
+                                                    }}></span>
                                                     {qualificationStatus}
-                                        </span>
+                                                </span>
                                             )}
                                         </div>
                                     </div>
@@ -1004,12 +1004,12 @@ const ProjectSubmission = () => {
                                                             color: isActive ? '#166534' : '#64748b',
                                                             fontSize: '14px'
                                                         }}>
-                                                <span style={{
-                                                    width: '6px',
-                                                    height: '6px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: isActive ? '#16a34a' : '#94a3b8'
-                                                }}></span>
+                                                            <span style={{
+                                                                width: '6px',
+                                                                height: '6px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: isActive ? '#16a34a' : '#94a3b8'
+                                                            }}></span>
                                                             {statusLabel}
                                                         </div>
                                                     </div>
@@ -1065,11 +1065,11 @@ const ProjectSubmission = () => {
 
                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
                                         <button type="button" className="submit-btn submit-btn-draft" onClick={() => handleSubmitClick('DRAFT')} disabled={isInputsDisabled}
-                                                style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', background: '#f8fafc', border: '2px solid #e2e8f0', fontWeight: '600' }}>
+                                            style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', background: '#f8fafc', border: '2px solid #e2e8f0', fontWeight: '600' }}>
                                             {isSubmitting ? 'Saving...' : 'Save Draft'}
                                         </button>
                                         <button type="button" className="submit-btn submit-btn-official" onClick={() => handleSubmitClick('SUBMITTED')} disabled={isInputsDisabled}
-                                                style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            style={{ padding: '0 24px', borderRadius: '8px', height: '100%', minHeight: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {hasOfficialSubmission ? 'Already Submitted' : isSubmitting ? 'Submitting...' : 'Submit Project'}
                                         </button>
                                     </div>
@@ -1083,70 +1083,70 @@ const ProjectSubmission = () => {
                                     Submission History
                                     {formData.roundId && pageData?.rounds && (
                                         <span style={{ fontSize: '16px', fontWeight: 'normal', marginLeft: '8px', color: '#64748b' }}>
-                                    ({pageData.rounds.find(r => r.id == formData.roundId)?.name})
-                                </span>
+                                            ({pageData.rounds.find(r => r.id == formData.roundId)?.name})
+                                        </span>
                                     )}
                                 </div>
                                 <table className="sub-history-table">
                                     <thead>
-                                    <tr>
-                                        <th>VERSION</th>
-                                        <th>TIMESTAMP</th>
-                                        <th>ASSET LINKS</th>
-                                        <th>MENTOR FEEDBACK</th>
-                                        <th>STATUS</th>
-                                    </tr>
+                                        <tr>
+                                            <th>VERSION</th>
+                                            <th>TIMESTAMP</th>
+                                            <th>ASSET LINKS</th>
+                                            <th>MENTOR FEEDBACK</th>
+                                            <th>STATUS</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                    {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                                                No submissions found for this round.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
-                                            const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                                            return (
-                                                <tr key={idx}>
-                                                    <td className="version-col">
-                                                        v{item.version}.0
-                                                        <div style={{ marginTop: '4px' }}>
-                                                            {String(item.status || '').toUpperCase() === 'DRAFT' ? (
-                                                                <span style={{ fontSize: '11px', color: '#854d0e', background: '#fef08a', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Draft</span>
-                                                            ) : (
-                                                                <span style={{ fontSize: '11px', color: '#166534', background: '#dcfce3', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Final</span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td>{formattedTime}</td>
-                                                    <td>
-                                                        <div className="asset-icons">
-                                                            {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
-                                                                if (!item[req]) return null;
-                                                                return renderAssetLink(item[req], req, <GenericLinkIcon width={16} height={16} />);
-                                                            })}
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        {item.mentorFeedback ? (
-                                                            <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                                View Feedback</button>
-                                                        ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
-                                                    </td>
-                                                    <td>
-                                                    <span className={`status-badge ${getSubmissionStatusClass(item)}`}>
-                                                        {String(item.status).toUpperCase() !== 'ARCHIVED' && (
-                                                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                                        )}
-                                                        {getSubmissionStatusLabel(item)}
-                                                    </span>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
+                                        {history.filter(item => !item.roundId || item.roundId == formData.roundId).length === 0 ? (
+                                            <tr>
+                                                <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+                                                    No submissions found for this round.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            history.filter(item => !item.roundId || item.roundId == formData.roundId).map((item, idx) => {
+                                                const formattedTime = new Date(item.timestamp).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                                return (
+                                                    <tr key={idx}>
+                                                        <td className="version-col">
+                                                            v{item.version}.0
+                                                            <div style={{ marginTop: '4px' }}>
+                                                                {String(item.status || '').toUpperCase() === 'DRAFT' ? (
+                                                                    <span style={{ fontSize: '11px', color: '#854d0e', background: '#fef08a', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Draft</span>
+                                                                ) : (
+                                                                    <span style={{ fontSize: '11px', color: '#166534', background: '#dcfce3', padding: '2px 6px', borderRadius: '12px', fontWeight: '600' }}>Final</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td>{formattedTime}</td>
+                                                        <td>
+                                                            <div className="asset-icons">
+                                                                {selectedRound && parseRequirements(selectedRound.submissionRequirements).map((req, i) => {
+                                                                    if (!item[req]) return null;
+                                                                    return renderAssetLink(item[req], req, <GenericLinkIcon width={16} height={16} />);
+                                                                })}
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            {item.mentorFeedback ? (
+                                                                <button type="button" onClick={() => setSelectedFeedbackRecord(item)} style={{ padding: '6px 12px', background: '#f5f3ff', color: '#0f172a', border: '1px solid #c4b5fd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                                    View Feedback</button>
+                                                            ) : (<span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span>)}
+                                                        </td>
+                                                        <td>
+                                                            <span className={`status-badge ${getSubmissionStatusClass(item)}`}>
+                                                                {String(item.status).toUpperCase() !== 'ARCHIVED' && (
+                                                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                                                )}
+                                                                {getSubmissionStatusLabel(item)}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
