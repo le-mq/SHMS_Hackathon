@@ -339,6 +339,28 @@ const RankingsConsole = () => {
     }, [selectedContestId, selectedRoundId]);
 
     useEffect(() => {
+        if (!selectedContestId || !selectedRoundId) return;
+        if (!Number.isInteger(Number(topN)) || Number(topN) <= 0) return;
+
+        const handler = setTimeout(() => {
+            fetchRankings(topN);
+        }, 400);
+
+        return () => clearTimeout(handler);
+    }, [selectedContestId, selectedRoundId, topN]);
+
+    useEffect(() => {
+        if (!selectedContestId || !selectedRoundId || activeTab !== 'COMPILATION') return;
+        if (!Number.isInteger(Number(topN)) || Number(topN) <= 0) return;
+
+        const interval = setInterval(() => {
+            fetchRankings(topN);
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [selectedContestId, selectedRoundId, topN, activeTab]);
+
+    useEffect(() => {
         if (activeTab === 'SUBMISSIONS' && selectedContestId && selectedRoundId) {
             const fetchProgress = async () => {
                 try {
@@ -416,8 +438,11 @@ const RankingsConsole = () => {
         });
     }
 
-    const handleGenerate = async () => {
-        if (!readinessData.allReady || !isTopNValid) return;
+    const fetchRankings = async (targetTopN) => {
+        if (!selectedContestId || !selectedRoundId) return;
+        const currentTopN = targetTopN !== undefined ? targetTopN : topN;
+        if (!Number.isInteger(Number(currentTopN)) || Number(currentTopN) <= 0) return;
+
         setIsProcessing(true);
         try {
             const token = localStorage.getItem("shms_token");
@@ -432,7 +457,7 @@ const RankingsConsole = () => {
                     body: JSON.stringify({
                         contestId: Number(selectedContestId),
                         roundId: Number(selectedRoundId),
-                        topN: Number(topN)
+                        topN: Number(currentTopN)
                     })
                 });
                 if (!res.ok) throw new Error();
@@ -460,20 +485,25 @@ const RankingsConsole = () => {
                 }));
             }
 
-            setCurrentCompiledTopN(Number(topN));
+            setCurrentCompiledTopN(Number(currentTopN));
             setResult(data);
 
             const cacheKey = `ranking_cache_${selectedContestId}_${selectedRoundId}`;
             localStorage.setItem(cacheKey, JSON.stringify({
                 resultData: data,
-                compiledTopN: Number(topN),
-                inputTopN: Number(topN)
+                compiledTopN: Number(currentTopN),
+                inputTopN: Number(currentTopN)
             }));
         } catch (err) {
             console.error(err);
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const handleGenerate = async () => {
+        if (!isTopNValid) return;
+        await fetchRankings(topN);
     };
 
     const handlePublish = async () => {
@@ -591,17 +621,21 @@ const RankingsConsole = () => {
     };
 
     const totalTeams = readinessData.summary.totalTeams;
-    const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && Number(topN) <= totalTeams;
-    const isActionDisabled = !readinessData.allReady || isProcessing || !isTopNValid;
+    const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && (totalTeams === 0 || Number(topN) <= totalTeams);
+    const isActionDisabled = isProcessing || !isTopNValid;
 
-    const scorePublishedAt = selectedRound?.reviewCalibrationAt || null;
-    const isScorePublished = !!scorePublishedAt && new Date(scorePublishedAt) <= new Date();
+    const isScorePublished = selectedRound?.isScorePublished || false;
 
     const resultPublishedAt = selectedRound?.publishResultAt || null;
     const isResultPublished = !!resultPublishedAt && new Date(resultPublishedAt) <= new Date();
 
-    const canPublishScore = readinessData.allReady && !isResultPublished;
-    const canPublishResult = isScorePublished && !!result && !isResultPublished;
+    const gradingDeadline = selectedRound?.gradingDeadlineAt ? new Date(selectedRound.gradingDeadlineAt) : null;
+    const isPastGradingDeadline = !gradingDeadline || new Date() >= gradingDeadline;
+    const canPublishScore = isPastGradingDeadline && !isResultPublished;
+
+    const reviewCalibrationDeadline = selectedRound?.reviewCalibrationAt ? new Date(selectedRound.reviewCalibrationAt) : null;
+    const isPastReviewCalibration = !reviewCalibrationDeadline || new Date() >= reviewCalibrationDeadline;
+    const canPublishResult = isScorePublished && !!result && isPastReviewCalibration && !isResultPublished;
 
     const handlePublishScore = async () => {
         if (!canPublishScore) return;
@@ -1048,22 +1082,22 @@ const RankingsConsole = () => {
                                             disabled={isActionDisabled || isResultPublished}
                                             onClick={handleGenerate}
                                             title={isResultPublished ? 'Results published — ranking is locked' : ''}
-                                            style={{ 
-                                                height: '38px', 
-                                                boxSizing: 'border-box', 
-                                                display: 'inline-flex', 
-                                                alignItems: 'center', 
-                                                justify: 'center', 
-                                                padding: '0 16px', 
-                                                fontSize: '13px', 
-                                                fontWeight: '700', 
-                                                borderRadius: '8px', 
-                                                border: 'none', 
-                                                background: isActionDisabled || isResultPublished ? '#cbd5e1' : '#2563eb', 
-                                                color: isActionDisabled || isResultPublished ? '#64748b' : 'white', 
-                                                cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer', 
-                                                transition: 'all 0.2s ease', 
-                                                whiteSpace: 'nowrap' 
+                                            style={{
+                                                height: '38px',
+                                                boxSizing: 'border-box',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justify: 'center',
+                                                padding: '0 16px',
+                                                fontSize: '13px',
+                                                fontWeight: '700',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                background: isActionDisabled || isResultPublished ? '#cbd5e1' : '#2563eb',
+                                                color: isActionDisabled || isResultPublished ? '#64748b' : 'white',
+                                                cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
                                             {isProcessing ? 'Processing...' : '⚡ Generate Leaderboard'}

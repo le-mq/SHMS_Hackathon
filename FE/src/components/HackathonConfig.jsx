@@ -859,6 +859,8 @@ function HackathonConfig() {
                                             const rIdx = Math.min(activeCategoryIdx, Math.max(0, formik.values.rounds.length - 1));
                                             const round = formik.values.rounds[rIdx];
                                             if (!round) return null;
+                                            const originalRound = formik.initialValues.rounds?.find(r => r.id === round.id);
+                                            const isLockedRound = originalRound ? originalRound.state === 'CLOSED' : false;
                                             return (
                                                 <div key={round.id} style={{ marginBottom: 16 }}>
                                                     <div className="hc-section-header" style={{ justifyContent: 'space-between' }}>
@@ -880,12 +882,12 @@ function HackathonConfig() {
                                                     <div className="hc-grid-2" style={{ marginBottom: 20 }}>
                                                         <div className="hc-field">
                                                             <label className="hc-label">Round Name <span>*</span></label>
-                                                            <input className={`hc-input${formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].phaseName`} value={round.phaseName} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest || round.state === 'CLOSED'} />
+                                                            <input className={`hc-input${formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].phaseName`} value={round.phaseName} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest || isLockedRound} />
                                                             {formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName && <div className="hc-err"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.errors.rounds[rIdx].phaseName}</div>}
                                                         </div>
                                                         <div className="hc-field">
                                                             <label className="hc-label">Select Category <span>*</span></label>
-                                                            <select className={`hc-select${formik.touched.rounds?.[rIdx]?.categoryId && formik.errors.rounds?.[rIdx]?.categoryId ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].categoryId`} value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || round.state === 'CLOSED'}>
+                                                            <select className={`hc-select${formik.touched.rounds?.[rIdx]?.categoryId && formik.errors.rounds?.[rIdx]?.categoryId ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].categoryId`} value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || isLockedRound}>
                                                                 <option value="">-- Select Category --</option>
                                                                 {formik.values.categories.map(c => {
                                                                     const isSelected = formik.values.rounds.some(other => other.id !== round.id && String(other.categoryId) === String(c.id));
@@ -900,7 +902,7 @@ function HackathonConfig() {
                                                         <div className="hc-grid-2">
                                                             <div className="hc-field">
                                                                 <label className="hc-label">Round Format <span>*</span></label>
-                                                                {!isClosedContest && round.state !== 'CLOSED' && (
+                                                                {!isClosedContest && !isLockedRound && (
                                                                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                                                                         <input className="hc-input" style={{ height: 30, fontSize: 12 }} placeholder="Add new format..." value={customFormatInput[rIdx] || ''} onChange={e => setCustomFormatInput(p => ({ ...p, [rIdx]: e.target.value }))} />
                                                                         <button type="button" className="hc-btn-primary" style={{ height: 30, padding: '0 12px' }} onClick={() => {
@@ -913,7 +915,7 @@ function HackathonConfig() {
                                                                         }}>Add</button>
                                                                     </div>
                                                                 )}
-                                                                <select className={`hc-select${formik.touched.rounds?.[rIdx]?.roundFormat && formik.errors.rounds?.[rIdx]?.roundFormat ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].roundFormat`} value={round.roundFormat || ''} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || round.state === 'CLOSED'}>
+                                                                <select className={`hc-select${formik.touched.rounds?.[rIdx]?.roundFormat && formik.errors.rounds?.[rIdx]?.roundFormat ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].roundFormat`} value={round.roundFormat || ''} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || isLockedRound}>
                                                                     <option value="">-- Select Format --</option>
                                                                     {availableRoundFormats.map((fmt, i) => <option key={i} value={fmt}>{fmt}</option>)}
                                                                 </select>
@@ -921,7 +923,7 @@ function HackathonConfig() {
                                                             </div>
                                                             <div className="hc-field">
                                                                 <label className="hc-label">Submission Requirements <span>*</span></label>
-                                                                {!isClosedContest && round.state !== 'CLOSED' && (
+                                                                {!isClosedContest && !isLockedRound && (
                                                                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                                                                         <input className="hc-input" style={{ height: 30, fontSize: 12 }} placeholder="Custom requirement..." value={customSubReqInput[rIdx] || ''} onChange={e => setCustomSubReqInput(p => ({ ...p, [rIdx]: e.target.value }))} />
                                                                         <button type="button" className="hc-btn-primary" style={{ height: 30, padding: '0 12px' }} onClick={() => {
@@ -937,7 +939,7 @@ function HackathonConfig() {
                                                                 <div className="hc-checklist-grid">
                                                                     {availableSubReqs.map(req => (
                                                                         <label key={req.value} className="hc-check-item">
-                                                                            <input type="checkbox" name={`rounds[${rIdx}].submissionRequirements`} value={req.value} checked={Array.isArray(round.submissionRequirements) && round.submissionRequirements.includes(req.value)} onChange={formik.handleChange} disabled={isClosedContest || round.state === 'CLOSED'} />
+                                                                            <input type="checkbox" name={`rounds[${rIdx}].submissionRequirements`} value={req.value} checked={Array.isArray(round.submissionRequirements) && round.submissionRequirements.includes(req.value)} onChange={formik.handleChange} disabled={isClosedContest || isLockedRound} />
                                                                             {req.label}
                                                                         </label>
                                                                     ))}
@@ -964,7 +966,7 @@ function HackathonConfig() {
                                                             return (
                                                                 <div className="hc-field" key={field}>
                                                                     <label className="hc-label">{field.charAt(0).toUpperCase() + field.replace(/At$|AtUrgent$/, '').slice(1).replace(/([A-Z])/g, ' $1')} <span>*</span></label>
-                                                                    <input type="datetime-local" className={`hc-input${formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].${field}`} value={round[field] || ''} onChange={e => handleSmartDateChange(e, rIdx)} onFocus={() => handleFocusDate(rIdx, field)} onBlur={formik.handleBlur} min={minVal} max={formik.values.contestEndAt || bounds.max} disabled={isClosedContest || round.state === 'CLOSED'} />
+                                                                    <input type="datetime-local" className={`hc-input${formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].${field}`} value={round[field] || ''} onChange={e => handleSmartDateChange(e, rIdx)} onFocus={() => handleFocusDate(rIdx, field)} onBlur={formik.handleBlur} min={minVal} max={formik.values.contestEndAt || bounds.max} disabled={isClosedContest || isLockedRound} />
                                                                     {formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] && <div className="hc-err"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.errors.rounds[rIdx][field]}</div>}
                                                                     {suggestions[`${rIdx}_${field}`] && (
                                                                         <div className="hc-suggest-banner">
