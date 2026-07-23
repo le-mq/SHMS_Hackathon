@@ -438,8 +438,41 @@ public class JudgeService {
                 .orElseThrow(() -> new IllegalArgumentException("Judge not found"));
         Judge judge = judgeRepository.findById(judgeUser.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Judge profile not found"));
-        Submission submission = submissionRepository.findById(request.getSubmissionId())
-                .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+
+        Submission submission;
+        if (request.getSubmissionId() != null) {
+            submission = submissionRepository.findById(request.getSubmissionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+        } else if (request.getTeamId() != null && request.getRoundId() != null) {
+            com.fpt.shms.be.model.Team team = teamRepository.findById(request.getTeamId())
+                    .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+            Round round = roundRepository.findById(request.getRoundId())
+                    .orElseThrow(() -> new IllegalArgumentException("Round not found"));
+
+            List<Submission> teamSubmissions = submissionRepository.findByTeamId(team.getId());
+            submission = teamSubmissions.stream()
+                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(round.getId()))
+                    .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
+                    .max((s1, s2) -> {
+                        int cmp = (s1.getVersion() != null && s2.getVersion() != null) ?
+                                s1.getVersion().compareTo(s2.getVersion()) : 0;
+                        return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
+                    })
+                    .orElse(null);
+
+            if (submission == null) {
+                submission = Submission.builder()
+                        .team(team)
+                        .round(round)
+                        .status("MISSED_DEADLINE")
+                        .submissionData("[]")
+                        .version(1)
+                        .build();
+                submission = submissionRepository.save(submission);
+            }
+        } else {
+            throw new IllegalArgumentException("Missing submission identification");
+        }
 
         if (submission.getTeam() == null || !"APPROVED".equalsIgnoreCase(submission.getTeam().getStatus())) {
             throw new IllegalArgumentException("Team is not eligible for evaluation");

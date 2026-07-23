@@ -201,7 +201,9 @@ public class SubmissionService {
                 if (teamRankings != null) {
                     for (RankingResult rr : teamRankings) {
                         if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {
-                            roundQualStatus = rr.getQualificationStatus();
+                            if (rr.getDatePublishedAt() != null) {
+                                roundQualStatus = rr.getQualificationStatus();
+                            }
                             break;
                         }
                     }
@@ -290,11 +292,13 @@ public class SubmissionService {
         String qualificationStatus = null;
         if (teamRankings != null && !teamRankings.isEmpty()) {
             for (RankingResult rr : teamRankings) {
-                if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
-                    qualificationStatus = "ELIMINATED";
-                    break;
-                } else if (rr.getQualificationStatus() != null && !rr.getQualificationStatus().isEmpty()) {
-                    qualificationStatus = rr.getQualificationStatus();
+                if (rr.getDatePublishedAt() != null) {
+                    if ("ELIMINATED".equalsIgnoreCase(rr.getQualificationStatus())) {
+                        qualificationStatus = "ELIMINATED";
+                        break;
+                    } else if (rr.getQualificationStatus() != null && !rr.getQualificationStatus().isEmpty()) {
+                        qualificationStatus = rr.getQualificationStatus();
+                    }
                 }
             }
         }
@@ -656,7 +660,9 @@ public class SubmissionService {
                         .findByTeamId(team.getId());
                 for (com.fpt.shms.be.model.RankingResult rr : teamRankings) {
                     if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {
-                        qualificationStatus = rr.getQualificationStatus();
+                        if (rr.getDatePublishedAt() != null) {
+                            qualificationStatus = rr.getQualificationStatus();
+                        }
                         break;
                     }
                 }
@@ -851,7 +857,9 @@ public class SubmissionService {
 
             for (com.fpt.shms.be.model.RankingResult rr : rankingResultRepository.findByTeamId(team.getId())) {
                 if (rr.getRound() != null && rr.getRound().getId().equals(r.getId())) {
-                    qualificationStatus = rr.getQualificationStatus();
+                    if (rr.getDatePublishedAt() != null) {
+                        qualificationStatus = rr.getQualificationStatus();
+                    }
                     break;
                 }
             }
