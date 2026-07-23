@@ -128,6 +128,10 @@ const RankingsConsole = () => {
     const [isRevalModalOpen, setIsRevalModalOpen] = useState(false);
     const [revalData, setRevalData] = useState({ teamId: '', teamName: '', reason: '' });
     const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+    const [isPublishWarningModalOpen, setIsPublishWarningModalOpen] = useState(false);
+    const [timeRemainingStr, setTimeRemainingStr] = useState('');
+
+
 
     const enrichedRounds = useMemo(() => {
         return rounds
@@ -349,16 +353,7 @@ const RankingsConsole = () => {
         return () => clearTimeout(handler);
     }, [selectedContestId, selectedRoundId, topN]);
 
-    useEffect(() => {
-        if (!selectedContestId || !selectedRoundId || activeTab !== 'COMPILATION') return;
-        if (!Number.isInteger(Number(topN)) || Number(topN) <= 0) return;
 
-        const interval = setInterval(() => {
-            fetchRankings(topN);
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, [selectedContestId, selectedRoundId, topN, activeTab]);
 
     useEffect(() => {
         if (activeTab === 'SUBMISSIONS' && selectedContestId && selectedRoundId) {
@@ -506,9 +501,8 @@ const RankingsConsole = () => {
         await fetchRankings(topN);
     };
 
-    const handlePublish = async () => {
+    const handlePublishDirectly = async () => {
         if (!result) return;
-        if (!window.confirm('Publish Ranking Results? This will make the leaderboard and rankings visible to everyone. This action CANNOT be undone.')) return;
         try {
             const token = localStorage.getItem('shms_token');
             const res = await fetch(API_BASE + '/rankings/publish', {
@@ -636,6 +630,52 @@ const RankingsConsole = () => {
     const reviewCalibrationDeadline = selectedRound?.reviewCalibrationAt ? new Date(selectedRound.reviewCalibrationAt) : null;
     const isPastReviewCalibration = !reviewCalibrationDeadline || new Date() >= reviewCalibrationDeadline;
     const canPublishResult = isScorePublished && !!result && isPastReviewCalibration && !isResultPublished;
+
+    useEffect(() => {
+        if (!selectedRound) return;
+
+        const updateClock = () => {
+            const now = new Date();
+            const isScorePub = selectedRound.isScorePublished;
+            const isResPub = !!selectedRound.publishResultAt && new Date(selectedRound.publishResultAt) <= now;
+
+            if (isResPub) {
+                setTimeRemainingStr("Published Successfully");
+                return;
+            }
+
+            let targetDate = null;
+            if (!isScorePub) {
+                targetDate = selectedRound.gradingDeadlineAt ? new Date(selectedRound.gradingDeadlineAt) : null;
+            } else {
+                targetDate = selectedRound.reviewCalibrationAt ? new Date(selectedRound.reviewCalibrationAt) : null;
+            }
+
+            if (!targetDate) {
+                setTimeRemainingStr("Not configured");
+                return;
+            }
+
+            const diff = targetDate.getTime() - now.getTime();
+            if (diff <= 0) {
+                setTimeRemainingStr("Ready");
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const dayStr = days > 0 ? `${days}d ` : '';
+            setTimeRemainingStr(`${dayStr}${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+        };
+
+        updateClock();
+        const intervalId = setInterval(updateClock, 1000);
+        return () => clearInterval(intervalId);
+    }, [selectedRound]);
 
     const handlePublishScore = async () => {
         if (!canPublishScore) return;
@@ -1016,7 +1056,7 @@ const RankingsConsole = () => {
                             Back
                         </button>
 
-                        <div className="rankings-page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <div className="rankings-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <h1 className="rankings-title" style={{ margin: 0 }}>{selectedRound?.phaseName}</h1>
@@ -1036,6 +1076,64 @@ const RankingsConsole = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     {roundProgress.timeRemaining}
+                                </div>
+                            )}
+
+                            {viewMode === 'COMPILATION_VIEW' && selectedRound && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    padding: '12px 20px',
+                                    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                                    border: '1px solid #334155',
+                                    borderRadius: '12px',
+                                    color: 'white',
+                                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
+                                    minWidth: '280px',
+                                    justifyContent: 'space-between'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{
+                                            padding: '8px',
+                                            background: '#334155',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <svg width="20" height="20" fill="none" stroke="#60a5fa" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: '800' }}>
+                                                {selectedRound.publishResultAt && new Date(selectedRound.publishResultAt) <= new Date()
+                                                    ? 'Status'
+                                                    : !selectedRound.isScorePublished
+                                                        ? 'Grading Deadline'
+                                                        : 'Review Calibration'
+                                                }
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500', marginTop: '2px' }}>
+                                                {timeRemainingStr === 'Published Successfully'
+                                                    ? 'Round Concluded'
+                                                    : timeRemainingStr === 'Ready'
+                                                        ? (!selectedRound.isScorePublished ? 'Grading Finished' : 'Calibration Concluded')
+                                                        : (!selectedRound.isScorePublished ? 'Publish Score in' : 'Publish Result in')
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{
+                                        fontFamily: '"SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace',
+                                        fontSize: '22px',
+                                        fontWeight: '700',
+                                        color: timeRemainingStr === 'Ready' ? '#10b981' : timeRemainingStr === 'Published Successfully' ? '#10b981' : '#60a5fa',
+                                        textShadow: '0 0 10px rgba(96, 165, 250, 0.2)'
+                                    }}>
+                                        {timeRemainingStr}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1148,7 +1246,7 @@ const RankingsConsole = () => {
 
                                                     <button
                                                         id="btn-publish-result"
-                                                        onClick={handlePublish}
+                                                        onClick={() => setIsPublishWarningModalOpen(true)}
                                                         disabled={!canPublishResult}
                                                         style={{ height: '38px', boxSizing: 'border-box', padding: '0 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishResult ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
                                                     >
@@ -1716,6 +1814,117 @@ const RankingsConsole = () => {
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
                             <button onClick={() => setIsChartModalOpen(false)} style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}>
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isPublishWarningModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(15, 23, 42, 0.65)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <style>{`
+                        @keyframes modalPop {
+                            from { transform: scale(0.95); opacity: 0; }
+                            to { transform: scale(1); opacity: 1; }
+                        }
+                    `}</style>
+                    <div style={{
+                        width: '500px',
+                        background: 'white',
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(220, 38, 38, 0.25)',
+                        border: '2px solid #ef4444',
+                        overflow: 'hidden',
+                        animation: 'modalPop 0.20s ease-out'
+                    }}>
+                        <div style={{
+                            background: '#fee2e2',
+                            padding: '24px 24px 16px 24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            borderBottom: '1px solid #fca5a5'
+                        }}>
+                            <div style={{
+                                background: '#ef4444',
+                                borderRadius: '50%',
+                                padding: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#991b1b' }}>
+                                Critical Warning
+                            </h3>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            <p style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', fontWeight: '600', lineHeight: 1.5 }}>
+                                Are you absolutely sure you want to publish the ranking results for <strong>{selectedRound?.phaseName}</strong>?
+                            </p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '13.5px', color: '#8c1d1d', lineHeight: 1.6, padding: '12px', background: '#fff1f1', borderLeft: '4px solid #ef4444', borderRadius: '6px' }}>
+                                <strong>Important Impact:</strong> This action is permanent. Once published, you cannot modify the leaderboard, adjust evaluator scores, or recalculate rankings. Everyone (students, mentors, and judges) will immediately see the final results.
+                            </p>
+                        </div>
+
+                        <div style={{
+                            background: '#f8fafc',
+                            padding: '16px 24px',
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: '12px',
+                            borderTop: '1px solid #e2e8f0'
+                        }}>
+                            <button
+                                onClick={() => setIsPublishWarningModalOpen(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    background: 'white',
+                                    border: '1.5px solid #cbd5e1',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    color: '#475569',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    setIsPublishWarningModalOpen(false);
+                                    await handlePublishDirectly();
+                                }}
+                                style={{
+                                    padding: '8px 20px',
+                                    background: '#ef4444',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)'
+                                }}
+                            >
+                                Yes, Publish Results
                             </button>
                         </div>
                     </div>

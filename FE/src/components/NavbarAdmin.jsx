@@ -12,7 +12,7 @@ const ADMIN_LINKS = [
     { label: 'Rubrics', path: '/admin/rubrics' },
     { label: 'Team Approval', path: '/admin/team/approval' },
     { label: 'Rankings', path: '/admin/rankings' },
-    { label: 'Broadcast & Export', path: '/admin/publication' },
+    { label: 'Broadcast', path: '/admin/publication' },
     { label: 'Audit Logs', path: '/admin/audit-logs' },
 ];
 

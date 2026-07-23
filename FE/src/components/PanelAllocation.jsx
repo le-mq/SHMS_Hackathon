@@ -23,6 +23,47 @@ const getLiveStatus = (c) => {
     return 'ACTIVED';
 };
 
+const isExpertAllocationEqual = (alloc1, alloc2) => {
+    if (!alloc1 && !alloc2) return true;
+    const a1 = alloc1 || {};
+    const a2 = alloc2 || {};
+
+    const keys1 = Object.keys(a1);
+    const keys2 = Object.keys(a2);
+
+    const activeKeys1 = keys1.filter(k => a1[k] && (a1[k].isJudge || (a1[k].mentoredTeamIds && a1[k].mentoredTeamIds.length > 0)));
+    const activeKeys2 = keys2.filter(k => a2[k] && (a2[k].isJudge || (a2[k].mentoredTeamIds && a2[k].mentoredTeamIds.length > 0)));
+
+    if (activeKeys1.length !== activeKeys2.length) return false;
+
+    for (const key of activeKeys1) {
+        const item1 = a1[key] || {};
+        const item2 = a2[key] || {};
+
+        const isJudge1 = !!item1.isJudge;
+        const isJudge2 = !!item2.isJudge;
+        if (isJudge1 !== isJudge2) return false;
+
+        const teams1 = item1.mentoredTeamIds || [];
+        const teams2 = item2.mentoredTeamIds || [];
+        if (teams1.length !== teams2.length) return false;
+
+        const set2 = new Set(teams2.map(String));
+        if (!teams1.every(t => set2.has(String(t)))) return false;
+    }
+    return true;
+};
+
+const hasAnyUnsavedChanges = (allocs, savedAllocs) => {
+    const allKeys = new Set([...Object.keys(allocs || {}), ...Object.keys(savedAllocs || {})]);
+    for (const key of allKeys) {
+        if (!isExpertAllocationEqual(allocs[key], savedAllocs[key])) {
+            return true;
+        }
+    }
+    return false;
+};
+
 const PanelAllocation = () => {
     const [contests, setContests] = useState([]);
     const [selectedContestId, setSelectedContestId] = useState(() => sessionStorage.getItem('panelAllocSelectedContest') || '');
@@ -257,30 +298,48 @@ const PanelAllocation = () => {
 
     const handleSave = async () => {
         if (!selectedRoundId) return alert("Please select Round.");
+
+        const dirtyExperts = experts.filter(expert => {
+            const expertId = String(expert.userId);
+            const currentAlloc = allocations[expertId];
+            const savedAlloc = savedAllocations[expertId];
+            return !isExpertAllocationEqual(currentAlloc, savedAlloc);
+        });
+
+        if (dirtyExperts.length === 0) {
+            alert("No changes to save!");
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const expertAlloc = allocations[String(selectedExpertId)] || {};
-            const assignmentList = Object.keys(expertAlloc).map(catId => ({
-                trackId: Number(catId),
-                mentoredTeamIds: expertAlloc[catId].mentoredTeamIds || [],
-                isJudge: expertAlloc[catId].isJudge || false
-            }));
-            const response = await fetch(`${API_BASE}/admin/contests/allocations`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", ...headers },
-                body: JSON.stringify({
-                    userId: Number(selectedExpertId),
-                    roundId: Number(selectedRoundId),
-                    assignments: assignmentList
-                })
+            const savePromises = dirtyExperts.map(async (expert) => {
+                const expertId = String(expert.userId);
+                const expertAlloc = allocations[expertId] || {};
+                const assignmentList = Object.keys(expertAlloc).map(catId => ({
+                    trackId: Number(catId),
+                    mentoredTeamIds: expertAlloc[catId].mentoredTeamIds || [],
+                    isJudge: expertAlloc[catId].isJudge || false
+                }));
+                const response = await fetch(`${API_BASE}/admin/contests/allocations`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", ...headers },
+                    body: JSON.stringify({
+                        userId: Number(expert.userId),
+                        roundId: Number(selectedRoundId),
+                        assignments: assignmentList
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to save for ${expert.fullName}`);
+                }
             });
-            if (response.ok) {
-                alert("Save successfully!");
-                setSavedAllocations(allocations);
-            }
-            else alert("Save Error");
-        } catch {
-            alert("Save Fail!");
+
+            await Promise.all(savePromises);
+            alert("Save successfully!");
+            setSavedAllocations(JSON.parse(JSON.stringify(allocations)));
+        } catch (err) {
+            alert(err.message || "Save Fail!");
         } finally {
             setIsLoading(false);
         }
@@ -488,6 +547,10 @@ const PanelAllocation = () => {
 
                     <button
                         onClick={() => {
+                            if (hasAnyUnsavedChanges(allocations, savedAllocations)) {
+                                const confirmSwitch = window.confirm("You have unsaved changes. Discard and go back?");
+                                if (!confirmSwitch) return;
+                            }
                             setSelectedContestId('');
                             setSelectedRoundId('');
                             setSelectedRound(null);
@@ -561,6 +624,10 @@ const PanelAllocation = () => {
                                     <div
                                         key={idx}
                                         onClick={() => {
+                                            if (hasAnyUnsavedChanges(allocations, savedAllocations)) {
+                                                const confirmSwitch = window.confirm("You have unsaved changes. Discard and switch round?");
+                                                if (!confirmSwitch) return;
+                                            }
                                             setSelectedRoundId(String(r.roundId));
                                             setSelectedRound(r);
                                             sessionStorage.setItem('panelAllocSelectedRoundId', String(r.roundId));
@@ -636,15 +703,15 @@ const PanelAllocation = () => {
                     </div>
                     <div className="search-inner-wrapper">
                         <input type="text" className="search-input"
-                               placeholder="Search experts..." value={searchQuery}
-                               onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search experts..." value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
                     <div className="expert-list">
                         {filteredExperts.map(expert => (
                             <div key={expert.userId}
-                                 className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'ACTIVED' : ''}`}
-                                 onClick={() => setSelectedExpertId(expert.userId)}
+                                className={`expert-item ${String(selectedExpertId) === String(expert.userId) ? 'ACTIVED' : ''}`}
+                                onClick={() => setSelectedExpertId(expert.userId)}
                             >
                                 <div className="expert-info">
                                     <div className="expert-avatar">{expert.fullName?.charAt(0).toUpperCase()}</div>
@@ -686,8 +753,8 @@ const PanelAllocation = () => {
                                             return (
                                                 <label key={team.id} className={`team-card-global ${isChecked ? 'ACTIVED' : ''}`}>
                                                     <input type="checkbox" checked={isChecked}
-                                                           onChange={() => handleGlobalTeamToggle(team.id)}
-                                                           disabled={isMentorDisabled}
+                                                        onChange={() => handleGlobalTeamToggle(team.id)}
+                                                        disabled={isMentorDisabled}
                                                     />
                                                     <div className="team-name-text">
                                                         {team.name}
@@ -706,23 +773,23 @@ const PanelAllocation = () => {
                                 {roundCategoryId ? (
                                     <table className="judge-pure-table judge-table-width">
                                         <thead>
-                                        <tr>
-                                            <th>Target Track Category</th>
-                                            <th className="center judge-table-center-th">Grading Authority</th>
-                                        </tr>
+                                            <tr>
+                                                <th>Target Track Category</th>
+                                                <th className="center judge-table-center-th">Grading Authority</th>
+                                            </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
-                                            <td><strong>{selectedRound?.categoryName}</strong></td>
-                                            <td className="center">
-                                                <label className="ui-switch-blue">
-                                                    <input type="checkbox" checked={isJudgeForRound}
-                                                           onChange={handleJudgeToggle} disabled={isJudgeDisabled}
-                                                    />
-                                                    <span className="slider"></span>
-                                                </label>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td><strong>{selectedRound?.categoryName}</strong></td>
+                                                <td className="center">
+                                                    <label className="ui-switch-blue">
+                                                        <input type="checkbox" checked={isJudgeForRound}
+                                                            onChange={handleJudgeToggle} disabled={isJudgeDisabled}
+                                                        />
+                                                        <span className="slider"></span>
+                                                    </label>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 ) : <p className="judge-missing-track">Missing target track focus.</p>}
@@ -793,35 +860,35 @@ const PanelAllocation = () => {
                     ) : (
                         <table className="judge-pure-table overview-table">
                             <thead>
-                            <tr>
-                                <th>Role</th>
-                                <th>Identity</th>
-                                <th>Scope</th>
-                            </tr>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Identity</th>
+                                    <th>Scope</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {overviewJudges.map((judge, idx) => (
-                                <tr key={`judge-${judge.userId}-${idx}`}>
-                                    <td><span className="badge-judge">JUDGE</span></td>
-                                    <td><strong>{judge.fullName || judge.username}</strong></td>
-                                    <td><span className="scope-judge">All teams</span></td>
-                                </tr>
-                            ))}
-                            {overviewMentors.map((mentorData, idx) => (
-                                <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
-                                    <td><span className="badge-mentor">MENTOR</span></td>
-                                    <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
-                                    <td>
-                                        <div className="mentor-teams-badge-wrap">
-                                            {mentorData.teams.map((teamName, tIdx) => (
-                                                <span key={tIdx} className="scope-mentor-tag">
+                                {overviewJudges.map((judge, idx) => (
+                                    <tr key={`judge-${judge.userId}-${idx}`}>
+                                        <td><span className="badge-judge">JUDGE</span></td>
+                                        <td><strong>{judge.fullName || judge.username}</strong></td>
+                                        <td><span className="scope-judge">All teams</span></td>
+                                    </tr>
+                                ))}
+                                {overviewMentors.map((mentorData, idx) => (
+                                    <tr key={`mentor-${mentorData.expert.userId}-${idx}`}>
+                                        <td><span className="badge-mentor">MENTOR</span></td>
+                                        <td><strong>{mentorData.expert.fullName || mentorData.expert.username}</strong></td>
+                                        <td>
+                                            <div className="mentor-teams-badge-wrap">
+                                                {mentorData.teams.map((teamName, tIdx) => (
+                                                    <span key={tIdx} className="scope-mentor-tag">
                                                         {teamName}
                                                     </span>
-                                            ))}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                ))}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     )}
