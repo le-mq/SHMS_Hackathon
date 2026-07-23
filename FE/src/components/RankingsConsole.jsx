@@ -584,7 +584,7 @@ const RankingsConsole = () => {
             }
             alert("Re-evaluation requested successfully and recorded in the audit logs!");
             setIsRevalModalOpen(false);
-            handleGenerate(); // Reload ranking data
+            handleGenerate();
         } catch (error) {
             alert(error.message || "An error occurred while requesting re-evaluation!");
         }
@@ -594,22 +594,18 @@ const RankingsConsole = () => {
     const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && Number(topN) <= totalTeams;
     const isActionDisabled = !readinessData.allReady || isProcessing || !isTopNValid;
 
-    // Publish Score: reviewCalibrationAt
     const scorePublishedAt = selectedRound?.reviewCalibrationAt || null;
     const isScorePublished = !!scorePublishedAt && new Date(scorePublishedAt) <= new Date();
-    // Publish Result: publishResultAt
+
     const resultPublishedAt = selectedRound?.publishResultAt || null;
     const isResultPublished = !!resultPublishedAt && new Date(resultPublishedAt) <= new Date();
-    // Grading deadline passed?
-    const gradingDeadlinePassed = selectedRound?.gradingDeadlineAt && new Date(selectedRound.gradingDeadlineAt) <= new Date();
-    // Can publish score: all ready AND not yet result published
+
     const canPublishScore = readinessData.allReady && !isResultPublished;
-    // Can publish result: score is published AND ranking generated
     const canPublishResult = isScorePublished && !!result && !isResultPublished;
 
     const handlePublishScore = async () => {
         if (!canPublishScore) return;
-        if (!window.confirm('Publish Scores? Students, Judges, and Mentors will be able to see point scores and feedback. Rankings will NOT be shown yet, if you want to publish ranking please click publish result ranking button ')) return;
+        if (!window.confirm('Publish Scores? Only scores and feedback will be visible. Final rankings and QUALIFIED/ELIMINATED results will not be released until Publish Results.')) return;
         try {
             const token = localStorage.getItem('shms_token');
             const res = await fetch(API_BASE + '/rankings/publish-scores', {
@@ -620,7 +616,7 @@ const RankingsConsole = () => {
             const data = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(data.error || 'Failed to publish scores');
             alert('Scores published successfully! Students, Judges, and Mentors can now view their scores.');
-            // Refresh rounds to get updated reviewCalibrationAt
+
             const roundsRes = await fetch(API_BASE + `/contests/${selectedContestId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -659,7 +655,6 @@ const RankingsConsole = () => {
                             <p className="rankings-subtitle" style={{ fontSize: '15px', color: '#64748b', margin: '4px 0 0 0' }}>Select a contest to manage competition rounds, track submissions, and publish leaderboard rankings.</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            {/* Search Box */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '280px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                 <svg width="18" height="18" fill="none" stroke="#64748b" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -673,7 +668,6 @@ const RankingsConsole = () => {
                                 />
                             </div>
 
-                            {/* Status Filter */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', padding: '10px 16px', background: 'white', width: '220px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                 <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>Status:</span>
                                 <select
@@ -952,7 +946,7 @@ const RankingsConsole = () => {
                                                             className="round-progress-bar-fill"
                                                             style={{
                                                                 width: `${round.submissionProgress}%`,
-                                                                backgroundColor: '#3b82f6' /* Màu xanh dương chủ đạo cho vòng đang active */
+                                                                backgroundColor: '#3b82f6'
                                                             }}
                                                         />
                                                     </div>
@@ -1019,11 +1013,11 @@ const RankingsConsole = () => {
                                         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>Publication & Promotion Control</h2>
                                     </div>
 
-                                    {/* Top Bar Controls: Promotion Config + Action Buttons */}
+                                    {/* Top Bar Controls */}
                                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
 
                                         {/* Compact Top N Input */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRight: '1px solid #e2e8f0', paddingRight: '16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRight: '1px solid #e2e8f0', paddingRight: '16px', height: '38px' }}>
                                             <label style={{ fontSize: '13px', fontWeight: '700', color: '#475569', whiteSpace: 'nowrap' }}>Top N Cap:</label>
                                             <input
                                                 type="number"
@@ -1044,18 +1038,33 @@ const RankingsConsole = () => {
                                                     else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
                                                     else { setTopN(num); }
                                                 }}
-                                                style={{ width: '70px', padding: '8px', borderRadius: '6px', border: '1.5px solid #cbd5e1', textAlign: 'center', fontWeight: '700', fontSize: '14px', outline: 'none' }}
+                                                style={{ width: '60px', height: '38px', boxSizing: 'border-box', padding: '0 8px', borderRadius: '8px', border: '1.5px solid #cbd5e1', textAlign: 'center', fontWeight: '700', fontSize: '14px', outline: 'none', color: '#0f172a' }}
                                             />
                                         </div>
 
                                         {/* Generate Leaderboard Action */}
                                         <button
                                             id="btn-generate-ranking"
-                                            className={`execute-btn-v ${isProcessing ? 'processing' : ''}`}
                                             disabled={isActionDisabled || isResultPublished}
                                             onClick={handleGenerate}
                                             title={isResultPublished ? 'Results published — ranking is locked' : ''}
-                                            style={{ padding: '9px 16px', fontSize: '13px', fontWeight: '700', borderRadius: '8px', border: 'none', cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer' }}
+                                            style={{ 
+                                                height: '38px', 
+                                                boxSizing: 'border-box', 
+                                                display: 'inline-flex', 
+                                                alignItems: 'center', 
+                                                justify: 'center', 
+                                                padding: '0 16px', 
+                                                fontSize: '13px', 
+                                                fontWeight: '700', 
+                                                borderRadius: '8px', 
+                                                border: 'none', 
+                                                background: isActionDisabled || isResultPublished ? '#cbd5e1' : '#2563eb', 
+                                                color: isActionDisabled || isResultPublished ? '#64748b' : 'white', 
+                                                cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer', 
+                                                transition: 'all 0.2s ease', 
+                                                whiteSpace: 'nowrap' 
+                                            }}
                                         >
                                             {isProcessing ? 'Processing...' : '⚡ Generate Leaderboard'}
                                         </button>
@@ -1069,10 +1078,12 @@ const RankingsConsole = () => {
                                                 className="view-chart-btn"
                                                 onClick={() => setIsChartModalOpen(true)}
                                                 style={{
+                                                    height: '38px',
+                                                    boxSizing: 'border-box',
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
                                                     gap: '6px',
-                                                    padding: '9px 16px',
+                                                    padding: '0 16px',
                                                     background: '#6366f1',
                                                     color: 'white',
                                                     border: 'none',
@@ -1096,7 +1107,7 @@ const RankingsConsole = () => {
                                                         id="btn-publish-score"
                                                         onClick={handlePublishScore}
                                                         disabled={!canPublishScore}
-                                                        style={{ padding: '9px 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishScore ? 'pointer' : 'not-allowed' }}
+                                                        style={{ height: '38px', boxSizing: 'border-box', padding: '0 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishScore ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
                                                     >
                                                         {isScorePublished ? 'Update Scores' : 'Publish Score Review'}
                                                     </button>
@@ -1105,13 +1116,13 @@ const RankingsConsole = () => {
                                                         id="btn-publish-result"
                                                         onClick={handlePublish}
                                                         disabled={!canPublishResult}
-                                                        style={{ padding: '9px 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishResult ? 'pointer' : 'not-allowed' }}
+                                                        style={{ height: '38px', boxSizing: 'border-box', padding: '0 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishResult ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
                                                     >
                                                         Publish Ranking Result
                                                     </button>
                                                 </>
                                             ) : (
-                                                <span style={{ padding: '8px 14px', background: '#dcfce7', color: '#15803d', borderRadius: '8px', fontWeight: 700, fontSize: '13px' }}>Results Published & Locked</span>
+                                                <span style={{ height: '38px', boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', padding: '0 14px', background: '#dcfce7', color: '#15803d', borderRadius: '8px', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>Results Published & Locked</span>
                                             )}
 
                                             <button
@@ -1121,10 +1132,12 @@ const RankingsConsole = () => {
                                                     window.open(`${apiBaseUrl}/admin/results/export-csv?type=scores&contestId=${selectedContestId}&token=${token}`, '_blank');
                                                 }}
                                                 style={{
+                                                    height: '38px',
+                                                    boxSizing: 'border-box',
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
                                                     gap: '6px',
-                                                    padding: '9px 16px',
+                                                    padding: '0 16px',
                                                     background: '#10b981',
                                                     color: 'white',
                                                     border: 'none',
@@ -1207,104 +1220,105 @@ const RankingsConsole = () => {
                                         </table>
                                     </div>
                                 </div>
-                            </>
-                        )}
 
-                        {result && (
-                            <div className="result-card visible" style={{ marginTop: 24 }}>
-                                <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                                <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
-                                <div className="result-stats">
-                                    <div className="result-stat">
-                                        <div className="result-stat-label">Qualified</div>
-                                        <div className="result-stat-val qualified">{currentCompiledTopN}</div>
-                                    </div>
-                                    <div className="result-stat">
-                                        <div className="result-stat-label">Eliminated</div>
-                                        <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
-                                    </div>
-                                    <div className="result-stat">
-                                        <div className="result-stat-label">Total Processed</div>
-                                        <div className="result-stat-val">{result.totalProcessed}</div>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
-                                    <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
-                                    <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                        Download Full Rankings CSV
-                                    </button>
-                                </div>
-                                <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={{ color: '#0f172a' }}>Rank</th>
-                                            <th style={{ color: '#0f172a' }}>Team Name</th>
-                                            <th style={{ color: '#0f172a' }}>Average Score</th>
-                                            <th style={{ color: '#0f172a' }}>Status</th>
-                                            {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
-                                            <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {result.results.map(r => {
-                                            const isQualified = r.rank <= currentCompiledTopN;
-                                            const teamPrize = getPrizeForRank(r.rank);
-                                            return (
-                                                <tr key={r.rank}>
-                                                    <td>#{r.rank}</td>
-                                                    <td>{r.teamName}</td>
-                                                    <td>{r.averageScore}</td>
-                                                    <td>
-                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
-                                                            {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
-                                                        </span>
-                                                    </td>
-                                                    {prizes.length > 0 && (
-                                                        <td>
-                                                            {teamPrize ? (
-                                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-                                                                    🏆 {teamPrize}
-                                                                </span>
-                                                            ) : (
-                                                                <span style={{ color: '#94a3b8' }}>—</span>
-                                                            )}
-                                                        </td>
-                                                    )}
-                                                    <td style={{ textAlign: 'right', paddingRight: '16px' }}>
-                                                        <button
-                                                            disabled={isResultPublished}
-                                                            onClick={() => {
-                                                                if (isResultPublished) return;
-                                                                setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
-                                                                setIsRevalModalOpen(true);
-                                                            }}
-                                                            style={{
-                                                                background: isResultPublished ? '#f1f5f9' : '#fef2f2',
-                                                                border: `1px solid ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
-                                                                padding: '6px 10px',
-                                                                borderRadius: '6px',
-                                                                cursor: isResultPublished ? 'not-allowed' : 'pointer',
-                                                                fontSize: '13px',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '6px',
-                                                                color: isResultPublished ? '#94a3b8' : '#dc2626',
-                                                                fontWeight: 600,
-                                                                boxShadow: isResultPublished ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
-                                                                opacity: isResultPublished ? 0.6 : 1
-                                                            }}
-                                                            title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
-                                                        >
-                                                            ⚠️ Request Re-eval
-                                                        </button>
-                                                    </td>
+                                {/* Ranking Result Table - CHỈ HIỂN THỊ KHI Ở VIEW_RANKING / COMPILATION_VIEW */}
+                                {result && (
+                                    <div className="result-card visible" style={{ marginTop: 24 }}>
+                                        <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
+                                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
+                                        <div className="result-stats">
+                                            <div className="result-stat">
+                                                <div className="result-stat-label">Qualified</div>
+                                                <div className="result-stat-val qualified">{currentCompiledTopN}</div>
+                                            </div>
+                                            <div className="result-stat">
+                                                <div className="result-stat-label">Eliminated</div>
+                                                <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
+                                            </div>
+                                            <div className="result-stat">
+                                                <div className="result-stat-label">Total Processed</div>
+                                                <div className="result-stat-val">{result.totalProcessed}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
+                                            <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
+                                            <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                                Download Full Rankings CSV
+                                            </button>
+                                        </div>
+                                        <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ color: '#0f172a' }}>Rank</th>
+                                                    <th style={{ color: '#0f172a' }}>Team Name</th>
+                                                    <th style={{ color: '#0f172a' }}>Average Score</th>
+                                                    <th style={{ color: '#0f172a' }}>Status</th>
+                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
+                                                    <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
                                                 </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                                            </thead>
+                                            <tbody>
+                                                {result.results.map(r => {
+                                                    const isQualified = r.rank <= currentCompiledTopN;
+                                                    const teamPrize = getPrizeForRank(r.rank);
+                                                    return (
+                                                        <tr key={r.rank}>
+                                                            <td>#{r.rank}</td>
+                                                            <td>{r.teamName}</td>
+                                                            <td>{r.averageScore}</td>
+                                                            <td>
+                                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
+                                                                    {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
+                                                                </span>
+                                                            </td>
+                                                            {prizes.length > 0 && (
+                                                                <td>
+                                                                    {teamPrize ? (
+                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                                            🏆 {teamPrize}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{ color: '#94a3b8' }}>—</span>
+                                                                    )}
+                                                                </td>
+                                                            )}
+                                                            <td style={{ textAlign: 'right', paddingRight: '16px' }}>
+                                                                <button
+                                                                    disabled={isResultPublished}
+                                                                    onClick={() => {
+                                                                        if (isResultPublished) return;
+                                                                        setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
+                                                                        setIsRevalModalOpen(true);
+                                                                    }}
+                                                                    style={{
+                                                                        background: isResultPublished ? '#f1f5f9' : '#fef2f2',
+                                                                        border: `1px solid ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
+                                                                        padding: '6px 10px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: isResultPublished ? 'not-allowed' : 'pointer',
+                                                                        fontSize: '13px',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '6px',
+                                                                        color: isResultPublished ? '#94a3b8' : '#dc2626',
+                                                                        fontWeight: 600,
+                                                                        boxShadow: isResultPublished ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
+                                                                        opacity: isResultPublished ? 0.6 : 1
+                                                                    }}
+                                                                    title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
+                                                                >
+                                                                    ⚠️ Request Re-eval
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         {viewMode === 'SUBMISSIONS_VIEW' && (
