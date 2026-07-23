@@ -5,7 +5,6 @@
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-
 .rankings-content {
     max-width: 1800px;
     margin: 0 auto;
@@ -124,10 +123,9 @@
 }
 
 .rankings-grid {
-    display: grid;
-    grid-template-columns: 340px 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 24px;
-    align-items: start;
     margin-bottom: 24px;
 }
 
@@ -162,17 +160,16 @@
 }
 
 .top-n-input {
-    width: 100%;
-    padding: 16px;
-    border: 1.5px solid #d1d5db;
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border: 1.5px solid #cbd5e1;
     border-radius: 8px;
-    font-size: 24px;
+    font-size: 14px;
     font-weight: 700;
     color: #0f172a;
     text-align: center;
     outline: none;
-    box-sizing: border-box;
-    margin-bottom: 20px;
     transition: border-color 0.2s;
 }
 
@@ -182,22 +179,22 @@
 }
 
 .execute-btn-v {
-    width: 272.44px;
-    height: 70px;
+    height: 38px;
+    box-sizing: border-box;
     background: #0f172a;
     color: white;
     border: none;
-    padding: 16px 24px;
+    padding: 0 16px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     transition: all 0.2s;
-    margin-bottom: 12px;
+    white-space: nowrap;
 }
 
 .execute-btn-v.processing {
@@ -456,8 +453,6 @@
     background: #fee2e2 !important;
 }
 
-/* ── Rounds Dashboard Styles ───────────────────────── */
-
 .rounds-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -576,7 +571,6 @@
     cursor: not-allowed;
 }
 
-/* Status badges */
 .status-badge {
     padding: 4px 10px;
     border-radius: 9999px;
@@ -606,7 +600,6 @@
     letter-spacing: 0.5px;
 }
 
-/* Progress bar style */
 .round-progress-wrapper {
     margin: 16px 0;
 }
@@ -635,7 +628,6 @@
     transition: width 0.3s ease;
 }
 
-/* Back button */
 .back-to-rounds-btn {
     display: inline-flex;
     align-items: center;
@@ -658,7 +650,6 @@
     color: #0f172a;
 }
 
-/* Details view for upcoming rounds */
 .upcoming-details-card {
     background: white;
     border: 1.5px solid #d1d5db;

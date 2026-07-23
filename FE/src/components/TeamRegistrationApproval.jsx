@@ -94,19 +94,21 @@ const TeamRegistrationApproval = () => {
     }, [dashboardData, contestSearchQuery, contestStatusFilter]);
 
     const selectedContest = dashboardData.find(c => String(c.id) === String(selectedContestId));
+    const allTeams = selectedContest?.teams || [];
+    const nonFormingTeams = allTeams.filter(t => (t.status || '').toUpperCase() !== 'FORMING');
+
     let filteredTeams = [];
     if (selectedContest && selectedContest.teams) {
-        filteredTeams = selectedContest.teams.filter(t =>
+        filteredTeams = nonFormingTeams.filter(t =>
             t.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }
-    const allTeams = selectedContest?.teams || [];
-    const approvedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'APPROVED').length;
-    const canceledCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CANCELED').length;
-    const closedCount = allTeams.filter(t => (t.status || '').toUpperCase() === 'CLOSED').length;
-    const totalTeamsCount = allTeams.length;
+    const approvedCount = nonFormingTeams.filter(t => (t.status || '').toUpperCase() === 'APPROVED').length;
+    const canceledCount = nonFormingTeams.filter(t => (t.status || '').toUpperCase() === 'CANCELED').length;
+    const closedCount = nonFormingTeams.filter(t => (t.status || '').toUpperCase() === 'CLOSED').length;
+    const totalTeamsCount = nonFormingTeams.length;
     const pendingCount = Math.max(0, totalTeamsCount - approvedCount - canceledCount - closedCount);
-    const totalParticipantsCount = allTeams
+    const totalParticipantsCount = nonFormingTeams
         .reduce(
             (sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0),
             0
@@ -265,7 +267,7 @@ const TeamRegistrationApproval = () => {
                             const isClosed = liveStatus === 'CLOSED';
                             const isActive = liveStatus === 'ACTIVED';
                             const totalTeams = Array.isArray(c.teams)
-                                ? c.teams.length
+                                ? c.teams.filter(t => (t.status || '').toUpperCase() !== 'FORMING').length
                                 : ((c.pendingReview || 0) + (c.approved || 0) + (c.closed || 0) + (c.canceled || 0));
                             return (
                                 <div
@@ -330,7 +332,7 @@ const TeamRegistrationApproval = () => {
                                                 <span>Total Participants:</span>
                                                 <span style={{ fontWeight: 700, color: '#2563eb' }}>
                                                     {Array.isArray(c.teams)
-                                                        ? c.teams.reduce((sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0), 0)
+                                                        ? c.teams.filter(t => (t.status || '').toUpperCase() !== 'FORMING').reduce((sum, t) => sum + (Array.isArray(t.members) ? t.members.length : 0), 0)
                                                         : 0
                                                     } Students
                                                 </span>
@@ -481,82 +483,82 @@ const TeamRegistrationApproval = () => {
                     </div>
                     <table className="teams-table">
                         <thead>
-                        <tr>
-                            <th style={{ textAlign: 'left' }}>Team Name</th>
-                            <th style={{ textAlign: 'center', width: '20%' }}>Status</th>
-                            <th style={{ textAlign: 'center', width: '30%' }}>Action</th>
-                        </tr>
+                            <tr>
+                                <th style={{ textAlign: 'left' }}>Team Name</th>
+                                <th style={{ textAlign: 'center', width: '20%' }}>Status</th>
+                                <th style={{ textAlign: 'center', width: '30%' }}>Action</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {filteredTeams.map(team => {
-                            const statusText = (team.status || 'ACTIVED').toLowerCase();
-                            const isCanceled = statusText === 'canceled';
+                            {filteredTeams.map(team => {
+                                const statusText = (team.status || 'ACTIVED').toLowerCase();
+                                const isCanceled = statusText === 'canceled';
 
-                            let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
-                            if (statusText === 'approved') {
-                                badgeStyle.backgroundColor = '#a9f8c5';
-                                badgeStyle.color = '#15803d';
-                            } else if (isCanceled) {
-                                badgeStyle.backgroundColor = '#f9bebe';
-                                badgeStyle.color = '#b91c1c';
-                            } else {
-                                badgeStyle.backgroundColor = '#f1f5f9';
-                                badgeStyle.color = '#475569';
-                            }
+                                let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
+                                if (statusText === 'approved') {
+                                    badgeStyle.backgroundColor = '#a9f8c5';
+                                    badgeStyle.color = '#15803d';
+                                } else if (isCanceled) {
+                                    badgeStyle.backgroundColor = '#f9bebe';
+                                    badgeStyle.color = '#b91c1c';
+                                } else {
+                                    badgeStyle.backgroundColor = '#f1f5f9';
+                                    badgeStyle.color = '#475569';
+                                }
 
-                            return (
-                                <tr key={team.id}>
-                                    <td style={{ textAlign: 'left' }}>
-                                        <div className="team-name-col">
-                                            <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
-                                            <span className="team-name">{team.name}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
+                                return (
+                                    <tr key={team.id}>
+                                        <td style={{ textAlign: 'left' }}>
+                                            <div className="team-name-col">
+                                                <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
+                                                <span className="team-name">{team.name}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
                                             <span style={badgeStyle}>
                                                 {team.status || 'ACTIVED'}
                                             </span>
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
-                                            <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+                                                <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
                                                     style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                     onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
                                                     onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
-                                            >
-                                                View Members
-                                            </button>
+                                                >
+                                                    View Members
+                                                </button>
 
-                                            {!isContestClosed && (
-                                                isCanceled ? (
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                {!isContestClosed && (
+                                                    isCanceled ? (
+                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
                                                             style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                             onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
                                                             onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                ) : (
-                                                    <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
                                                             style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                             onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
                                                             onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                    >
-                                                        Cancel Team
-                                                    </button>
-                                                )
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                                                        >
+                                                            Cancel Team
+                                                        </button>
+                                                    )
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
 
-                        {filteredTeams.length === 0 && (
-                            <tr>
-                                <td colSpan="3" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
-                            </tr>
-                        )}
+                            {filteredTeams.length === 0 && (
+                                <tr>
+                                    <td colSpan="3" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                     <div style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>
@@ -585,21 +587,21 @@ const TeamRegistrationApproval = () => {
                             </p>
 
                             <textarea rows="4" value={cancelModal.reason}
-                                      onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
-                                      placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
-                                      style={{
-                                          width: '100%', padding: '10px', borderRadius: '6px',
-                                          border: '1px solid #cbd5e1', fontSize: '14px',
-                                          boxSizing: 'border-box', resize: 'none', marginBottom: '20px'
-                                      }} />
+                                onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
+                                placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
+                                style={{
+                                    width: '100%', padding: '10px', borderRadius: '6px',
+                                    border: '1px solid #cbd5e1', fontSize: '14px',
+                                    boxSizing: 'border-box', resize: 'none', marginBottom: '20px'
+                                }} />
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                 <button onClick={handleCloseCancelModal}
-                                        style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer' }}>
+                                    style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer' }}>
                                     Cancel
                                 </button>
                                 <button onClick={handleConfirmCancelStatus}
-                                        style={{ padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>
+                                    style={{ padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>
                                     Confirmation
                                 </button>
                             </div>
@@ -620,32 +622,28 @@ const TeamRegistrationApproval = () => {
                             {membersModal.members && membersModal.members.length > 0 ? (
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: '#f8fafc' }}>
-                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>NAME</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STUDENT ID</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>UNIVERSITY</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>ROLE</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STATUS</th>
-                                    </tr>
+                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>NAME</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STUDENT ID</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>UNIVERSITY</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>ROLE</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                    {membersModal.members.map((m, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.role || 'Member'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px' }}>
-                                                {m.status === 'APPROVED' ? (
-                                                    <span style={{ color: '#16a34a', fontWeight: '600' }}>APPROVED</span>
-                                                ) : m.status === 'CANCELED' ? (
-                                                    <span style={{ color: '#dc2626', fontWeight: '600' }}>{m.status.toUpperCase()}</span>
-                                                ) : (
-                                                    <span style={{ color: '#ca8a04', fontWeight: '600' }}>{m.status ? m.status.toUpperCase() : 'PENDING'}</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        {membersModal.members.map((m, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontSize: '13px' }}>
+                                                    {m.role === 'MEMBER' ? (
+                                                        <span style={{ color: '#16a34a', fontWeight: '600' }}>MEMBER</span>
+                                                    ) : (
+                                                        <span style={{ color: '#dc2626', fontWeight: '600' }}>LEADER</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             ) : (
