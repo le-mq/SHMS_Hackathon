@@ -161,9 +161,9 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                        .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+                          .filter(c -> c.getContest() != null && c.getContest().getId().equals(team.getContest().getId()))
+                          .map(Category::getName)
+                          .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -350,14 +350,32 @@ public class JudgeService {
             }
         }
 
+        List<Score> existingScores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(), latestSubmission.getId());
+        Score previousScore = existingScores.isEmpty() ? null : existingScores.get(0);
+
         if (rubric != null) {
             List<ContestRubricDetails> details = contestRubricDetailsRepository.findByContestRubricId(rubric.getId());
-            criteriaDtos = details.stream().map(d -> EvaluationDataResponse.CriteriaDto.builder()
-                    .id(d.getId())
-                    .name(d.getCriteriaName())
-                    .description(d.getDescription())
-                    .weight((int) Math.round(d.getPercentageWeight()))
-                    .build()).toList();
+            criteriaDtos = details.stream().map(d -> {
+                Double pts = null;
+                String fbk = null;
+                if (previousScore != null && previousScore.getDetails() != null) {
+                    ScoreDetail sd = previousScore.getDetails().stream()
+                            .filter(x -> x.getContestRubricDetail() != null && x.getContestRubricDetail().getId().equals(d.getId()))
+                            .findFirst().orElse(null);
+                    if (sd != null) {
+                        pts = sd.getRawScore();
+                        fbk = sd.getFeedback();
+                    }
+                }
+                return EvaluationDataResponse.CriteriaDto.builder()
+                        .id(d.getId())
+                        .name(d.getCriteriaName())
+                        .description(d.getDescription())
+                        .weight((int) Math.round(d.getPercentageWeight()))
+                        .pointsAwarded(pts)
+                        .feedback(fbk)
+                        .build();
+            }).toList();
         }
 
         return EvaluationDataResponse.builder()
@@ -385,8 +403,21 @@ public class JudgeService {
             throw new IllegalArgumentException("Team is not eligible for evaluation");
         }
 
-        if (scoreRepository.existsByJudgeIdAndSubmissionId(judge.getId(), submission.getId())) {
-            throw new IllegalArgumentException("You have already evaluated this submission");
+        List<Score> existingScores = scoreRepository.findByJudgeIdAndSubmissionId(judge.getId(), submission.getId());
+        Score score;
+        String oldValue = "UNGRADED";
+
+        if (!existingScores.isEmpty()) {
+            score = existingScores.get(0);
+            oldValue = String.valueOf(score.getTotalScore());
+            score.getDetails().clear();
+        } else {
+            score = Score.builder()
+                    .submission(submission)
+                    .judge(judge.getUser())
+                    .status("FINALIZED")
+                    .details(new ArrayList<>())
+                    .build();
         }
 
         Round round = submission.getRound();
@@ -397,12 +428,6 @@ public class JudgeService {
             }
         }
 
-        Score score = Score.builder()
-                .submission(submission)
-                .judge(judge.getUser())
-                .status("FINALIZED")
-                .details(new ArrayList<>())
-                .build();
 
         double total = 0.0;
         List<String> feedback = new ArrayList<>();
@@ -433,7 +458,6 @@ public class JudgeService {
         score.setTotalScore(total);
         score.setGeneralFeedback(String.join("\n", feedback));
         scoreRepository.save(score);
-        String oldValue = "UNGRADED";
         String newValue = String.valueOf(total);
         String reasonLog = "MISSED_DEADLINE".equalsIgnoreCase(submission.getStatus())
                 ? "Forced evaluation (missed deadline)"

@@ -165,6 +165,39 @@ public class RubricAdminService {
     @Transactional
     public RubricTemplate updateTemplate(Long id, CreateRubricRequest request) {
         RubricTemplate template = getTemplateById(id);
+
+        StringBuilder oldSb = new StringBuilder();
+        StringBuilder newSb = new StringBuilder();
+
+        if (!template.getName().equals(request.getName())) {
+            oldSb.append("N:").append(template.getName()).append(",");
+            newSb.append("N:").append(request.getName()).append(",");
+        }
+        if (template.getCriteria().size() != request.getCriteria().size()) {
+            oldSb.append("Cnt:").append(template.getCriteria().size()).append(",");
+            newSb.append("Cnt:").append(request.getCriteria().size()).append(",");
+        } else {
+            for (int i = 0; i < template.getCriteria().size(); i++) {
+                RubricTemplateCriteria oldC = template.getCriteria().get(i);
+                CreateRubricRequest.CriterionDto newC = request.getCriteria().get(i);
+                if (!oldC.getCriteriaName().equals(newC.getCriteriaName()) || !oldC.getPercentageWeight().equals(newC.getPercentageWeight())) {
+                    oldSb.append("C").append(i + 1).append(":").append(oldC.getCriteriaName()).append("(").append(oldC.getPercentageWeight()).append("%),");
+                    newSb.append("C").append(i + 1).append(":").append(newC.getCriteriaName()).append("(").append(newC.getPercentageWeight()).append("%),");
+                }
+            }
+        }
+        if (oldSb.length() == 0) {
+            oldSb.append("Details updated");
+            newSb.append("Details updated");
+        }
+
+        String oldValueInfo = oldSb.toString();
+        String newValueInfo = newSb.toString();
+        if (oldValueInfo.length() > 95) oldValueInfo = oldValueInfo.substring(0, 95) + "...";
+        if (newValueInfo.length() > 95) newValueInfo = newValueInfo.substring(0, 95) + "...";
+        oldValueInfo = oldValueInfo.endsWith(",") ? oldValueInfo.substring(0, oldValueInfo.length() - 1) : oldValueInfo;
+        newValueInfo = newValueInfo.endsWith(",") ? newValueInfo.substring(0, newValueInfo.length() - 1) : newValueInfo;
+
         template.setName(request.getName());
         template.setDescription(request.getDescription());
         template.setPublicVisibility(request.getPublicVisibility());
@@ -190,7 +223,7 @@ public class RubricAdminService {
             template.getCriteria().add(crit);
         }
         RubricTemplate savedTemplate = rubricTemplateRepository.save(template);
-        auditLogService.log("UPDATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), "OLD_DATA", savedTemplate.getStatus(), "Updated template: " + savedTemplate.getName());
+        auditLogService.log("UPDATE_RUBRIC_TEMPLATE", "RubricTemplate", savedTemplate.getName(), oldValueInfo, newValueInfo, "Updated template: " + savedTemplate.getName());
 
         List<ContestRubric> contestRubrics = contestRubricRepository.findByRubricTemplateId(id);
         for (ContestRubric cr : contestRubrics) {
