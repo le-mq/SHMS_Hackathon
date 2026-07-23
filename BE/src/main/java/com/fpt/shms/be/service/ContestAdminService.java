@@ -132,7 +132,7 @@ public class ContestAdminService {
                         roundMap.put("publishResultAt",
                                 r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
                         roundMap.put("isScorePublished",
-                                submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId()));
+                                submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId()));
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
                         roundMap.put("submissionRequirements",
                                 r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");

@@ -19,5 +19,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
     boolean existsByRoundIdAndHistoryLogIsNotNull(Long roundId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) > 0 FROM Submission s WHERE s.round.id = :roundId AND s.historyLog LIKE '{%'")
+    boolean existsByRoundIdAndHistoryLogIsPublished(
+            @org.springframework.data.repository.query.Param("roundId") Long roundId);
+
     java.util.Optional<Submission> findByTeamIdAndRoundIdAndStatus(Long teamId, Long roundId, String status);
 }

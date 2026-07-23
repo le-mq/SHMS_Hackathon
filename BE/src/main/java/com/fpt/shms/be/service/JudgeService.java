@@ -179,11 +179,11 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                          .filter(c -> c.getContest() != null && c.getContest()
-                                                                 .getId()
-                                                                 .equals(team.getContest().getId()))
-                          .map(Category::getName)
-                          .collect(Collectors.joining(", "));
+                        .filter(c -> c.getContest() != null && c.getContest()
+                                .getId()
+                                .equals(team.getContest().getId()))
+                        .map(Category::getName)
+                        .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -454,8 +454,9 @@ public class JudgeService {
                     .filter(s -> s.getRound() != null && s.getRound().getId().equals(round.getId()))
                     .filter(s -> !"DRAFT".equalsIgnoreCase(s.getStatus()))
                     .max((s1, s2) -> {
-                        int cmp = (s1.getVersion() != null && s2.getVersion() != null) ?
-                                s1.getVersion().compareTo(s2.getVersion()) : 0;
+                        int cmp = (s1.getVersion() != null && s2.getVersion() != null)
+                                ? s1.getVersion().compareTo(s2.getVersion())
+                                : 0;
                         return cmp != 0 ? cmp : s1.getId().compareTo(s2.getId());
                     })
                     .orElse(null);
@@ -605,7 +606,6 @@ public class JudgeService {
                 }
             }
 
-
             List<RankingResult> rankings = rankingResultRepository.findByRoundId(request.getRoundId());
             RankingResult rr = rankings.stream()
                     .filter(r -> r.getTeam().getId().equals(request.getTeamId())).findFirst()
@@ -652,7 +652,7 @@ public class JudgeService {
                             .pointsAwarded(d.getRawScore())
                             .weight(d.getContestRubricDetail() != null
                                     ? d.getContestRubricDetail()
-                                      .getPercentageWeight()
+                                    .getPercentageWeight()
                                     : null)
                             .feedback(d.getFeedback())
                             .build())
@@ -754,7 +754,7 @@ public class JudgeService {
         for (Category cat : categories) {
             List<Round> rounds = roundRepository.findByContestId(cat.getContest().getId());
             for (Round r : rounds) {
-                if (submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId())) {
+                if (submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId())) {
                     return true;
                 }
             }
@@ -817,7 +817,7 @@ public class JudgeService {
                     roundRepository::findByContestIdOrderBySubmissionOpenAsc);
 
             for (Round round : allContestRounds) {
-                if (!submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(round.getId())) {
+                if (!submissionRepository.existsByRoundIdAndHistoryLogIsPublished(round.getId())) {
                     continue;
                 }
 
@@ -844,7 +844,6 @@ public class JudgeService {
                 if (latestSub == null)
                     continue;
 
-
                 List<Score> myScores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(),
                         latestSub.getId());
                 if (myScores == null || myScores.isEmpty()) {
@@ -861,7 +860,7 @@ public class JudgeService {
                         if (snapshot != null && snapshot.containsKey("avgRoundScore")) {
                             avgScore = snapshot.get("avgRoundScore") != null
                                     ? ((Number) snapshot.get("avgRoundScore"))
-                                      .doubleValue()
+                                    .doubleValue()
                                     : null;
                             usedSnapshot = true;
                         }
