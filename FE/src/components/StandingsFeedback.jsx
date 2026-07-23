@@ -106,6 +106,7 @@ const normalizeScoreData = (payload) => {
     const fallbackRound = {
         roundName: rawData.roundName || 'Round',
         publishResultAt: rawData.publishResultAt || rawData.resultPublishAt || null,
+        reviewCalibrationAt: rawData.reviewCalibrationAt || null,
         resultPublished: rawData.resultPublished,
         totalScore: rawData.totalScore == null && rawData.score == null && rawData.finalScore == null && rawData.averageScore == null ? null : toScoreNumber(rawData.totalScore ?? rawData.score ?? rawData.finalScore ?? rawData.averageScore),
         detailedScores: Array.isArray(rawData.detailedScores) ? rawData.detailedScores : [],
@@ -116,7 +117,8 @@ const normalizeScoreData = (payload) => {
         ? rawData.rounds.map(round => ({
             ...round,
             roundName: round.roundName || round.name || 'Round',
-            publishResultAt: round.publishResultAt || round.resultPublishAt || round.publishAt || null,
+            publishResultAt: round.publishResultAt || round.resultPublishAt || null,
+            reviewCalibrationAt: round.reviewCalibrationAt || null,
             resultPublished: typeof round.resultPublished === 'boolean' ? round.resultPublished : undefined,
             totalScore: round.totalScore == null && round.score == null && round.finalScore == null && round.averageScore == null ? null : toScoreNumber(round.totalScore ?? round.score ?? round.finalScore ?? round.averageScore),
             hasSubmission: round.hasSubmission,
@@ -152,6 +154,36 @@ const normalizeScoreData = (payload) => {
         projectName: rawData.projectName || 'Untitled Project',
         totalScore: toScoreNumber(rawData.totalScore ?? rawData.score ?? rawData.finalScore ?? rawData.averageScore ?? rounds[0]?.totalScore),
         rounds,
+    };
+};
+
+const getRoundStatusInfo = (round, compId, myTeamName, publicLeaderboards) => {
+    const nowTime = new Date().getTime();
+    const pTime = round.publishResultAt ? new Date(round.publishResultAt).getTime() : 0;
+    const sTime = round.reviewCalibrationAt ? new Date(round.reviewCalibrationAt).getTime() : 0;
+    const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(compId) && lb.roundName === round.roundName && lb.teamName === myTeamName);
+    
+    const isRankingPublishedFlag = round.resultPublished === true || String(round.resultPublished).toLowerCase() === 'true';
+    const isRankingPublished = (pTime > 0 && nowTime >= pTime) || (pTime === 0 && sTime === 0 && isRankingPublishedFlag);
+    const isPublished = (sTime > 0 && nowTime >= sTime) || isRankingPublished || round.totalScore != null || (round.resultPublished !== false && pTime === 0 && sTime === 0);
+    
+    const isEliminated = Boolean(isRankingPublished && (round.qualificationStatus === 'ELIMINATED' || lbEntry?.qualificationStatus === 'ELIMINATED'));
+    const isQualified = Boolean(isRankingPublished && (round.qualificationStatus === 'QUALIFIED' || lbEntry?.qualificationStatus === 'QUALIFIED'));
+    
+    const baseEffectiveScore = round.totalScore != null ? round.totalScore : (lbEntry ? lbEntry.finalScore : null);
+    const effectiveScore = (baseEffectiveScore == null && isEliminated) ? 0 : baseEffectiveScore;
+    
+    const isAvailable = isPublished && effectiveScore != null;
+    const isPendingResult = isAvailable && !isEliminated && !isQualified;
+
+    return {
+        isRankingPublished,
+        isPublished,
+        isEliminated,
+        isQualified,
+        effectiveScore,
+        isAvailable,
+        isPendingResult
     };
 };
 
@@ -425,20 +457,13 @@ const StandingsFeedback = () => {
                             {(() => {
                                 const visibleRounds = [];
                                 for (const [originalIdx, r] of rounds.entries()) {
-                                    const nowTime = new Date().getTime();
-                                    const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
                                     const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
-                                    const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === r.roundName && lb.teamName === myTeamName);
-                                    const isPublishedOnLeaderboard = !!lbEntry;
-                                    const isPublished = r.resultPublished === true || isPublishedOnLeaderboard || (r.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
+                                    const compId = selectedCompetition?.contest?.id;
+                                    const { isPublished, isEliminated } = getRoundStatusInfo(r, compId, myTeamName, publicLeaderboards);
                                     
                                     if (r.hasSubmission === true || isPublished) {
                                         visibleRounds.push({ ...r, originalIndex: originalIdx });
                                     }
-
-                                    const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
-                                    const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
-                                    const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED');
                                     
                                     if (isEliminated) {
                                         break;
@@ -477,33 +502,26 @@ const StandingsFeedback = () => {
                                             <>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                                                     {visibleRounds.map((r, idx) => {
-                                                        const nowTime = new Date().getTime();
-                                                        const pTime = r.publishResultAt ? new Date(r.publishResultAt).getTime() : 0;
                                                         const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
-                                                        const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === r.roundName && lb.teamName === myTeamName);
-                                                        const isPublishedOnLeaderboard = !!lbEntry;
-                                                        const isPublished = r.resultPublished === true || isPublishedOnLeaderboard || (r.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
-                                                        const baseEffectiveScore1 = r.totalScore != null ? r.totalScore : (lbEntry ? lbEntry.finalScore : null);
-                                                        const effectiveScore = (baseEffectiveScore1 == null && r.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore1;
-                                                        const isAvailable = isPublished && effectiveScore != null;
+                                                        const compId = selectedCompetition?.contest?.id;
+                                                        const { isEliminated, isQualified, isPendingResult } = getRoundStatusInfo(r, compId, myTeamName, publicLeaderboards);
                                                         
-                                                        const isEliminated = r.qualificationStatus === 'ELIMINATED' || (lbEntry && lbEntry.qualificationStatus === 'ELIMINATED');
                                                         const isSelected = selectedResultRound === r;
-                                                        const bgColor = isEliminated ? (isSelected ? '#fecaca' : '#fee2e2') : (isAvailable ? (isSelected ? '#bbf7d0' : '#dcfce7') : '#f1f5f9');
-                                                        const borderColor = isEliminated ? '#ef4444' : (isAvailable ? '#22c55e' : '#cbd5e1');
-                                                        const textColor = isEliminated ? '#991b1b' : (isAvailable ? '#166534' : '#64748b');
+                                                        const bgColor = isEliminated ? (isSelected ? '#fecaca' : '#fee2e2') : (isQualified ? (isSelected ? '#bbf7d0' : '#dcfce7') : (isPendingResult ? (isSelected ? '#fef08a' : '#fef9c3') : '#f1f5f9'));
+                                                        const borderColor = isEliminated ? '#ef4444' : (isQualified ? '#22c55e' : (isPendingResult ? '#eab308' : '#cbd5e1'));
+                                                        const textColor = isEliminated ? '#991b1b' : (isQualified ? '#166534' : (isPendingResult ? '#854d0e' : '#64748b'));
                                                         return (
-                                                            <div
-                                                                key={idx}
-                                                                onClick={() => setSelectedResultRound(r)}
-                                                                style={{
-                                                                    background: bgColor,
-                                                                    border: `2px solid ${isSelected ? (isEliminated ? '#991b1b' : '#16a34a') : borderColor}`,
-                                                                    borderRadius: '8px',
-                                                                    padding: '16px',
-                                                                    cursor: 'pointer',
-                                                                    textAlign: 'center',
-                                                                    fontWeight: '600',
+                                                                <div
+                                                                    key={idx}
+                                                                    onClick={() => setSelectedResultRound(r)}
+                                                                    style={{
+                                                                        background: bgColor,
+                                                                        border: `2px solid ${isSelected ? (isEliminated ? '#991b1b' : (isQualified ? '#16a34a' : (isPendingResult ? '#ca8a04' : '#94a3b8'))) : borderColor}`,
+                                                                        borderRadius: '8px',
+                                                                        padding: '16px',
+                                                                        cursor: 'pointer',
+                                                                        textAlign: 'center',
+                                                                        fontWeight: '600',
                                                                     color: textColor,
                                                                     transition: 'all 0.2s',
                                                                     boxShadow: isSelected ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
@@ -518,14 +536,9 @@ const StandingsFeedback = () => {
                                                         <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
                                                         <div style={{ position: 'relative', zIndex: 1 }}>
                                                             {(() => {
-                                                                const nowTime = new Date().getTime();
-                                                                const pTime = selectedResultRound.publishResultAt ? new Date(selectedResultRound.publishResultAt).getTime() : 0;
                                                                 const myTeamName = selectedCompetition?.data?.teamName || scoreData?.teamName;
-                                                                const lbEntry = publicLeaderboards.find(lb => String(lb.contestId) === String(selectedCompetition?.contest?.id) && lb.roundName === selectedResultRound.roundName && lb.teamName === myTeamName);
-                                                                const isPublishedOnLeaderboard = !!lbEntry;
-                                                                const isPublished = selectedResultRound.resultPublished === true || isPublishedOnLeaderboard || (selectedResultRound.resultPublished !== false && (pTime === 0 || nowTime >= pTime));
-                                                                const baseEffectiveScore = selectedResultRound.totalScore != null ? selectedResultRound.totalScore : (lbEntry ? lbEntry.finalScore : null);
-                                                                const effectiveScore = (baseEffectiveScore == null && selectedResultRound.qualificationStatus === 'ELIMINATED') ? 0 : baseEffectiveScore;
+                                                                const compId = selectedCompetition?.contest?.id;
+                                                                const { isPublished, isEliminated, isQualified, effectiveScore } = getRoundStatusInfo(selectedResultRound, compId, myTeamName, publicLeaderboards);
 
                                                                 if (!isPublished) {
                                                                     return (
@@ -539,6 +552,13 @@ const StandingsFeedback = () => {
                                                                     );
                                                                 }
 
+                                                                const previousRoundEliminated = scoreData?.rounds?.findIndex(r => r === selectedResultRound) > 0 && 
+                                                                    scoreData.rounds.slice(0, scoreData.rounds.findIndex(r => r === selectedResultRound))
+                                                                    .some(r => {
+                                                                        const info = getRoundStatusInfo(r, compId, myTeamName, publicLeaderboards);
+                                                                        return info.effectiveScore === 0 || info.isEliminated;
+                                                                    });
+
                                                                 return (
                                                                     <>
                                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -547,7 +567,7 @@ const StandingsFeedback = () => {
                                                                                     {selectedResultRound.roundName} Score
                                                                                 </p>
                                                                                 {effectiveScore == null ? (
-                                                                                    (selectedResultRound.qualificationStatus === 'ELIMINATED' || (scoreData?.rounds?.findIndex(r => r === selectedResultRound) > 0 && scoreData.rounds.slice(0, scoreData.rounds.findIndex(r => r === selectedResultRound)).some(r => r.totalScore === 0 || r.qualificationStatus === 'ELIMINATED'))) ? (
+                                                                                    (isEliminated || previousRoundEliminated) ? (
                                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
                                                                                             <div style={{ padding: '10px', background: '#fef2f2', borderRadius: '50%', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                                                                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -586,11 +606,11 @@ const StandingsFeedback = () => {
                                                                                             </span>
                                                                                             <span style={{ fontSize: '20px', fontWeight: '600', color: '#94a3b8' }}>/ 100</span>
                                                                                         </div>
-                                                                                        {selectedResultRound.qualificationStatus === 'QUALIFIED' ? (
+                                                                                        {isQualified ? (
                                                                                             <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#dcfce7', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
                                                                                                 Qualified
                                                                                             </div>
-                                                                                        ) : (selectedResultRound.qualificationStatus === 'ELIMINATED') ? (
+                                                                                        ) : isEliminated ? (
                                                                                             <div style={{ display: 'inline-block', marginTop: '12px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>
                                                                                                 {selectedResultRound.hasSubmission === false ? `Eliminated - No submission` : `Eliminated`}
                                                                                             </div>
