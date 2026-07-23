@@ -12,6 +12,7 @@ const EvaluationWorkspace = () => {
     const isReadonly = new URLSearchParams(location.search).get('readonly') === 'true';
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         const fetchEvalData = async () => {
             try {
                 const token = localStorage.getItem('shms_token');
@@ -51,8 +52,8 @@ const EvaluationWorkspace = () => {
                         return {
                             criteriaId: rawId ? Number(rawId) : 0,
                             weight: c.weight || c.percentageWeight || 0,
-                            pointsAwarded: '',
-                            feedback: ''
+                            pointsAwarded: c.pointsAwarded !== undefined && c.pointsAwarded !== null ? c.pointsAwarded : '',
+                            feedback: c.feedback || ''
                         };
                     }));
                 }
