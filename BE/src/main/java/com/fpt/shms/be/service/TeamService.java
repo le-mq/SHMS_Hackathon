@@ -280,7 +280,6 @@ public class TeamService {
             if (Contest.ContestStatus.CLOSED.equals(contest.getStatus())) {
                 throw new IllegalArgumentException("Contest is closed and no longer accepts registrations.");
             }
-            team.setContest(contest);
         }
 
         List<TeamMembership> allMemberships = teamMembershipRepository.findByTeamId(team.getId());
@@ -412,6 +411,10 @@ public class TeamService {
         } else {
             team.setStatus("APPROVED");
         }
+
+        if (contest != null) {
+            team.setContest(contest);
+        }
         team = teamRepository.save(team);
         String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty()
                 ? " - Leader assigned: " + request.getLeaderStudentId()
@@ -464,7 +467,7 @@ public class TeamService {
      * / already participated)
      * and setting team status to APPROVED.
      */
-    @Transactional
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public TeamRegistrationResponse registerForceApprove(TeamRegistrationRequest request, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -485,7 +488,13 @@ public class TeamService {
             throw new IllegalArgumentException("Contest is closed and no longer accepts registrations.");
         }
 
-        team.setContest(contest);
+        java.time.LocalDate now = java.time.LocalDate.now();
+        if (contest.getRegistrationStart() != null && now.isBefore(contest.getRegistrationStart())) {
+            throw new IllegalArgumentException("Registration period has not started yet.");
+        }
+        if (contest.getRegistrationEnd() != null && now.isAfter(contest.getRegistrationEnd())) {
+            throw new IllegalArgumentException("Outside of registration period.");
+        }
 
         List<TeamMembership> allMemberships = teamMembershipRepository.findByTeamId(team.getId());
         List<TeamMembership> approvedMembers = allMemberships.stream()
@@ -540,23 +549,14 @@ public class TeamService {
         int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
         int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
         if (remainingCount < minMembers) {
-            throw new IllegalArgumentException("After removing ineligible members, the team has only " + remainingCount
-                    + " member(s), which is below the minimum required (" + minMembers + ").");
+            throw new IllegalArgumentException("Ineligible members removed. However, the team now has only " + remainingCount
+                    + " member(s), which is below the minimum required (" + minMembers + "). Registration aborted.");
         }
 
         // Remove PENDING members
         allMemberships.stream()
                 .filter(tm -> "PENDING".equalsIgnoreCase(tm.getStatus()))
                 .forEach(teamMembershipRepository::delete);
-
-        // Validate registration period
-        java.time.LocalDate now = java.time.LocalDate.now();
-        if (contest.getRegistrationStart() != null && now.isBefore(contest.getRegistrationStart())) {
-            throw new IllegalArgumentException("Registration period has not started yet.");
-        }
-        if (contest.getRegistrationEnd() != null && now.isAfter(contest.getRegistrationEnd())) {
-            throw new IllegalArgumentException("Outside of registration period.");
-        }
 
         // Assign leader role
         String leaderStudentCode = request.getLeaderStudentId();
@@ -581,6 +581,7 @@ public class TeamService {
             }
         }
 
+        team.setContest(contest);
         team.setStatus("APPROVED");
         teamRepository.save(team);
 
@@ -1096,11 +1097,6 @@ public class TeamService {
             throw new IllegalArgumentException("This student is already in the team or has a pending invitation.");
         }
 
-        // Removed validation that blocks inviting a user if they are in any registered
-        // team.
-        // Users can be in multiple teams as long as they are for different contests.
-
-        // Validate capacity: đếm APPROVED + PENDING
         Contest contest = team.getContest();
         int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
                 ? contest.getMaxTeamMembers()
@@ -1155,9 +1151,6 @@ public class TeamService {
         return result;
     }
 
-    /**
-     * Phản hồi lời mời: ACCEPT hoặc REJECT.
-     */
     @Transactional
     public java.util.Map<String, Object> respondToInvitation(com.fpt.shms.be.dto.InvitationRespondRequest request,
                                                              String username) {
