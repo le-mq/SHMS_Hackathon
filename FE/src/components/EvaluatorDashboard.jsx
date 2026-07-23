@@ -495,10 +495,20 @@ const EvaluatorDashboard = () => {
                                             {team.score !== undefined && team.score !== null ? Number(team.score).toFixed(2) : (team.submissionState === 'Not Submitted' || team.submissionState === 'MISSED_DEADLINE' ? '0' : '-')}
                                         </td>
                                         <td>{team.submissionState?.toUpperCase() === 'EVALUATED' ? (
-                                            <button className="evaluate-btn" style={{
-                                                background: '#f1f5f9',
-                                                color: '#334155', cursor: 'not-allowed', border: '1px solid #cbd5e1'
-                                            }} disabled>Already Evaluated</button>
+                                            timeStatus === 'CLOSED' ? (
+                                                <button className="evaluate-btn" style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', border: '1px solid #cbd5e1' }} disabled>
+                                                    Grading Closed
+                                                </button>
+                                            ) : (
+                                                <button className="evaluate-btn" style={{
+                                                    background: '#fef9c3',
+                                                    color: '#854d0e', cursor: 'pointer', border: '1px solid #fef08a'
+                                                }} onClick={() => {
+                                                    if (window.confirm("Warning: Re-grading your work will be logged by the system and overwrite your previous grade. Please consider carefully. Do you wish to continue?")) {
+                                                        navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`);
+                                                    }
+                                                }}>Re-evaluate</button>
+                                            )
                                         ) : (
                                             (() => {
                                                 if (team.submissionState?.toUpperCase() === 'PENDING') {

@@ -14,7 +14,7 @@ const getColorForString = (str) => {
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue = Math.abs(hash) % 360;
+    const hue = (Math.abs(hash) * 137.5) % 360;
     return `hsl(${hue}, 70%, 85%)`;
 };
 
@@ -24,7 +24,7 @@ const getTextColorForString = (str) => {
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue = Math.abs(hash) % 360;
+    const hue = (Math.abs(hash) * 137.5) % 360;
     return `hsl(${hue}, 70%, 25%)`;
 };
 
@@ -372,14 +372,14 @@ const RubricConfig = () => {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                 <label style={{ margin: 0, fontSize: 13, color: '#4b5563', fontWeight: 600 }}>Contest Filter:</label>
-                                <select className="form-select" style={{ border: '1px solid #d1d5db', background: '#fff', padding: '6px 30px 6px 12px', outline: 'none', cursor: 'pointer', fontWeight: 500, color: '#111827', margin: 0, maxWidth: 220, borderRadius: 6, fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }} value={filterContestId} onChange={e => setFilterContestId(e.target.value)}>
+                                <select className="form-select" style={{ border: '1px solid #d1d5db', background: '#fff', padding: '6px 30px 6px 12px', outline: 'none', cursor: 'pointer', fontWeight: 500, color: '#111827', margin: 0, maxWidth: 220, borderRadius: 6, fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center', backgroundSize: '16px' }} value={filterContestId} onChange={e => setFilterContestId(e.target.value)}>
                                     <option value="ALL">All Contests</option>
                                     {contests.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                 <label style={{ margin: 0, fontSize: 13, color: '#4b5563', fontWeight: 600 }}>Type:</label>
-                                <select className="form-select" style={{ border: '1px solid #d1d5db', background: '#fff', padding: '6px 30px 6px 12px', outline: 'none', cursor: 'pointer', fontWeight: 500, color: '#111827', margin: 0, borderRadius: 6, fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+                                <select className="form-select" style={{ border: '1px solid #d1d5db', background: '#fff', padding: '6px 30px 6px 12px', outline: 'none', cursor: 'pointer', fontWeight: 500, color: '#111827', margin: 0, borderRadius: 6, fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center', backgroundSize: '16px' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
                                     <option value="ALL">All Types</option>
                                     <option value="OFFICIAL">Official</option>
                                     <option value="DRAFT">Template</option>

@@ -158,11 +158,11 @@ function HackathonConfig() {
             rounds: Yup.array().of(Yup.object().shape({
                 phaseName: Yup.string().required('Phase Name is required'),
                 categoryId: Yup.string().required('Required').test('uniq-cat', 'Category unique error', function (val) { return !val || this.from[1].value.rounds.filter(r => String(r.categoryId) === String(val)).length <= 1; }),
-                submissionOpen: Yup.date().required('Required').test('after-prev', 'Must be after previous round publish', function (val) { if (!val) return true; const match = this.path.match(/\[(\d+)\]/); if (match) { const idx = parseInt(match[1], 10); const rds = this.from[1].value.rounds; if (idx > 0 && rds[idx - 1]?.publishResultAt) return new Date(val) >= new Date(rds[idx - 1].publishResultAt); } return true; }).test('after-reg-end', 'Must be after Registration End', function (val) { if (!val || !this.from[1].value.registrationEnd) return true; const d = new Date(this.from[1].value.registrationEnd); d.setHours(0, 0, 0, 0); return new Date(val) > d; }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) < new Date(this.from[1].value.contestEndAt); }),
-                submissionDeadline: Yup.date().required('Required').test('after-open', 'Must be after open', function (val) { return !val || !this.parent.submissionOpen || new Date(val) > new Date(this.parent.submissionOpen); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) < new Date(this.from[1].value.contestEndAt); }),
-                gradingDeadlineAt: Yup.date().required('Required').test('after-dl', 'Must be after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) > new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) < new Date(this.from[1].value.contestEndAt); }),
-                reviewCalibrationAt: Yup.date().required('Required').test('after-grading', 'Must be after grading deadline', function (val) { return !val || !this.parent.gradingDeadlineAt || new Date(val) > new Date(this.parent.gradingDeadlineAt); }).test('before-pub', 'Must be before publish', function (val) { return !val || !this.parent.publishResultAt || new Date(val) < new Date(this.parent.publishResultAt); }),
-                publishResultAt: Yup.date().required('Required').test('after-review', 'Must be after review/grading deadline', function (val) { const ref = this.parent.reviewCalibrationAt || this.parent.gradingDeadlineAt; return !val || !ref || new Date(val) > new Date(ref); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) < new Date(this.from[1].value.contestEndAt); }),
+                submissionOpen: Yup.date().required('Required').test('after-reg-end', 'Must be after Registration End', function (val) { if (!val || !this.from[1].value.registrationEnd) return true; const d = new Date(this.from[1].value.registrationEnd); d.setHours(0, 0, 0, 0); return new Date(val) > d; }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                submissionDeadline: Yup.date().required('Required').test('after-open', 'Must be after open', function (val) { return !val || !this.parent.submissionOpen || new Date(val) > new Date(this.parent.submissionOpen); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                gradingDeadlineAt: Yup.date().required('Required').test('after-dl', 'Must be after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) > new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                reviewCalibrationAt: Yup.date().required('Required').test('after-dl', 'Must be on/after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) >= new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
+                publishResultAt: Yup.date().required('Required').test('after-dl', 'Must be on/after submission deadline', function (val) { return !val || !this.parent.submissionDeadline || new Date(val) >= new Date(this.parent.submissionDeadline); }).test('before-end', 'Must be before Contest End', function (val) { return !val || !this.from[1].value.contestEndAt || new Date(val) <= new Date(this.from[1].value.contestEndAt); }),
                 roundFormat: Yup.string().required('Round Format is required'),
                 submissionRequirements: Yup.array().min(1, 'Add at least one requirement')
             })).min(1, 'Add at least one round')
@@ -401,28 +401,20 @@ function HackathonConfig() {
             if (!cond) items.push({ type: 'error', msg: eMsg, field: fld, tab });
         };
 
-        const hasCoreError = ['name', 'theme', 'year', 'maximumAllowedTeams', 'minTeamMembers', 'maxTeamMembers', 'location', 'contestStartAt', 'publishedAt', 'registrationStart', 'registrationEnd', 'contestEndAt', 'universities', 'complianceRules', 'tieredPrizeStructures'].some(fld => formik.errors[fld] && formik.touched[fld]);
-
-        if (hasCoreError) {
-            Object.keys(formik.errors).forEach(key => {
-                if (['name', 'theme', 'year', 'maximumAllowedTeams', 'minTeamMembers', 'maxTeamMembers', 'location', 'contestStartAt', 'publishedAt', 'registrationStart', 'registrationEnd', 'contestEndAt', 'universities', 'complianceRules', 'tieredPrizeStructures'].includes(key) && formik.touched[key]) {
-                    match(false, formik.errors[key], key, 'core');
-                }
-            });
-        }
+        Object.keys(formik.errors).forEach(key => {
+            if (['name', 'theme', 'year', 'maximumAllowedTeams', 'minTeamMembers', 'maxTeamMembers', 'location', 'contestStartAt', 'publishedAt', 'registrationStart', 'registrationEnd', 'contestEndAt', 'universities', 'complianceRules', 'tieredPrizeStructures'].includes(key)) {
+                match(false, formik.errors[key], key, 'core');
+            }
+        });
 
         if (formik.errors.categories) {
             formik.errors.categories.forEach((err, idx) => {
-                if (err && formik.touched.categories?.[idx]) {
-                    Object.keys(err).forEach(k => match(false, err[k], `categories[${idx}].${k}`, 'categories'));
-                }
+                if (err) Object.keys(err).forEach(k => match(false, err[k], `categories[${idx}].${k}`, 'categories'));
             });
         }
         if (formik.errors.rounds) {
             formik.errors.rounds.forEach((err, idx) => {
-                if (err && formik.touched.rounds?.[idx]) {
-                    Object.keys(err).forEach(k => match(false, err[k], `rounds[${idx}].${k}`, 'rounds'));
-                }
+                if (err) Object.keys(err).forEach(k => match(false, err[k], `rounds[${idx}].${k}`, 'rounds'));
             });
         }
         return items;
@@ -541,6 +533,7 @@ function HackathonConfig() {
                 {errCount} issues
             </div>
         );
+        if (!selectedContestId && !formik.dirty) return null;
         return (
             <div className="hc-val-dot ok">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
@@ -887,12 +880,12 @@ function HackathonConfig() {
                                                     <div className="hc-grid-2" style={{ marginBottom: 20 }}>
                                                         <div className="hc-field">
                                                             <label className="hc-label">Round Name <span>*</span></label>
-                                                            <input className={`hc-input${formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].phaseName`} value={round.phaseName} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest} />
+                                                            <input className={`hc-input${formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].phaseName`} value={round.phaseName} onChange={formik.handleChange} onBlur={handleBlurTrim} disabled={isClosedContest || round.state === 'CLOSED'} />
                                                             {formik.touched.rounds?.[rIdx]?.phaseName && formik.errors.rounds?.[rIdx]?.phaseName && <div className="hc-err"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.errors.rounds[rIdx].phaseName}</div>}
                                                         </div>
                                                         <div className="hc-field">
                                                             <label className="hc-label">Select Category <span>*</span></label>
-                                                            <select className={`hc-select${formik.touched.rounds?.[rIdx]?.categoryId && formik.errors.rounds?.[rIdx]?.categoryId ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].categoryId`} value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest}>
+                                                            <select className={`hc-select${formik.touched.rounds?.[rIdx]?.categoryId && formik.errors.rounds?.[rIdx]?.categoryId ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].categoryId`} value={round.categoryId} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || round.state === 'CLOSED'}>
                                                                 <option value="">-- Select Category --</option>
                                                                 {formik.values.categories.map(c => {
                                                                     const isSelected = formik.values.rounds.some(other => other.id !== round.id && String(other.categoryId) === String(c.id));
@@ -907,7 +900,7 @@ function HackathonConfig() {
                                                         <div className="hc-grid-2">
                                                             <div className="hc-field">
                                                                 <label className="hc-label">Round Format <span>*</span></label>
-                                                                {!isClosedContest && (
+                                                                {!isClosedContest && round.state !== 'CLOSED' && (
                                                                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                                                                         <input className="hc-input" style={{ height: 30, fontSize: 12 }} placeholder="Add new format..." value={customFormatInput[rIdx] || ''} onChange={e => setCustomFormatInput(p => ({ ...p, [rIdx]: e.target.value }))} />
                                                                         <button type="button" className="hc-btn-primary" style={{ height: 30, padding: '0 12px' }} onClick={() => {
@@ -920,7 +913,7 @@ function HackathonConfig() {
                                                                         }}>Add</button>
                                                                     </div>
                                                                 )}
-                                                                <select className={`hc-select${formik.touched.rounds?.[rIdx]?.roundFormat && formik.errors.rounds?.[rIdx]?.roundFormat ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].roundFormat`} value={round.roundFormat || ''} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest}>
+                                                                <select className={`hc-select${formik.touched.rounds?.[rIdx]?.roundFormat && formik.errors.rounds?.[rIdx]?.roundFormat ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].roundFormat`} value={round.roundFormat || ''} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled={isClosedContest || round.state === 'CLOSED'}>
                                                                     <option value="">-- Select Format --</option>
                                                                     {availableRoundFormats.map((fmt, i) => <option key={i} value={fmt}>{fmt}</option>)}
                                                                 </select>
@@ -928,7 +921,7 @@ function HackathonConfig() {
                                                             </div>
                                                             <div className="hc-field">
                                                                 <label className="hc-label">Submission Requirements <span>*</span></label>
-                                                                {!isClosedContest && (
+                                                                {!isClosedContest && round.state !== 'CLOSED' && (
                                                                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                                                                         <input className="hc-input" style={{ height: 30, fontSize: 12 }} placeholder="Custom requirement..." value={customSubReqInput[rIdx] || ''} onChange={e => setCustomSubReqInput(p => ({ ...p, [rIdx]: e.target.value }))} />
                                                                         <button type="button" className="hc-btn-primary" style={{ height: 30, padding: '0 12px' }} onClick={() => {
@@ -944,7 +937,7 @@ function HackathonConfig() {
                                                                 <div className="hc-checklist-grid">
                                                                     {availableSubReqs.map(req => (
                                                                         <label key={req.value} className="hc-check-item">
-                                                                            <input type="checkbox" name={`rounds[${rIdx}].submissionRequirements`} value={req.value} checked={Array.isArray(round.submissionRequirements) && round.submissionRequirements.includes(req.value)} onChange={formik.handleChange} disabled={isClosedContest} />
+                                                                            <input type="checkbox" name={`rounds[${rIdx}].submissionRequirements`} value={req.value} checked={Array.isArray(round.submissionRequirements) && round.submissionRequirements.includes(req.value)} onChange={formik.handleChange} disabled={isClosedContest || round.state === 'CLOSED'} />
                                                                             {req.label}
                                                                         </label>
                                                                     ))}
@@ -971,7 +964,7 @@ function HackathonConfig() {
                                                             return (
                                                                 <div className="hc-field" key={field}>
                                                                     <label className="hc-label">{field.charAt(0).toUpperCase() + field.replace(/At$|AtUrgent$/, '').slice(1).replace(/([A-Z])/g, ' $1')} <span>*</span></label>
-                                                                    <input type="datetime-local" className={`hc-input${formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].${field}`} value={round[field] || ''} onChange={e => handleSmartDateChange(e, rIdx)} onFocus={() => handleFocusDate(rIdx, field)} onBlur={formik.handleBlur} min={minVal} max={formik.values.contestEndAt || bounds.max} disabled={isClosedContest} />
+                                                                    <input type="datetime-local" className={`hc-input${formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] ? ' is-invalid' : ''}`} name={`rounds[${rIdx}].${field}`} value={round[field] || ''} onChange={e => handleSmartDateChange(e, rIdx)} onFocus={() => handleFocusDate(rIdx, field)} onBlur={formik.handleBlur} min={minVal} max={formik.values.contestEndAt || bounds.max} disabled={isClosedContest || round.state === 'CLOSED'} />
                                                                     {formik.touched.rounds?.[rIdx]?.[field] && formik.errors.rounds?.[rIdx]?.[field] && <div className="hc-err"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.errors.rounds[rIdx][field]}</div>}
                                                                     {suggestions[`${rIdx}_${field}`] && (
                                                                         <div className="hc-suggest-banner">

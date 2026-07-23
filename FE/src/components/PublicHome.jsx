@@ -107,7 +107,7 @@ function ContestCard({ contest, onSelectContest }) {
                 </div>
             )}
 
-            <div className="ph-contest-action" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div className="ph-contest-action" style={{ display: 'grid', gridTemplateColumns: ctaAction ? '1fr 1fr' : '1fr', gap: '8px' }}>
                 <button
                     className="ph-btn-card"
                     onClick={handleViewDetails}
@@ -115,14 +115,16 @@ function ContestCard({ contest, onSelectContest }) {
                 >
                     View Details
                 </button>
-                <button
-                    className={`ph-btn-card ${upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED' ? 'ph-btn-card-closed' : ''}`}
-                    onClick={handlePrimaryClick}
-                    disabled={isDisabled}
-                    style={Object.keys(customStyle).length > 0 ? customStyle : {}}
-                >
-                    {ctaText}
-                </button>
+                {ctaAction && (
+                    <button
+                        className={`ph-btn-card ${upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED' ? 'ph-btn-card-closed' : ''}`}
+                        onClick={handlePrimaryClick}
+                        disabled={isDisabled}
+                        style={Object.keys(customStyle).length > 0 ? customStyle : {}}
+                    >
+                        {ctaText}
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -296,15 +298,16 @@ export default function PublicHome() {
     }, [filteredContests, searchParams, contests]);
 
     useEffect(() => {
-        if (contests.length > 0 && searchParams.get('contestId') && !displayContest) {
-            const urlId = searchParams.get('contestId');
+        const urlId = searchParams.get('contestId');
+        if (!urlId) {
+            setDisplayContest(null);
+        } else if (contests.length > 0) {
             const target = contests.find(c => String(c.id) === String(urlId));
-            if (target && !window.hasAutoOpenedModal) {
+            if (target && (!displayContest || String(displayContest.id) !== String(urlId))) {
                 setDisplayContest(target);
-                window.hasAutoOpenedModal = true;
             }
         }
-    }, [contests, searchParams]);
+    }, [searchParams, contests, displayContest]);
 
     if (loading) {
         return (
@@ -372,7 +375,6 @@ export default function PublicHome() {
                             {filteredContests.map(c => (<ContestCard key={c.id} contest={c}
                                                                      onSelectContest={() => {
                                                                          setSelectedContest(c);
-                                                                         setDisplayContest(c);
                                                                          setSearchParams({ contestId: c.id });
                                                                      }} />))}
                         </div>
@@ -380,7 +382,11 @@ export default function PublicHome() {
                 </div>
             </section>
             {displayContest && (
-                <ContestDetailModal contest={displayContest} onClose={() => { setDisplayContest(null); setSelectedContest(null); }} />
+                <ContestDetailModal contest={displayContest} onClose={() => {
+                    setDisplayContest(null);
+                    setSelectedContest(null);
+                    setSearchParams({});
+                }} />
             )}
 
             <section className="ph-section">
