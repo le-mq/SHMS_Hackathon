@@ -101,7 +101,8 @@ public class AllocationAdminService {
                 judgeAssignmentRepository.save(judgeAssignment);
             }
         }
-        auditLogService.log("ALLOCATE_EXPERT", "User", user.getUsername(), "UNALLOCATED", "ALLOCATED", "Assigned expert to track/team");
+        auditLogService.log("ALLOCATE_EXPERT", "User", user.getUsername(), "UNALLOCATED", "ALLOCATED",
+                "Assigned expert to track/team");
     }
 
     @Transactional(readOnly = true)
@@ -153,29 +154,29 @@ public class AllocationAdminService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        Long categoryId = round.getCategory() != null ? round.getCategory().getId() : null;
         Long contestId = round.getContest() != null ? round.getContest().getId() : null;
 
         List<Map<String, Object>> result = new ArrayList<>();
 
-        if (categoryId == null || contestId == null) {
+        if (contestId == null) {
             return result;
         }
 
-        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
-                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
+        // Get all rounds of this contest sorted chronologically by submission open time
+        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
                 .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
                 .toList();
 
         int idx = -1;
-        for (int i = 0; i < categoryRounds.size(); i++) {
-            if (categoryRounds.get(i).getId().equals(round.getId())) {
+        for (int i = 0; i < contestRounds.size(); i++) {
+            if (contestRounds.get(i).getId().equals(round.getId())) {
                 idx = i;
                 break;
             }
         }
 
         if (idx <= 0) {
+            // First round of the entire contest gets all approved teams
             List<Team> approvedTeams = teamRepository.findByContestId(contestId)
                     .stream()
                     .filter(t -> "APPROVED".equals(t.getStatus()))
@@ -189,8 +190,10 @@ public class AllocationAdminService {
                 result.add(tm);
             }
         } else {
-            Round previousRound = categoryRounds.get(idx - 1);
-            List<RankingResult> qualifiedResults = rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
+            // Subsequent rounds only get teams that qualified from the previous round
+            Round previousRound = contestRounds.get(idx - 1);
+            List<RankingResult> qualifiedResults = rankingResultRepository.findQualifiedByRoundId(previousRound.getId())
+                    .stream()
                     .filter(rr -> rr.getDatePublishedAt() != null)
                     .toList();
 
@@ -262,10 +265,12 @@ public class AllocationAdminService {
             Map<Long, Map<String, Object>> trackAllocations = expertEntry.getValue();
 
             Map<String, Object> currentTrackAlloc = trackAllocations.get(targetCategory.getId());
-            if (currentTrackAlloc == null) continue;
+            if (currentTrackAlloc == null)
+                continue;
 
             User expert = userRepository.findById(expertId).orElse(null);
-            if (expert == null || expert.getEmail() == null) continue;
+            if (expert == null || expert.getEmail() == null)
+                continue;
 
             boolean isJudge = Boolean.TRUE.equals(currentTrackAlloc.get("isJudge"));
             @SuppressWarnings("unchecked")
@@ -286,8 +291,7 @@ public class AllocationAdminService {
                         roundName,
                         trackName,
                         mentoredTeamNames,
-                        isJudge
-                );
+                        isJudge);
             }
         }
     }

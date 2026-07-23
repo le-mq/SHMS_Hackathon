@@ -219,14 +219,10 @@ public class RankingAdminService {
         String contestName = contest.getName();
         String roundName = round.getPhaseName();
 
-        List<ContestRubric> rubricsForRound = new ArrayList<>();
-        if (round.getCategory() != null) {
-            rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+        if (round.getCategory() == null) {
+            throw new IllegalArgumentException("Round is not associated with any category");
         }
-        String actualCategoryName = "Unknown";
-        if (!rubricsForRound.isEmpty() && rubricsForRound.get(0).getCategory() != null) {
-            actualCategoryName = rubricsForRound.get(0).getCategory().getName();
-        }
+        String actualCategoryName = round.getCategory().getName();
 
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
                 .filter(s -> s.getTeam() != null && s.getTeam().getContest() != null &&
@@ -296,7 +292,7 @@ public class RankingAdminService {
 
             rankingResultRepository.save(RankingResult.builder()
                     .round(round)
-                    .category(rubricsForRound.isEmpty() ? null : rubricsForRound.get(0).getCategory())
+                    .category(round.getCategory())
                     .team(team)
                     .rankNo(entry.getRank())
                     .finalScore(entry.getAverageScore())
@@ -323,7 +319,7 @@ public class RankingAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         // Must publish scores first
-        if (!submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(round.getId())) {
+        if (!submissionRepository.existsByRoundIdAndHistoryLogIsPublished(round.getId())) {
             throw new IllegalArgumentException("You must Publish Score before publishing results.");
         }
 

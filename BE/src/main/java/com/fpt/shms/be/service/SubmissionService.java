@@ -490,7 +490,7 @@ public class SubmissionService {
         for (Round r : rounds) {
             Submission sub = latestSubByRound.get(r.getId());
 
-            boolean isPublished = submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId());
+            boolean isPublished = submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId());
             java.time.LocalDateTime publishDateTime = r.getPublishResultAt();
             java.util.Date publishDate = publishDateTime != null
                     ? java.util.Date.from(publishDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant())
@@ -724,7 +724,7 @@ public class SubmissionService {
                 : new ArrayList<>();
 
         boolean anyRoundPublished = rounds.stream().anyMatch(
-                r -> submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId()));
+                r -> submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId()));
 
         if (!anyRoundPublished) {
             throw new IllegalArgumentException("Scores have not been published yet for this team's contest.");
@@ -754,7 +754,7 @@ public class SubmissionService {
         List<com.fpt.shms.be.dto.TeamScoreDetailsResponse.RoundScoreDto> roundScores = new ArrayList<>();
 
         for (Round r : rounds) {
-            boolean scorePublished = submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId());
+            boolean scorePublished = submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId());
             boolean resultPublished = r.getPublishResultAt() != null
                     && !r.getPublishResultAt().isAfter(LocalDateTime.now());
             if (!scorePublished)
