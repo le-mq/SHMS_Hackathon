@@ -36,6 +36,15 @@ const EvaluatorDashboard = () => {
     const [teamFilter, setTeamFilter] = useState('ALL');
 
     useEffect(() => {
+        const handlePopState = () => {
+            if (previewContestId) setPreviewContestId(null);
+            if (previewRoundId) setPreviewRoundId(null);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [previewContestId, previewRoundId]);
+
+    useEffect(() => {
         const fetchDashboard = async () => {
             setIsLoading(true);
             setData(null);
@@ -265,6 +274,7 @@ const EvaluatorDashboard = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        window.history.pushState({ modal: 'contest' }, '', window.location.href);
                                                         setPreviewContestId(c.id);
                                                     }}
                                                     style={{ padding: '8px 16px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}
@@ -557,7 +567,7 @@ const EvaluatorDashboard = () => {
                 <RoundDetailsModal roundId={previewRoundId} mode="round" onClose={() => setPreviewRoundId(null)} />
             )}
             {previewContestId && (
-                <RoundDetailsModal contestId={previewContestId} mode="contest" onClose={() => setPreviewContestId(null)} />
+                <RoundDetailsModal contestId={previewContestId} mode="contest" onClose={() => window.history.back()} />
             )}
         </div>
     );

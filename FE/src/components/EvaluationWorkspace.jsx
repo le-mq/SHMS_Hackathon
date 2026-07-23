@@ -104,7 +104,9 @@ const EvaluationWorkspace = () => {
         if (!isComplete) return;
         setIsSubmitting(true);
         const payload = {
-            submissionId: Number(evalData?.submissionId || evalData?.id || teamId),
+            submissionId: evalData?.submissionId ? Number(evalData.submissionId) : null,
+            teamId: Number(teamId),
+            roundId: Number(roundId),
             scores: scores.map(s => ({
                 criteriaId: Number(s.criteriaId),
                 pointsAwarded: parseFloat(s.pointsAwarded),
@@ -210,7 +212,7 @@ const EvaluationWorkspace = () => {
                                     <div style={{ marginBottom: evalData?.contestRules ? '24px' : '0' }}>
                                         <div className="pid-label" style={{ marginBottom: '8px' }}>Submission Requirements</div>
                                         <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
-                                            {evalData.submissionRequirements}
+                                            {typeof evalData.submissionRequirements === 'string' ? evalData.submissionRequirements.replace(/,/g, ', ') : (Array.isArray(evalData.submissionRequirements) ? evalData.submissionRequirements.join(', ') : evalData.submissionRequirements)}
                                         </div>
                                     </div>
                                 )}

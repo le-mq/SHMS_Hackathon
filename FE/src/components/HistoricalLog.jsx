@@ -145,11 +145,9 @@ const HistoricalLog = () => {
                                             <span>{detail.criteriaName} {detail.weight ? <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal', marginLeft: '8px' }}>(Weight: {detail.weight}%)</span> : null}</span>
                                             <span style={{ color: '#2563eb' }}>{detail.pointsAwarded} pts</span>
                                         </div>
-                                        {detail.feedback && (
-                                            <div style={{ fontSize: '13px', color: '#475569', fontStyle: 'italic', background: 'white', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '6px' }}>
-                                                "{detail.feedback}"
-                                            </div>
-                                        )}
+                                        <div style={{ fontSize: '13px', color: '#475569', fontStyle: 'italic', background: 'white', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '6px' }}>
+                                            {detail.feedback ? `"${detail.feedback}"` : <span style={{ color: '#94a3b8' }}>No feedback provided</span>}
+                                        </div>
                                     </div>
                                 ))}
                                 {(!selectedRecord.details || selectedRecord.details.length === 0) && (
