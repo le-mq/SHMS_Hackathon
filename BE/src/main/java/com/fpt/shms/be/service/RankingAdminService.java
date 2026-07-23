@@ -206,11 +206,6 @@ public class RankingAdminService {
 
     @Transactional
     public ProcessRankingsResponse processRankings(Long contestId, Long roundId, int topN) {
-        RankingReadinessResponse readiness = getReadiness(contestId, roundId);
-        if (!readiness.isAllReady()) {
-            throw new IllegalArgumentException("Not all evaluators have finalized scores");
-        }
-
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
@@ -328,8 +323,14 @@ public class RankingAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
         // Must publish scores first
-        if (round.getReviewCalibrationAt() == null || round.getReviewCalibrationAt().isAfter(LocalDateTime.now())) {
+        if (!submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(round.getId())) {
             throw new IllegalArgumentException("You must Publish Score before publishing results.");
+        }
+
+        // Must wait until Review Calibration period has concluded
+        if (round.getReviewCalibrationAt() != null && LocalDateTime.now().isBefore(round.getReviewCalibrationAt())) {
+            throw new IllegalArgumentException(
+                    "Cannot publish results before the Review Calibration period has concluded.");
         }
 
         List<RankingResult> results = rankingResultRepository.findByRoundId(round.getId());
@@ -363,8 +364,14 @@ public class RankingAdminService {
                     "Results have already been published. Cannot change the score publication state.");
         }
 
-        round.setReviewCalibrationAt(LocalDateTime.now());
-        roundRepository.save(round);
+        if (round.getGradingDeadlineAt() != null && LocalDateTime.now().isBefore(round.getGradingDeadlineAt())) {
+            throw new IllegalArgumentException("Cannot publish scores before the grading deadline.");
+        }
+
+        if (round.getReviewCalibrationAt() == null) {
+            round.setReviewCalibrationAt(LocalDateTime.now());
+            roundRepository.save(round);
+        }
 
         // Snapshot current average scores into historyLog of each team's latest
         // submission for this round
