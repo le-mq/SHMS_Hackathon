@@ -6,6 +6,8 @@ import java.util.List;
 @Data
 public class SubmitScoreRequest {
     private Long submissionId;
+    private Long teamId;
+    private Long roundId;
     private List<ScoreEntry> scores;
 
     @Data
