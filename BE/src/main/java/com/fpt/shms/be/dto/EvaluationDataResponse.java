@@ -30,5 +30,7 @@ public class EvaluationDataResponse {
         private String name;
         private String description;
         private Integer weight;
+        private Double pointsAwarded;
+        private String feedback;
     }
 }
