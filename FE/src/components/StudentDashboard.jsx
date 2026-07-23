@@ -485,7 +485,7 @@ const StudentDashboard = () => {
                                                         if (canRegister) navigate('/student/competitions?contestId=' + contest.id);
                                                     }}
                                                 >
-                                                    {isRegistrationExpired ? 'Ended' : (isRegistrationNotStarted ? 'Not Started' : 'Register')}
+                                                    {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : 'Register')}
                                                 </button>
                                             );
                                         })()}

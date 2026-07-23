@@ -141,7 +141,7 @@ const CompetitionCard = ({ comp, onViewDetails, onRegister, isRegistering, myTea
                         style={{ ...(!canRegister ? { backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: 'white', cursor: 'not-allowed' } : {}), display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                         onClick={() => onRegister(comp)}
                     >
-                        {isRegistrationExpired ? 'Ended' : (isRegistrationNotStarted ? 'Not Started' : (canRegister ? 'Register' : 'Closed'))}
+                        {isRegistrationExpired ? 'Registration Closed' : (isRegistrationNotStarted ? 'Not Started' : (canRegister ? 'Register' : 'Closed'))}
                     </button>
                 )}
             </div>
@@ -335,7 +335,7 @@ const CompetitionRegistration = () => {
     // Ineligible members modal state
     const [ineligibleModal, setIneligibleModal] = useState({ open: false, members: [], pendingRequest: null });
     const [participatedContestIds, setParticipatedContestIds] = useState(new Set());
-    const loadData = async (silent = false) => {
+    const loadData = async (silent = false, preserveError = false) => {
         try {
             if (!silent) setIsLoading(true);
             const token = localStorage.getItem('shms_token');
@@ -386,7 +386,7 @@ const CompetitionRegistration = () => {
             });
 
             setMyTeams(Array.from(uniqueTeamsMap.values()));
-            setError('');
+            if (!preserveError) setError('');
 
             const autoRegId = searchParams.get('contestId');
             if (autoRegId) {
@@ -528,6 +528,8 @@ const CompetitionRegistration = () => {
         } catch (err) {
             setError(err.message || 'Force registration failed.');
             setIneligibleModal({ open: false, members: [], pendingRequest: null });
+            loadData(true, true);
+            setTimeout(() => setError(''), 5000);
         } finally {
             setIsSubmitting(false);
         }

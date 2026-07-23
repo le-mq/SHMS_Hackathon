@@ -339,7 +339,7 @@ const TeamStatus = () => {
                                     <div className="tc-body">
                                         <div className="tc-row">
                                             <span className="tc-label">Competition:</span>
-                                            <span className="tc-value">{pt.contest?.name || 'Not Registered'}</span>
+                                            <span className="tc-value">{status === 'APPROVED' ? (pt.contest?.name || 'Not Registered') : 'Not Registered'}</span>
                                         </div>
                                         <div className="tc-row">
                                             <span className="tc-label">Members:</span>
@@ -385,7 +385,7 @@ const TeamStatus = () => {
                 <div>
                     <h1 className="status-title">{data.teamName}</h1>
                     <p className="status-subtitle">
-                        {contest?.name && contest.name !== 'Not Registered' ? (
+                        {status === 'APPROVED' && contest?.name && contest.name !== 'Not Registered' ? (
                             <>Registered for: <strong className="highlight-contest">{contest.name}</strong></>
                         ) : 'Not registered for any competition yet.'}
                     </p>
