@@ -56,7 +56,8 @@ public class ContestAdminService {
             return new ArrayList<>();
         }
         Long categoryId = round.getCategory().getId();
-        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId()).stream()
+        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
+                .stream()
                 .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
                 .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
                 .toList();
@@ -130,6 +131,8 @@ public class ContestAdminService {
                                 r.getReviewCalibrationAt() != null ? r.getReviewCalibrationAt().toString() : "");
                         roundMap.put("publishResultAt",
                                 r.getPublishResultAt() != null ? r.getPublishResultAt().toString() : "");
+                        roundMap.put("isScorePublished",
+                                submissionRepository.existsByRoundIdAndHistoryLogIsNotNull(r.getId()));
                         roundMap.put("state", r.getState() != null ? r.getState().name() : "UPCOMING");
                         roundMap.put("submissionRequirements",
                                 r.getSubmissionRequirements() != null ? r.getSubmissionRequirements() : "");
@@ -313,7 +316,8 @@ public class ContestAdminService {
                     teamRepository.saveAll(teams);
                 }
                 contest.setStatus(newStatus);
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
         }
         contest.checkAndSyncStatus();
         contest = contestRepository.save(contest);
@@ -435,26 +439,38 @@ public class ContestAdminService {
                             "Deadline cannot be before open time for " + roundDto.getPhaseName());
                 }
 
-                if (contest.getContestStartAt() != null && roundDto.getSubmissionOpen().isBefore(contest.getContestStartAt())) {
+                if (contest.getContestStartAt() != null
+                        && roundDto.getSubmissionOpen().isBefore(contest.getContestStartAt())) {
                     throw new IllegalArgumentException(
-                            "Round '" + roundDto.getPhaseName() + "' cannot start before the contest start time (" + contest.getContestStartAt().toLocalDate() + ")");
+                            "Round '" + roundDto.getPhaseName() + "' cannot start before the contest start time ("
+                                    + contest.getContestStartAt().toLocalDate() + ")");
                 }
 
                 if (contest.getContestEndAt() != null) {
-                    if (roundDto.getSubmissionDeadline() != null && roundDto.getSubmissionDeadline().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' submission deadline cannot be after the contest end time.");
+                    if (roundDto.getSubmissionDeadline() != null
+                            && roundDto.getSubmissionDeadline().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName()
+                                + "' submission deadline cannot be after the contest end time.");
                     }
-                    if (roundDto.getGradingDeadlineAt() != null && roundDto.getGradingDeadlineAt().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' grading deadline cannot be after the contest end time.");
+                    if (roundDto.getGradingDeadlineAt() != null
+                            && roundDto.getGradingDeadlineAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName()
+                                + "' grading deadline cannot be after the contest end time.");
                     }
-                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getReviewCalibrationAt().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' review calibration time cannot be after the contest end time.");
+                    if (roundDto.getReviewCalibrationAt() != null
+                            && roundDto.getReviewCalibrationAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName()
+                                + "' review calibration time cannot be after the contest end time.");
                     }
-                    if (roundDto.getPublishResultAt() != null && roundDto.getPublishResultAt().isAfter(contest.getContestEndAt())) {
-                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' publish result time cannot be after the contest end time.");
+                    if (roundDto.getPublishResultAt() != null
+                            && roundDto.getPublishResultAt().isAfter(contest.getContestEndAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName()
+                                + "' publish result time cannot be after the contest end time.");
                     }
-                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getPublishResultAt() != null && !roundDto.getReviewCalibrationAt().isBefore(roundDto.getPublishResultAt())) {
-                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName() + "' review calibration time must be strictly before the publish result time.");
+                    if (roundDto.getReviewCalibrationAt() != null && roundDto.getPublishResultAt() != null
+                            && !roundDto.getReviewCalibrationAt().isBefore(roundDto.getPublishResultAt())) {
+                        throw new IllegalArgumentException("Round '" + roundDto.getPhaseName()
+                                + "' review calibration time must be strictly before the publish result time.");
                     }
                 }
 
@@ -537,7 +553,8 @@ public class ContestAdminService {
         Contest contest = contestRepository.findById(request.getContestId())
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
 
-        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         Admin admin = adminRepository.findById(user.getId())
