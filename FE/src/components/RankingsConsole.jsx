@@ -384,17 +384,32 @@ const RankingsConsole = () => {
         }
     }, [activeTab, selectedContestId, selectedRoundId]);
 
+    const isRoundClosed = roundProgress && roundProgress.roundStatus === 'CLOSED';
+    const activeProgressTeams = roundProgress && roundProgress.teams
+        ? roundProgress.teams.filter(t => t.teamStatus !== 'FORMING')
+        : [];
+    const countSubmitted = activeProgressTeams.filter(t => t.submissionState !== 'Not Submitted' && t.submissionState !== 'MISSED_DEADLINE').length;
+    const countAwaiting = isRoundClosed ? 0 : activeProgressTeams.filter(t => t.submissionState === 'Not Submitted').length;
+    const countNotSubmitted = isRoundClosed
+        ? activeProgressTeams.filter(t => t.submissionState === 'MISSED_DEADLINE' || t.submissionState === 'Not Submitted').length
+        : activeProgressTeams.filter(t => t.submissionState === 'MISSED_DEADLINE').length;
+
     let filteredSubmissions = [];
     if (roundProgress && roundProgress.teams) {
         filteredSubmissions = roundProgress.teams.filter(t => {
+            if (t.teamStatus === 'FORMING') return false;
             const matchesSearch = t.teamName.toLowerCase().includes(searchQuery.toLowerCase());
             if (submissionFilter === 'SUBMITTED') {
                 return matchesSearch && t.submissionState !== 'Not Submitted' && t.submissionState !== 'MISSED_DEADLINE';
             }
             if (submissionFilter === 'AWAITING') {
+                if (isRoundClosed) return false;
                 return matchesSearch && t.submissionState === 'Not Submitted';
             }
             if (submissionFilter === 'NOT_SUBMITTED') {
+                if (isRoundClosed) {
+                    return matchesSearch && (t.submissionState === 'MISSED_DEADLINE' || t.submissionState === 'Not Submitted');
+                }
                 return matchesSearch && t.submissionState === 'MISSED_DEADLINE';
             }
             return matchesSearch;
@@ -999,104 +1014,106 @@ const RankingsConsole = () => {
 
                         {viewMode === 'COMPILATION_VIEW' && (
                             <>
-                                <div className="rankings-grid">
-                                    <div className="config-card">
-                                        <h2 className="config-card-title">Promotion Configuration</h2>
-                                        <p className="config-card-desc">Define how many teams will advance to the next stage based on the compiled rankings.</p>
-                                        <label className="config-label">Define Top N Promotion Cap</label>
-                                        <input
-                                            type="number"
-                                            className="top-n-input"
-                                            value={topN}
-                                            min={0}
-                                            max={readinessData.summary.totalTeams}
-                                            onKeyDown={(e) => {
-                                                if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                            }}
-                                            onWheel={(e) => e.target.blur()}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (!/^\d*$/.test(value)) return;
-                                                if (value === '') { setTopN(''); return; }
-                                                const num = Number(value);
-                                                if (num < 0) { setTopN(1); }
-                                                else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
-                                                else { setTopN(num); }
-                                            }}
-                                        />
+                                <div className="publication-control-panel" style={{ padding: '24px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>Publication & Promotion Control</h2>
+                                    </div>
+
+                                    {/* Top Bar Controls: Promotion Config + Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
+
+                                        {/* Compact Top N Input */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRight: '1px solid #e2e8f0', paddingRight: '16px' }}>
+                                            <label style={{ fontSize: '13px', fontWeight: '700', color: '#475569', whiteSpace: 'nowrap' }}>Top N Cap:</label>
+                                            <input
+                                                type="number"
+                                                className="top-n-input"
+                                                value={topN}
+                                                min={0}
+                                                max={readinessData.summary.totalTeams}
+                                                onKeyDown={(e) => {
+                                                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                                }}
+                                                onWheel={(e) => e.target.blur()}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (!/^\d*$/.test(value)) return;
+                                                    if (value === '') { setTopN(''); return; }
+                                                    const num = Number(value);
+                                                    if (num < 0) { setTopN(1); }
+                                                    else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
+                                                    else { setTopN(num); }
+                                                }}
+                                                style={{ width: '70px', padding: '8px', borderRadius: '6px', border: '1.5px solid #cbd5e1', textAlign: 'center', fontWeight: '700', fontSize: '14px', outline: 'none' }}
+                                            />
+                                        </div>
+
+                                        {/* Generate Leaderboard Action */}
                                         <button
                                             id="btn-generate-ranking"
                                             className={`execute-btn-v ${isProcessing ? 'processing' : ''}`}
                                             disabled={isActionDisabled || isResultPublished}
                                             onClick={handleGenerate}
                                             title={isResultPublished ? 'Results published — ranking is locked' : ''}
+                                            style={{ padding: '9px 16px', fontSize: '13px', fontWeight: '700', borderRadius: '8px', border: 'none', cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer' }}
                                         >
-                                            {isProcessing ? 'Processing...' : 'Generate Leaderboard & Execute Promotion'}
+                                            {isProcessing ? 'Processing...' : '⚡ Generate Leaderboard'}
                                         </button>
-                                        <div className="config-warning">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            This action will lock current scores.
-                                        </div>
-                                    </div>
 
-                                    <div className="publication-control-panel" style={{ marginTop: 24, padding: 24, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                                        <h3 style={{ marginTop: 0, marginBottom: 16 }}>Publication Control</h3>
-                                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                        <div style={{ flexGrow: 1 }} />
+
+                                        {/* Action Buttons */}
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                            <button
+                                                type="button"
+                                                className="view-chart-btn"
+                                                onClick={() => setIsChartModalOpen(true)}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '9px 16px',
+                                                    background: '#6366f1',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    fontWeight: 700,
+                                                    fontSize: '13px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
+                                                }}
+                                            >
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                </svg>
+                                                View Chart
+                                            </button>
+
                                             {!isResultPublished ? (
                                                 <>
-                                                    <button
-                                                        type="button"
-                                                        className="view-chart-btn"
-                                                        onClick={() => setIsChartModalOpen(true)}
-                                                        style={{
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '6px',
-                                                            padding: '6px 14px',
-                                                            background: '#6366f1',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '8px',
-                                                            fontWeight: 600,
-                                                            fontSize: '13px',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s ease',
-                                                            boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
-                                                        }}
-                                                        onMouseEnter={e => {
-                                                            e.currentTarget.style.background = '#4f46e5';
-                                                            e.currentTarget.style.transform = 'translateY(-1px)';
-                                                        }}
-                                                        onMouseLeave={e => {
-                                                            e.currentTarget.style.background = '#6366f1';
-                                                            e.currentTarget.style.transform = 'none';
-                                                        }}
-                                                    >
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                                        </svg>
-                                                        View Chart
-                                                    </button>
                                                     <button
                                                         id="btn-publish-score"
                                                         onClick={handlePublishScore}
                                                         disabled={!canPublishScore}
-                                                        style={{ padding: '8px 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: canPublishScore ? 'pointer' : 'not-allowed' }}
+                                                        style={{ padding: '9px 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishScore ? 'pointer' : 'not-allowed' }}
                                                     >
-                                                        {isScorePublished ? 'Update Published Scores' : 'Publish Score Review'}
+                                                        {isScorePublished ? 'Update Scores' : 'Publish Score Review'}
                                                     </button>
+
                                                     <button
                                                         id="btn-publish-result"
                                                         onClick={handlePublish}
                                                         disabled={!canPublishResult}
-                                                        style={{ padding: '8px 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: canPublishResult ? 'pointer' : 'not-allowed' }}
+                                                        style={{ padding: '9px 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishResult ? 'pointer' : 'not-allowed' }}
                                                     >
                                                         Publish Ranking Result
                                                     </button>
                                                 </>
                                             ) : (
-                                                <span style={{ padding: '8px 16px', background: '#dcfce7', color: '#15803d', borderRadius: '6px', fontWeight: 600 }}>Results Published & Locked</span>
+                                                <span style={{ padding: '8px 14px', background: '#dcfce7', color: '#15803d', borderRadius: '8px', fontWeight: 700, fontSize: '13px' }}>Results Published & Locked</span>
                                             )}
+
                                             <button
                                                 onClick={() => {
                                                     const token = localStorage.getItem('shms_token');
@@ -1106,186 +1123,188 @@ const RankingsConsole = () => {
                                                 style={{
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
-                                                    gap: '8px',
-                                                    padding: '8px 16px',
+                                                    gap: '6px',
+                                                    padding: '9px 16px',
                                                     background: '#10b981',
                                                     color: 'white',
                                                     border: 'none',
-                                                    borderRadius: '6px',
-                                                    fontWeight: 600,
+                                                    borderRadius: '8px',
+                                                    fontWeight: 700,
+                                                    fontSize: '13px',
                                                     cursor: 'pointer',
                                                     transition: 'all 0.2s ease',
                                                     boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                                                }}
-                                                onMouseEnter={e => {
-                                                    e.currentTarget.style.background = '#059669';
-                                                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.3)';
-                                                }}
-                                                onMouseLeave={e => {
-                                                    e.currentTarget.style.background = '#10b981';
-                                                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                                                 }}
                                             >
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                 </svg>
-                                                Download Score (CSV)
+                                                Export CSV
                                             </button>
                                         </div>
-                                        <div className={`readiness-banner ${readinessData.allReady ? 'ready' : 'not-ready'}`} style={{ marginTop: 24, marginBottom: 24 }}>
-                                    <div className="readiness-icon">
-                                        {readinessData.allReady
-                                            ? <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                            : <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>
-                                        }
                                     </div>
-                                    <div className="readiness-text">
-                                        <h3>{readinessData.allReady ? 'Readiness Check Passed' : 'Readiness Check: Pending'}</h3>
-                                        <p>
+
+                                    {/* Compact Readiness Banner */}
+                                    <div
+                                        className={`readiness-banner ${readinessData.allReady ? 'ready' : 'not-ready'}`}
+                                        style={{
+                                            marginBottom: 16,
+                                            padding: '10px 16px',
+                                            borderRadius: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            background: readinessData.allReady ? '#f0fdf4' : '#fffbeb',
+                                            border: `1px solid ${readinessData.allReady ? '#bbf7d0' : '#fef08a'}`
+                                        }}
+                                    >
+                                        <div style={{ color: readinessData.allReady ? '#16a34a' : '#d97706', display: 'flex', alignItems: 'center' }}>
                                             {readinessData.allReady
-                                                ? `All ${readinessData.evaluators.length}/${readinessData.evaluators.length} Evaluators have finalized their scores. Data is synchronized and ready for ranking compilation.`
-                                                : `${readinessData.evaluators.filter(e => e.status !== 'Finalized').length} evaluator(s) have not yet finalized scores. Ranking generation is locked until all panels are complete.`
+                                                ? <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                                : <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>
                                             }
-                                        </p>
-                                    </div>
-                                </div>
-
-                                 <div className="eval-table-card">
-                                    <table className="eval-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Evaluator Name</th>
-                                                <th>Department</th>
-                                                <th>Review Status</th>
-                                                <th>Finalized Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {readinessData.evaluators.map((ev, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="eval-name">{ev.name}</td>
-                                                    <td>{ev.dept}</td>
-                                                    <td>{ev.status === 'Finalized'
-                                                        ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
-                                                        : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
-                                                    }
-                                                    </td>
-                                                    <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
-                                                </tr>
-                                            ))}
-                                            {readinessData.evaluators.length === 0 && (
-                                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-
+                                        </div>
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            <strong style={{ fontSize: '13.5px', color: readinessData.allReady ? '#166534' : '#92400e' }}>
+                                                {readinessData.allReady ? 'Readiness Check Passed:' : 'Readiness Check Pending:'}
+                                            </strong>
+                                            <span style={{ fontSize: '13px', color: readinessData.allReady ? '#15803d' : '#b45309' }}>
+                                                {readinessData.allReady
+                                                    ? `All ${readinessData.evaluators.length} evaluators finalized scores.`
+                                                    : `${readinessData.evaluators.filter(e => e.status !== 'Finalized').length} evaluator(s) pending.`}
+                                            </span>
+                                        </div>
                                     </div>
 
-
-                                </div>
-
-                                
-
-                               
-
-                                {result && (
-                                    <div className="result-card visible" style={{ marginTop: 24 }}>
-                                        <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
-                                        <div className="result-stats">
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Qualified</div>
-                                                <div className="result-stat-val qualified">{currentCompiledTopN}</div>
-                                            </div>
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Eliminated</div>
-                                                <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
-                                            </div>
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Total Processed</div>
-                                                <div className="result-stat-val">{result.totalProcessed}</div>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
-                                            <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
-                                            <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                Download Full Rankings CSV
-                                            </button>
-                                        </div>
-                                        <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                                    {/* Evaluators Table */}
+                                    <div className="eval-table-card" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                        <table className="eval-table" style={{ margin: 0, width: '100%' }}>
                                             <thead>
                                                 <tr>
-                                                    <th style={{ color: '#0f172a' }}>Rank</th>
-                                                    <th style={{ color: '#0f172a' }}>Team Name</th>
-                                                    <th style={{ color: '#0f172a' }}>Average Score</th>
-                                                    <th style={{ color: '#0f172a' }}>Status</th>
-                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
-                                                    <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
+                                                    <th>Evaluator Name</th>
+                                                    <th>Department</th>
+                                                    <th>Review Status</th>
+                                                    <th>Finalized Date</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {result.results.map(r => {
-                                                    const isQualified = r.rank <= currentCompiledTopN;
-                                                    const teamPrize = getPrizeForRank(r.rank);
-                                                    return (
-                                                        <tr key={r.rank}>
-                                                            <td>#{r.rank}</td>
-                                                            <td>{r.teamName}</td>
-                                                            <td>{r.averageScore}</td>
-                                                            <td>
-                                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
-                                                                    {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
-                                                                </span>
-                                                            </td>
-                                                            {prizes.length > 0 && (
-                                                                <td>
-                                                                    {teamPrize ? (
-                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-                                                                            🏆 {teamPrize}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span style={{ color: '#94a3b8' }}>—</span>
-                                                                    )}
-                                                                </td>
-                                                            )}
-                                                            <td style={{ textAlign: 'right', paddingRight: '16px' }}>
-                                                                <button
-                                                                    disabled={isResultPublished}
-                                                                    onClick={() => {
-                                                                        if (isResultPublished) return;
-                                                                        setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
-                                                                        setIsRevalModalOpen(true);
-                                                                    }}
-                                                                    style={{
-                                                                        background: isResultPublished ? '#f1f5f9' : '#fef2f2',
-                                                                        border: `1px solid ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
-                                                                        padding: '6px 10px',
-                                                                        borderRadius: '6px',
-                                                                        cursor: isResultPublished ? 'not-allowed' : 'pointer',
-                                                                        fontSize: '13px',
-                                                                        display: 'inline-flex',
-                                                                        alignItems: 'center',
-                                                                        gap: '6px',
-                                                                        color: isResultPublished ? '#94a3b8' : '#dc2626',
-                                                                        fontWeight: 600,
-                                                                        boxShadow: isResultPublished ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
-                                                                        opacity: isResultPublished ? 0.6 : 1
-                                                                    }}
-                                                                    title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
-                                                                >
-                                                                    ⚠️ Request Re-eval
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
+                                                {readinessData.evaluators.map((ev, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="eval-name">{ev.name}</td>
+                                                        <td>{ev.dept}</td>
+                                                        <td>{ev.status === 'Finalized'
+                                                            ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
+                                                            : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
+                                                        }
+                                                        </td>
+                                                        <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
+                                                    </tr>
+                                                ))}
+                                                {readinessData.evaluators.length === 0 && (
+                                                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
-                                )}
+                                </div>
                             </>
+                        )}
+
+                        {result && (
+                            <div className="result-card visible" style={{ marginTop: 24 }}>
+                                <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
+                                <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
+                                <div className="result-stats">
+                                    <div className="result-stat">
+                                        <div className="result-stat-label">Qualified</div>
+                                        <div className="result-stat-val qualified">{currentCompiledTopN}</div>
+                                    </div>
+                                    <div className="result-stat">
+                                        <div className="result-stat-label">Eliminated</div>
+                                        <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
+                                    </div>
+                                    <div className="result-stat">
+                                        <div className="result-stat-label">Total Processed</div>
+                                        <div className="result-stat-val">{result.totalProcessed}</div>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
+                                    <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
+                                    <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                        Download Full Rankings CSV
+                                    </button>
+                                </div>
+                                <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ color: '#0f172a' }}>Rank</th>
+                                            <th style={{ color: '#0f172a' }}>Team Name</th>
+                                            <th style={{ color: '#0f172a' }}>Average Score</th>
+                                            <th style={{ color: '#0f172a' }}>Status</th>
+                                            {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
+                                            <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {result.results.map(r => {
+                                            const isQualified = r.rank <= currentCompiledTopN;
+                                            const teamPrize = getPrizeForRank(r.rank);
+                                            return (
+                                                <tr key={r.rank}>
+                                                    <td>#{r.rank}</td>
+                                                    <td>{r.teamName}</td>
+                                                    <td>{r.averageScore}</td>
+                                                    <td>
+                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
+                                                            {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
+                                                        </span>
+                                                    </td>
+                                                    {prizes.length > 0 && (
+                                                        <td>
+                                                            {teamPrize ? (
+                                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                                    🏆 {teamPrize}
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{ color: '#94a3b8' }}>—</span>
+                                                            )}
+                                                        </td>
+                                                    )}
+                                                    <td style={{ textAlign: 'right', paddingRight: '16px' }}>
+                                                        <button
+                                                            disabled={isResultPublished}
+                                                            onClick={() => {
+                                                                if (isResultPublished) return;
+                                                                setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
+                                                                setIsRevalModalOpen(true);
+                                                            }}
+                                                            style={{
+                                                                background: isResultPublished ? '#f1f5f9' : '#fef2f2',
+                                                                border: `1px solid ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
+                                                                padding: '6px 10px',
+                                                                borderRadius: '6px',
+                                                                cursor: isResultPublished ? 'not-allowed' : 'pointer',
+                                                                fontSize: '13px',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                                color: isResultPublished ? '#94a3b8' : '#dc2626',
+                                                                fontWeight: 600,
+                                                                boxShadow: isResultPublished ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
+                                                                opacity: isResultPublished ? 0.6 : 1
+                                                            }}
+                                                            title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
+                                                        >
+                                                            ⚠️ Request Re-eval
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
 
                         {viewMode === 'SUBMISSIONS_VIEW' && (
@@ -1306,9 +1325,9 @@ const RankingsConsole = () => {
 
                                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                         <button onClick={() => setSubmissionFilter('ALL')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #d1d5db', background: submissionFilter === 'ALL' ? '#1e293b' : 'white', color: submissionFilter === 'ALL' ? 'white' : '#4b5563', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>All</button>
-                                        <button onClick={() => setSubmissionFilter('SUBMITTED')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #86efac', background: submissionFilter === 'SUBMITTED' ? '#16a34a' : 'white', color: submissionFilter === 'SUBMITTED' ? 'white' : '#15803d', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Submitted ({roundProgress?.submittedCount || 0})</button>
-                                        <button onClick={() => setSubmissionFilter('AWAITING')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #fde68a', background: submissionFilter === 'AWAITING' ? '#ca8a04' : 'white', color: submissionFilter === 'AWAITING' ? 'white' : '#a16207', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Awaiting Submission ({roundProgress?.awaitingCount || 0})</button>
-                                        <button onClick={() => setSubmissionFilter('NOT_SUBMITTED')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #fca5a5', background: submissionFilter === 'NOT_SUBMITTED' ? '#dc2626' : 'white', color: submissionFilter === 'NOT_SUBMITTED' ? 'white' : '#b91c1c', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Not Submitted ({roundProgress?.notSubmittedCount || 0})</button>
+                                        <button onClick={() => setSubmissionFilter('SUBMITTED')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #86efac', background: submissionFilter === 'SUBMITTED' ? '#16a34a' : 'white', color: submissionFilter === 'SUBMITTED' ? 'white' : '#15803d', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Submitted ({countSubmitted})</button>
+                                        <button onClick={() => setSubmissionFilter('AWAITING')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #fde68a', background: submissionFilter === 'AWAITING' ? '#ca8a04' : 'white', color: submissionFilter === 'AWAITING' ? 'white' : '#a16207', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Awaiting Submission ({countAwaiting})</button>
+                                        <button onClick={() => setSubmissionFilter('NOT_SUBMITTED')} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #fca5a5', background: submissionFilter === 'NOT_SUBMITTED' ? '#dc2626' : 'white', color: submissionFilter === 'NOT_SUBMITTED' ? 'white' : '#b91c1c', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>Not Submitted ({countNotSubmitted})</button>
                                     </div>
                                 </div>
 
