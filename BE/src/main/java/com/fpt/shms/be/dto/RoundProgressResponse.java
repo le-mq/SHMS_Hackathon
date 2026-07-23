@@ -21,6 +21,7 @@ public class RoundProgressResponse {
     public static class TeamProgressDto {
         private Long teamId;
         private String teamName;
+        private String teamStatus;
         private String submissionState;
         private String submissionData;
         private String submissionRequirements;

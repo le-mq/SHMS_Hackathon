@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TeamService{
+public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
     private final UserRepository userRepository;
@@ -48,7 +48,8 @@ public class TeamService{
                 .build();
         team.generateTeamCode();
         team = teamRepository.save(team);
-        auditLogService.log("CREATE_TEAM", "Team", team.getName(), null, team.getStatus(), "Created by: " + leaderUsername);
+        auditLogService.log("CREATE_TEAM", "Team", team.getName(), null, team.getStatus(),
+                "Created by: " + leaderUsername);
 
         TeamMembership memberMembership = TeamMembership.builder()
                 .team(team)
@@ -60,8 +61,6 @@ public class TeamService{
 
         return team;
     }
-
-
 
     @Transactional(readOnly = true)
     public TeamStatusResponse getTeamStatus(String username, Long contestId) {
@@ -126,7 +125,9 @@ public class TeamService{
 
     private TeamStatusResponse buildTeamStatusResponse(Team team) {
         List<TeamMembership> roster = teamMembershipRepository.findByTeamId(team.getId())
-                .stream().filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus())).toList();
+                .stream()
+                .filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus()))
+                .toList();
 
         List<TeamStatusResponse.MemberDto> memberDtos = roster.stream().map(m -> {
             Student student = studentRepository.findByUser(m.getUser()).orElse(null);
@@ -139,7 +140,9 @@ public class TeamService{
                     .email(student != null ? student.getCorporateEmail() : "N/A")
                     .internalRole(m.getRole())
                     .status(m.getStatus())
-                    .universityName(student != null && student.getUniversity() != null ? student.getUniversity().getName() : "N/A")
+                    .universityName(
+                            student != null && student.getUniversity() != null ? student.getUniversity().getName()
+                                    : "N/A")
                     .isUnauthorized(isUnauthorized)
                     .hasAlreadyParticipated(hasAlreadyParticipated)
                     .build();
@@ -162,12 +165,18 @@ public class TeamService{
             submissionData = latestSub.getSubmissionData();
         }
 
-        int minMembers = (team.getContest() != null && team.getContest().getMinTeamMembers() != null) ? team.getContest().getMinTeamMembers() : 3;
-        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null) ? team.getContest().getMaxTeamMembers() : 5;
-        long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(), java.util.List.of("APPROVED", "PENDING"));
+        int minMembers = (team.getContest() != null && team.getContest().getMinTeamMembers() != null)
+                ? team.getContest().getMinTeamMembers()
+                : 3;
+        int maxMembers = (team.getContest() != null && team.getContest().getMaxTeamMembers() != null)
+                ? team.getContest().getMaxTeamMembers()
+                : 5;
+        long currentTotalMembers = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
+                java.util.List.of("APPROVED", "PENDING"));
 
         String finalStatus = team.getStatus() != null ? team.getStatus() : "FORMING";
-        if (team.getContest() != null && com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(team.getContest().getStatus())) {
+        if (team.getContest() != null
+                && com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(team.getContest().getStatus())) {
             finalStatus = "CLOSED";
         }
 
@@ -245,22 +254,28 @@ public class TeamService{
         }
 
         TeamMembership activeMembership = memberships.stream()
-                .filter(m -> m.getTeam() != null && m.getTeam().getName() != null && m.getTeam().getName().equals(request.getTeamName()))
+                .filter(m -> m.getTeam() != null && m.getTeam().getName() != null
+                        && m.getTeam().getName().equals(request.getTeamName()))
                 .findFirst()
                 .orElseGet(() -> memberships.stream()
-                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
+                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus())
+                                && (m.getTeam().getContest() == null
+                                || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED
+                                .equals(m.getTeam().getContest().getStatus())))
                         .max(java.util.Comparator.comparing(m -> m.getTeam().getId()))
                         .orElse(memberships.get(0)));
         Team team = activeMembership.getTeam();
 
-        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus()) || "CANCELLED".equals(team.getStatus())) {
+        if ("PENDING".equals(team.getStatus()) || "APPROVED".equals(team.getStatus())
+                || "CANCELLED".equals(team.getStatus())) {
             throw new IllegalArgumentException("Team registration is already pending, approved, or cancelled.");
         }
 
         team.setName(request.getTeamName());
         Contest contest = null;
         if (request.getContestId() != null) {
-            contest = contestRepository.findById(request.getContestId()).orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+            contest = contestRepository.findById(request.getContestId())
+                    .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
 
             if (Contest.ContestStatus.CLOSED.equals(contest.getStatus())) {
                 throw new IllegalArgumentException("Contest is closed and no longer accepts registrations.");
@@ -288,8 +303,7 @@ public class TeamService{
                     ineligibleMembers.add(new TeamRegistrationResponse.IneligibleMemberDto(
                             memberStudent.getFullName(),
                             memberStudent.getStudentCode(),
-                            "Unauthorized university"
-                    ));
+                            "Unauthorized university"));
                 }
             }
         }
@@ -298,8 +312,8 @@ public class TeamService{
         for (TeamMembership tm : approvedMembers) {
             Student student = studentRepository.findByUser(tm.getUser()).orElse(null);
             if (student != null) {
-                java.util.Optional<StudentVerificationData> verificationDataOpt =
-                        studentVerificationDataRepository.findByStudentCode(student.getStudentCode());
+                java.util.Optional<StudentVerificationData> verificationDataOpt = studentVerificationDataRepository
+                        .findByStudentCode(student.getStudentCode());
                 if (verificationDataOpt.isPresent()) {
                     StudentVerificationData verificationData = verificationDataOpt.get();
                     if (Boolean.FALSE.equals(verificationData.getIsCurrentStudent())) {
@@ -311,7 +325,8 @@ public class TeamService{
 
         if (!invalidMembersInfo.isEmpty()) {
             StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("Your team cannot register because the following members are not marked as Current Students:\n");
+            errorMsg.append(
+                    "Your team cannot register because the following members are not marked as Current Students:\n");
             for (String info : invalidMembersInfo) {
                 errorMsg.append(info).append("\n");
             }
@@ -326,9 +341,11 @@ public class TeamService{
                 boolean alreadyParticipated = false;
                 for (TeamMembership other : otherMemberships) {
                     Team otherTeam = other.getTeam();
-                    if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
+                    if (otherTeam != null && !otherTeam.getId().equals(team.getId())
+                            && otherTeam.getContest() != null) {
                         if (otherTeam.getContest().getId().equals(contest.getId())) {
-                            String otherStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
+                            String otherStatus = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase()
+                                    : "";
                             if ("APPROVED".equals(otherStatus) || "PENDING".equals(otherStatus)) {
                                 alreadyParticipated = true;
                                 break;
@@ -345,8 +362,7 @@ public class TeamService{
                         ineligibleMembers.add(new TeamRegistrationResponse.IneligibleMemberDto(
                                 student != null ? student.getFullName() : tm.getUser().getUsername(),
                                 student != null ? student.getStudentCode() : tm.getUser().getUsername(),
-                                "Already participated in this competition"
-                        ));
+                                "Already participated in this competition"));
                     }
                 }
             }
@@ -366,7 +382,8 @@ public class TeamService{
         int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
 
         if (approvedMemberCount < minMembers || approvedMemberCount > maxMembers) {
-            throw new IllegalArgumentException("Team must have between " + minMembers + " and " + maxMembers + " approved members.");
+            throw new IllegalArgumentException(
+                    "Team must have between " + minMembers + " and " + maxMembers + " approved members.");
         }
 
         // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
@@ -383,8 +400,10 @@ public class TeamService{
 
             java.time.LocalDate now = java.time.LocalDate.now();
             boolean isWithinRegistration = true;
-            if (contest.getRegistrationStart() != null && now.isBefore(contest.getRegistrationStart())) isWithinRegistration = false;
-            if (contest.getRegistrationEnd() != null && now.isAfter(contest.getRegistrationEnd())) isWithinRegistration = false;
+            if (contest.getRegistrationStart() != null && now.isBefore(contest.getRegistrationStart()))
+                isWithinRegistration = false;
+            if (contest.getRegistrationEnd() != null && now.isAfter(contest.getRegistrationEnd()))
+                isWithinRegistration = false;
             if (isWithinRegistration) {
                 team.setStatus("APPROVED");
             } else {
@@ -394,10 +413,14 @@ public class TeamService{
             team.setStatus("APPROVED");
         }
         team = teamRepository.save(team);
-        String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty() ? " - Leader assigned: " + request.getLeaderStudentId() : "";
-        auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(), "Registered by: " + username + leaderInfo);
+        String leaderInfo = request.getLeaderStudentId() != null && !request.getLeaderStudentId().isEmpty()
+                ? " - Leader assigned: " + request.getLeaderStudentId()
+                : "";
+        auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(),
+                "Registered by: " + username + leaderInfo);
 
-        // Auto-kicking from FORMING teams has been removed to allow forming teams for other competitions.
+        // Auto-kicking from FORMING teams has been removed to allow forming teams for
+        // other competitions.
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -430,13 +453,15 @@ public class TeamService{
 
         User updatedLeader = userRepository.findByUsername(username).get();
         String newToken = jwtUtils.generateToken(updatedLeader.getUsername(), "LEADER");
-        TeamRegistrationResponse response = new TeamRegistrationResponse(team.getStatus(), "Team registration processed.");
+        TeamRegistrationResponse response = new TeamRegistrationResponse(team.getStatus(),
+                "Team registration processed.");
         response.setNewToken(newToken);
         return response;
     }
 
     /**
-     * Force-approve a team by removing ineligible members (unauthorized university / already participated)
+     * Force-approve a team by removing ineligible members (unauthorized university
+     * / already participated)
      * and setting team status to APPROVED.
      */
     @Transactional
@@ -487,7 +512,8 @@ public class TeamService{
                 List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(tm.getUser().getId());
                 for (TeamMembership other : otherMemberships) {
                     Team otherTeam = other.getTeam();
-                    if (otherTeam != null && !otherTeam.getId().equals(team.getId()) && otherTeam.getContest() != null) {
+                    if (otherTeam != null && !otherTeam.getId().equals(team.getId())
+                            && otherTeam.getContest() != null) {
                         if (otherTeam.getContest().getId().equals(contest.getId())) {
                             String st = otherTeam.getStatus() != null ? otherTeam.getStatus().toUpperCase() : "";
                             if ("APPROVED".equals(st) || "PENDING".equals(st)) {
@@ -568,13 +594,15 @@ public class TeamService{
             if (memberUser != null && memberUser.getEmail() != null) {
                 Student s = studentRepository.findByUser(memberUser).orElse(null);
                 String fullName = s != null ? s.getFullName() : memberUser.getUsername();
-                emailService.sendTeamStatusNotificationAsync(memberUser.getEmail(), fullName, team.getName(), "APPROVED", null);
+                emailService.sendTeamStatusNotificationAsync(memberUser.getEmail(), fullName, team.getName(),
+                        "APPROVED", null);
             }
         }
 
         User updatedLeader = userRepository.findByUsername(username).get();
         String newToken = jwtUtils.generateToken(updatedLeader.getUsername(), "LEADER");
-        TeamRegistrationResponse resp = new TeamRegistrationResponse("APPROVED", "Team registered and approved successfully.");
+        TeamRegistrationResponse resp = new TeamRegistrationResponse("APPROVED",
+                "Team registered and approved successfully.");
         resp.setNewToken(newToken);
         return resp;
     }
@@ -591,16 +619,26 @@ public class TeamService{
 
         TeamMembership activeMembership = memberships.stream()
                 .filter(m -> m.getTeam() != null && m.getTeam().getContest() != null)
-                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED.equals(m.getTeam().getContest().getStatus())
-                        || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING.equals(m.getTeam().getContest().getStatus()))
+                .filter(m -> com.fpt.shms.be.model.Contest.ContestStatus.ACTIVED
+                        .equals(m.getTeam().getContest().getStatus())
+                        || com.fpt.shms.be.model.Contest.ContestStatus.UPCOMING
+                        .equals(m.getTeam().getContest().getStatus()))
                 .filter(m -> contestId == null || m.getTeam().getContest().getId().equals(contestId))
-                .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                .max(java.util.Comparator
+                        .<TeamMembership, Integer>comparing(
+                                m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
                         .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
                         .thenComparing(m -> m.getTeam().getId()))
                 .orElseGet(() -> memberships.stream()
-                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus()) && (m.getTeam().getContest() == null || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED.equals(m.getTeam().getContest().getStatus())))
-                        .filter(m -> contestId == null || (m.getTeam().getContest() != null && m.getTeam().getContest().getId().equals(contestId)))
-                        .max(java.util.Comparator.<TeamMembership, Integer>comparing(m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
+                        .filter(m -> m.getTeam() != null && !"CLOSED".equalsIgnoreCase(m.getTeam().getStatus())
+                                && (m.getTeam().getContest() == null
+                                || !com.fpt.shms.be.model.Contest.ContestStatus.CLOSED
+                                .equals(m.getTeam().getContest().getStatus())))
+                        .filter(m -> contestId == null || (m.getTeam().getContest() != null
+                                && m.getTeam().getContest().getId().equals(contestId)))
+                        .max(java.util.Comparator
+                                .<TeamMembership, Integer>comparing(
+                                        m -> "APPROVED".equalsIgnoreCase(m.getTeam().getStatus()) ? 1 : 0)
                                 .thenComparing(m -> "LEADER".equalsIgnoreCase(m.getRole()) ? 1 : 0)
                                 .thenComparing(m -> m.getTeam().getId()))
                         .orElse(memberships.get(0)));
@@ -627,25 +665,31 @@ public class TeamService{
             deadline = nearestDeadline;
         }
 
-        int maxMembers = (roundContest != null && roundContest.getMaxTeamMembers() != null) ? roundContest.getMaxTeamMembers() : 5;
+        int maxMembers = (roundContest != null && roundContest.getMaxTeamMembers() != null)
+                ? roundContest.getMaxTeamMembers()
+                : 5;
 
         List<WorkspaceResponse.AnnouncementDto> realAnnouncements = announcementRepository
                 .findByIsActiveTrueOrderByPublishedAtDesc()
                 .stream()
                 .filter(a -> a.getContest() == null || a.getContest().getId().equals(team.getContest().getId()))
                 .filter(a -> {
-                    if (a.getTargets() == null || a.getTargets().isEmpty()) return true;
-                    if (user.getRoles() == null || user.getRoles().isEmpty()) return false;
-                    java.util.List<String> userRoleNames = user.getRoles().stream().map(com.fpt.shms.be.model.Role::getName).toList();
-                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName()).toList();
-                    return userRoleNames.stream().anyMatch(role ->
-                            targetRolesList.stream().anyMatch(t -> {
-                                String targetRole = t.trim();
-                                if (targetRole.equalsIgnoreCase(role)) return true;
-                                if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER")) return true;
-                                return false;
-                            })
-                    );
+                    if (a.getTargets() == null || a.getTargets().isEmpty())
+                        return true;
+                    if (user.getRoles() == null || user.getRoles().isEmpty())
+                        return false;
+                    java.util.List<String> userRoleNames = user.getRoles().stream()
+                            .map(com.fpt.shms.be.model.Role::getName).toList();
+                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName())
+                            .toList();
+                    return userRoleNames.stream().anyMatch(role -> targetRolesList.stream().anyMatch(t -> {
+                        String targetRole = t.trim();
+                        if (targetRole.equalsIgnoreCase(role))
+                            return true;
+                        if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER"))
+                            return true;
+                        return false;
+                    }));
                 })
                 .limit(5)
                 .map(a -> WorkspaceResponse.AnnouncementDto.builder()
@@ -694,47 +738,50 @@ public class TeamService{
 
         team.setStatus(newStatus);
         teamRepository.save(team);
-        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getName(), currentStatus, team.getStatus(), "Updated by admin");
+        auditLogService.log("UPDATE_TEAM_STATUS", "Team", team.getName(), currentStatus, team.getStatus(),
+                "Updated by admin");
         if ("CANCELLED".equalsIgnoreCase(newStatus) || "CANCELED".equalsIgnoreCase(newStatus)) {
             auditLogService.logCancelTeam(team.getName(), currentStatus, "Team status cancelled by admin");
         }
 
         List<TeamMembership> memberships = teamMembershipRepository.findByTeamId(team.getId());
 
-        if("APPROVED".equalsIgnoreCase(status)) {
+        if ("APPROVED".equalsIgnoreCase(status)) {
             for (TeamMembership tm : memberships) {
-                if("LEADER".equalsIgnoreCase(tm.getRole())) {
+                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
 
                     Role leaderRole = roleRepository.findByName("LEADER").orElse(null);
                     Role studentRole = roleRepository.findByName("STUDENT").orElse(null);
 
-                    if(studentRole != null) {
+                    if (studentRole != null) {
                         leader.getRoles().remove(studentRole);
                     }
-                    if(leaderRole != null) {
+                    if (leaderRole != null) {
                         leader.getRoles().add(leaderRole);
                     }
                     userRepository.save(leader);
-                    auditLogService.logChangeUserRole(leader.getUsername(), "STUDENT", "LEADER", "Promoted upon team approval");
+                    auditLogService.logChangeUserRole(leader.getUsername(), "STUDENT", "LEADER",
+                            "Promoted upon team approval");
                 }
             }
         } else if ("CANCELED".equalsIgnoreCase(status) || "CANCELLED".equalsIgnoreCase(status)) {
             for (TeamMembership tm : memberships) {
-                if("LEADER".equalsIgnoreCase(tm.getRole())) {
+                if ("LEADER".equalsIgnoreCase(tm.getRole())) {
                     User leader = tm.getUser();
 
                     Role leaderRole = roleRepository.findByName("LEADER").orElse(null);
                     Role studentRole = roleRepository.findByName("STUDENT").orElse(null);
 
-                    if(leaderRole != null) {
+                    if (leaderRole != null) {
                         leader.getRoles().remove(leaderRole);
                     }
-                    if(studentRole != null) {
+                    if (studentRole != null) {
                         leader.getRoles().add(studentRole);
                     }
                     userRepository.save(leader);
-                    auditLogService.logChangeUserRole(leader.getUsername(), "LEADER", "STUDENT", "Reverted role due to team rejection/cancellation");
+                    auditLogService.logChangeUserRole(leader.getUsername(), "LEADER", "STUDENT",
+                            "Reverted role due to team rejection/cancellation");
                 }
             }
         }
@@ -745,7 +792,8 @@ public class TeamService{
             if (user != null && user.getEmail() != null) {
                 Student student = studentRepository.findByUser(user).orElse(null);
                 String fullName = (student != null) ? student.getFullName() : user.getUsername();
-                emailService.sendTeamStatusNotificationAsync(user.getEmail(), fullName, team.getName(), newStatus, reason);
+                emailService.sendTeamStatusNotificationAsync(user.getEmail(), fullName, team.getName(), newStatus,
+                        reason);
             }
         }
     }
@@ -772,7 +820,9 @@ public class TeamService{
             int trackTeams = teams.size();
 
             for (Category category : categories) {
-                int maxTeams = category.getContest().getMaximumAllowedTeams() != null ? category.getContest().getMaximumAllowedTeams() : 100;
+                int maxTeams = category.getContest().getMaximumAllowedTeams() != null
+                        ? category.getContest().getMaximumAllowedTeams()
+                        : 100;
                 int capacityPercentage = (trackTeams * 100) / Math.max(1, maxTeams);
 
                 capacities.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.CategoryCapacity.builder()
@@ -791,9 +841,13 @@ public class TeamService{
 
             for (Team team : teams) {
                 String st = team.getStatus();
-                if ("PENDING".equalsIgnoreCase(st)) pendingReview++;
-                if ("APPROVED".equalsIgnoreCase(st)) approved++;
-                if ("CANCELLED".equalsIgnoreCase(st) || "CANCELED".equalsIgnoreCase(st) || "ELIMINATED".equalsIgnoreCase(st)) cancelledCount++;
+                if ("PENDING".equalsIgnoreCase(st))
+                    pendingReview++;
+                if ("APPROVED".equalsIgnoreCase(st))
+                    approved++;
+                if ("CANCELLED".equalsIgnoreCase(st) || "CANCELED".equalsIgnoreCase(st)
+                        || "ELIMINATED".equalsIgnoreCase(st))
+                    cancelledCount++;
 
                 List<TeamMembership> members = teamMembershipRepository.findByTeamId(team.getId());
                 if ("APPROVED".equalsIgnoreCase(st)) {
@@ -807,9 +861,12 @@ public class TeamService{
                         student = studentRepository.findByUser(mem.getUser()).orElse(null);
                     }
                     memberDataList.add(com.fpt.shms.be.dto.TeamRegistrationDashboardResponse.MemberData.builder()
-                            .name(student != null ? student.getFullName() : (mem.getUser() != null ? mem.getUser().getUsername() : "Unknown"))
+                            .name(student != null ? student.getFullName()
+                                    : (mem.getUser() != null ? mem.getUser().getUsername() : "Unknown"))
                             .studentId(student != null ? student.getStudentCode() : null)
-                            .university(student != null && student.getUniversity() != null ? student.getUniversity().getName() : null)
+                            .university(student != null && student.getUniversity() != null
+                                    ? student.getUniversity().getName()
+                                    : null)
                             .email(mem.getUser() != null ? mem.getUser().getEmail() : null)
                             .role(mem.getRole())
                             .status(mem.getStatus() != null ? mem.getStatus().toUpperCase() : "ACTIVE")
@@ -821,7 +878,8 @@ public class TeamService{
                         .name(team.getName())
                         .track("All Categories")
                         .trackClass("track-default")
-                        .date(team.getCreatedAt() != null ? team.getCreatedAt().format(formatter) : LocalDateTime.now().format(formatter))
+                        .date(team.getCreatedAt() != null ? team.getCreatedAt().format(formatter)
+                                : LocalDateTime.now().format(formatter))
                         .status(team.getStatus() != null ? team.getStatus() : "PENDING")
                         .members(memberDataList)
                         .build());
@@ -864,7 +922,8 @@ public class TeamService{
             if (now.isBefore(round.getSubmissionOpen())) {
                 roundStatus = "UPCOMING";
                 java.time.Duration d = java.time.Duration.between(now, round.getSubmissionOpen());
-                timeRemaining = "Opens in " + d.toDays() + "d " + (d.toHours() % 24) + "h " + (d.toMinutes() % 60) + "m";
+                timeRemaining = "Opens in " + d.toDays() + "d " + (d.toHours() % 24) + "h " + (d.toMinutes() % 60)
+                        + "m";
             } else if (now.isBefore(round.getSubmissionDeadline())) {
                 roundStatus = "OPEN";
                 java.time.Duration d = java.time.Duration.between(now, round.getSubmissionDeadline());
@@ -888,7 +947,9 @@ public class TeamService{
         boolean isFirstRound = allRounds.isEmpty() || allRounds.get(0).getId().equals(round.getId());
 
         if (isFirstRound) {
-            eligibleTeams = teamRepository.findByContestId(contestId);
+            eligibleTeams = teamRepository.findByContestId(contestId).stream()
+                    .filter(t -> t != null && !"FORMING".equalsIgnoreCase(t.getStatus()))
+                    .collect(java.util.stream.Collectors.toList());
         } else {
             Round prevRound = null;
             for (int i = 1; i < allRounds.size(); i++) {
@@ -900,7 +961,8 @@ public class TeamService{
             if (prevRound != null) {
                 eligibleTeams = rankingResultRepository.findQualifiedByRoundId(prevRound.getId()).stream()
                         .map(com.fpt.shms.be.model.RankingResult::getTeam)
-                        .toList();
+                        .filter(t -> t != null && !"FORMING".equalsIgnoreCase(t.getStatus()))
+                        .collect(java.util.stream.Collectors.toList());
             }
         }
 
@@ -916,12 +978,17 @@ public class TeamService{
 
         for (Team team : eligibleTeams) {
             Submission latestSub = submissions.stream()
-                    .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null && s.getRound().getId().equals(round.getId()))
+                    .filter(s -> s.getTeam().getId().equals(team.getId()) && s.getRound() != null
+                            && s.getRound().getId().equals(round.getId()))
                     .max((s1, s2) -> s1.getVersion().compareTo(s2.getVersion()))
                     .orElse(null);
 
-            boolean hasSubmitted = latestSub != null && "SUBMITTED".equals(latestSub.getStatus());
-            String state = latestSub != null ? latestSub.getStatus() : (roundStatus.equals("CLOSED") ? "MISSED_DEADLINE" : "Not Submitted");
+            boolean hasSubmitted = latestSub != null && ("SUBMITTED".equalsIgnoreCase(latestSub.getStatus()) ||
+                    "OFFICIAL".equalsIgnoreCase(latestSub.getStatus()) ||
+                    "EVALUATED".equalsIgnoreCase(latestSub.getStatus()) ||
+                    "GRADED".equalsIgnoreCase(latestSub.getStatus()));
+            String state = latestSub != null ? latestSub.getStatus()
+                    : (roundStatus.equals("CLOSED") ? "MISSED_DEADLINE" : "Not Submitted");
 
             if (hasSubmitted) {
                 submittedCount++;
@@ -936,9 +1003,12 @@ public class TeamService{
             teamProgressList.add(RoundProgressResponse.TeamProgressDto.builder()
                     .teamId(team.getId())
                     .teamName(team.getName())
+                    .teamStatus(team.getStatus())
                     .submissionState(state)
                     .submissionData(latestSub != null ? latestSub.getSubmissionData() : null)
-                    .submittedAt(latestSub != null && latestSub.getSubmittedAt() != null ? latestSub.getSubmittedAt().format(fmt) : null)
+                    .submittedAt(latestSub != null && latestSub.getSubmittedAt() != null
+                            ? latestSub.getSubmittedAt().format(fmt)
+                            : null)
                     .build());
         }
 
@@ -963,7 +1033,8 @@ public class TeamService{
             boolean isAllowed = allowedList.stream()
                     .anyMatch(cu -> cu.getUniversity().getId().equals(student.getUniversity().getId()));
             if (!isAllowed) {
-                throw new IllegalArgumentException("Member " + student.getFullName() + " (University: " + student.getUniversity().getName() + ") is not authorized to participate in this contest.");
+                throw new IllegalArgumentException("Member " + student.getFullName() + " (University: "
+                        + student.getUniversity().getName() + ") is not authorized to participate in this contest.");
             }
         }
     }
@@ -995,7 +1066,8 @@ public class TeamService{
      * Gửi lời mời tham gia đội. Mọi thành viên APPROVED đều có quyền mời.
      */
     @Transactional
-    public java.util.Map<String, Object> sendInvitation(com.fpt.shms.be.dto.InvitationRequest request, String username) {
+    public java.util.Map<String, Object> sendInvitation(com.fpt.shms.be.dto.InvitationRequest request,
+                                                        String username) {
         User inviter = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -1005,7 +1077,8 @@ public class TeamService{
         // Validate: người gửi phải là thành viên APPROVED
         java.util.List<TeamMembership> teamMemberships = teamMembershipRepository.findByTeamId(team.getId());
         boolean isApprovedMember = teamMemberships.stream()
-                .anyMatch(tm -> tm.getStudent().getId().equals(inviter.getId()) && "APPROVED".equalsIgnoreCase(tm.getStatus()));
+                .anyMatch(tm -> tm.getStudent().getId().equals(inviter.getId())
+                        && "APPROVED".equalsIgnoreCase(tm.getStatus()));
         if (!isApprovedMember) {
             throw new IllegalArgumentException("You must be an approved team member to send invitations.");
         }
@@ -1023,13 +1096,15 @@ public class TeamService{
             throw new IllegalArgumentException("This student is already in the team or has a pending invitation.");
         }
 
-        // Removed validation that blocks inviting a user if they are in any registered team.
+        // Removed validation that blocks inviting a user if they are in any registered
+        // team.
         // Users can be in multiple teams as long as they are for different contests.
 
         // Validate capacity: đếm APPROVED + PENDING
         Contest contest = team.getContest();
         int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
-                ? contest.getMaxTeamMembers() : 5;
+                ? contest.getMaxTeamMembers()
+                : 5;
         long currentCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                 java.util.List.of("APPROVED", "PENDING"));
         if (currentCount >= maxCapacity) {
@@ -1061,7 +1136,8 @@ public class TeamService{
                 .inviterUserId(inviter.getId())
                 .build();
         teamMembershipRepository.save(membership);
-        auditLogService.log("SEND_INVITATION", "TeamMembership", team.getName() + " -> " + invitedStudent.getStudentCode(), null, "PENDING",
+        auditLogService.log("SEND_INVITATION", "TeamMembership",
+                team.getName() + " -> " + invitedStudent.getStudentCode(), null, "PENDING",
                 "Invited user " + request.getStudentUserId() + " to team " + team.getName());
 
         if (invitedStudent.getCorporateEmail() != null) {
@@ -1070,8 +1146,7 @@ public class TeamService{
                     invitedStudent.getFullName(),
                     inviter.getFullName(),
                     team.getName(),
-                    token
-            );
+                    token);
         }
 
         java.util.Map<String, Object> result = new java.util.HashMap<>();
@@ -1084,16 +1159,19 @@ public class TeamService{
      * Phản hồi lời mời: ACCEPT hoặc REJECT.
      */
     @Transactional
-    public java.util.Map<String, Object> respondToInvitation(com.fpt.shms.be.dto.InvitationRespondRequest request, String username) {
+    public java.util.Map<String, Object> respondToInvitation(com.fpt.shms.be.dto.InvitationRespondRequest request,
+                                                             String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
-            // Removed validation that blocks accepting an invitation if the user is in any registered team.
+            // Removed validation that blocks accepting an invitation if the user is in any
+            // registered team.
             // Users can be in multiple teams as long as they are for different contests.
         }
 
-        java.util.Optional<TeamMembership> membershipOpt = teamMembershipRepository.findByInvitationToken(request.getInvitationToken());
+        java.util.Optional<TeamMembership> membershipOpt = teamMembershipRepository
+                .findByInvitationToken(request.getInvitationToken());
 
         if (membershipOpt.isEmpty()) {
             java.util.Optional<Team> teamOpt = teamRepository.findByTeamCode(request.getInvitationToken());
@@ -1102,13 +1180,15 @@ public class TeamService{
 
                 // Prevent joining if team is already registered (PENDING or APPROVED)
                 if ("APPROVED".equalsIgnoreCase(team.getStatus()) || "PENDING".equalsIgnoreCase(team.getStatus())) {
-                    throw new IllegalArgumentException("You cannot join this team because it has already been officially registered.");
+                    throw new IllegalArgumentException(
+                            "You cannot join this team because it has already been officially registered.");
                 }
 
                 // Validate capacity (chỉ đếm APPROVED giống như phần ACCEPT bên dưới)
                 Contest contest = team.getContest();
                 int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
-                        ? contest.getMaxTeamMembers() : 5;
+                        ? contest.getMaxTeamMembers()
+                        : 5;
                 long approvedCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                         java.util.List.of("APPROVED"));
                 if (approvedCount >= maxCapacity) {
@@ -1169,7 +1249,8 @@ public class TeamService{
             Team team = membership.getTeam();
             Contest contest = team.getContest();
             int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
-                    ? contest.getMaxTeamMembers() : 5;
+                    ? contest.getMaxTeamMembers()
+                    : 5;
             long approvedCount = teamMembershipRepository.countByTeamIdAndStatusIn(team.getId(),
                     java.util.List.of("APPROVED"));
             if (approvedCount >= maxCapacity) {
@@ -1188,7 +1269,8 @@ public class TeamService{
         }
 
         teamMembershipRepository.save(membership);
-        auditLogService.log("RESPOND_INVITATION", "TeamMembership", membership.getTeam() != null ? membership.getTeam().getName() : "Team", "PENDING",
+        auditLogService.log("RESPOND_INVITATION", "TeamMembership",
+                membership.getTeam() != null ? membership.getTeam().getName() : "Team", "PENDING",
                 membership.getStatus(), "Action: " + request.getAction());
 
         return result;
@@ -1220,6 +1302,7 @@ public class TeamService{
             return map;
         }).toList();
     }
+
     @Transactional
     public void applyPenaltyToTeam(com.fpt.shms.be.dto.ApplyPenaltyRequest request) {
         Team team = teamRepository.findById(request.getTeamId())
@@ -1235,13 +1318,16 @@ public class TeamService{
 
             java.util.List<java.util.Map<String, String>> existingList = new java.util.ArrayList<>();
             if (team.getPenaltyDetails() != null && !team.getPenaltyDetails().isBlank()) {
-                existingList = mapper.readValue(team.getPenaltyDetails(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {});
+                existingList = mapper.readValue(team.getPenaltyDetails(),
+                        new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {
+                        });
             }
             existingList.add(details);
             team.setPenaltyDetails(mapper.writeValueAsString(existingList));
             teamRepository.save(team);
 
-            auditLogService.log("APPLY_PENALTY", "Team", team.getName(), null, request.getPenaltyApplied(), "Penalty applied for rule: " + request.getPenaltyRule());
+            auditLogService.log("APPLY_PENALTY", "Team", team.getName(), null, request.getPenaltyApplied(),
+                    "Penalty applied for rule: " + request.getPenaltyRule());
         } catch (Exception e) {
             throw new RuntimeException("Error processing penalty details", e);
         }
