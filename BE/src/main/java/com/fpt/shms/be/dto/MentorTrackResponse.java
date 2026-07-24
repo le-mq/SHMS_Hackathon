@@ -45,5 +45,6 @@ public class MentorTrackResponse {
         private String mentorFeedback;
         private String reviewCalibrationAt;
         private String publishResultAt;
+        private boolean scoreReviewActive;
     }
 }
