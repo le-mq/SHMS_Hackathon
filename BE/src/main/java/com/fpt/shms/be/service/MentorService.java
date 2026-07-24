@@ -71,9 +71,9 @@ public class MentorService {
                 }
                 if (targetRound == null) {
                     for (Round r : categoryRounds) {
-                        java.time.LocalDateTime roundEnd = r.getPublishResultAt() != null ? r.getPublishResultAt() :
-                                (r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt() :
-                                 (r.getSubmissionDeadline()));
+                        java.time.LocalDateTime roundEnd = r.getPublishResultAt() != null ? r.getPublishResultAt()
+                                : (r.getGradingDeadlineAt() != null ? r.getGradingDeadlineAt()
+                                   : (r.getSubmissionDeadline()));
 
                         if (roundEnd != null && now.isBefore(roundEnd)) {
                             targetRound = r;
@@ -144,9 +144,21 @@ public class MentorService {
                 String mentorFeedbackText = null;
 
                 if (latestSub != null) {
-                    if (latestSub.getMentorFeedback() != null && latestSub.getMentor() != null && latestSub.getMentor().getId().equals(mentor.getId())) {
+                    if (latestSub.getMentorFeedback() != null && latestSub.getMentor() != null
+                            && latestSub.getMentor().getId().equals(mentor.getId())) {
                         hasGivenFeedback = true;
                         mentorFeedbackText = latestSub.getMentorFeedback();
+                    }
+                }
+
+                boolean scoreReviewActive = false;
+                for (Round r : categoryRounds) {
+                    boolean scorePublished = submissionRepository.existsByRoundIdAndHistoryLogIsPublished(r.getId());
+                    boolean resultPublished = r.getPublishResultAt() != null
+                            && !r.getPublishResultAt().isAfter(java.time.LocalDateTime.now());
+                    if (scorePublished && !resultPublished) {
+                        scoreReviewActive = true;
+                        break;
                     }
                 }
 
@@ -160,13 +172,20 @@ public class MentorService {
                         .submissionData(latestSub != null ? latestSub.getSubmissionData() : null)
                         .roundId(targetRound != null ? targetRound.getId() : null)
                         .roundName(targetRound != null ? targetRound.getPhaseName() : null)
-                        .roundState(targetRound != null && targetRound.getState() != null ? targetRound.getState().name() : null)
+                        .roundState(
+                                targetRound != null && targetRound.getState() != null ? targetRound.getState().name()
+                                        : null)
                         .submissionId(latestSub != null ? latestSub.getId() : null)
                         .canGiveFeedback(canGiveFeedback)
                         .hasGivenFeedback(hasGivenFeedback)
                         .mentorFeedback(mentorFeedbackText)
-                        .reviewCalibrationAt(targetRound != null && targetRound.getReviewCalibrationAt() != null ? targetRound.getReviewCalibrationAt().toString() : null)
-                        .publishResultAt(targetRound != null && targetRound.getPublishResultAt() != null ? targetRound.getPublishResultAt().toString() : null)
+                        .reviewCalibrationAt(targetRound != null && targetRound.getReviewCalibrationAt() != null
+                                ? targetRound.getReviewCalibrationAt().toString()
+                                : null)
+                        .publishResultAt(targetRound != null && targetRound.getPublishResultAt() != null
+                                ? targetRound.getPublishResultAt().toString()
+                                : null)
+                        .scoreReviewActive(scoreReviewActive)
                         .build());
             }
 
@@ -199,11 +218,6 @@ public class MentorService {
         return responses;
     }
 
-    /**
-     * Mentor gửi feedback vào bài DRAFT.
-     * Chỉ được comment vào bài DRAFT thuộc đội mình quản lý, trước deadline nộp
-     * bài.
-     */
     @Transactional
     public java.util.Map<String, Object> submitFeedback(com.fpt.shms.be.dto.MentorFeedbackRequest request,
                                                         String username) {
