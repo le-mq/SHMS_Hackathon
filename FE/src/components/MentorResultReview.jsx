@@ -79,7 +79,12 @@ const MentorResultReview = () => {
 
     // Show teams where scores are published (Stage 1) but results are NOT yet published (Stage 2)
     // Once admin clicks Publish Result, scores move to the Leaderboard — no need to show here
-    const publishedTeams = assignedTeams.filter(t => isScorePublished(t) && !isResultPublished(t));
+    const publishedTeams = assignedTeams.filter(t => {
+        if (typeof t.scoreReviewActive === 'boolean') {
+            return t.scoreReviewActive;
+        }
+        return isScorePublished(t) && !isResultPublished(t);
+    });
 
     return (
         <div className="mrr-page">
@@ -205,28 +210,28 @@ const MentorResultReview = () => {
                                                             ) : (
                                                                 <table className="mrr-table">
                                                                     <thead>
-                                                                    <tr>
-                                                                        <th>Criteria</th>
-                                                                        <th>Weight</th>
-                                                                        <th>Avg. Score</th>
-                                                                        <th>Feedback</th>
-                                                                    </tr>
+                                                                        <tr>
+                                                                            <th>Criteria</th>
+                                                                            <th>Weight</th>
+                                                                            <th>Avg. Score</th>
+                                                                            <th>Feedback</th>
+                                                                        </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                    {round.detailedScores.map((d, di) => (
-                                                                        <tr key={di}>
-                                                                            <td className="mrr-td-criteria">{d.criteriaName}</td>
-                                                                            <td className="mrr-td-center">{d.weight != null ? `${d.weight}%` : '—'}</td>
-                                                                            <td className="mrr-td-center mrr-td-points">{d.pointsAwarded ?? '—'}</td>
-                                                                            <td className="mrr-td-feedback">
-                                                                                {d.feedback ? (
-                                                                                    <span style={{ whiteSpace: 'pre-wrap' }}>{d.feedback}</span>
-                                                                                ) : (
-                                                                                    <em style={{ color: '#94a3b8' }}>No feedback</em>
-                                                                                )}
-                                                                            </td>
-                                                                        </tr>
-                                                                    ))}
+                                                                        {round.detailedScores.map((d, di) => (
+                                                                            <tr key={di}>
+                                                                                <td className="mrr-td-criteria">{d.criteriaName}</td>
+                                                                                <td className="mrr-td-center">{d.weight != null ? `${d.weight}%` : '—'}</td>
+                                                                                <td className="mrr-td-center mrr-td-points">{d.pointsAwarded ?? '—'}</td>
+                                                                                <td className="mrr-td-feedback">
+                                                                                    {d.feedback ? (
+                                                                                        <span style={{ whiteSpace: 'pre-wrap' }}>{d.feedback}</span>
+                                                                                    ) : (
+                                                                                        <em style={{ color: '#94a3b8' }}>No feedback</em>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
                                                                     </tbody>
                                                                 </table>
                                                             )}
