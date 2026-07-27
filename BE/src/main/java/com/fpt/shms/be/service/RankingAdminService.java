@@ -28,20 +28,16 @@ public class RankingAdminService {
     private final TeamRepository teamRepository;
 
     private List<Team> getParticipatingTeams(Round round) {
-        if (round.getCategory() == null) {
-            return new ArrayList<>();
-        }
-        Long categoryId = round.getCategory().getId();
-
-        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
+        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
                 .stream()
-                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
-                .sorted(Comparator.comparing(Round::getSubmissionOpen))
+                .sorted(Comparator
+                        .comparing(Round::getRoundOrder, Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(Round::getSubmissionOpen, Comparator.nullsLast(LocalDateTime::compareTo)))
                 .toList();
 
         int idx = -1;
-        for (int i = 0; i < categoryRounds.size(); i++) {
-            if (categoryRounds.get(i).getId().equals(round.getId())) {
+        for (int i = 0; i < contestRounds.size(); i++) {
+            if (contestRounds.get(i).getId().equals(round.getId())) {
                 idx = i;
                 break;
             }
@@ -52,7 +48,7 @@ public class RankingAdminService {
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
                     .toList();
         } else {
-            Round previousRound = categoryRounds.get(idx - 1);
+            Round previousRound = contestRounds.get(idx - 1);
             return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
                     .filter(rr -> rr.getDatePublishedAt() != null)
                     .map(RankingResult::getTeam)
@@ -209,11 +205,6 @@ public class RankingAdminService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException(
-                    "Results have already been published for this round. No further modifications are allowed.");
-        }
-
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
         String contestName = contest.getName();
@@ -223,6 +214,39 @@ public class RankingAdminService {
             throw new IllegalArgumentException("Round is not associated with any category");
         }
         String actualCategoryName = round.getCategory().getName();
+
+        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+            List<RankingResult> existingResults = rankingResultRepository.findByRoundId(round.getId());
+            if (!existingResults.isEmpty()) {
+                List<RankingResult> sortedExisting = new ArrayList<>(existingResults);
+                sortedExisting.sort(java.util.Comparator.comparing(RankingResult::getRankNo));
+                List<ProcessRankingsResponse.TeamRankingEntry> results = new ArrayList<>();
+                for (RankingResult rr : sortedExisting) {
+                    results.add(ProcessRankingsResponse.TeamRankingEntry.builder()
+                            .teamId(rr.getTeam() != null ? rr.getTeam().getId() : null)
+                            .teamName(rr.getTeam() != null ? rr.getTeam().getName() : "N/A")
+                            .categoryName(rr.getCategory() != null ? rr.getCategory().getName() : actualCategoryName)
+                            .averageScore(rr.getFinalScore())
+                            .rank(rr.getRankNo())
+                            .status(rr.getQualificationStatus())
+                            .build());
+                }
+                int resolvedTopN = (int) results.stream().filter(r -> "QUALIFIED".equals(r.getStatus())).count();
+                if (resolvedTopN == 0) {
+                    resolvedTopN = topN;
+                }
+                return ProcessRankingsResponse.builder()
+                        .contestId(contestId)
+                        .contestName(contestName)
+                        .roundName(roundName)
+                        .topN(resolvedTopN)
+                        .qualifiedCount((int) results.stream().filter(r -> "QUALIFIED".equals(r.getStatus())).count())
+                        .eliminatedCount((int) results.stream().filter(r -> "ELIMINATED".equals(r.getStatus())).count())
+                        .totalProcessed(results.size())
+                        .results(results)
+                        .build();
+            }
+        }
 
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
                 .filter(s -> s.getTeam() != null && s.getTeam().getContest() != null &&

@@ -549,7 +549,8 @@ public class TeamService {
         int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
         int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
         if (remainingCount < minMembers) {
-            throw new IllegalArgumentException("Ineligible members removed. However, the team now has only " + remainingCount
+            throw new IllegalArgumentException("Ineligible members removed. However, the team now has only "
+                    + remainingCount
                     + " member(s), which is below the minimum required (" + minMembers + "). Registration aborted.");
         }
 
@@ -944,7 +945,12 @@ public class TeamService {
         }
 
         List<Team> eligibleTeams = new java.util.ArrayList<>();
-        List<Round> allRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId);
+        List<Round> allRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
+                .sorted(java.util.Comparator
+                        .comparing(Round::getRoundOrder, java.util.Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(Round::getSubmissionOpen,
+                                java.util.Comparator.nullsLast(java.time.LocalDateTime::compareTo)))
+                .toList();
         boolean isFirstRound = allRounds.isEmpty() || allRounds.get(0).getId().equals(round.getId());
 
         if (isFirstRound) {

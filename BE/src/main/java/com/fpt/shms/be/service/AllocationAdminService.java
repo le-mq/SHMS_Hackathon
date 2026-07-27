@@ -164,7 +164,10 @@ public class AllocationAdminService {
 
         // Get all rounds of this contest sorted chronologically by submission open time
         List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
-                .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
+                .sorted(java.util.Comparator
+                        .comparing(Round::getRoundOrder, java.util.Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(Round::getSubmissionOpen,
+                                java.util.Comparator.nullsLast(java.time.LocalDateTime::compareTo)))
                 .toList();
 
         int idx = -1;
