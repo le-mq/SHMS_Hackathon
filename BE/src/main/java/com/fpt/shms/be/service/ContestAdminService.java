@@ -52,19 +52,17 @@ public class ContestAdminService {
     }
 
     private List<Team> getParticipatingTeamsForRound(Round round) {
-        if (round.getCategory() == null) {
-            return new ArrayList<>();
-        }
-        Long categoryId = round.getCategory().getId();
-        List<Round> categoryRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
+        List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(round.getContest().getId())
                 .stream()
-                .filter(r -> r.getCategory() != null && r.getCategory().getId().equals(categoryId))
-                .sorted(java.util.Comparator.comparing(Round::getSubmissionOpen))
+                .sorted(java.util.Comparator
+                        .comparing(Round::getRoundOrder, java.util.Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(Round::getSubmissionOpen,
+                                java.util.Comparator.nullsLast(java.time.LocalDateTime::compareTo)))
                 .toList();
 
         int idx = -1;
-        for (int i = 0; i < categoryRounds.size(); i++) {
-            if (categoryRounds.get(i).getId().equals(round.getId())) {
+        for (int i = 0; i < contestRounds.size(); i++) {
+            if (contestRounds.get(i).getId().equals(round.getId())) {
                 idx = i;
                 break;
             }
@@ -75,7 +73,7 @@ public class ContestAdminService {
                     .filter(t -> t != null && "APPROVED".equals(t.getStatus()))
                     .toList();
         } else {
-            Round previousRound = categoryRounds.get(idx - 1);
+            Round previousRound = contestRounds.get(idx - 1);
             return rankingResultRepository.findQualifiedByRoundId(previousRound.getId()).stream()
                     .filter(rr -> rr.getDatePublishedAt() != null)
                     .map(RankingResult::getTeam)
