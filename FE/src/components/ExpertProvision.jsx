@@ -550,25 +550,25 @@ const ExpertProvisioning = () => {
 
                 {/* 2. Summary Statistics Section */}
                 <div className="summary-cards-grid">
-                    <div className="summary-card">
+                    <div className="summary-card total">
                         <div className="summary-card-content">
                             <span className="summary-card-title">👥 Total Experts</span>
                             <span className="summary-card-value">{statistics.total}</span>
                         </div>
                     </div>
-                    <div className="summary-card">
+                    <div className="summary-card judges">
                         <div className="summary-card-content">
                             <span className="summary-card-title">⚖ Judges</span>
                             <span className="summary-card-value">{statistics.judges}</span>
                         </div>
                     </div>
-                    <div className="summary-card">
+                    <div className="summary-card mentors">
                         <div className="summary-card-content">
                             <span className="summary-card-title">🎓 Mentors</span>
                             <span className="summary-card-value">{statistics.mentors}</span>
                         </div>
                     </div>
-                    <div className="summary-card">
+                    <div className="summary-card guest-judges">
                         <div className="summary-card-content">
                             <span className="summary-card-title"> Guest Judges</span>
                             <span className="summary-card-value">{statistics.guestJudges}</span>

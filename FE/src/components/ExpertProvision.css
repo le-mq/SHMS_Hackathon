@@ -146,35 +146,81 @@
     line-height: 1;
 }
 
-.summary-card-icon {
-    font-size: 24px;
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-slate);
+/* Colored custom summary card themes */
+.summary-card.total {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3);
 }
 
-.summary-card-icon.blue {
-    background-color: var(--primary-light);
-    color: var(--primary);
+.summary-card.total .summary-card-title {
+    color: rgba(255, 255, 255, 0.85);
 }
 
-.summary-card-icon.green {
-    background-color: var(--success-light);
-    color: var(--success);
+.summary-card.total .summary-card-value {
+    color: #ffffff;
 }
 
-.summary-card-icon.orange {
-    background-color: var(--warning-light);
-    color: var(--warning);
+.summary-card.total:hover {
+    box-shadow: 0 12px 24px -4px rgba(79, 70, 229, 0.45);
+    border-color: transparent;
 }
 
-.summary-card-icon.slate {
-    background-color: #f1f5f9;
-    color: var(--text-muted);
+.summary-card.judges {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+}
+
+.summary-card.judges .summary-card-title {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.summary-card.judges .summary-card-value {
+    color: #ffffff;
+}
+
+.summary-card.judges:hover {
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.45);
+    border-color: transparent;
+}
+
+.summary-card.mentors {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    border: none;
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.3);
+}
+
+.summary-card.mentors .summary-card-title {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.summary-card.mentors .summary-card-value {
+    color: #ffffff;
+}
+
+.summary-card.mentors:hover {
+    box-shadow: 0 12px 24px -4px rgba(16, 185, 129, 0.45);
+    border-color: transparent;
+}
+
+.summary-card.guest-judges {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: none;
+    box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.3);
+}
+
+.summary-card.guest-judges .summary-card-title {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.summary-card.guest-judges .summary-card-value {
+    color: #ffffff;
+}
+
+.summary-card.guest-judges:hover {
+    box-shadow: 0 12px 24px -4px rgba(245, 158, 11, 0.45);
+    border-color: transparent;
 }
 
 /* Unified Toolbar with Sticky behavior */
