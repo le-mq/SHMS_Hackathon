@@ -5,18 +5,11 @@ import NavbarHome from './NavbarHome.jsx';
 import NavbarStudent from './NavbarStudent.jsx';
 import NavbarJudge from './NavbarJudge.jsx';
 import NavbarMentor from './NavbarMentor.jsx';
-import NavbarAdmin from './NavbarAdmin.jsx';
 import ContestDetailModal from './ContestDetailModal';
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
-const fmtDate = (str) => formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric' });
 const fmtShortDate = (str) => formatJsDate(str, { month: 'short', day: '2-digit' });
-const fmtDateTime = (str) => {
-    if (!str) return '—';
-    if (str.length <= 10) return fmtDate(str);
-    return formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-};
 
 function progress(start, end) {
     if (!start || !end) return 0;
@@ -38,7 +31,6 @@ function ContestCard({ contest, onSelectContest }) {
     const cStart = registrationStart || contest.contestStartAt || contest.startDate;
     const cEnd = contest.contestEndAt || contest.endDate || compEnd;
     const pct = progress(cStart, cEnd);
-
     const role = localStorage.getItem('shms_role');
     const upperStatus = status ? status.toUpperCase() : '';
 
@@ -130,72 +122,12 @@ function ContestCard({ contest, onSelectContest }) {
     );
 }
 
-function renderComplianceRules(rulesStr) {
-    if (!rulesStr) return 'No rules specified.';
-    try {
-        const rules = JSON.parse(rulesStr);
-        if (!Array.isArray(rules) || rules.length === 0) return 'No rules specified.';
-        return (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {rules.map((r, idx) => {
-                    if (typeof r === 'string') {
-                        return <li key={idx} style={{ marginBottom: '8px' }}>{r}</li>;
-                    } else if (typeof r === 'object' && r !== null) {
-                        const penaltyText = r.penalty ? ` (Penalty: ${r.penalty})` : "";
-                        return (
-                            <li key={idx} style={{ marginBottom: '8px' }}>
-                                <strong>{r.rule}</strong>
-                                <span>{penaltyText}</span>
-                            </li>
-                        );
-                    }
-                    return null;
-                })}
-            </ul>
-        );
-    } catch (e) {
-        return rulesStr;
-    }
-}
-
-function renderPrizeStructures(prizeStr) {
-    if (!prizeStr) return 'No prize structures specified.';
-    try {
-        const prizes = JSON.parse(prizeStr);
-        if (!Array.isArray(prizes) || prizes.length === 0) return 'No prize structures specified.';
-        return (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {prizes.map((prize, idx) => (
-                    <li key={idx} style={{ marginBottom: '8px' }}>
-                        <strong>{prize.rank}:</strong> {prize.amount}
-                    </li>
-                ))}
-            </ul>
-        );
-    } catch (e) {
-        return prizeStr;
-    }
-}
-
-function renderRequirements(reqsStr) {
-    if (!reqsStr) return 'None';
-    try {
-        const parsed = JSON.parse(reqsStr);
-        if (Array.isArray(parsed)) {
-            return parsed.map(r => String(r).trim()).filter(Boolean).join(', ');
-        }
-    } catch (e) {
-        // Ignore JSON parse error, treat as comma-separated
-    }
-    return reqsStr.split(',').map(r => r.trim()).filter(Boolean).join(', ');
-}
-
 function ContextBar() {
     const navigate = useNavigate();
     const token = localStorage.getItem('shms_token');
     const role = localStorage.getItem('shms_role') || '';
 
-    if (!token) return null;
+    if (!token || role === 'ADMIN') return null;
 
     const handleReturn = () => {
         if (role === 'STUDENT') navigate('/student/dashboard');
@@ -235,7 +167,15 @@ export default function PublicHome() {
     const [displayContest, setDisplayContest] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
-    const [isFading, setIsFading] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('shms_token');
+        const role = localStorage.getItem('shms_role');
+        if (token && role === 'ADMIN') {
+            navigate('/admin/config', { replace: true });
+        }
+    }, [navigate]);
 
     useEffect(() => {
         let cancelled = false;
@@ -329,7 +269,6 @@ export default function PublicHome() {
             case 'LEADER': return <NavbarStudent />;
             case 'JUDGE': return <NavbarJudge />;
             case 'MENTOR': return <NavbarMentor />;
-            case 'ADMIN': return <NavbarAdmin />;
             default: return <NavbarHome />;
         }
     };

@@ -239,10 +239,12 @@ function HackathonConfig() {
 
     useEffect(() => {
         if (formik.status) {
-            const timer = setTimeout(() => {
-                formik.setStatus(undefined);
-            }, 3500);
-            return () => clearTimeout(timer);
+            if (formik.status.success) {
+                window.alert(formik.status.success);
+            } else if (formik.status.error) {
+                window.alert(formik.status.error);
+            }
+            formik.setStatus(undefined);
         }
     }, [formik.status, formik.setStatus]);
 
@@ -604,12 +606,6 @@ function HackathonConfig() {
                         </div>
 
                         <div className="hc-sidebar-footer">
-                            {formik.status?.error && <div className="hc-save-warning" style={{ color: '#ef4444' }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg> {formik.status.error}
-                            </div>}
-                            {formik.status?.success && <div className="hc-save-warning" style={{ color: '#22c55e' }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg> {formik.status.success}
-                            </div>}
                             <button type="submit" className="hc-btn-save" disabled={valItems.length > 0 || isLoading || isClosedContest}>
                                 {formik.isSubmitting ? 'Saving...' : 'Save Configuration'}
                             </button>
