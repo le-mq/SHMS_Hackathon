@@ -20,9 +20,9 @@ const EvaluationWorkspace = () => {
                 const roundId = urlParams.get('roundId');
                 let fetchUrl = '';
                 if (teamId === 'preview' && roundId) {
-                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/judge/evaluation-data/0?roundId=${roundId}`;
+                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + `/judge/evaluation-data/0?roundId=${roundId}`;
                 } else {
-                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+`/judge/evaluation-data/${teamId}`;
+                    fetchUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + `/judge/evaluation-data/${teamId}`;
                     if (roundId) {
                         fetchUrl += `?roundId=${roundId}`;
                     }
@@ -36,7 +36,7 @@ const EvaluationWorkspace = () => {
                 if (result && result.submissionData) {
                     try {
                         parsedSubData = JSON.parse(result.submissionData);
-                    } catch(e) {}
+                    } catch (e) { }
                 }
 
                 const mappedResult = {
@@ -103,10 +103,12 @@ const EvaluationWorkspace = () => {
     const handleSubmit = async () => {
         if (!isComplete) return;
         setIsSubmitting(true);
+        const urlParams = new URLSearchParams(location.search);
+        const roundId = urlParams.get('roundId');
         const payload = {
             submissionId: evalData?.submissionId ? Number(evalData.submissionId) : null,
             teamId: Number(teamId),
-            roundId: Number(roundId),
+            roundId: roundId ? Number(roundId) : null,
             scores: scores.map(s => ({
                 criteriaId: Number(s.criteriaId),
                 pointsAwarded: parseFloat(s.pointsAwarded),
@@ -140,13 +142,13 @@ const EvaluationWorkspace = () => {
         const isValid = !!url;
         return (
             <a href={url || '#'} className={`asset-link ${isValid ? 'asset-valid' : 'asset-missing'}`}
-               target="_blank" rel="noreferrer"
-               onClick={e => !isValid && e.preventDefault()}
+                target="_blank" rel="noreferrer"
+                onClick={e => !isValid && e.preventDefault()}
             ><div className="asset-left">
-                <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                </svg>{label}
-            </div>
+                    <svg width="18" height="18" className="asset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                    </svg>{label}
+                </div>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -241,7 +243,7 @@ const EvaluationWorkspace = () => {
                                                         </div>
                                                     );
                                                 }
-                                            } catch(e) {}
+                                            } catch (e) { }
                                             return (
                                                 <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
                                                     {evalData.contestRules}
@@ -285,17 +287,17 @@ const EvaluationWorkspace = () => {
                                                 <div className="crit-right">
                                                     <span className="crit-weight">Weight: {crit.weight || crit.percentageWeight}%</span>
                                                     <input type="number" className="score-input"
-                                                           placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
-                                                           onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
-                                                           onWheel={(e) => e.target.blur()}
-                                                           disabled={isReadonly}
+                                                        placeholder="0-100" value={scores[idx]?.pointsAwarded || ''}
+                                                        onChange={(e) => handleScoreChange(currentId, 'pointsAwarded', e.target.value)}
+                                                        onWheel={(e) => e.target.blur()}
+                                                        disabled={isReadonly}
                                                     />
                                                 </div>
                                             </div>
                                             <textarea className="crit-feedback" placeholder="Feedback Critique..."
-                                                      value={scores[idx]?.feedback || ''}
-                                                      onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
-                                                      disabled={isReadonly}
+                                                value={scores[idx]?.feedback || ''}
+                                                onChange={(e) => handleScoreChange(currentId, 'feedback', e.target.value)}
+                                                disabled={isReadonly}
                                             ></textarea>
                                         </div>
                                     );
