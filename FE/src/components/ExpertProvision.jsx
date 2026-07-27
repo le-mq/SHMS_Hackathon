@@ -242,7 +242,11 @@ const ExpertProvisioning = () => {
         setIsLoading(true);
 
         const expiryDateIso = roleSelection.includes('Guest Judge') ? formatExpiryDate(accessExpiry) : null;
-        const payload = { fullName: cleanedName, professionalEmail: cleanedEmail, username: cleanedUsername, password, roleSelection, accessExpiry: expiryDateIso };
+        let rolesToSend = [...roleSelection];
+        if (rolesToSend.includes('Guest Judge')) {
+            rolesToSend = rolesToSend.filter(r => r !== 'Guest Judge').concat('Judge');
+        }
+        const payload = { fullName: cleanedName, professionalEmail: cleanedEmail, username: cleanedUsername, password, roleSelection: rolesToSend, accessExpiry: expiryDateIso };
 
         try {
             const response = await fetch(`${API_BASE}/admin/contests/experts/create`, {
@@ -273,7 +277,7 @@ const ExpertProvisioning = () => {
                 fullName,
                 username,
                 professionalEmail,
-                roles: roleSelection,
+                roles: rolesToSend,
                 accessExpiry: expiryDateIso
             };
             setExperts(prev => [...prev, newExpert]);
@@ -307,10 +311,13 @@ const ExpertProvisioning = () => {
         }
 
         try {
+            let rolesToSend = [...rolesToUpdate];
+            rolesToSend = rolesToSend.map(r => r.toUpperCase() === 'GUEST JUDGE' ? 'Judge' : r);
+
             const resRoles = await fetch(`${API_BASE}/admin/contests/experts/${userId}/roles`, {
                 method: 'PUT',
                 headers,
-                body: JSON.stringify({ roles: rolesToUpdate })
+                body: JSON.stringify({ roles: rolesToSend })
             });
             if (!resRoles.ok) throw new Error();
 
@@ -328,7 +335,9 @@ const ExpertProvisioning = () => {
                 showToast('Roles updated, but Server rejected Expiry format.', 'error');
             }
         } catch {
-            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, roles: rolesToUpdate, accessExpiry: calculatedExpiry } : exp));
+            let rolesToSend = [...rolesToUpdate];
+            rolesToSend = rolesToSend.map(r => r.toUpperCase() === 'GUEST JUDGE' ? 'Judge' : r);
+            setExperts(prev => prev.map(exp => exp.userId == userId ? { ...exp, roles: rolesToSend, accessExpiry: calculatedExpiry } : exp));
             setCardMsg(userId, "Mock update roles & expiry success!");
             showToast("Roles updated successfully!", 'success');
         } finally {
@@ -345,9 +354,10 @@ const ExpertProvisioning = () => {
         const formattedExpiry = formatExpiryDate(selectedExpiry);
 
         try {
-            const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}/expiry?newExpiry=${formattedExpiry}`, {
+            const res = await fetch(`${API_BASE}/admin/contests/experts/${userId}/expiry`, {
                 method: 'PUT',
-                headers
+                headers,
+                body: JSON.stringify({ newExpiry: formattedExpiry })
             });
             if (res.ok) {
                 showToast('Expiry extended successfully!', 'success');
@@ -545,28 +555,24 @@ const ExpertProvisioning = () => {
                             <span className="summary-card-title">👥 Total Experts</span>
                             <span className="summary-card-value">{statistics.total}</span>
                         </div>
-                        <div className="summary-card-icon slate">👥</div>
                     </div>
                     <div className="summary-card">
                         <div className="summary-card-content">
                             <span className="summary-card-title">⚖ Judges</span>
                             <span className="summary-card-value">{statistics.judges}</span>
                         </div>
-                        <div className="summary-card-icon blue">⚖</div>
                     </div>
                     <div className="summary-card">
                         <div className="summary-card-content">
                             <span className="summary-card-title">🎓 Mentors</span>
                             <span className="summary-card-value">{statistics.mentors}</span>
                         </div>
-                        <div className="summary-card-icon green">🎓</div>
                     </div>
                     <div className="summary-card">
                         <div className="summary-card-content">
-                            <span className="summary-card-title">🧑💼 Guest Judges</span>
+                            <span className="summary-card-title"> Guest Judges</span>
                             <span className="summary-card-value">{statistics.guestJudges}</span>
                         </div>
-                        <div className="summary-card-icon orange">🧑💼</div>
                     </div>
                 </div>
 
@@ -779,7 +785,15 @@ const ExpertProvisioning = () => {
                                 const isGuestJudge = currentSelected.some(r => r.toUpperCase() === 'GUEST JUDGE');
                                 const initials = (exp.fullName || exp.username || '??').substring(0, 2).toUpperCase();
 
-                                const originalRoles = (exp.roles || []).map(r => r.replace('ROLE_', ''));
+                                const originalRoles = (() => {
+                                    let roles = (exp.roles || []).map(r => r.replace('ROLE_', ''));
+                                    if (hasLifespan && roles.some(r => r.toUpperCase() === 'JUDGE')) {
+                                        roles = roles.filter(r => r.toUpperCase() !== 'JUDGE').concat('Guest Judge');
+                                    } else if (!hasLifespan && roles.some(r => r.toUpperCase() === 'GUEST JUDGE')) {
+                                        roles = roles.filter(r => r.toUpperCase() !== 'GUEST JUDGE').concat('Judge');
+                                    }
+                                    return roles;
+                                })();
 
                                 // Roles identical check to control save disabled status & warning badge
                                 const identical = areRolesIdentical(currentSelected, originalRoles);
@@ -858,7 +872,15 @@ const ExpertProvisioning = () => {
                                                                 onChange={(e) => {
                                                                     const checked = e.target.checked;
                                                                     setManagedRoles(prev => {
-                                                                        let updated = [...(prev[exp.userId] || exp.roles || [])];
+                                                                        let baseRoles = prev[exp.userId] || exp.roles || [];
+                                                                        let updated = [...baseRoles].map(x => x.replace('ROLE_', ''));
+                                                                        if (!prev[exp.userId]) {
+                                                                            if (hasLifespan && updated.some(x => x.toUpperCase() === 'JUDGE')) {
+                                                                                updated = updated.filter(x => x.toUpperCase() !== 'JUDGE').concat('Guest Judge');
+                                                                            } else if (!hasLifespan && updated.some(x => x.toUpperCase() === 'GUEST JUDGE')) {
+                                                                                updated = updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE').concat('Judge');
+                                                                            }
+                                                                        }
                                                                         if (checked) {
                                                                             updated = (r === 'Guest Judge') ? ['Guest Judge'] : updated.filter(x => x.toUpperCase() !== 'GUEST JUDGE');
                                                                             if (!updated.map(x => x.toUpperCase()).includes(r.toUpperCase())) updated.push(r);
@@ -918,7 +940,7 @@ const ExpertProvisioning = () => {
                                                 onClick={() => handleUpdateRolesSubmit(exp.userId)}
                                                 disabled={isSaveDisabled}
                                             >
-                                                {extendLoading[exp.userId] ? 'Wait...' : '💾 Save Changes'}
+                                                {extendLoading[exp.userId] ? 'Wait...' : ' Save Changes'}
                                             </button>
                                         </div>
                                     </div>
