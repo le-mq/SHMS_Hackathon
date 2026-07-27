@@ -910,7 +910,6 @@ const RankingsConsole = () => {
                                 onClick={() => {
                                     setSelectedContestId('');
                                     setSelectedRoundId('');
-                                    setSelectedRound(null);
                                     sessionStorage.removeItem('rankingsSelectedContestId');
                                 }}
                             >
@@ -1117,9 +1116,9 @@ const RankingsConsole = () => {
                                             </div>
                                             <div style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500', marginTop: '2px' }}>
                                                 {timeRemainingStr === 'Published Successfully'
-                                                    ? 'Round Concluded'
+                                                    ? 'Round Finished'
                                                     : timeRemainingStr === 'Ready'
-                                                        ? (!selectedRound.isScorePublished ? 'Grading Finished' : 'Calibration Concluded')
+                                                        ? (!selectedRound.isScorePublished ? 'Grading Finished' : 'Calibration Finished')
                                                         : (!selectedRound.isScorePublished ? 'Publish Score in' : 'Publish Result in')
                                                 }
                                             </div>
@@ -1878,7 +1877,7 @@ const RankingsConsole = () => {
                                 Are you absolutely sure you want to publish the ranking results for <strong>{selectedRound?.phaseName}</strong>?
                             </p>
                             <p style={{ margin: '0 0 8px 0', fontSize: '13.5px', color: '#8c1d1d', lineHeight: 1.6, padding: '12px', background: '#fff1f1', borderLeft: '4px solid #ef4444', borderRadius: '6px' }}>
-                                <strong>Important Impact:</strong> This action is permanent. Once published, you cannot modify the leaderboard, adjust evaluator scores, or recalculate rankings. Everyone (students, mentors, and judges) will immediately see the final results.
+                                <strong>Important Impact:</strong> This action is permanent. Once published, you cannot modify the leaderboard, adjust evaluator scores, or recalculate rankings. Everyone will immediately see the final results.
                             </p>
                         </div>
 
