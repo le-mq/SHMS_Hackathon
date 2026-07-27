@@ -261,12 +261,12 @@ const MentorCategory = () => {
                             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                                 <select
                                     className="mentor-select"
-                                    style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', fontSize: '14px', color: '#334155', outline: 'none', cursor: 'pointer', minWidth: '150px' }}
+                                    style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', fontSize: '14px', color: '#334155', outline: 'none', cursor: 'pointer', minWidth: '150px', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23334155%22%20strokeWidth%3D%222%22%20strokeLinecap%3D%22round%22%20strokeLinejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '36px' }}
                                     value={contestStatusFilter}
                                     onChange={(e) => setContestStatusFilter(e.target.value)}
                                 >
                                     <option value="All">All Statuses</option>
-                                    <option value="ACTIVE">Active</option>
+                                    <option value="ACTIVED">Actived</option>
                                     <option value="UPCOMING">Upcoming</option>
                                     <option value="CLOSED">Closed</option>
                                 </select>
@@ -281,7 +281,7 @@ const MentorCategory = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                             {Array.isArray(data) && data.filter(c => {
                                 const matchesSearch = !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase());
-                                const status = c.contestStatus || 'ACTIVE';
+                                const status = c.contestStatus || 'ACTIVED';
                                 const matchesStatus = contestStatusFilter === 'All' || status.toUpperCase() === contestStatusFilter.toUpperCase();
                                 return matchesSearch && matchesStatus;
                             })
@@ -297,7 +297,7 @@ const MentorCategory = () => {
                                 ))}
                             {Array.isArray(data) && data.filter(c => {
                                 const matchesSearch = !contestSearchQuery || c.contestName?.toLowerCase().includes(contestSearchQuery.toLowerCase());
-                                const status = c.contestStatus || 'ACTIVE';
+                                const status = c.contestStatus || 'ACTIVED';
                                 const matchesStatus = contestStatusFilter === 'All' || status.toUpperCase() === contestStatusFilter.toUpperCase();
                                 return matchesSearch && matchesStatus;
                             }).length === 0 && (
