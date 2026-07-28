@@ -552,19 +552,19 @@ const ExpertProvisioning = () => {
                 <div className="summary-cards-grid">
                     <div className="summary-card total">
                         <div className="summary-card-content">
-                            <span className="summary-card-title">👥 Total Experts</span>
+                            <span className="summary-card-title"> Total Experts</span>
                             <span className="summary-card-value">{statistics.total}</span>
                         </div>
                     </div>
                     <div className="summary-card judges">
                         <div className="summary-card-content">
-                            <span className="summary-card-title">⚖ Judges</span>
+                            <span className="summary-card-title"> Judges</span>
                             <span className="summary-card-value">{statistics.judges}</span>
                         </div>
                     </div>
                     <div className="summary-card mentors">
                         <div className="summary-card-content">
-                            <span className="summary-card-title">🎓 Mentors</span>
+                            <span className="summary-card-title"> Mentors</span>
                             <span className="summary-card-value">{statistics.mentors}</span>
                         </div>
                     </div>
@@ -576,7 +576,6 @@ const ExpertProvisioning = () => {
                     </div>
                 </div>
 
-                {/* 3. Search + Filter + Sort Toolbar */}
                 <div className={`sticky-toolbar-wrapper ${isScrolled ? 'scrolled' : ''}`}>
                     <div className="unified-toolbar">
                         <div className="search-input-wrapper">
@@ -585,8 +584,8 @@ const ExpertProvisioning = () => {
                             </svg>
                             <input
                                 type="text"
-                                className="search-input"
-                                placeholder="🔍 Search expert by name or username..."
+                                className="search-input-e"
+                                placeholder=" Search expert by name or username..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
