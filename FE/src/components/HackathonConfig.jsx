@@ -600,7 +600,7 @@ function HackathonConfig() {
                             {showSearchDropdown && searchQuery && (
                                 <div className="hc-search-dropdown">
                                     {filteredContests.length > 0 ? filteredContests.map(c => {
-                                        const st = determineStatus(c.registrationStart, c.contestEndAt);
+                                        const st = c.status || 'UPCOMING';
                                         return (
                                             <div key={c.id} className={`hc-search-item${selectedContestId === c.id ? ' selected' : ''}`} onClick={() => { handleSelectContest(c.id); setSearchQuery(''); setShowSearchDropdown(false); }}>
                                                 <div><div className="hc-search-name">{c.name}</div><div className="hc-search-season">{c.season} {c.year}</div></div>
