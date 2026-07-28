@@ -27,7 +27,7 @@ public class Semester {
     private Integer year;
 
     @Column(name = "semester_code", nullable = false, unique = true, length = 50)
-    private String code;   // e.g. "SP26", "SU26"
+    private String code;
 
     @Transient
     private LocalDate startDate;

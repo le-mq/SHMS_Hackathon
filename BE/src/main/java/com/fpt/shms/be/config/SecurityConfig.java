@@ -18,15 +18,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Spring Security configuration.
- *
- * <ul>
- *   <li>All /api/v1/public/** endpoints are open to everyone.</li>
- *   <li>Everything else requires authentication (to be tightened with JWT later).</li>
- *   <li>CORS is enabled for the React dev-server (localhost:5173).</li>
- * </ul>
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

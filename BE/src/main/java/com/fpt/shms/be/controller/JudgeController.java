@@ -126,10 +126,8 @@ public class JudgeController {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            // Gate check: scores are only visible after admin publishes them (reviewCalibrationAt)
             EvaluatorDashboardResponse data = judgeService.getJudgeResultReviewData(username, contestId);
 
-            // Check if at least one round in assigned contests has reviewCalibrationAt set
             boolean scoresPublished = judgeService.areScoresPublished(username, contestId);
             if (!scoresPublished) {
                 return ResponseEntity.status(403).body(Map.of(

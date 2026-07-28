@@ -429,41 +429,41 @@ INSERT INTO [Role] (role_name, description) VALUES ('LEADER', N'Lãnh đạo c�
 GO
 
 INSERT INTO [User] (username, email, password, full_name, email_verified, status) VALUES
-('admin1', 'admin1@gmail.com', 'Admin1234', N'Admin', 1, 'ACTIVE'),
-('judge1', 'judge1@gmail.com', 'Judge1123', N'Giám Khảo 1', 1, 'ACTIVE'),
-('mentor1', 'mentor1@gamil.com', 'Mentor1234', N'Mentor 1', 1, 'ACTIVE'),
-('admin2', 'admin2@gmail.com', 'Admin2234', N'Admin Số 2', 1, 'ACTIVE'),
-('judge2', 'judge2@gmail.com', 'Judge2123', N'Giám Khảo Số 2', 1, 'ACTIVE'),
-('mentor2', 'mentor2@gmail.com', 'Mentor2234', N'Mentor Số 2', 1, 'ACTIVE'),
-('judge_mentor', 'judge_mentor@gmail.com', 'AdminMentor123', N'Người dùng 2 Role', 1, 'ACTIVE'),
+('admin1', 'admin1@gmail.com', '$2a$10$Q0jqvERPy1L99Kg0fs9m1ee534uaDn7cza0KHNeLWPr8NvaCsgQkO', N'Admin', 1, 'ACTIVE'),
+('judge1', 'judge1@gmail.com', '$2a$10$h486K3HPCNXXUnhZgTqYz.7zyBcDkFv/MWipHWMby1R.B7v2MvszC', N'Giám Khảo 1', 1, 'ACTIVE'),
+('mentor1', 'mentor1@gamil.com', '$2a$10$Q5WHQ14w2UcpP56WAAohRO4pEQcMJKntJSYcODAsPCFXmsA6Mtduy', N'Mentor 1', 1, 'ACTIVE'),
+('admin2', 'admin2@gmail.com', '$2a$10$r6zamCDAWgsvV.z0jJjQ8eMw.2SJD6jbeQmaAhN1ctvwIB6RtZBRe', N'Admin Số 2', 1, 'ACTIVE'),
+('judge2', 'judge2@gmail.com', '$2a$10$FmfdaUbIqBNrHKSw9kbDB.I8qbd7eN.UgvF464xgk3ShBO61oBGMK', N'Giám Khảo Số 2', 1, 'ACTIVE'),
+('mentor2', 'mentor2@gmail.com', '$2a$10$aS6s9fzHG/Q6vVv.GglPkuayIrZ6Kc3jGHzEtNI5IU.IqBMLP905q', N'Mentor Số 2', 1, 'ACTIVE'),
+('judge_mentor', 'judge_mentor@gmail.com', '$2a$10$OAofA7RBH3zcoUyeO2YYI.Okh.MKxeFxZWkOVKRXPVzOSiqELVUIG', N'Người dùng 2 Role', 1, 'ACTIVE'),
 
 --DH FPT
-('nhatmy12', 'nhatmysocutedl@gmail.com', 'nhatmy12', N'Nguyễn Trần Nhật Mỹ', 1, 'ACTIVE'),
-('tuanhne', 'vuthituanh123@gmail.com', 'tuanh123', N'Vũ Thị Tú Anh', 1, 'ACTIVE'),
-('haiyen90', 'huongtuongyen1982@gmail.com', 'haiyen90', N'Nguyễn Thị Hải Yến', 1, 'ACTIVE'),
-('xuanbach2', 'vuxuanbach2508@gmail.com', 'bach2508', N'Vũ Xuân Bách', 1, 'ACTIVE'),
-('quangne', 'nguyendangduyquang@gmail.com', 'Quang5123', N'Nguyễn Đặng Duy Quang', 1, 'ACTIVE'),
-('tuan789', 'buianhtuan123@gmail.com', 'tuan3456', N'Bùi Anh Tuấn', 1, 'ACTIVE'),
-('hien23', 'thuhien456@gmail.com', 'hien1010', N'Trần Thị Thu Hiền', 1, 'ACTIVE'),
-('phuonguyen45', 'phuonguyen@gmail.com', 'uyen4567', N'Lê Ngọc Phương Uyên', 1, 'ACTIVE'),
-('trinhnguyen1', 'dntotrinh@gmail.com', 'Totrinh56', N'Dương Nguyễn Tố Trinh', 1, 'ACTIVE'),
-('nhanha12', 'phannha@gmail.com', 'nhasi1000', N'Phan Nha', 1, 'ACTIVE'),
+('nhatmy12', 'nhatmysocutedl@gmail.com', '$2a$10$msbXonJIAdkTFNUfCL/uPuU4bLu0fmdYFfO5nXIm/gQf1rQyHLbg.', N'Nguyễn Trần Nhật Mỹ', 1, 'ACTIVE'),
+('tuanhne', 'vuthituanh123@gmail.com', '$2a$10$75qH2TNy6ZiS.StEqr34v.6jA7vuN0wfZQO2juHp6oc2Z90xab7uu', N'Vũ Thị Tú Anh', 1, 'ACTIVE'),
+('haiyen90', 'huongtuongyen1982@gmail.com', '$2a$10$UlPpWLJcFk/Y/pMxj6uHh.2cq3AIWRBDOw5wiEXpna5GNTQP5bKMO', N'Nguyễn Thị Hải Yến', 1, 'ACTIVE'),
+('xuanbach2', 'vuxuanbach2508@gmail.com', '$2a$10$5sNozzEGwvrFEExaPcpaWurKTOetPx2xkrRYlEvBo/MDv48.nRdo2', N'Vũ Xuân Bách', 1, 'ACTIVE'),
+('quangne', 'nguyendangduyquang@gmail.com', '$2a$10$n9GMCPO71L15cd/Ji9qc8e0aWSOrIKtkrpliS/ZjFQzUHEpjddtNe', N'Nguyễn Đặng Duy Quang', 1, 'ACTIVE'),
+('tuan789', 'buianhtuan123@gmail.com', '$2a$10$E6bYgPgox2KIVH1Tpd9Cs.mo6y0RDTlzjHEBjsbsfWu10.ygNZbjq', N'Bùi Anh Tuấn', 1, 'ACTIVE'),
+('hien23', 'thuhien456@gmail.com', '$2a$10$D5TRZS8ZGFNz9YZUdH41PeiXNnWX9gSnzMYZp/gXpFB3unVFzYrnu', N'Trần Thị Thu Hiền', 1, 'ACTIVE'),
+('phuonguyen45', 'phuonguyen@gmail.com', '$2a$10$GjtWXFKPye0WHJc0Eby20u.RgGAK/UlHGsLDMeg1xmVOwbJOkjC/G', N'Lê Ngọc Phương Uyên', 1, 'ACTIVE'),
+('trinhnguyen1', 'dntotrinh@gmail.com', '$2a$10$FJ9DzJfjBzzDyoommnpTsOfpDvOeFT4zzoNlz7OMjB40UEkFd9fzq', N'Dương Nguyễn Tố Trinh', 1, 'ACTIVE'),
+('nhanha12', 'phannha@gmail.com', '$2a$10$Vaew3SoFgSrATqp9bVf10eIe81ucIYUmlKiNKAKOvv.VCflY6u0V2', N'Phan Nha', 1, 'ACTIVE'),
 
 --ĐH Nông Lâm TP.HCM
-('baobao11', '12345678@st.hcmuaf.edu.vn', 'thaibao123', N'Thái Nguyễn Gia Bảo', 1, 'ACTIVE'),
-('letoan34', '09876543@st.hcmuaf.edu.vn', 'vantoan01', N'Lê Văn Toàn', 1, 'ACTIVE'),
+('baobao11', '12345678@st.hcmuaf.edu.vn', '$2a$10$7YSixssHmBzEzLD.mgjSH.rnwrk6RleVJlGl8K5g0vQQ5XcQ.ZdkW', N'Thái Nguyễn Gia Bảo', 1, 'ACTIVE'),
+('letoan34', '09876543@st.hcmuaf.edu.vn', '$2a$10$pmAHU7vj.MR2G5zcUKLw5.HtHCQ2B8W95sOWZQUrtZoSw28zakurq', N'Lê Văn Toàn', 1, 'ACTIVE'),
 
 --Bách Khoa TP.HCM
-('phucduy78', 'Leduyphuc@hcmut.edu.vn', 'duyphuc123', N'Lê Duy Phúc', 1, 'ACTIVE'),
-('hanphạm00', 'Phamgiahan@hcmut.edu.vn', 'hanhan2005', N'Phạm Gia Hân', 1, 'ACTIVE'),
+('phucduy78', 'Leduyphuc@hcmut.edu.vn', '$2a$10$oHxqxkspftyw/55LA.UZre1Z2pf5ollsDulEuqBIXBGgbg.YiE9I.', N'Lê Duy Phúc', 1, 'ACTIVE'),
+('hanphạm00', 'Phamgiahan@hcmut.edu.vn', '$2a$10$Gq6H7OjiNdFMJU8nLYY5J.sg3PCyCsRcq8yYaPu5FSWih7xD/VPtG', N'Phạm Gia Hân', 1, 'ACTIVE'),
 
 --KHTN TP.HCM
-('quantran90', '20120001@student.hcmus.edu.vn', 'quan1234', N'Trần Minh Quân', 1, 'ACTIVE'),
-('tunhien11', '20120002@student.hcmus.edu.vn', 'nhien123', N'Hoàng Tự Nhiên', 1, 'ACTIVE'),
+('quantran90', '20120001@student.hcmus.edu.vn', '$2a$10$ucrgAj2kRDOAxZxjUMOABu9NKMw5EAO3CN6adHwSg1LRl0OBSWOQS', N'Trần Minh Quân', 1, 'ACTIVE'),
+('tunhien11', '20120002@student.hcmus.edu.vn', '$2a$10$PRI.clJ7P6wI2snVMEafxu2yqCRCYy22pNq5.WzFUkGorgiuJHUFm', N'Hoàng Tự Nhiên', 1, 'ACTIVE'),
 
 --HUFLIT
-('hieuminh1', '20DH123456@st.huflit.edu.vn', 'minhvu123', N'Vũ Hiếu Minh', 1, 'ACTIVE'),
-('datle2004', '20DH123457@st.huflit.edu.vn', 'datle1234', N'Lê Tiến Đạt', 1, 'ACTIVE');
+('hieuminh1', '20DH123456@st.huflit.edu.vn', '$2a$10$C1.V0enIb4LiLO4qL6CA0uK9j5RBy5HoF8PsPEJB.uqzKKKaxvBiW', N'Vũ Hiếu Minh', 1, 'ACTIVE'),
+('datle2004', '20DH123457@st.huflit.edu.vn', '$2a$10$hKBF4mT6lh1jmQz.X5720.ZjuAFckzOmpzVd8n5OHiiU1gfZfEii6', N'Lê Tiến Đạt', 1, 'ACTIVE');
 GO
 
 INSERT INTO UserRole (user_id, role_id, is_active)

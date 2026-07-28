@@ -61,11 +61,10 @@ public class RankingAdminService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        List<ContestRubric> rubricsForRound = new ArrayList<>();
+        List<Long> roundCategoryIds = new ArrayList<>();
         if (round.getCategory() != null) {
-            rubricsForRound = contestRubricRepository.findByCategoryId(round.getCategory().getId());
+            roundCategoryIds.add(round.getCategory().getId());
         }
-        List<Long> roundCategoryIds = rubricsForRound.stream().map(cr -> cr.getCategory().getId()).distinct().toList();
 
         List<Submission> allSubmissionsRaw = submissionRepository.findAll().stream()
                 .filter(s -> s.getTeam() != null && s.getTeam().getContest() != null &&
@@ -291,7 +290,17 @@ public class RankingAdminService {
         }
 
         List<Map.Entry<Team, Double>> sortedTeams = new ArrayList<>(teamScores.entrySet());
-        sortedTeams.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        sortedTeams.sort((a, b) -> {
+            int scoreCompare = Double.compare(b.getValue(), a.getValue());
+            if (scoreCompare != 0) {
+                return scoreCompare;
+            }
+            Submission subA = latestSubmissions.get(a.getKey().getId());
+            Submission subB = latestSubmissions.get(b.getKey().getId());
+            java.time.LocalDateTime timeA = (subA != null && subA.getSubmittedAt() != null) ? subA.getSubmittedAt() : java.time.LocalDateTime.MAX;
+            java.time.LocalDateTime timeB = (subB != null && subB.getSubmittedAt() != null) ? subB.getSubmittedAt() : java.time.LocalDateTime.MAX;
+            return timeA.compareTo(timeB);
+        });
 
         List<ProcessRankingsResponse.TeamRankingEntry> results = new ArrayList<>();
         int rank = 1;
@@ -342,12 +351,10 @@ public class RankingAdminService {
         Round round = roundRepository.findById(request.getRoundId())
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        // Must publish scores first
         if (!submissionRepository.existsByRoundIdAndHistoryLogIsPublished(round.getId())) {
             throw new IllegalArgumentException("You must Publish Score before publishing results.");
         }
 
-        // Must wait until Review Calibration period has concluded
         if (round.getReviewCalibrationAt() != null && LocalDateTime.now().isBefore(round.getReviewCalibrationAt())) {
             throw new IllegalArgumentException(
                     "Cannot publish results before the Review Calibration period has concluded.");
@@ -393,8 +400,6 @@ public class RankingAdminService {
             roundRepository.save(round);
         }
 
-        // Snapshot current average scores into historyLog of each team's latest
-        // submission for this round
         List<Submission> allSubmissions = submissionRepository.findByRoundId(roundId);
         java.util.Map<Long, Submission> latestSubByTeam = new java.util.HashMap<>();
         for (Submission s : allSubmissions) {

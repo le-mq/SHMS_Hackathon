@@ -17,7 +17,7 @@ public class RegexGeneratorUtil {
         Set<String> domains = sampleEmails.stream()
                 .filter(email -> email != null && email.contains("@"))
                 .map(email -> email.substring(email.lastIndexOf("@") + 1).trim())
-                .map(domain -> domain.replace(".", "\\.")) // Escape dot
+                .map(domain -> domain.replace(".", "\\."))
                 .collect(Collectors.toSet());
 
         if (domains.isEmpty()) {
@@ -33,13 +33,8 @@ public class RegexGeneratorUtil {
             return null;
         }
 
-        // We want to extract prefix and suffix length.
-        // e.g., SE190001 -> prefix: SE, suffix length: 6
-        // C12345 -> prefix: C, suffix length: 5
-        // Use ^(.*?)(\\d+)$ to support empty prefixes or mixed prefixes (e.g., 12345678, 12DH123456)
         Pattern pattern = Pattern.compile("^(.*?)(\\d+)$");
 
-        // Group by suffix length, then collect prefixes
         Map<Integer, Set<String>> groupedByLength = sampleStudentIds.stream()
                 .filter(id -> id != null && !id.trim().isEmpty())
                 .map(String::trim)
@@ -51,7 +46,6 @@ public class RegexGeneratorUtil {
                 ));
 
         if (groupedByLength.isEmpty()) {
-            // Fallback if none match the Prefix+Number pattern
             return null;
         }
 

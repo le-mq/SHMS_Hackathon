@@ -40,10 +40,6 @@ public class Contest {
     @Column(name = "registration_end")
     private LocalDate registrationEnd;
 
-
-    /**
-     * Overall contest status: ACTIVED | UPCOMING | CLOSED
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private ContestStatus status;

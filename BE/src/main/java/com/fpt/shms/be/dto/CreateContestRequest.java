@@ -17,17 +17,16 @@ public class CreateContestRequest {
     private String description;
 
     @NotBlank(message = "Term is required")
-    private String term; // SPRING, SUMMER, FALL, WINTER
+    private String term;
 
     @NotNull(message = "Year is required")
     private Integer year;
 
-    private String status; // ACTIVE, UPCOMING, CLOSED
+    private String status;
 
     private java.time.LocalDate registrationStart;
     private java.time.LocalDate registrationEnd;
 
-    // --- MỚI THÊM: Thời gian đóng cuộc thi ---
     @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private java.time.LocalDateTime contestEndAt;
 
