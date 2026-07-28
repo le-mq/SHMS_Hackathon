@@ -1559,3 +1559,14 @@ UPDATE AuditLog SET old_value = 'TEMPLATE' WHERE (old_value = 'TEMPLATE' OR old_
 UPDATE AuditLog SET new_value = 'TEMPLATE' WHERE (new_value = 'TEMPLATE' OR new_value = 'draft') AND entity_name LIKE '%Rubric%';
 GO
 
+ALTER TABLE University
+    ADD email_sample_regex VARCHAR(500) NULL,
+    student_code_sample_regex VARCHAR(500) NULL;
+GO
+
+UPDATE University SET email_sample_regex = 'student@fpt.edu.vn,student@gmail.com', student_code_sample_regex = 'SE185041' WHERE university_code = 'FPT';
+UPDATE University SET email_sample_regex = '12345678@st.hcmuaf.edu.vn', student_code_sample_regex = '12345678' WHERE university_code = 'HCMUAF';
+UPDATE University SET email_sample_regex = 'student@hcmut.edu.vn', student_code_sample_regex = '2010001' WHERE university_code = 'HCMUT';
+UPDATE University SET email_sample_regex = '20120001@student.hcmus.edu.vn', student_code_sample_regex = '20120001' WHERE university_code = 'HCMUS';
+UPDATE University SET email_sample_regex = '20DH123456@st.huflit.edu.vn', student_code_sample_regex = '20DH123456' WHERE university_code = 'HUFLIT';
+GO

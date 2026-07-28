@@ -72,7 +72,7 @@ public class TeamService {
                 .filter(m -> m.getTeam() == null || !"CANCELLED".equalsIgnoreCase(m.getTeam().getStatus()))
                 .toList();
         if (memberships.isEmpty()) {
-            throw new IllegalArgumentException("User is not in any team");
+            return TeamStatusResponse.builder().status("NO_TEAM").build();
         }
 
         Team team = null;

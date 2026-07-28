@@ -18,12 +18,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PublicHomeService {
-
 
     private final ContestRepository contestRepository;
     private final CategoryRepository categoryRepository;
@@ -55,7 +53,8 @@ public class PublicHomeService {
 
         List<ContestDTO> contests = allPublishedContests.stream()
                 .map(c -> {
-                    List<com.fpt.shms.be.model.Category> categoriesModel = categoryRepository.findByContestId(c.getId());
+                    List<com.fpt.shms.be.model.Category> categoriesModel = categoryRepository
+                            .findByContestId(c.getId());
                     List<com.fpt.shms.be.model.Round> contestRounds = roundRepository.findByContestId(c.getId());
                     List<ContestDTO.CategoryDTO> categories = categoriesModel.stream().map(cat -> {
                         List<ContestDTO.RoundDTO> catRounds = contestRounds.stream()
@@ -68,10 +67,10 @@ public class PublicHomeService {
                                         r.getReviewCalibrationAt(),
                                         r.getPublishResultAt(),
                                         r.getSubmissionRequirements(),
-                                        r.getRoundFormat()
-                                ))
+                                        r.getRoundFormat()))
                                 .toList();
-                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), cat.getDescription(), cat.getGuidelineUrl(), catRounds);
+                        return new ContestDTO.CategoryDTO(cat.getId(), cat.getName(), cat.getDescription(),
+                                cat.getGuidelineUrl(), catRounds);
                     }).toList();
                     List<ContestDTO.RoundDTO> dtoRounds = contestRounds.stream()
                             .map(r -> new ContestDTO.RoundDTO(
@@ -82,8 +81,7 @@ public class PublicHomeService {
                                     r.getReviewCalibrationAt(),
                                     r.getPublishResultAt(),
                                     r.getSubmissionRequirements(),
-                                    r.getRoundFormat()
-                            ))
+                                    r.getRoundFormat()))
                             .toList();
                     return ContestDTO.from(c, categories, dtoRounds);
                 })
@@ -121,6 +119,22 @@ public class PublicHomeService {
                     dto.setStudentCodeRegex(u.getStudentCodeRegex());
                     dto.setEmailRegex(u.getEmailRegex());
                     dto.setUniversityCode(u.getUniversityCode());
+                    if (u.getEmailSampleRegex() != null && !u.getEmailSampleRegex().isEmpty()) {
+                        dto.setSampleEmails(java.util.Arrays.stream(u.getEmailSampleRegex().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(java.util.stream.Collectors.toList()));
+                    } else {
+                        dto.setSampleEmails(new java.util.ArrayList<>());
+                    }
+                    if (u.getStudentCodeSampleRegex() != null && !u.getStudentCodeSampleRegex().isEmpty()) {
+                        dto.setSampleStudentIds(java.util.Arrays.stream(u.getStudentCodeSampleRegex().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(java.util.stream.Collectors.toList()));
+                    } else {
+                        dto.setSampleStudentIds(new java.util.ArrayList<>());
+                    }
                     return dto;
                 })
                 .toList();
@@ -144,19 +158,22 @@ public class PublicHomeService {
                 .stream()
                 .filter(a -> {
 
-                    if (a.getTargets() == null || a.getTargets().isEmpty()) return true;
+                    if (a.getTargets() == null || a.getTargets().isEmpty())
+                        return true;
 
-                    if (currentRoles.isEmpty()) return false;
+                    if (currentRoles.isEmpty())
+                        return false;
 
-                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName()).toList();
-                    return currentRoles.stream().anyMatch(role ->
-                            targetRolesList.stream().anyMatch(t -> {
-                                String targetRole = t.trim();
-                                if (targetRole.equalsIgnoreCase(role)) return true;
-                                if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER")) return true;
-                                return false;
-                            })
-                    );
+                    java.util.List<String> targetRolesList = a.getTargets().stream().map(t -> t.getRole().getName())
+                            .toList();
+                    return currentRoles.stream().anyMatch(role -> targetRolesList.stream().anyMatch(t -> {
+                        String targetRole = t.trim();
+                        if (targetRole.equalsIgnoreCase(role))
+                            return true;
+                        if (targetRole.equalsIgnoreCase("STUDENT") && role.equalsIgnoreCase("LEADER"))
+                            return true;
+                        return false;
+                    }));
                 })
                 .map(AnnouncementDTO::from)
                 .toList();
@@ -165,7 +182,8 @@ public class PublicHomeService {
     public List<Map<String, Object>> getLeaderboards() {
         List<RankingResult> results = rankingResultRepository.findPublishedLeaderboards();
         return results.stream().map(r -> {
-            boolean isCancelled = !"APPROVED".equalsIgnoreCase(r.getTeam().getStatus()) && !"CLOSED".equalsIgnoreCase(r.getTeam().getStatus());
+            boolean isCancelled = !"APPROVED".equalsIgnoreCase(r.getTeam().getStatus())
+                    && !"CLOSED".equalsIgnoreCase(r.getTeam().getStatus());
             Map<String, Object> map = new HashMap<>();
             map.put("contestId", r.getRound().getContest() != null ? r.getRound().getContest().getId() : null);
             map.put("contestName", r.getRound().getContest() != null ? r.getRound().getContest().getName() : "");
@@ -177,18 +195,25 @@ public class PublicHomeService {
             map.put("categoryName", r.getCategory() != null ? r.getCategory().getName() : "");
             map.put("status", isCancelled ? "DISQUALIFIED" : r.getQualificationStatus());
             map.put("finalScore", isCancelled ? 0.0 : r.getFinalScore());
-            map.put("prizeStructures", r.getRound().getContest() != null ? r.getRound().getContest().getTieredPrizeStructures() : null);
+            map.put("prizeStructures",
+                    r.getRound().getContest() != null ? r.getRound().getContest().getTieredPrizeStructures() : null);
 
-            List<com.fpt.shms.be.model.TeamMembership> members = teamMembershipRepository.findByTeamId(r.getTeam().getId());
+            List<com.fpt.shms.be.model.TeamMembership> members = teamMembershipRepository
+                    .findByTeamId(r.getTeam().getId());
             List<Map<String, Object>> roster = members.stream()
-                    .filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus()) || "PENDING".equalsIgnoreCase(m.getStatus()))
+                    .filter(m -> "APPROVED".equalsIgnoreCase(m.getStatus())
+                            || "PENDING".equalsIgnoreCase(m.getStatus()))
                     .map(m -> {
                         Map<String, Object> memMap = new HashMap<>();
-                        memMap.put("fullName", m.getStudent() != null ? m.getStudent().getFullName() : (m.getUser() != null ? m.getUser().getUsername() : "Unknown"));
+                        memMap.put("fullName", m.getStudent() != null ? m.getStudent().getFullName()
+                                : (m.getUser() != null ? m.getUser().getUsername() : "Unknown"));
                         memMap.put("studentCode", m.getStudent() != null ? m.getStudent().getStudentCode() : "");
                         memMap.put("email", m.getUser() != null ? m.getUser().getEmail() : "");
                         memMap.put("role", m.getRole());
-                        memMap.put("universityName", m.getStudent() != null && m.getStudent().getUniversity() != null ? m.getStudent().getUniversity().getName() : "N/A");
+                        memMap.put("universityName",
+                                m.getStudent() != null && m.getStudent().getUniversity() != null
+                                        ? m.getStudent().getUniversity().getName()
+                                        : "N/A");
                         return memMap;
                     }).toList();
             map.put("roster", roster);

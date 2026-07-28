@@ -30,6 +30,12 @@ public class University {
     @Column(name = "student_code_regex", length = 500)
     private String studentCodeRegex;
 
+    @Column(name = "email_sample_regex", length = 500)
+    private String emailSampleRegex;
+
+    @Column(name = "student_code_sample_regex", length = 500)
+    private String studentCodeSampleRegex;
+
     @Column(name = "status", length = 50)
     private String status;
 }
