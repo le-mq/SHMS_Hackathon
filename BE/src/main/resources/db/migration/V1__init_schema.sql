@@ -618,7 +618,8 @@ VALUES
 ('Spring', 2025, 'SP25'),
 ('Fall', 2025, 'FA25'),
 ('Summer', 2026, 'SU26'),
-('Spring', 2026, 'SP26');
+('Spring', 2026, 'SP26'),
+('Fall', 2026, 'FA26');
 GO
 
 -- 1. CONTESTS (Each Contest in a DIFFERENT Semester!)
@@ -627,7 +628,9 @@ VALUES
 (1, 'National AI Challenge 2025', 'Artificial Intelligence', N'A national-scale AI competition for students passionate about artificial intelligence and advanced machine learning technologies.', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-02-11 08:00:00', '2025-03-30 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"All source code must be 100% self-developed during the competition.","penalty":"Disqualified"},{"rule":"All teams must comply with AI ethics and integrity guidelines.","penalty":"Minus 20 points"}]', N'[{"rank":"First Prize","amount":"50,000,000 VND"},{"rank":"Second Prize","amount":"30,000,000 VND"},{"rank":"Third Prize","amount":"15,000,000 VND"}]', '2025-01-15 08:00:00'),
 (2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', N'An arena for smart contract development and building highly secure Web3 decentralized application solutions.', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-09-16 08:00:00', '2025-11-30 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"Smart contracts must be deployed and verified on Testnet or Mainnet.","penalty":"Disqualified"},{"rule":"Security audit and gas optimization report required prior to submission.","penalty":"Minus 15 points"}]', N'[{"rank":"First Prize","amount":"60,000,000 VND"},{"rank":"Second Prize","amount":"35,000,000 VND"},{"rank":"Third Prize","amount":"20,000,000 VND"}]', '2025-08-15 08:00:00'),
 (3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', N'A breakthrough creative playground combining modern Software Engineering and pioneering AI Leadership.', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-29', '2026-07-29 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"All source code must be developed within the official hackathon timeline.","penalty":"Disqualified"},{"rule":"Participating teams must strictly follow student conduct and academic integrity rules.","penalty":"Minus 20 points"},{"rule":"The decision of the Judging Panel is final and binding.","penalty":"Warning"}]', N'[{"rank":"First Prize","amount":"100,000,000 VND"},{"rank":"Second Prize","amount":"50,000,000 VND"},{"rank":"Third Prize","amount":"25,000,000 VND"},{"rank":"Consolation Prize","amount":"10,000,000 VND"}]', '2026-04-15 08:00:00'),
-(4, 'FPT Global Tech Championship 2026', 'Enterprise Cloud & Advanced AI', N'A high-level technology tournament focusing on enterprise-scale cloud architectures and deep AI models.', 200, 3, 6, 'CLOSED', '2026-02-01', '2026-02-15', '2026-02-16 08:00:00', '2026-04-25 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"Source code must be original and developed during the hackathon.","penalty":"Disqualified"},{"rule":"Teams must comply with IP and open-source regulations.","penalty":"Minus 15 points"}]', N'[{"rank":"Grand Prize","amount":"150,000,000 VND"},{"rank":"First Runner-Up","amount":"80,000,000 VND"},{"rank":"Second Runner-Up","amount":"40,000,000 VND"},{"rank":"Excellence Award","amount":"15,000,000 VND"}]', '2026-01-15 08:00:00');
+(4, 'FPT Global Tech Championship 2026', 'Enterprise Cloud & Advanced AI', N'A high-level technology tournament focusing on enterprise-scale cloud architectures and deep AI models.', 200, 3, 6, 'CLOSED', '2026-02-01', '2026-02-15', '2026-02-16 08:00:00', '2026-04-25 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"Source code must be original and developed during the hackathon.","penalty":"Disqualified"},{"rule":"Teams must comply with IP and open-source regulations.","penalty":"Minus 15 points"}]', N'[{"rank":"Grand Prize","amount":"150,000,000 VND"},{"rank":"First Runner-Up","amount":"80,000,000 VND"},{"rank":"Second Runner-Up","amount":"40,000,000 VND"},{"rank":"Excellence Award","amount":"15,000,000 VND"}]', '2026-01-15 08:00:00'),
+-- Contest 5: FALL 2026 (UPCOMING)
+((SELECT TOP 1 semester_id FROM Semester WHERE term = 'Fall' AND year = 2026), 'Vietnam Tech Innovation Challenge 2026', 'AI & Cybersecurity', N'A nationwide technology competition focusing on cutting-edge AI applications and advanced cybersecurity solutions for the digital era.', 120, 3, 5, 'UPCOMING', '2026-09-01', '2026-09-15', '2026-09-16 08:00:00', '2026-11-30 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"All source code must be 100% self-developed during the competition timeline.","penalty":"Disqualified"},{"rule":"Teams must comply with cybersecurity ethics and responsible disclosure policies.","penalty":"Minus 20 points"},{"rule":"The Judging Panel decision is final.","penalty":"Warning"}]', N'[{"rank":"First Prize","amount":"80,000,000 VND"},{"rank":"Second Prize","amount":"45,000,000 VND"},{"rank":"Third Prize","amount":"20,000,000 VND"},{"rank":"Consolation Prize","amount":"8,000,000 VND"}]', '2026-08-15 08:00:00');
 GO
 
 -- 2. CATEGORIES
@@ -642,7 +645,10 @@ VALUES
     (6, 2, 'Web3 DApps', N'Decentralized Web3 Application Development', 'ACTIVED'),
     (7, 3, 'AI & Web3 Innovation', N'Innovative Applications combining AI and Blockchain', 'ACTIVED'),
     (8, 3, 'Cloud & Big Data Architecture', N'Cloud Architecture and Big Data Processing Systems', 'ACTIVED'),
-    (10, 4, 'Enterprise Cloud & AI Mastery', N'Enterprise-scale Cloud Architecture and AI Systems', 'ACTIVED');
+    (10, 4, 'Enterprise Cloud & AI Mastery', N'Enterprise-scale Cloud Architecture and AI Systems', 'ACTIVED'),
+    -- Contest 5 FALL 2026 Categories (1 category = 1 round)
+    (11, (SELECT TOP 1 contest_id FROM Contest WHERE contest_name = 'Vietnam Tech Innovation Challenge 2026'), 'AI & Automation', N'Artificial Intelligence applications and intelligent automation systems', 'ACTIVED'),
+    (12, (SELECT TOP 1 contest_id FROM Contest WHERE contest_name = 'Vietnam Tech Innovation Challenge 2026'), 'Cybersecurity & Cloud', N'Advanced cybersecurity solutions and cloud infrastructure security', 'ACTIVED');
 SET IDENTITY_INSERT Category OFF;
 GO
 
@@ -655,6 +661,8 @@ INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 3, university_id FROM University;
 INSERT INTO ContestUniversity (contest_id, university_id)
 SELECT 4, university_id FROM University;
+INSERT INTO ContestUniversity (contest_id, university_id)
+SELECT (SELECT TOP 1 contest_id FROM Contest WHERE contest_name = 'Vietnam Tech Innovation Challenge 2026'), university_id FROM University;
 GO
 
 -- 4. ANNOUNCEMENTS
@@ -840,7 +848,10 @@ VALUES
 (5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-29 09:00:00', '2026-07-29 10:00:00', '2026-07-29 11:00:00', '2026-07-29 11:30:00', '2026-07-29 11:40:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
 (6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-07-29 12:00:00', '2026-07-29 12:30:00', '2026-07-29 13:00:00', '2026-07-29 14:00:00', '2026-07-29 14:30:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
 
-(8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-23 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
+(8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-23 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
+
+(11, (SELECT TOP 1 contest_id FROM Contest WHERE contest_name = 'Vietnam Tech Innovation Challenge 2026'), 11, 'Prototype Submission', 1, '2026-10-01 09:00:00', '2026-10-15 23:59:59', '2026-10-22 17:00:00', '2026-10-27 08:00:00', '2026-10-30 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(12, (SELECT TOP 1 contest_id FROM Contest WHERE contest_name = 'Vietnam Tech Innovation Challenge 2026'), 12, 'Solution Showcase', 1, '2026-11-01 09:00:00', '2026-11-15 23:59:59', '2026-11-22 17:00:00', '2026-11-27 08:00:00', '2026-11-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
 SET IDENTITY_INSERT [Round] OFF;
 GO
 
