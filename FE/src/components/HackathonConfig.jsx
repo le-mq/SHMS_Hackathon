@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import { useFormik, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { Form } from 'react-bootstrap';
@@ -7,15 +8,27 @@ import './HackathonConfig.css';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 const todayStr = (() => { const d = new Date(); const pad = n => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
 
-const RemoveButton = ({ onClick, title }) => (
-    <button type="button" onClick={(e) => {
-        if (window.confirm('Are you sure you want to remove this item?')) {
-            onClick(e);
-        }
-    }} title={title} className="hc-remove-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-    </button>
-);
+const RemoveButton = ({ onClick, title }) => {
+    const [showConfirm, setShowConfirm] = useState(false);
+    return (
+        <>
+            <button type="button" onClick={(e) => setShowConfirm(true)} title={title} className="hc-remove-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+            <ConfirmDialog
+                show={showConfirm}
+                title="Remove Item"
+                message="Are you sure you want to remove this item?"
+                variant="danger"
+                onConfirm={(e) => {
+                    setShowConfirm(false);
+                    onClick(e);
+                }}
+                onCancel={() => setShowConfirm(false)}
+            />
+        </>
+    );
+};
 
 const formatDateString = (dateStr) => {
     if (!dateStr) return '';
@@ -48,6 +61,19 @@ function HackathonConfig() {
     const [originalDates, setOriginalDates] = useState({});
     const [shiftBanner, setShiftBanner] = useState(null);
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary") => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => setConfirmDialog(prev => ({ ...prev, show: false })),
+            onCancel: () => setConfirmDialog(prev => ({ ...prev, show: false }))
+        });
+    };
 
     const [availableSubReqs, setAvailableSubReqs] = useState([
         { value: 'Source Code URL', label: 'Source Code / GitHub Repository' },
@@ -168,7 +194,7 @@ function HackathonConfig() {
             })).min(1, 'Add at least one round')
         }),
         onSubmit: async (values, { setSubmitting, setStatus }) => {
-            const computedContestStatus = determineStatus(values.registrationStart, values.contestEndAt);
+            const computedContestStatus = values.status;
             if (computedContestStatus === 'CLOSED') return setStatus({ error: "Cannot modify or save a closed contest." }), setSubmitting(false);
 
             const boundsData = getSemesterBounds(values.term, values.year);
@@ -240,9 +266,9 @@ function HackathonConfig() {
     useEffect(() => {
         if (formik.status) {
             if (formik.status.success) {
-                window.alert(formik.status.success);
+                showAlert(formik.status.success, 'Success', 'success');
             } else if (formik.status.error) {
-                window.alert(formik.status.error);
+                showAlert(formik.status.error, 'Error', 'danger');
             }
             formik.setStatus(undefined);
         }
@@ -250,9 +276,6 @@ function HackathonConfig() {
 
     useEffect(() => {
         if (!selectedContestId) return;
-        const computedContestStatus = determineStatus(formik.values.registrationStart, formik.values.contestEndAt);
-        if (formik.values.status !== computedContestStatus) formik.setFieldValue('status', computedContestStatus);
-
         let categoriesUpdated = false;
         const newCategories = [...formik.values.categories];
 
@@ -568,7 +591,7 @@ function HackathonConfig() {
                                             </div>
                                         );
                                     }) : (
-                                        <div className="hc-search-item" style={{justifyContent: 'center', color: '#64748b', cursor: 'default'}}>No results found</div>
+                                        <div className="hc-search-item" style={{ justifyContent: 'center', color: '#64748b', cursor: 'default' }}>No results found</div>
                                     )}
                                 </div>
                             )}
@@ -779,12 +802,19 @@ function HackathonConfig() {
                                                     const usedByActiveRound = formik.values.rounds.some(r => String(r.categoryId) === String(cat.id) && (r.state === 'ACTIVE' || r.state === 'ACTIVED' || r.state === 'CLOSED'));
                                                     return (
                                                         <button type="button" className="hc-btn-danger" disabled={usedByActiveRound} title={usedByActiveRound ? 'Cannot delete category assigned to an active/closed round' : ''} onClick={() => {
-                                                            if (window.confirm('Are you sure you want to delete this category? This will also unassign it from any associated rounds.')) {
-                                                                if (cat.id > 0) setDeletedCategories(p => [...p, cat]);
-                                                                formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== idx));
-                                                                const newRounds = formik.values.rounds.map(r => String(r.categoryId) === String(cat.id) ? { ...r, categoryId: '' } : r);
-                                                                formik.setFieldValue('rounds', newRounds);
-                                                            }
+                                                            setConfirmDialog({
+                                                                show: true,
+                                                                title: 'Delete Category',
+                                                                message: 'Are you sure you want to delete this category? This will also unassign it from any associated rounds.',
+                                                                variant: 'danger',
+                                                                onConfirm: () => {
+                                                                    setConfirmDialog(prev => ({ ...prev, show: false }));
+                                                                    if (cat.id > 0) setDeletedCategories(p => [...p, cat]);
+                                                                    formik.setFieldValue('categories', formik.values.categories.filter((_, i) => i !== idx));
+                                                                    const newRounds = formik.values.rounds.map(r => String(r.categoryId) === String(cat.id) ? { ...r, categoryId: '' } : r);
+                                                                    formik.setFieldValue('rounds', newRounds);
+                                                                }
+                                                            });
                                                         }}>Delete</button>
                                                     );
                                                 })()}
@@ -827,8 +857,8 @@ function HackathonConfig() {
 
                                             return (
                                                 <button key={round.id} type="button" className={`hc-round-tab${isActiveTab ? ' active' : ''}`}
-                                                        style={{ background: bg, color: fg, borderColor: isActiveTab ? border : '#cbd5e1', opacity: isActiveTab ? 1 : 0.7 }}
-                                                        onClick={() => setActiveCategoryIdx(rIdx)}>
+                                                    style={{ background: bg, color: fg, borderColor: isActiveTab ? border : '#cbd5e1', opacity: isActiveTab ? 1 : 0.7 }}
+                                                    onClick={() => setActiveCategoryIdx(rIdx)}>
                                                     <span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 4 }}>#{rIdx + 1}</span>
                                                     {round.phaseName || `Round ${rIdx + 1}`}
                                                     {isActiveTab && <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', marginLeft: 6, background: border }} title="Currently configuring"></span>}
@@ -867,10 +897,17 @@ function HackathonConfig() {
                                                         </div>
                                                         {!isClosedContest && (rIdx !== 0 || formik.values.rounds.length > 1) && (round.state === 'UPCOMING' || round.state === 'UNSAVED') && (
                                                             <button type="button" className="hc-btn-danger" onClick={() => {
-                                                                if (window.confirm('Are you sure you want to delete this round?')) {
-                                                                    formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== rIdx));
-                                                                    setActiveCategoryIdx(Math.max(0, rIdx - 1));
-                                                                }
+                                                                setConfirmDialog({
+                                                                    show: true,
+                                                                    title: 'Delete Round',
+                                                                    message: 'Are you sure you want to delete this round?',
+                                                                    variant: 'danger',
+                                                                    onConfirm: () => {
+                                                                        setConfirmDialog(prev => ({ ...prev, show: false }));
+                                                                        formik.setFieldValue('rounds', formik.values.rounds.filter((_, i) => i !== rIdx));
+                                                                        setActiveCategoryIdx(Math.max(0, rIdx - 1));
+                                                                    }
+                                                                });
                                                             }}>Delete Round</button>
                                                         )}
                                                     </div>
@@ -1052,6 +1089,15 @@ function HackathonConfig() {
                     </div>
                 </div>
             </Form></FormikProvider>
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 }

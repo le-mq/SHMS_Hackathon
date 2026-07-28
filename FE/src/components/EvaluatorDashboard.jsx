@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ConfirmDialog from './ConfirmDialog';
 import './EvaluatorDashboard.css';
 import './LeaderWorkspace.css';
 import LatestAnnouncements from './LatestAnnouncements';
@@ -34,6 +35,7 @@ const EvaluatorDashboard = () => {
     const [contestSearchQuery, setContestSearchQuery] = useState('');
     const [contestStatusFilter, setContestStatusFilter] = useState('All');
     const [teamFilter, setTeamFilter] = useState('ALL');
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary' });
 
     useEffect(() => {
         const handlePopState = () => {
@@ -514,9 +516,16 @@ const EvaluatorDashboard = () => {
                                                     background: '#fef9c3',
                                                     color: '#854d0e', cursor: 'pointer', border: '1px solid #fef08a'
                                                 }} onClick={() => {
-                                                    if (window.confirm("Warning: Re-grading your work will be logged by the system and overwrite your previous grade. Please consider carefully. Do you wish to continue?")) {
-                                                        navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`);
-                                                    }
+                                                    setConfirmDialog({
+                                                        show: true,
+                                                        title: 'Re-evaluate Submission',
+                                                        message: 'Warning: Re-grading your work will be logged by the system and overwrite your previous grade. Please consider carefully. Do you wish to continue?',
+                                                        variant: 'danger',
+                                                        onConfirm: () => {
+                                                            setConfirmDialog(prev => ({ ...prev, show: false }));
+                                                            navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`);
+                                                        }
+                                                    });
                                                 }}>Re-evaluate</button>
                                             )
                                         ) : (
@@ -569,6 +578,14 @@ const EvaluatorDashboard = () => {
             {previewContestId && (
                 <RoundDetailsModal contestId={previewContestId} mode="contest" onClose={() => window.history.back()} />
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

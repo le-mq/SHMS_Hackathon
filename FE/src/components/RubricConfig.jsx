@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import './RubricConfig.css';
 
 const CONTEST_API = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1")+"/admin/contests";
@@ -47,6 +48,19 @@ const RubricConfig = () => {
     const [editorCategories, setEditorCategories] = useState([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [justClonedId, setJustClonedId] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary") => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => setConfirmDialog(prev => ({ ...prev, show: false })),
+            onCancel: () => setConfirmDialog(prev => ({ ...prev, show: false }))
+        });
+    };
 
     const requestData = async (baseUrl, endpoint, fallbackPath) => {
         try {
@@ -187,16 +201,23 @@ const RubricConfig = () => {
 
     const handleAddCriterion = () => setEditingTemplate(prev => ({ ...prev, criteria: [...prev.criteria, newCriterion()] }));
     const handleDeleteCriterion = (localId) => {
-        if (window.confirm('Are you sure you want to remove this criterion?')) {
-            setEditingTemplate(prev => ({ ...prev, criteria: prev.criteria.filter(c => c._localId !== localId) }));
-        }
+        setConfirmDialog({
+            show: true,
+            title: 'Remove Criterion',
+            message: 'Are you sure you want to remove this criterion?',
+            variant: 'danger',
+            onConfirm: () => {
+                setEditingTemplate(prev => ({ ...prev, criteria: prev.criteria.filter(c => c._localId !== localId) }));
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+            }
+        });
     };
 
     const handleSave = async () => {
-        if (!editingTemplate.name.trim()) return window.alert('Template name is required.');
-        if (!isBalanced) return window.alert('Total weight must equal exactly 100%.');
-        if (!editingTemplate.bindCategoryId && editingTemplate.bindContestId) return window.alert('Category is required when assigning an official rubric to a contest.');
-        if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return window.alert('All criteria must have a name.');
+        if (!editingTemplate.name.trim()) return showAlert('Template name is required.', 'Validation Error', 'danger');
+        if (!isBalanced) return showAlert('Total weight must equal exactly 100%.', 'Validation Error', 'danger');
+        if (!editingTemplate.bindCategoryId && editingTemplate.bindContestId) return showAlert('Category is required when assigning an official rubric to a contest.', 'Validation Error', 'danger');
+        if (editingTemplate.criteria.some(c => !c.criteriaName.trim())) return showAlert('All criteria must have a name.', 'Validation Error', 'danger');
         if (editingTemplate.bindContestId && editingTemplate.bindCategoryId) {
             const isDuplicateOfficial = contestRubrics.some(cr =>
                 cr.contestId == editingTemplate.bindContestId &&
@@ -204,7 +225,7 @@ const RubricConfig = () => {
                 cr.templateId !== editingTemplate.id
             );
             if (isDuplicateOfficial) {
-                return window.alert('Cannot save! This Category already has an official rubric assigned in the selected Contest.');
+                return showAlert('Cannot save! This Category already has an official rubric assigned in the selected Contest.', 'Validation Error', 'danger');
             }
         }
         setIsLoading(true);
@@ -231,17 +252,17 @@ const RubricConfig = () => {
                 res = await fetch(`${CONTEST_API}${isOfficialBinding ? '/rubrics' : '/rubric-templates'}`, { method: 'POST', headers, body: JSON.stringify(payload) });
             }
             if (res.ok) {
-                window.alert(editorMode === 'edit' ? 'Template updated successfully!' : 'Template saved successfully!');
+                showAlert(editorMode === 'edit' ? 'Template updated successfully!' : 'Template saved successfully!', 'Success', 'success');
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
                 setTemplates(updatedTemplates); setContestRubrics(updatedRubrics);
                 cancelEditor();
             } else {
                 const d = await res.json().catch(() => ({}));
-                window.alert(d.error || d.message || `Error ${res.status}: ${res.statusText}`);
+                showAlert(d.error || d.message || `Error ${res.status}: ${res.statusText}`, 'Error', 'danger');
             }
         } catch (e) {
-            window.alert('Connection error: ' + e.message);
+            showAlert('Connection error: ' + e.message, 'Error', 'danger');
         }
         finally { setIsLoading(false); }
     };
@@ -251,20 +272,20 @@ const RubricConfig = () => {
         try {
             const res = await fetch(`${CONTEST_API}/rubric-templates/${endpoint}`, { method, headers });
             if (res.ok) {
-                window.alert(successMsg);
+                showAlert(successMsg, 'Success', 'success');
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
                 setTemplates(updatedTemplates); setContestRubrics(updatedRubrics);
             } else {
                 const d = await res.json().catch(() => ({}));
-                window.alert(d.error || d.message || `Error ${res.status}: ${res.statusText}`);
+                showAlert(d.error || d.message || `Error ${res.status}: ${res.statusText}`, 'Error', 'danger');
             }
         } catch (e) {
             if (mockAction) {
                 mockAction();
-                window.alert(successMsg);
+                showAlert(successMsg, 'Success', 'success');
             } else {
-                window.alert('Server error: ' + e.message);
+                showAlert('Server error: ' + e.message, 'Error', 'danger');
             }
         }
         finally { setIsLoading(false); }
@@ -298,7 +319,7 @@ const RubricConfig = () => {
         try {
             const res = await fetch(`${CONTEST_API}/rubric-templates`, { method: 'POST', headers, body: JSON.stringify(payload) });
             if (res.ok) {
-                window.alert('Template cloned successfully!');
+                showAlert('Template cloned successfully!', 'Success', 'success');
                 const updatedTemplates = await requestData(CONTEST_API, '/rubric-templates', (json) => json.rubricTemplates?.data || []);
                 const updatedRubrics = await requestData(CONTEST_API, '/rubrics', (json) => json.contestRubrics?.data || []);
 
@@ -312,35 +333,43 @@ const RubricConfig = () => {
                 setContestRubrics(updatedRubrics);
             } else {
                 const d = await res.json().catch(() => ({}));
-                window.alert(d.error || d.message || `Error ${res.status}: ${res.statusText}`);
+                showAlert(d.error || d.message || `Error ${res.status}: ${res.statusText}`, 'Error', 'danger');
             }
         } catch (e) {
-            window.alert('Connection error: ' + e.message);
+            showAlert('Connection error: ' + e.message, 'Error', 'danger');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this template?')) return;
-        setIsLoading(true);
-        try {
-            const res = await fetch(`${CONTEST_API}/rubric-templates/${id}`, {
-                method: 'DELETE',
-                headers,
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                throw new Error(data.error || data.message || `Delete failed (${res.status})`);
+    const handleDelete = (id) => {
+        setConfirmDialog({
+            show: true,
+            title: 'Delete Template',
+            message: 'Are you sure you want to delete this template?',
+            variant: 'danger',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${CONTEST_API}/rubric-templates/${id}`, {
+                        method: 'DELETE',
+                        headers,
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(data.error || data.message || `Delete failed (${res.status})`);
+                    }
+                    setTemplates(prev => prev.filter(t => String(t.id) !== String(id)));
+                    setContestRubrics(prev => prev.filter(cr => String(cr.templateId) !== String(id)));
+                    showAlert(data.message || 'Template deleted successfully!', 'Success', 'success');
+                } catch (e) {
+                    showAlert(e.message || 'Cannot delete this template. It may be in use.', 'Error', 'danger');
+                } finally {
+                    setIsLoading(false);
+                }
             }
-            setTemplates(prev => prev.filter(t => String(t.id) !== String(id)));
-            setContestRubrics(prev => prev.filter(cr => String(cr.templateId) !== String(id)));
-            window.alert(data.message || 'Template deleted successfully!');
-        } catch (e) {
-            window.alert(e.message || 'Cannot delete this template. It may be in use.');
-        } finally {
-            setIsLoading(false);
-        }
+        });
     };
 
     if (initialLoading) {
@@ -710,6 +739,15 @@ const RubricConfig = () => {
                     transition: all 0.3s ease;
                 }
             `}</style>
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

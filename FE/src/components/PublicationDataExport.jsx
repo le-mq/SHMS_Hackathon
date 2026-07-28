@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import './PublicationDataExport.css';
 
 
@@ -45,6 +46,25 @@ const PublicationDataExport = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedContestFilter, setSelectedContestFilter] = useState('');
     const [selectedTypeFilter, setSelectedTypeFilter] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
 
     const [formData, setFormData] = useState({
         contestId: '',
@@ -175,31 +195,39 @@ const PublicationDataExport = () => {
         setIsCreateModalOpen(true);
     };
 
-    const handleDeleteAnnouncement = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
-        try {
-            const token = localStorage.getItem("shms_token");
-            const res = await fetch(`${API_BASE}/admin/contests/announcements/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
+    const handleDeleteAnnouncement = (id) => {
+        setConfirmDialog({
+            show: true,
+            title: 'Delete Announcement',
+            message: 'Are you sure you want to delete this announcement?',
+            variant: 'danger',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                try {
+                    const token = localStorage.getItem("shms_token");
+                    const res = await fetch(`${API_BASE}/admin/contests/announcements/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (res.ok) {
+                        showAlert('Announcement deleted successfully!', 'Success', 'success');
+                        fetchAnnouncements();
+                    } else {
+                        showAlert('Failed to delete announcement.', 'Error', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error deleting announcement:', error);
+                    showAlert('An error occurred.', 'Error', 'danger');
                 }
-            });
-            if (res.ok) {
-                alert('Announcement deleted successfully!');
-                fetchAnnouncements();
-            } else {
-                alert('Failed to delete announcement.');
             }
-        } catch (error) {
-            console.error('Error deleting announcement:', error);
-            alert('An error occurred.');
-        }
+        });
     };
 
     const handlePublishAnnouncement = async () => {
         if (!formData.title.trim() || !formData.content.trim() || formData.roles.length === 0) {
-            alert('Please fill in all fields and select at least one role.');
+            showAlert('Please fill in all fields and select at least one role.', 'Validation Error', 'danger');
             return;
         }
 
@@ -229,7 +257,7 @@ const PublicationDataExport = () => {
             });
 
             if (res.ok) {
-                alert(editingAnnouncementId ? 'Announcement updated successfully!' : 'Announcement broadcasted successfully!');
+                showAlert(editingAnnouncementId ? 'Announcement updated successfully!' : 'Announcement broadcasted successfully!', 'Success', 'success');
                 fetchAnnouncements();
                 setFormData({
                     ...formData,
@@ -240,11 +268,11 @@ const PublicationDataExport = () => {
                 setIsCreateModalOpen(false);
             } else {
                 const errData = await res.json().catch(() => ({}));
-                alert(errData.error || `Failed to ${editingAnnouncementId ? 'update' : 'broadcast'} announcement.`);
+                showAlert(errData.error || `Failed to ${editingAnnouncementId ? 'update' : 'broadcast'} announcement.`, 'Error', 'danger');
             }
         } catch (error) {
             console.error('Error saving announcement:', error);
-            alert('An error occurred.');
+            showAlert('An error occurred.', 'Error', 'danger');
         } finally {
             setIsPublishing(false);
         }
@@ -562,6 +590,15 @@ const PublicationDataExport = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

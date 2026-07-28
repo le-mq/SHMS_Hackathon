@@ -37,44 +37,8 @@ export const formatIdRegexToSamples = (regex) => {
     return [regex];
 };
 
-// 1. ConfirmDialog Component
-export const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel", variant = "primary" }) => {
-    return (
-        <Modal show={show} onHide={onCancel} centered>
-            <Modal.Header closeButton style={{ borderBottom: '1px solid #cbd5e1' }}>
-                <Modal.Title style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>{title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body style={{ padding: '20px', fontSize: '14px', color: '#374151', fontWeight: 500 }}>
-                {message}
-            </Modal.Body>
-            <Modal.Footer style={{ borderTop: 'none', padding: '0 20px 20px 20px', display: 'flex', gap: '10px' }}>
-                <Button
-                    variant="outline-secondary"
-                    onClick={onCancel}
-                    style={{ flex: 1, padding: '8px', fontSize: '13px', fontWeight: 600, borderRadius: '6px' }}
-                >
-                    {cancelText}
-                </Button>
-                <Button
-                    variant={variant}
-                    onClick={onConfirm}
-                    style={{
-                        flex: 1,
-                        padding: '8px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        borderRadius: '6px',
-                        backgroundColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
-                        borderColor: variant === 'danger' ? '#ef4444' : '#0d1b2a',
-                        color: 'white'
-                    }}
-                >
-                    {confirmText}
-                </Button>
-            </Modal.Footer>
-        </Modal>
-    );
-};
+import ConfirmDialog from './ConfirmDialog';
+export { ConfirmDialog };
 
 // 1.5 TagInput Component
 export const TagInput = ({ tags, setTags, placeholder }) => {

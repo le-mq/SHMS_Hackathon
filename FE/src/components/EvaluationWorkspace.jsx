@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './EvaluationWorkspace.css';
+import ConfirmDialog from './ConfirmDialog';
 
 const EvaluationWorkspace = () => {
     const { teamId } = useParams();
@@ -8,6 +9,25 @@ const EvaluationWorkspace = () => {
     const [evalData, setEvalData] = useState(null);
     const [scores, setScores] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
     const location = useLocation();
     const isReadonly = new URLSearchParams(location.search).get('readonly') === 'true';
 
@@ -81,7 +101,7 @@ const EvaluationWorkspace = () => {
                 //     alert('Failed to load evaluation data');
                 // }
                 console.error('API call failed:', err);
-                alert('Failed to load evaluation data. Ensure rubric is configured.');
+                showAlert('Failed to load evaluation data. Ensure rubric is configured.', 'Error', 'danger');
             }
         };
         if (teamId) fetchEvalData();
@@ -126,14 +146,15 @@ const EvaluationWorkspace = () => {
                 body: JSON.stringify(payload)
             });
             if (response.ok) {
-                alert('Scores submitted and locked successfully.');
-                navigate('/judge/workspace');
+                showAlert('Scores submitted and locked successfully.', 'Success', 'success', () => {
+                    navigate('/judge/workspace');
+                });
             } else {
                 const err = await response.json().catch(() => ({}));
-                alert(`Error: ${err.error || err.message || 'Submission failed'}`);
+                showAlert(`Error: ${err.error || err.message || 'Submission failed'}`, 'Error', 'danger');
             }
         } catch (err) {
-            alert('Could not submit score.');
+            showAlert('Could not submit score.', 'Error', 'danger');
         } finally {
             setIsSubmitting(false);
         }
@@ -327,6 +348,15 @@ const EvaluationWorkspace = () => {
                     </div>
                 </div>
             </div>
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };
