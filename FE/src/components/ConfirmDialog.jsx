@@ -3,7 +3,10 @@ import { Modal, Button } from 'react-bootstrap';
 
 const ConfirmDialog = ({ show, title, message, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel", variant = "primary", isAlert = false }) => {
     return (
-        <Modal show={show} onHide={onCancel || onConfirm} centered>
+        <Modal show={show} onHide={onCancel || onConfirm} centered
+            style={{ zIndex: 1000000 }} backdropClassName="confirm-dialog-backdrop"
+            className="confirm-dialog-modal"
+        >
             <Modal.Header closeButton style={{ borderBottom: '1px solid #cbd5e1' }}>
                 <Modal.Title style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>{title}</Modal.Title>
             </Modal.Header>

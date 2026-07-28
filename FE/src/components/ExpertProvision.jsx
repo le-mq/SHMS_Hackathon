@@ -427,6 +427,7 @@ const ExpertProvisioning = () => {
 
             currentSelected.forEach(r => {
                 const ru = r.toUpperCase();
+
                 if (ru === 'JUDGE') judgeCount++;
                 else if (ru === 'MENTOR') mentorCount++;
                 else if (ru === 'GUEST JUDGE') guestCount++;
