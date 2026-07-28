@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import './TeamStatus.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
@@ -42,6 +43,25 @@ const TeamStatus = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [viewMode, setViewMode] = useState('LIST'); // 'LIST' or 'DETAIL'
     const [selectedTeamData, setSelectedTeamData] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
 
     // Invitation system state
     const [inviteKeyword, setInviteKeyword] = useState('');
@@ -219,28 +239,36 @@ const TeamStatus = () => {
         setViewMode('LIST');
     };
 
-    const handleLeaveTeam = async () => {
-        if (!window.confirm('Are you sure you want to leave this team?')) return;
-        try {
-            const token = localStorage.getItem('shms_token');
-            const response = await fetch(`${API_BASE}/teams/leave?teamId=${selectedTeamData.data.teamId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const result = await safeJson(response);
-            if (!response.ok) throw new Error(result.error || result.message || 'Failed to leave team.');
+    const handleLeaveTeam = () => {
+        setConfirmDialog({
+            show: true,
+            title: 'Leave Team',
+            message: 'Are you sure you want to leave this team?',
+            variant: 'danger',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                try {
+                    const token = localStorage.getItem('shms_token');
+                    const response = await fetch(`${API_BASE}/teams/leave?teamId=${selectedTeamData.data.teamId}`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    const result = await safeJson(response);
+                    if (!response.ok) throw new Error(result.error || result.message || 'Failed to leave team.');
 
-            // Remove from local state
-            setParticipatedTeams(prev => prev.filter(t => t.data.teamId !== selectedTeamData.data.teamId));
-            setSuccessMessage('Left team successfully!');
-            handleBackToList();
-        } catch (err) {
-            console.error('Leave team failed:', err);
-            // Mock removal
-            setParticipatedTeams(prev => prev.filter(t => t.data.teamId !== selectedTeamData.data.teamId));
-            setSuccessMessage('Left team successfully!');
-            handleBackToList();
-        }
+                    // Remove from local state
+                    setParticipatedTeams(prev => prev.filter(t => t.data.teamId !== selectedTeamData.data.teamId));
+                    setSuccessMessage('Left team successfully!');
+                    handleBackToList();
+                } catch (err) {
+                    console.error('Leave team failed:', err);
+                    // Mock removal
+                    setParticipatedTeams(prev => prev.filter(t => t.data.teamId !== selectedTeamData.data.teamId));
+                    setSuccessMessage('Left team successfully (Mock API)!');
+                    handleBackToList();
+                }
+            }
+        });
     };
 
     // --- Invitation System ---
@@ -277,8 +305,7 @@ const TeamStatus = () => {
             });
             const json = await res.json();
             if (res.ok) {
-                alert('Invitation sent successfully!');
-                window.location.reload();
+                showAlert('Invitation sent successfully!', 'Success', 'success', () => window.location.reload());
             } else {
                 setInviteMessage(json.error || 'Failed to send invitation');
             }
@@ -399,7 +426,7 @@ const TeamStatus = () => {
                             <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(data.invitationCode || data.teamCode);
-                                    alert('Team code copied successfully!');
+                                    showAlert('Team code copied successfully!', 'Success', 'success');
                                 }}
                                 style={{ background: '#dbeafe', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center', color: '#2563eb', transition: 'all 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = '#bfdbfe'}
@@ -532,6 +559,15 @@ const TeamStatus = () => {
                     )}
                 </div>
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

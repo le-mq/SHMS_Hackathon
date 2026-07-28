@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
+import ConfirmDialog from './ConfirmDialog';
 
 const StudentProfile = () => {
     const navigate = useNavigate();
@@ -23,6 +24,25 @@ const StudentProfile = () => {
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -120,12 +140,12 @@ const StudentProfile = () => {
         setSuccess('');
 
         const cleanedPhone = formData.telephoneNumber.trim();
-        let hasError = false;
+        let hasClientError = false;
 
         if (cleanedPhone) {
             if (!/^(03|05|07|08|09)\d{8}$/.test(cleanedPhone)) {
                 setPhoneError('Phone number must be exactly 10 digits and start with 03, 05, 07, 08, or 09.');
-                hasError = true;
+                hasClientError = true;
             }
         }
 
@@ -134,34 +154,45 @@ const StudentProfile = () => {
             avatarBase64: avatarPreview
         };
 
-        if (formData.newPassword || formData.currentPassword || formData.confirmNewPassword) {
-            if (!formData.currentPassword) {
+        const hasPasswordField = formData.currentPassword || formData.newPassword || formData.confirmNewPassword;
+
+        if (hasPasswordField) {
+           
+            if ((formData.newPassword || formData.confirmNewPassword) && !formData.currentPassword) {
                 setCurrentPasswordError('Current password is required to change password');
-                hasError = true;
-            }
-            if (!formData.newPassword) {
-                setNewPasswordError('New password is required to change password');
-                hasError = true;
+                hasClientError = true;
             }
 
+           
             const newPwd = formData.newPassword;
             if (newPwd) {
                 if (newPwd.length < 8 || newPwd.length > 32 || /\s/.test(newPwd) || !/[a-z]/.test(newPwd) || !/[A-Z]/.test(newPwd) || !/\d/.test(newPwd) || !/[^a-zA-Z\d\s]/.test(newPwd)) {
                     setNewPasswordError('Password must be 8-32 characters, contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character (no spaces).');
-                    hasError = true;
+                    hasClientError = true;
                 }
             }
-            
-            if (formData.newPassword !== formData.confirmNewPassword) {
+
+           
+            if (formData.newPassword && formData.newPassword !== formData.confirmNewPassword) {
                 setConfirmPasswordError('Confirm password does not match new password');
-                hasError = true;
+                hasClientError = true;
             }
 
             updateData.currentPassword = formData.currentPassword;
-            updateData.newPassword = newPwd;
+            if (newPwd) {
+                updateData.newPassword = newPwd;
+            }
         }
 
-        if (hasError) return;
+        
+        if (!hasPasswordField && hasClientError) return;
+
+        if (!hasPasswordField && !hasClientError) {
+       
+        } else if (!formData.currentPassword) {
+         
+            return;
+        }
 
         setIsLoading(true);
 
@@ -179,8 +210,17 @@ const StudentProfile = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || 'Failed to update profile');
-            } else {
+                const errorMsg = data.error || data.message || 'Failed to update profile';
+                const lowerMsg = errorMsg.toLowerCase();
+                if (lowerMsg.includes('current password') || lowerMsg.includes('incorrect') || lowerMsg.includes('wrong password') || lowerMsg.includes('password is incorrect')) {
+                    setCurrentPasswordError(errorMsg);
+                } else if (lowerMsg.includes('new password') || lowerMsg.includes('password must') || lowerMsg.includes('at least') || lowerMsg.includes('password length') || lowerMsg.includes('password format')) {
+                    setNewPasswordError(errorMsg);
+                } else {
+                    setError(errorMsg);
+                }
+            } else if (!hasClientError) {
+                
                 setSuccess('Profile updated successfully!');
                 setFormData(prev => ({
                     ...prev,
@@ -212,17 +252,20 @@ const StudentProfile = () => {
             });
 
             if (response.ok) {
-                alert("Account deleted successfully.");
-                localStorage.removeItem('shms_token');
-                localStorage.removeItem('shms_role');
-                localStorage.removeItem('shms_user');
-                navigate('/');
+                showAlert("Account deleted successfully.", "Success", "success", () => {
+                    localStorage.removeItem('shms_token');
+                    localStorage.removeItem('shms_role');
+                    localStorage.removeItem('shms_user');
+                    navigate('/');
+                });
             } else {
-                alert("Failed to delete account.");
+                const data = await response.json().catch(() => null);
+                const errorMsg = data?.error || data?.message || 'Failed to delete account.';
+                showAlert(errorMsg, "Error", "danger");
             }
         } catch (error) {
             console.error(error);
-            alert("An error occurred while deleting the account.");
+            showAlert("An error occurred while deleting the account.", "Error", "danger");
         }
     };
 
@@ -342,7 +385,7 @@ const StudentProfile = () => {
                                 type="text"
                                 name="telephoneNumber"
                                 className="form-input"
-                                placeholder="0987654321"
+                                placeholder="eg. 0987654321"
                                 value={formData.telephoneNumber}
                                 onChange={handleChange}
                                 style={phoneError ? { borderColor: '#ef4444' } : {}}
@@ -493,6 +536,15 @@ const StudentProfile = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

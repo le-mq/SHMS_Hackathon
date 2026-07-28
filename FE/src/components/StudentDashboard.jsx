@@ -5,6 +5,7 @@ import './StudentDashboard.css';
 import './CompetitionRegistration.css';
 import LatestAnnouncements from './LatestAnnouncements';
 import ContestDetailModal from './ContestDetailModal';
+import ConfirmDialog from './ConfirmDialog';
 
 const API_PUBLIC = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/public";
 const API_STUDENT = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1") + "/student";
@@ -151,7 +152,7 @@ async function copyToClipboard(text) {
             return true;
         }
     } catch {
-        // Fall through to the textarea fallback for browsers that block Clipboard API.
+       
     }
 
     const textArea = document.createElement('textarea');
@@ -204,6 +205,25 @@ const StudentDashboard = () => {
     const [pendingInvitations, setPendingInvitations] = useState([]);
     const [showRejectConfirm, setShowRejectConfirm] = useState(false);
     const [rejectToken, setRejectToken] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
 
     const selectedContestId = activeContest?.id != null ? String(activeContest.id) : '';
 
@@ -346,16 +366,17 @@ const StudentDashboard = () => {
             });
             const json = await res.json();
             if (res.ok) {
-                alert(json.message || `Invitation ${action.toLowerCase()}ed.`);
-                if (action === 'ACCEPT') {
-                    navigate('/student/team/status');
-                } else {
-                    window.location.reload();
-                }
+                showAlert(json.message || `Invitation ${action.toLowerCase()}ed.`, 'Success', 'success', () => {
+                    if (action === 'ACCEPT') {
+                        navigate('/student/team/status');
+                    } else {
+                        window.location.reload();
+                    }
+                });
             } else {
-                alert(json.error || 'Failed to respond to invitation');
+                showAlert(json.error || 'Failed to respond to invitation', 'Error', 'danger');
             }
-        } catch { alert('Could not connect to server.'); }
+        } catch { showAlert('Could not connect to server.', 'Error', 'danger'); }
     };
 
     const handleCreateTeam = async () => {
@@ -363,6 +384,22 @@ const StudentDashboard = () => {
 
         if (!teamName) {
             setCreateError('Please enter a team name');
+            return;
+        }
+
+        if (teamName.length < 3) {
+            setCreateError('Team name must be at least 3 characters.');
+            return;
+        }
+
+        if (teamName.length > 30) {
+            setCreateError('Team name must not exceed 30 characters.');
+            return;
+        }
+
+        const validPattern = /^[\p{L}\p{N} _-]+$/u;
+        if (!validPattern.test(teamName)) {
+            setCreateError('Team name may only contain letters, numbers, spaces, hyphens (-), and underscores (_).');
             return;
         }
 
@@ -383,9 +420,10 @@ const StudentDashboard = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            alert('Team created successfully!');
-            setShowCreateModal(false);
-            navigate('/student/team/status');
+            showAlert('Team created successfully!', 'Success', 'success', () => {
+                setShowCreateModal(false);
+                navigate('/student/team/status');
+            });
         } finally {
             setIsCreating(false);
         }
@@ -714,6 +752,15 @@ const StudentDashboard = () => {
                     }
                 }} />
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

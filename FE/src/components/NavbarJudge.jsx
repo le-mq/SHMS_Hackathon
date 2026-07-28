@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useUnreadAnnouncements } from './useUnreadAnnouncements';
 import './Navbars.css';
 import LatestAnnouncements from './LatestAnnouncements';
+import ConfirmDialog from './ConfirmDialog';
 
 const JUDGE_LINKS = [
     { label: 'Dashboard', path: '/judge/workspace' },
@@ -16,6 +17,25 @@ const NavbarJudge = () => {
     const location  = useLocation();
     const userEmail = localStorage.getItem('shms_user');
     const username  = localStorage.getItem('shms_fullname_' + userEmail) || localStorage.getItem('shms_fullname') || localStorage.getItem('shms_user') || 'Judge';
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('shms_token');
@@ -46,11 +66,11 @@ const NavbarJudge = () => {
                 navigate('/mentor/workspace');
                 window.location.reload();
             } else {
-                alert('Failed to switch role');
+                showAlert('Failed to switch role', 'Error', 'danger');
             }
         } catch (error) {
             console.error('Error switching role:', error);
-            alert('Error switching role');
+            showAlert('Error switching role', 'Error', 'danger');
         }
     };
 
@@ -106,6 +126,15 @@ const NavbarJudge = () => {
                     </div>
                 </div>
                 {showAnnouncements && <LatestAnnouncements isModal={true} onClose={() => setShowAnnouncements(false)} />}
+                <ConfirmDialog
+                    show={confirmDialog.show}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    variant={confirmDialog.variant}
+                    isAlert={confirmDialog.isAlert}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+                />
             </nav>
         </>
     );
