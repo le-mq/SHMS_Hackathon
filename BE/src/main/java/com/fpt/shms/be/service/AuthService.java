@@ -22,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -45,6 +44,10 @@ public class AuthService {
     public java.util.Map<String, Object> login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+
+        if (!user.getUsername().equals(request.getUsername())) {
+            throw new IllegalArgumentException("Invalid username or password");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid username or password");
@@ -123,7 +126,8 @@ public class AuthService {
 
         if (userRoles.contains(mappedRole)) {
             hasRole = true;
-        } else if (mappedRole.equals("STUDENT") && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
+        } else if (mappedRole.equals("STUDENT")
+                && (userRoles.contains("TEAM_MEMBER") || userRoles.contains("TEAM_LEADER"))) {
             hasRole = true;
         }
 
@@ -148,18 +152,22 @@ public class AuthService {
 
     @Transactional
     public String register(RegisterRequest request) {
-        log.info("Received registration request - username: '{}', email: '{}', studentCode: '{}', fullName: '{}', university: '{}', major: '{}'",
-                request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
+        log.info(
+                "Received registration request - username: '{}', email: '{}', studentCode: '{}', fullName: '{}', university: '{}', major: '{}'",
+                request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(),
+                request.getTargetUniversity(), request.getMajor());
 
         log.info("Loading university: '{}'", request.getTargetUniversity());
         University university = universityRepository.findByName(request.getTargetUniversity())
                 .orElseThrow(() -> {
-                    log.error("Registration failed: University '{}' not found in database", request.getTargetUniversity());
+                    log.error("Registration failed: University '{}' not found in database",
+                            request.getTargetUniversity());
                     return new IllegalArgumentException("University not found");
                 });
 
         java.util.Optional<StudentVerificationData> verificationOpt = verificationDataRepository
-                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail());
+                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(),
+                        request.getCorporateEmail());
         if (verificationOpt.isPresent()) {
             StudentVerificationData verificationData = verificationOpt.get();
             if (verificationData.getFullName().equalsIgnoreCase(request.getFullName()) &&
@@ -210,7 +218,8 @@ public class AuthService {
             boolean emailMatches = java.util.regex.Pattern.matches(parsedRegex, request.getCorporateEmail());
             log.info("Email matching outcome (regex: '{}'): {}", parsedRegex, emailMatches);
             if (!emailMatches) {
-                log.warn("Registration failed: Corporate Email '{}' does not match university pattern '{}'", request.getCorporateEmail(), emailRegexTemplate);
+                log.warn("Registration failed: Corporate Email '{}' does not match university pattern '{}'",
+                        request.getCorporateEmail(), emailRegexTemplate);
                 throw new IllegalArgumentException("Invalid university email format");
             }
         }
@@ -222,18 +231,20 @@ public class AuthService {
             boolean codeMatches = java.util.regex.Pattern.matches(parsedRegex, request.getStudentCode());
             log.info("Student code matching outcome (regex: '{}'): {}", parsedRegex, codeMatches);
             if (!codeMatches) {
-                log.warn("Registration failed: Student code '{}' does not match university pattern '{}'", request.getStudentCode(), studentCodeRegexTemplate);
+                log.warn("Registration failed: Student code '{}' does not match university pattern '{}'",
+                        request.getStudentCode(), studentCodeRegexTemplate);
                 throw new IllegalArgumentException("Invalid student code format");
             }
         }
 
-
         log.info("Looking up student verification data - university_id: {}, studentCode: '{}', email: '{}'",
                 university.getId(), request.getStudentCode(), request.getCorporateEmail());
         StudentVerificationData verificationData = verificationDataRepository
-                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail())
+                .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(),
+                        request.getCorporateEmail())
                 .orElseThrow(() -> {
-                    log.warn("Registration failed: Student verification record not found for university_id={}, studentCode='{}', email='{}'",
+                    log.warn(
+                            "Registration failed: Student verification record not found for university_id={}, studentCode='{}', email='{}'",
                             university.getId(), request.getStudentCode(), request.getCorporateEmail());
                     return new IllegalArgumentException("Student not found in university verification data");
                 });
@@ -247,11 +258,13 @@ public class AuthService {
         }
 
         if (!verificationData.getFullName().equalsIgnoreCase(request.getFullName())) {
-            log.warn("Registration failed: Full Name '{}' does not match verification data '{}'", request.getFullName(), verificationData.getFullName());
+            log.warn("Registration failed: Full Name '{}' does not match verification data '{}'", request.getFullName(),
+                    verificationData.getFullName());
             throw new IllegalArgumentException("Full Name does not match Verification Data");
         }
         if (!verificationData.getMajor().equalsIgnoreCase(request.getMajor())) {
-            log.warn("Registration failed: Major '{}' does not match verification data '{}'", request.getMajor(), verificationData.getMajor());
+            log.warn("Registration failed: Major '{}' does not match verification data '{}'", request.getMajor(),
+                    verificationData.getMajor());
             throw new IllegalArgumentException("Major does not match Verification Data");
         }
 
@@ -296,6 +309,10 @@ public class AuthService {
     public java.util.Map<String, Object> verifyEmail(VerifyEmailRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.getUsername().equals(request.getUsername())) {
+            throw new IllegalArgumentException("User not found");
+        }
 
         if (Boolean.TRUE.equals(user.getIsEmailVerified())) {
             throw new IllegalArgumentException("Email is already verified");
@@ -355,6 +372,10 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        if (!user.getUsername().equals(username)) {
+            throw new IllegalArgumentException("User not found");
+        }
+
         if (Boolean.TRUE.equals(user.getIsEmailVerified())) {
             throw new IllegalArgumentException("Email is already verified");
         }
@@ -394,7 +415,8 @@ public class AuthService {
                     escaped.append("[0-9]");
                 } else if (c == '*') {
                     escaped.append("[a-zA-Z0-9._%+-]+");
-                } else if (c == '\\' || c == '.' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == '+' || c == '$' || c == '^' || c == '|' || c == '?') {
+                } else if (c == '\\' || c == '.' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}'
+                        || c == '+' || c == '$' || c == '^' || c == '|' || c == '?') {
                     escaped.append('\\').append(c);
                 } else {
                     escaped.append(c);
