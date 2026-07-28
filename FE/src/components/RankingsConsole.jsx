@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import './RankingsConsole.css';
@@ -168,6 +169,25 @@ const RankingsConsole = () => {
     const [isRevalModalOpen, setIsRevalModalOpen] = useState(false);
     const [revalData, setRevalData] = useState({ teamId: '', teamName: '', reason: '' });
     const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
     const [isPublishWarningModalOpen, setIsPublishWarningModalOpen] = useState(false);
     const [timeRemainingStr, setTimeRemainingStr] = useState('');
     const [publishedRoundIds, setPublishedRoundIds] = useState(new Set());
@@ -563,7 +583,7 @@ const RankingsConsole = () => {
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || 'Failed to publish results');
             }
-            alert('Leaderboard published successfully! Rankings are now public.');
+            showAlert('Leaderboard published successfully! Rankings are now public.', 'Success', 'success');
 
             const nowIso = new Date().toISOString();
             setRounds(prevRounds => prevRounds.map(r =>
@@ -596,7 +616,7 @@ const RankingsConsole = () => {
         }
         catch (err) {
             console.error(err);
-            alert(err.message || 'Failed to publish leaderboard.');
+            showAlert(err.message || 'Failed to publish leaderboard.', 'Error', 'danger');
         }
     };
 
@@ -663,7 +683,7 @@ const RankingsConsole = () => {
 
     const handleRequestReevaluation = async () => {
         if (!revalData.reason.trim()) {
-            alert("Please provide the Reason for requesting re-evaluation!");
+            showAlert("Please provide the Reason for requesting re-evaluation!", "Validation Error", "danger");
             return;
         }
         try {
@@ -684,11 +704,12 @@ const RankingsConsole = () => {
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || "An error occurred while requesting re-evaluation!");
             }
-            alert("Re-evaluation requested successfully and recorded in the audit logs!");
-            setIsRevalModalOpen(false);
-            handleGenerate();
+            showAlert("Re-evaluation requested successfully and recorded in the audit logs!", "Success", "success", () => {
+                setIsRevalModalOpen(false);
+                handleGenerate();
+            });
         } catch (error) {
-            alert(error.message || "An error occurred while requesting re-evaluation!");
+            showAlert(error.message || "An error occurred while requesting re-evaluation!", "Error", "danger");
         }
     };
 
@@ -756,35 +777,43 @@ const RankingsConsole = () => {
         return () => clearInterval(intervalId);
     }, [selectedRound]);
 
-    const handlePublishScore = async () => {
+    const handlePublishScore = () => {
         if (!canPublishScore) return;
-        if (!window.confirm('Publish Scores? Only scores and feedback will be visible. Final rankings and QUALIFIED/ELIMINATED results will not be released until Publish Results.')) return;
-        try {
-            const token = localStorage.getItem('shms_token');
-            const res = await fetch(API_BASE + '/rankings/publish-scores', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contestId: Number(selectedContestId), roundId: Number(selectedRoundId), topN: Number(topN) })
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.error || 'Failed to publish scores');
-            alert('Scores published successfully! Students, Judges, and Mentors can now view their scores.');
+        setConfirmDialog({
+            show: true,
+            title: 'Publish Scores',
+            message: 'Publish Scores? Only scores and feedback will be visible. Final rankings and QUALIFIED/ELIMINATED results will not be released until Publish Results.',
+            variant: 'primary',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                try {
+                    const token = localStorage.getItem('shms_token');
+                    const res = await fetch(API_BASE + '/rankings/publish-scores', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contestId: Number(selectedContestId), roundId: Number(selectedRoundId), topN: Number(topN) })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.error || 'Failed to publish scores');
+                    showAlert('Scores published successfully! Students, Judges, and Mentors can now view their scores.', 'Success', 'success');
 
-            const roundsRes = await fetch(API_BASE + `/contests/${selectedContestId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (roundsRes.ok) {
-                const contestData = await roundsRes.json();
-                if (contestData && contestData.tracks) {
-                    const allRounds = contestData.tracks.flatMap(track => track.rounds || []);
-                    const uniqueRoundsMap = new Map();
-                    allRounds.forEach(r => uniqueRoundsMap.set(r.id, r));
-                    setRounds(Array.from(uniqueRoundsMap.values()));
+                    const roundsRes = await fetch(API_BASE + `/contests/${selectedContestId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (roundsRes.ok) {
+                        const contestData = await roundsRes.json();
+                        if (contestData && contestData.tracks) {
+                            const allRounds = contestData.tracks.flatMap(track => track.rounds || []);
+                            const uniqueRoundsMap = new Map();
+                            allRounds.forEach(r => uniqueRoundsMap.set(r.id, r));
+                            setRounds(Array.from(uniqueRoundsMap.values()));
+                        }
+                    }
+                } catch (err) {
+                    showAlert(err.message || 'Failed to publish scores', 'Error', 'danger');
                 }
             }
-        } catch (err) {
-            alert(err.message || 'Failed to publish scores');
-        }
+        });
     };
 
     if (initialLoading) {
@@ -2108,6 +2137,15 @@ const RankingsConsole = () => {
                     </div>
                 )
             }
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div >
     );
 };

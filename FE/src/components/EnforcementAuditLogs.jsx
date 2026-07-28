@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './EnforcementAuditLogs.css';
+import ConfirmDialog from './ConfirmDialog';
 
 const ACTION_TYPE_STYLES = {
     CREATE: 'at-create',
@@ -33,6 +34,25 @@ const formatActionLabel = (type) => {
 
 const EnforcementAuditLogs = () => {
     const [logs, setLogs] = useState([]);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
     const [selectedLog, setSelectedLog] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(15);
@@ -131,7 +151,7 @@ const EnforcementAuditLogs = () => {
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('Cannot export CSV.', err);
-            alert('Cannot export CSV. Please try again.');
+            showAlert('Cannot export CSV. Please try again.', 'Error', 'danger');
         }
     };
 
@@ -334,6 +354,15 @@ const EnforcementAuditLogs = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };
