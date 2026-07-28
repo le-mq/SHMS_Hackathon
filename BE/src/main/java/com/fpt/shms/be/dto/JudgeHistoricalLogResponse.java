@@ -16,7 +16,7 @@ public class JudgeHistoricalLogResponse {
         private String teamName;
         private String teamId;
         private String timestamp;
-        private String roundStatus; // Used as round name now
+        private String roundStatus;
         private String contestName;
         private Long contestId;
         private Double totalScore;

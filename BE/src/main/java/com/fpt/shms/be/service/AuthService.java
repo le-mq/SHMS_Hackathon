@@ -18,6 +18,7 @@ import com.fpt.shms.be.repository.VerificationTokenRepository;
 import com.fpt.shms.be.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,14 +39,14 @@ public class AuthService {
     private final UniversityRepository universityRepository;
     private final EmailService emailService;
     private final JwtUtils jwtUtils;
-    // private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public java.util.Map<String, Object> login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
@@ -150,7 +151,6 @@ public class AuthService {
         log.info("Received registration request - username: '{}', email: '{}', studentCode: '{}', fullName: '{}', university: '{}', major: '{}'",
                 request.getUsername(), request.getCorporateEmail(), request.getStudentCode(), request.getFullName(), request.getTargetUniversity(), request.getMajor());
 
-        // Load university from DB
         log.info("Loading university: '{}'", request.getTargetUniversity());
         University university = universityRepository.findByName(request.getTargetUniversity())
                 .orElseThrow(() -> {
@@ -158,7 +158,6 @@ public class AuthService {
                     return new IllegalArgumentException("University not found");
                 });
 
-        // 1. Check if a complete match in Student Verification Data is already registered in Student table
         java.util.Optional<StudentVerificationData> verificationOpt = verificationDataRepository
                 .findByUniversityIdAndStudentCodeAndCorporateEmail(university.getId(), request.getStudentCode(), request.getCorporateEmail());
         if (verificationOpt.isPresent()) {
@@ -173,7 +172,6 @@ public class AuthService {
             }
         }
 
-        // 2. Check for individual/multiple duplicate fields and combine errors
         java.util.List<String> duplicateErrors = new java.util.ArrayList<>();
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed: Username '{}' is already taken", request.getUsername());
@@ -201,7 +199,7 @@ public class AuthService {
                     try {
                         String batchStr = studentCode.substring(2, 4);
                         int batchNum = Integer.parseInt(batchStr);
-                        if (batchNum < 18) {
+                        if (batchNum < 19) {
                             parsedRegex = "^[a-zA-Z0-9._%+-]+@fpt\\.edu\\.vn$";
                         }
                     } catch (NumberFormatException e) {
@@ -264,7 +262,7 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getCorporateEmail())
                 .fullName(request.getFullName())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .roles(new java.util.HashSet<>(java.util.Collections.singletonList(studentRole)))
                 .status(User.UserStatus.PENDING)
                 .isEmailVerified(false)
@@ -279,12 +277,12 @@ public class AuthService {
                 .user(user)
                 .build();
 
-        studentRepository.save(student); // Saves both because of CascadeType.ALL on User
+        studentRepository.save(student);
 
         String otp = String.format("%06d", new Random().nextInt(999999));
         VerificationToken token = VerificationToken.builder()
                 .token(otp)
-                .expiryDate(LocalDateTime.now().plusMinutes(3)) // 3 minutes expiration
+                .expiryDate(LocalDateTime.now().plusMinutes(3))
                 .user(user)
                 .build();
         tokenRepository.save(token);
@@ -320,7 +318,6 @@ public class AuthService {
 
         tokenRepository.deleteByUser(user);
 
-        // Generate auto-login payload
         java.util.List<String> userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(java.util.stream.Collectors.toList());

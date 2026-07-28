@@ -36,11 +36,11 @@ public class Submission {
     @Column(name = "history_log", columnDefinition = "TEXT")
     private String historyLog;
 
-    @Column(name = "submitted_at")
+    @Column(name = "submitted_at", columnDefinition = "DATETIME2")
     private LocalDateTime submittedAt;
 
     @Column(name = "status", length = 50)
-    private String status; // "DRAFT", "OFFICIAL", "SUBMITTED", "EVALUATED"
+    private String status; 
 
     @Column(name = "mentor_feedback", columnDefinition = "NVARCHAR(MAX)")
     private String mentorFeedback;

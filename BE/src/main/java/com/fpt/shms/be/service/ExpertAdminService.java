@@ -187,7 +187,6 @@ public class ExpertAdminService {
         }
         userRepository.save(user);
 
-        // Quản lý hồ sơ tương ứng của Judge/Mentor.
         boolean hasJudge = newRoleNames.stream().anyMatch(r -> r.equalsIgnoreCase("Judge") || r.equalsIgnoreCase("Guest Judge"));
         boolean hasMentor = newRoleNames.stream().anyMatch(r -> r.equalsIgnoreCase("Mentor"));
 

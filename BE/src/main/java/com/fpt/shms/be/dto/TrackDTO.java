@@ -2,9 +2,6 @@ package com.fpt.shms.be.dto;
 
 import com.fpt.shms.be.model.Category;
 
-/**
- * DTO representing an open competitive track for the public home page.
- */
 public record TrackDTO(
         Long id,
         String name,

@@ -179,11 +179,11 @@ public class JudgeService {
                 String trackName = round.getCategory() != null
                         ? round.getCategory().getName()
                         : categories.stream()
-                        .filter(c -> c.getContest() != null && c.getContest()
-                                .getId()
-                                .equals(team.getContest().getId()))
-                        .map(Category::getName)
-                        .collect(Collectors.joining(", "));
+                          .filter(c -> c.getContest() != null && c.getContest()
+                                                                 .getId()
+                                                                 .equals(team.getContest().getId()))
+                          .map(Category::getName)
+                          .collect(Collectors.joining(", "));
 
                 queue.add(EvaluatorDashboardResponse.AssignedTeamQueueDto.builder()
                         .teamId(team.getId())
@@ -348,14 +348,26 @@ public class JudgeService {
                         "Cannot create a dummy submission without a valid round");
             }
 
-            latestSubmission = Submission.builder()
-                    .team(team)
-                    .round(currentRound)
-                    .status("MISSED_DEADLINE")
-                    .version(1)
-                    .submittedAt(java.time.LocalDateTime.now())
-                    .build();
-            latestSubmission = submissionRepository.save(latestSubmission);
+            final Long finalRoundId = currentRound.getId();
+            Submission existingDraft = teamSubmissions.stream()
+                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(finalRoundId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingDraft != null) {
+                latestSubmission = existingDraft;
+                latestSubmission.setStatus("MISSED_DEADLINE");
+                latestSubmission = submissionRepository.save(latestSubmission);
+            } else {
+                latestSubmission = Submission.builder()
+                        .team(team)
+                        .round(currentRound)
+                        .status("MISSED_DEADLINE")
+                        .version(1)
+                        .submittedAt(java.time.LocalDateTime.now())
+                        .build();
+                latestSubmission = submissionRepository.save(latestSubmission);
+            }
 
             auditLogService.log("JUDGE_FORCE_EVALUATE", "Submission",
                     latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName()
@@ -370,20 +382,6 @@ public class JudgeService {
             List<ContestRubric> rubrics = contestRubricRepository
                     .findByCategoryId(latestSubmission.getRound().getCategory().getId());
             rubric = rubrics.isEmpty() ? null : rubrics.get(0);
-        }
-
-        if (rubric == null) {
-            Category fallbackCategory = assignments.stream()
-                    .map(JudgeAssignment::getCategory)
-                    .filter(c -> c.getContest() != null
-                            && c.getContest().getId().equals(team.getContest().getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (fallbackCategory != null) {
-                rubric = contestRubricRepository.findFirstByCategoryId(fallbackCategory.getId())
-                        .orElse(null);
-            }
         }
 
         List<Score> existingScores = scoreRepository.findByJudgeIdAndSubmissionId(user.getId(),
@@ -564,7 +562,6 @@ public class JudgeService {
                 throw new IllegalArgumentException("Team has not been evaluated yet.");
             }
 
-            // Get unique judges from scores before deleting them
             java.util.Set<User> uniqueJudges = scores.stream()
                     .map(Score::getJudge)
                     .filter(java.util.Objects::nonNull)
@@ -576,7 +573,6 @@ public class JudgeService {
                     ? latestSubmission.getRound().getPhaseName()
                     : "Unknown Round";
 
-            // Send emails to the judges
             for (User judgeUser : uniqueJudges) {
                 if (judgeUser.getEmail() != null) {
                     emailService.sendReevaluationRequestEmailAsync(
@@ -588,7 +584,6 @@ public class JudgeService {
                 }
             }
 
-            // Delete scores to reopen the evaluation for the judges
             scoreRepository.deleteAll(scores);
 
             String targetName = latestSubmission.getTeam() != null ? latestSubmission.getTeam().getName()
@@ -597,7 +592,6 @@ public class JudgeService {
                     request.getReason() != null ? request.getReason()
                             : "Requested re-evaluation by Admin");
 
-            // Check if grading deadline has passed
             com.fpt.shms.be.model.Round round = latestSubmission.getRound();
             if (round != null && round.getGradingDeadlineAt() != null) {
                 if (java.time.LocalDateTime.now().isAfter(round.getGradingDeadlineAt())) {
@@ -652,7 +646,7 @@ public class JudgeService {
                             .pointsAwarded(d.getRawScore())
                             .weight(d.getContestRubricDetail() != null
                                     ? d.getContestRubricDetail()
-                                    .getPercentageWeight()
+                                      .getPercentageWeight()
                                     : null)
                             .feedback(d.getFeedback())
                             .build())
@@ -860,7 +854,7 @@ public class JudgeService {
                         if (snapshot != null && snapshot.containsKey("avgRoundScore")) {
                             avgScore = snapshot.get("avgRoundScore") != null
                                     ? ((Number) snapshot.get("avgRoundScore"))
-                                    .doubleValue()
+                                      .doubleValue()
                                     : null;
                             usedSnapshot = true;
                         }

@@ -136,7 +136,6 @@ public class StudentController {
 
                         ContestDTO dto = ContestDTO.from(c, categories, dtoRounds);
 
-                        // We also need to embed allowedUniversities which is specific to this API
                         java.util.Map<String, Object> map = new java.util.HashMap<>();
                         map.put("id", dto.id());
                         map.put("name", dto.name());

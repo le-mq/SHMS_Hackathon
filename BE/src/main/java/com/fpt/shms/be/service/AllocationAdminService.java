@@ -43,7 +43,6 @@ public class AllocationAdminService {
         }
         Long categoryId = targetCategory.getId();
 
-        // Validate: không vừa là Judge vừa là Mentor trong cùng Category
         for (ExpertAllocationRequest.TrackAssignment assignment : request.getAssignments()) {
             boolean isMentor = assignment.getMentoredTeamIds() != null && !assignment.getMentoredTeamIds().isEmpty();
             if (isMentor && Boolean.TRUE.equals(assignment.getIsJudge())) {
@@ -52,12 +51,10 @@ public class AllocationAdminService {
             }
         }
 
-        // Xóa phân bổ cũ cho user này tại category này
         judgeAssignmentRepository.deleteByUserIdAndCategoryId(user.getId(), categoryId);
         mentorAssignmentRepository.deleteByUserIdAndCategoryId(user.getId(), categoryId);
         teamMentorRepository.deleteByMentorIdAndCategoryId(user.getId(), categoryId);
 
-        // Lưu phân bổ mới
         for (ExpertAllocationRequest.TrackAssignment assignment : request.getAssignments()) {
             boolean isMentor = assignment.getMentoredTeamIds() != null && !assignment.getMentoredTeamIds().isEmpty();
             if (!isMentor && !Boolean.TRUE.equals(assignment.getIsJudge())) {
@@ -162,7 +159,6 @@ public class AllocationAdminService {
             return result;
         }
 
-        // Get all rounds of this contest sorted chronologically by submission open time
         List<Round> contestRounds = roundRepository.findByContestIdOrderBySubmissionOpenAsc(contestId).stream()
                 .sorted(java.util.Comparator
                         .comparing(Round::getRoundOrder, java.util.Comparator.nullsLast(Integer::compareTo))
@@ -179,7 +175,6 @@ public class AllocationAdminService {
         }
 
         if (idx <= 0) {
-            // First round of the entire contest gets all approved teams
             List<Team> approvedTeams = teamRepository.findByContestId(contestId)
                     .stream()
                     .filter(t -> "APPROVED".equals(t.getStatus()))
@@ -193,7 +188,6 @@ public class AllocationAdminService {
                 result.add(tm);
             }
         } else {
-            // Subsequent rounds only get teams that qualified from the previous round
             Round previousRound = contestRounds.get(idx - 1);
             List<RankingResult> qualifiedResults = rankingResultRepository.findQualifiedByRoundId(previousRound.getId())
                     .stream()

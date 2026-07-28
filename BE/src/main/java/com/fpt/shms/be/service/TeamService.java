@@ -286,8 +286,7 @@ public class TeamService {
         long approvedMemberCount = allMemberships.stream()
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .count();
-
-        // Validate that all approved members are current students
+        
         List<TeamMembership> approvedMembers = allMemberships.stream()
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .toList();
@@ -354,7 +353,6 @@ public class TeamService {
                 }
                 if (alreadyParticipated) {
                     Student student = studentRepository.findByUser(tm.getUser()).orElse(null);
-                    // Only add if not already flagged for unauthorized university
                     boolean alreadyFlagged = student != null && ineligibleMembers.stream()
                             .anyMatch(m -> m.getStudentCode().equals(student.getStudentCode()));
                     if (!alreadyFlagged) {
@@ -367,7 +365,6 @@ public class TeamService {
             }
         }
 
-        // If there are ineligible members, return warning without changing team status
         if (!ineligibleMembers.isEmpty()) {
             TeamRegistrationResponse response = new TeamRegistrationResponse();
             response.setStatus("INELIGIBLE_MEMBERS");
@@ -376,7 +373,6 @@ public class TeamService {
             return response;
         }
 
-        // Check member count
         int minMembers = contest != null && contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
         int maxMembers = contest != null && contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
 
@@ -385,7 +381,6 @@ public class TeamService {
                     "Team must have between " + minMembers + " and " + maxMembers + " approved members.");
         }
 
-        // Tự động loại bỏ các thành viên PENDING khi team đủ điều kiện đăng ký
         allMemberships.stream()
                 .filter(tm -> "PENDING".equalsIgnoreCase(tm.getStatus()))
                 .forEach(tm -> teamMembershipRepository.delete(tm));
@@ -421,9 +416,6 @@ public class TeamService {
                 : "";
         auditLogService.log("REGISTER_TEAM", "Team", team.getName(), null, team.getStatus(),
                 "Registered by: " + username + leaderInfo);
-
-        // Auto-kicking from FORMING teams has been removed to allow forming teams for
-        // other competitions.
 
         if ("APPROVED".equals(team.getStatus())) {
             String leaderStudentCode = request.getLeaderStudentId();
@@ -462,11 +454,6 @@ public class TeamService {
         return response;
     }
 
-    /**
-     * Force-approve a team by removing ineligible members (unauthorized university
-     * / already participated)
-     * and setting team status to APPROVED.
-     */
     @Transactional(noRollbackFor = IllegalArgumentException.class)
     public TeamRegistrationResponse registerForceApprove(TeamRegistrationRequest request, String username) {
         User user = userRepository.findByUsername(username)
@@ -501,13 +488,11 @@ public class TeamService {
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .toList();
 
-        // Identify and remove ineligible members
         List<TeamMembership> toRemove = new java.util.ArrayList<>();
         for (TeamMembership tm : approvedMembers) {
             Student memberStudent = studentRepository.findByUser(tm.getUser()).orElse(null);
             boolean ineligible = false;
 
-            // Check unauthorized university
             if (memberStudent != null) {
                 try {
                     validateUniversityAllowed(memberStudent, contest);
@@ -516,7 +501,6 @@ public class TeamService {
                 }
             }
 
-            // Check already participated in this contest
             if (!ineligible) {
                 List<TeamMembership> otherMemberships = teamMembershipRepository.findByUserId(tm.getUser().getId());
                 for (TeamMembership other : otherMemberships) {
@@ -539,12 +523,10 @@ public class TeamService {
             }
         }
 
-        // Remove ineligible members
         for (TeamMembership tm : toRemove) {
             teamMembershipRepository.delete(tm);
         }
 
-        // Re-check member count after removal
         long remainingCount = approvedMembers.size() - toRemove.size();
         int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
         int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
@@ -554,12 +536,10 @@ public class TeamService {
                     + " member(s), which is below the minimum required (" + minMembers + "). Registration aborted.");
         }
 
-        // Remove PENDING members
         allMemberships.stream()
                 .filter(tm -> "PENDING".equalsIgnoreCase(tm.getStatus()))
                 .forEach(teamMembershipRepository::delete);
 
-        // Assign leader role
         String leaderStudentCode = request.getLeaderStudentId();
         if (leaderStudentCode != null && !leaderStudentCode.isEmpty()) {
             Student leaderStudent = studentRepository.findByStudentCode(leaderStudentCode).orElse(null);
@@ -589,7 +569,6 @@ public class TeamService {
         auditLogService.log("REGISTER_TEAM_FORCE", "Team", team.getName(), "FORMING", "APPROVED",
                 "Force-approved by: " + username + " (ineligible members removed: " + toRemove.size() + ")");
 
-        // Send email notification
         List<TeamMembership> finalMembers = teamMembershipRepository.findByTeamId(team.getId());
         for (TeamMembership tm : finalMembers) {
             User memberUser = tm.getUser();
@@ -788,7 +767,6 @@ public class TeamService {
             }
         }
 
-        // Send email notification to all members
         for (TeamMembership tm : memberships) {
             User user = tm.getUser();
             if (user != null && user.getEmail() != null) {
@@ -1051,9 +1029,6 @@ public class TeamService {
                 .orElseThrow(() -> new IllegalArgumentException("User is not a registered student."));
     }
 
-    /**
-     * Tìm kiếm sinh viên theo mã sinh viên hoặc email.
-     */
     @Transactional(readOnly = true)
     public java.util.List<java.util.Map<String, Object>> searchStudents(String keyword) {
         java.util.List<Student> students = studentRepository.searchByCodeOrEmail(keyword);
@@ -1069,9 +1044,6 @@ public class TeamService {
         }).toList();
     }
 
-    /**
-     * Gửi lời mời tham gia đội. Mọi thành viên APPROVED đều có quyền mời.
-     */
     @Transactional
     public java.util.Map<String, Object> sendInvitation(com.fpt.shms.be.dto.InvitationRequest request,
                                                         String username) {
@@ -1081,7 +1053,6 @@ public class TeamService {
         Team team = teamRepository.findById(request.getTeamId())
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        // Validate: người gửi phải là thành viên APPROVED
         java.util.List<TeamMembership> teamMemberships = teamMembershipRepository.findByTeamId(team.getId());
         boolean isApprovedMember = teamMemberships.stream()
                 .anyMatch(tm -> tm.getStudent().getId().equals(inviter.getId())
@@ -1090,12 +1061,10 @@ public class TeamService {
             throw new IllegalArgumentException("You must be an approved team member to send invitations.");
         }
 
-        // Validate: không thể tự mời chính mình
         if (request.getStudentUserId().equals(inviter.getId())) {
             throw new IllegalArgumentException("You cannot invite yourself.");
         }
 
-        // Validate: người được mời chưa có trong team (APPROVED hoặc PENDING)
         boolean alreadyInTeam = teamMemberships.stream()
                 .anyMatch(tm -> tm.getStudent().getId().equals(request.getStudentUserId())
                         && ("APPROVED".equalsIgnoreCase(tm.getStatus()) || "PENDING".equalsIgnoreCase(tm.getStatus())));
@@ -1113,7 +1082,6 @@ public class TeamService {
             throw new IllegalArgumentException("The team has reached the maximum capacity allowed for this contest.");
         }
 
-        // Validate: sinh viên chưa có trong đội khác cùng Contest
         if (contest != null) {
             java.util.List<TeamMembership> existing = teamMembershipRepository
                     .findByUserIdAndContestIdAndStatusIn(request.getStudentUserId(), contest.getId(),
@@ -1123,11 +1091,9 @@ public class TeamService {
             }
         }
 
-        // Tìm student được mời
         Student invitedStudent = studentRepository.findById(request.getStudentUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-        // Tạo TeamMembership mới với invitation token (invite code ngắn gọn)
         String token = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         TeamMembership membership = TeamMembership.builder()
                 .team(team)
@@ -1164,9 +1130,7 @@ public class TeamService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if ("ACCEPT".equalsIgnoreCase(request.getAction())) {
-            // Removed validation that blocks accepting an invitation if the user is in any
-            // registered team.
-            // Users can be in multiple teams as long as they are for different contests.
+
         }
 
         java.util.Optional<TeamMembership> membershipOpt = teamMembershipRepository
@@ -1177,13 +1141,11 @@ public class TeamService {
             if (teamOpt.isPresent() && "ACCEPT".equalsIgnoreCase(request.getAction())) {
                 Team team = teamOpt.get();
 
-                // Prevent joining if team is already registered (PENDING or APPROVED)
                 if ("APPROVED".equalsIgnoreCase(team.getStatus()) || "PENDING".equalsIgnoreCase(team.getStatus())) {
                     throw new IllegalArgumentException(
                             "You cannot join this team because it has already been officially registered.");
                 }
 
-                // Validate capacity (chỉ đếm APPROVED giống như phần ACCEPT bên dưới)
                 Contest contest = team.getContest();
                 int maxCapacity = (contest != null && contest.getMaxTeamMembers() != null)
                         ? contest.getMaxTeamMembers()
@@ -1194,14 +1156,12 @@ public class TeamService {
                     throw new IllegalArgumentException("Unfortunate! The team is already full.");
                 }
 
-                // Check if user is already in this team
                 boolean alreadyInTeam = teamMembershipRepository.findByTeamId(team.getId()).stream()
                         .anyMatch(tm -> tm.getUser().getId().equals(user.getId()));
                 if (alreadyInTeam) {
                     throw new IllegalArgumentException("You are already in the team");
                 }
 
-                // Validate: sinh viên chưa có trong đội khác cùng Contest
                 if (contest != null) {
                     java.util.List<TeamMembership> existing = teamMembershipRepository
                             .findByUserIdAndContestIdAndStatusIn(user.getId(), contest.getId(),
@@ -1211,7 +1171,6 @@ public class TeamService {
                     }
                 }
 
-                // Create membership
                 TeamMembership newMembership = TeamMembership.builder()
                         .team(team)
                         .user(user)
@@ -1231,7 +1190,6 @@ public class TeamService {
 
         TeamMembership membership = membershipOpt.get();
 
-        // Validate token thuộc về user đang đăng nhập
         if (!membership.getStudent().getId().equals(user.getId())) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "This invitation token does not belong to your account.");
@@ -1275,9 +1233,6 @@ public class TeamService {
         return result;
     }
 
-    /**
-     * Lấy danh sách lời mời PENDING cho user hiện tại.
-     */
     @Transactional(readOnly = true)
     public java.util.List<java.util.Map<String, Object>> getPendingInvitations(String username) {
         User user = userRepository.findByUsername(username)

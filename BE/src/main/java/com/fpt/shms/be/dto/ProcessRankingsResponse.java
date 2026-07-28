@@ -24,6 +24,6 @@ public class ProcessRankingsResponse {
         private String categoryName;
         private Double averageScore;
         private Integer rank;
-        private String status;        // QUALIFIED or ELIMINATED
+        private String status;
     }
 }

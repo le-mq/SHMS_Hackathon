@@ -27,11 +27,11 @@ public class TeamMembership {
 
     @org.hibernate.annotations.Nationalized
     @Column(name = "member_role", nullable = false, length = 50)
-    private String role; // "LEADER", "MEMBER"
+    private String role;
 
     @Builder.Default
     @Column(name = "status", nullable = false, length = 50)
-    private String status = "APPROVED"; // "PENDING", "APPROVED", "REJECTED"
+    private String status = "APPROVED";
 
     @Column(name = "invitation_token", length = 255)
     private String invitationToken;

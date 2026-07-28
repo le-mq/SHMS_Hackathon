@@ -28,7 +28,7 @@ public class TeamStatusResponse {
         private String fullName;
         private String studentId;
         private String email;
-        private String internalRole; // "LEADER", "MEMBER"
+        private String internalRole;
         private String status;
         private String universityName;
         private Boolean isUnauthorized;

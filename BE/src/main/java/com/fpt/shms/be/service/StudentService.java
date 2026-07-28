@@ -9,7 +9,7 @@ import com.fpt.shms.be.repository.TeamMembershipRepository;
 import com.fpt.shms.be.repository.UserRepository;
 import com.fpt.shms.be.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
-// import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +21,8 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final VerificationTokenRepository tokenRepository;
     private final TeamMembershipRepository teamMembershipRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     public ProfileResponse getProfile(String username, String role) {
         User user = userRepository.findByUsername(username)
@@ -55,19 +57,16 @@ public class StudentService {
         if (request.getAvatarBase64() != null) {
             student.setAvatarBase64(request.getAvatarBase64());
         }
-        // Update User Password if requested
         if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
-            // if (!passwordEncoder.matches(request.getCurrentPassword(),
-            // user.getPassword())) {
-            // throw new IllegalArgumentException("Current password is incorrect");
-            // }
-            // if (request.getNewPassword().length() < 8) {
-            // throw new IllegalArgumentException("New password must be at least 8
-            // characters");
-            // }
-            // user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            if (!passwordEncoder.matches(request.getCurrentPassword(),
+                    user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+            }
+            if (request.getNewPassword().length() < 8) {
+             throw new IllegalArgumentException("New password must be at least 8 characters");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
-            // Plain-text check for development (no encryption)
             if (!user.getPassword().equals(request.getCurrentPassword())) {
                 throw new IllegalArgumentException("Current password is incorrect");
             }
