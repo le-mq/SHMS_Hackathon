@@ -91,13 +91,53 @@ const enrichRound = (r) => {
 
     return enriched;
 };
-
 const getLiveStatus = (c) => {
-    if (!c) return 'ACTIVE';
-    const s = c.status?.toUpperCase() || 'ACTIVE';
+    if (!c) return 'ACTIVED';
+    const s = c.status?.toUpperCase() || 'ACTIVED';
     if (s === 'CLOSED' || s === 'CANCELLED' || s === 'CANCELED') return 'CLOSED';
     if (s === 'UPCOMING') return 'UPCOMING';
-    return 'ACTIVE';
+    return 'ACTIVED';
+};
+
+const TrophyIcon = ({ color }) => (
+    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ color }}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15a4 4 0 004-4V5H8v6a4 4 0 004 4zM12 15v3M8 18h8M4 9c0-1 1-2 2-2h2v4H6c-1 0-2-1-2-2zM20 9c0-1-1-2-2-2h-2v4h2c1 0 2-1 2-2z" />
+    </svg>
+);
+
+const STATUS_STYLE_MAP = {
+    finalized: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0', dot: '#16a34a' },
+    pending: { bg: '#fef3c7', text: '#92400e', border: '#fde68a', dot: '#d97706' },
+    qualified: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0', dot: '#16a34a' },
+    eliminated: { bg: '#fee2e2', text: '#991b1b', border: '#fecaca', dot: '#dc2626' }
+};
+
+const renderStatusBadge = (key, label) => {
+    const s = STATUS_STYLE_MAP[key.toLowerCase()] || STATUS_STYLE_MAP.pending;
+    return (
+        <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            background: s.bg,
+            color: s.text,
+            border: `1px solid ${s.border}`
+        }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.dot }} />
+            {label}
+        </span>
+    );
+};
+
+const PRIZE_STYLE_MAP = {
+    1: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
+    2: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' },
+    3: { bg: '#ffedd5', text: '#c2410c', border: '#fed7aa' },
+    default: { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0' }
 };
 
 const RankingsConsole = () => {
@@ -130,6 +170,7 @@ const RankingsConsole = () => {
     const [isChartModalOpen, setIsChartModalOpen] = useState(false);
     const [isPublishWarningModalOpen, setIsPublishWarningModalOpen] = useState(false);
     const [timeRemainingStr, setTimeRemainingStr] = useState('');
+    const [publishedRoundIds, setPublishedRoundIds] = useState(new Set());
 
 
 
@@ -186,6 +227,7 @@ const RankingsConsole = () => {
         }
         return null;
     };
+
 
     const getAssetUrl = (url) => {
         const trimmedUrl = String(url || '').trim();
@@ -529,6 +571,11 @@ const RankingsConsole = () => {
                     ? { ...r, publishResultAt: nowIso }
                     : r
             ));
+            setPublishedRoundIds(prev => {
+                const updated = new Set(prev);
+                updated.add(selectedRoundId);
+                return updated;
+            });
 
             try {
                 const roundsRes = await fetch(API_BASE + `/contests/${selectedContestId}`, {
@@ -579,6 +626,37 @@ const RankingsConsole = () => {
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
         link.setAttribute("download", `Leaderboard_${result.roundName || 'Result'}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportTopNRankingCSV = () => {
+        if (!result || !result.results) return;
+
+        const hasPrizes = prizes && prizes.length > 0;
+        const headers = ['Rank', 'Team Name', 'Average Score', 'Status'];
+        if (hasPrizes) {
+            headers.push('Prize');
+        }
+        const csvRows = [headers.join(',')];
+
+        const qualifiedTeams = result.results.filter(row => row.rank <= Number(topN));
+        for (const row of qualifiedTeams) {
+            const values = [row.rank, `"${row.teamName}"`, row.averageScore, 'QUALIFIED'];
+            if (hasPrizes) {
+                const prizeStr = getPrizeForRank(row.rank) || '';
+                values.push(`"${prizeStr}"`);
+            }
+            csvRows.push(values.join(','));
+        }
+
+        const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Top_${topN}_Ranking_${result.roundName || 'Result'}.csv`);
+        document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
@@ -614,30 +692,31 @@ const RankingsConsole = () => {
         }
     };
 
+    const hasPendingJudges = !readinessData.allReady;
     const totalTeams = readinessData.summary.totalTeams;
     const isTopNValid = Number.isInteger(Number(topN)) && Number(topN) > 0 && (totalTeams === 0 || Number(topN) <= totalTeams);
     const isActionDisabled = isProcessing || !isTopNValid;
 
     const isScorePublished = selectedRound?.isScorePublished || false;
 
-    const resultPublishedAt = selectedRound?.publishResultAt || null;
-    const isResultPublished = !!resultPublishedAt && new Date(resultPublishedAt) <= new Date();
+    const isResultPublished = publishedRoundIds.has(selectedRoundId);
+    const isAllEvaluatorsReady = readinessData.allReady === true;
 
     const gradingDeadline = selectedRound?.gradingDeadlineAt ? new Date(selectedRound.gradingDeadlineAt) : null;
     const isPastGradingDeadline = !gradingDeadline || new Date() >= gradingDeadline;
-    const canPublishScore = isPastGradingDeadline && !isResultPublished;
+    const canPublishScore = isPastGradingDeadline && !isResultPublished && isAllEvaluatorsReady;
 
     const reviewCalibrationDeadline = selectedRound?.reviewCalibrationAt ? new Date(selectedRound.reviewCalibrationAt) : null;
     const isPastReviewCalibration = !reviewCalibrationDeadline || new Date() >= reviewCalibrationDeadline;
-    const canPublishResult = isScorePublished && !!result && isPastReviewCalibration && !isResultPublished;
+    const canPublishResult = isScorePublished && !!result && isPastReviewCalibration && !isResultPublished && isAllEvaluatorsReady;
 
     useEffect(() => {
         if (!selectedRound) return;
 
         const updateClock = () => {
             const now = new Date();
-            const isScorePub = selectedRound.isScorePublished;
-            const isResPub = !!selectedRound.publishResultAt && new Date(selectedRound.publishResultAt) <= now;
+            const isScorePub = selectedRound.isScorePublished || false;
+            const isResPub = isResultPublished;
 
             if (isResPub) {
                 setTimeRemainingStr("Published Successfully");
@@ -759,7 +838,7 @@ const RankingsConsole = () => {
                                     }}
                                 >
                                     <option value="ALL">All Statuses</option>
-                                    <option value="ACTIVE">Actived</option>
+                                    <option value="ACTIVED">Actived</option>
                                     <option value="UPCOMING">Upcoming</option>
                                     <option value="CLOSED">Closed</option>
                                 </select>
@@ -772,12 +851,12 @@ const RankingsConsole = () => {
                             const liveStatus = getLiveStatus(c);
                             const isClosed = liveStatus === 'CLOSED';
                             const isUpcoming = liveStatus === 'UPCOMING';
-                            const isActive = liveStatus === 'ACTIVE';
+                            const isActive = liveStatus === 'ACTIVED';
 
                             let cardBg = 'white';
                             let cardBorderColor = '#cbd5e1';
                             let glowShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                            let statusText = 'ACTIVE';
+                            let statusText = 'ACTIVED';
                             let badgeBg = '#dcfce7';
                             let badgeColor = '#166534';
 
@@ -1107,7 +1186,7 @@ const RankingsConsole = () => {
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: '800' }}>
-                                                {selectedRound.publishResultAt && new Date(selectedRound.publishResultAt) <= new Date()
+                                                {isResultPublished
                                                     ? 'Status'
                                                     : !selectedRound.isScorePublished
                                                         ? 'Grading Deadline'
@@ -1139,316 +1218,409 @@ const RankingsConsole = () => {
 
                         {viewMode === 'COMPILATION_VIEW' && (
                             <>
-                                <div className="publication-control-panel" style={{ padding: '24px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>Publication & Promotion Control</h2>
-                                    </div>
-
-                                    {/* Top Bar Controls */}
-                                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
-
-                                        {/* Compact Top N Input */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRight: '1px solid #e2e8f0', paddingRight: '16px', height: '38px' }}>
-                                            <label style={{ fontSize: '13px', fontWeight: '700', color: '#475569', whiteSpace: 'nowrap' }}>Top N Cap:</label>
-                                            <input
-                                                type="number"
-                                                className="top-n-input"
-                                                value={topN}
-                                                min={0}
-                                                max={readinessData.summary.totalTeams}
-                                                onKeyDown={(e) => {
-                                                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                                }}
-                                                onWheel={(e) => e.target.blur()}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    if (!/^\d*$/.test(value)) return;
-                                                    if (value === '') { setTopN(''); return; }
-                                                    const num = Number(value);
-                                                    if (num < 0) { setTopN(1); }
-                                                    else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
-                                                    else { setTopN(num); }
-                                                }}
-                                                style={{ width: '60px', height: '38px', boxSizing: 'border-box', padding: '0 8px', borderRadius: '8px', border: '1.5px solid #cbd5e1', textAlign: 'center', fontWeight: '700', fontSize: '14px', outline: 'none', color: '#0f172a' }}
-                                            />
-                                        </div>
-
-                                        {/* Generate Leaderboard Action */}
-                                        <button
-                                            id="btn-generate-ranking"
-                                            disabled={isActionDisabled || isResultPublished}
-                                            onClick={handleGenerate}
-                                            title={isResultPublished ? 'Results published — ranking is locked' : ''}
-                                            style={{
-                                                height: '38px',
-                                                boxSizing: 'border-box',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                justify: 'center',
-                                                padding: '0 16px',
-                                                fontSize: '13px',
-                                                fontWeight: '700',
-                                                borderRadius: '8px',
-                                                border: 'none',
-                                                background: isActionDisabled || isResultPublished ? '#cbd5e1' : '#2563eb',
-                                                color: isActionDisabled || isResultPublished ? '#64748b' : 'white',
-                                                cursor: isActionDisabled || isResultPublished ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.2s ease',
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >
-                                            {isProcessing ? 'Processing...' : '⚡ Generate Leaderboard'}
-                                        </button>
-
-                                        <div style={{ flexGrow: 1 }} />
-
-                                        {/* Action Buttons */}
-                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                            <button
-                                                type="button"
-                                                className="view-chart-btn"
-                                                onClick={() => setIsChartModalOpen(true)}
-                                                style={{
-                                                    height: '38px',
-                                                    boxSizing: 'border-box',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    padding: '0 16px',
-                                                    background: '#6366f1',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '8px',
-                                                    fontWeight: 700,
-                                                    fontSize: '13px',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease',
-                                                    boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
-                                                }}
-                                            >
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                                </svg>
-                                                View Chart
-                                            </button>
-
-                                            {!isResultPublished ? (
-                                                <>
-                                                    <button
-                                                        id="btn-publish-score"
-                                                        onClick={handlePublishScore}
-                                                        disabled={!canPublishScore}
-                                                        style={{ height: '38px', boxSizing: 'border-box', padding: '0 16px', background: canPublishScore ? '#7c3aed' : '#c4b5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishScore ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
-                                                    >
-                                                        {isScorePublished ? 'Update Scores' : 'Publish Score Review'}
-                                                    </button>
-
-                                                    <button
-                                                        id="btn-publish-result"
-                                                        onClick={() => setIsPublishWarningModalOpen(true)}
-                                                        disabled={!canPublishResult}
-                                                        style={{ height: '38px', boxSizing: 'border-box', padding: '0 16px', background: canPublishResult ? '#3b82f6' : '#93c5fd', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: canPublishResult ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
-                                                    >
-                                                        Publish Ranking Result
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <span style={{ height: '38px', boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', padding: '0 14px', background: '#dcfce7', color: '#15803d', borderRadius: '8px', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>Results Published & Locked</span>
-                                            )}
-
-                                            <button
-                                                onClick={() => {
-                                                    const token = localStorage.getItem('shms_token');
-                                                    const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
-                                                    window.open(`${apiBaseUrl}/admin/results/export-csv?type=scores&contestId=${selectedContestId}&token=${token}`, '_blank');
-                                                }}
-                                                style={{
-                                                    height: '38px',
-                                                    boxSizing: 'border-box',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    padding: '0 16px',
-                                                    background: '#10b981',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '8px',
-                                                    fontWeight: 700,
-                                                    fontSize: '13px',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease',
-                                                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                                                }}
-                                            >
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                </svg>
-                                                Export CSV
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Compact Readiness Banner */}
-                                    <div
-                                        className={`readiness-banner ${readinessData.allReady ? 'ready' : 'not-ready'}`}
-                                        style={{
-                                            marginBottom: 16,
-                                            padding: '10px 16px',
-                                            borderRadius: '10px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '12px',
-                                            background: readinessData.allReady ? '#f0fdf4' : '#fffbeb',
-                                            border: `1px solid ${readinessData.allReady ? '#bbf7d0' : '#fef08a'}`
-                                        }}
-                                    >
-                                        <div style={{ color: readinessData.allReady ? '#16a34a' : '#d97706', display: 'flex', alignItems: 'center' }}>
-                                            {readinessData.allReady
-                                                ? <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                                : <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>
-                                            }
-                                        </div>
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                            <strong style={{ fontSize: '13.5px', color: readinessData.allReady ? '#166534' : '#92400e' }}>
-                                                {readinessData.allReady ? 'Readiness Check Passed:' : 'Readiness Check Pending:'}
-                                            </strong>
-                                            <span style={{ fontSize: '13px', color: readinessData.allReady ? '#15803d' : '#b45309' }}>
-                                                {readinessData.allReady
-                                                    ? `All ${readinessData.evaluators.length} evaluators finalized scores.`
-                                                    : `${readinessData.evaluators.filter(e => e.status !== 'Finalized').length} evaluator(s) pending.`}
+                                {/* 1. JUDGE GRADING READINESS card */}
+                                <div style={{ background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '12px', color: '#0f172a', fontFamily: 'monospace', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                                    <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <strong style={{ fontSize: '14px', color: '#0f172a', letterSpacing: '0.05em' }}>JUDGE GRADING READINESS</strong>
+                                        {readinessData.evaluators.filter(e => e.status !== 'Finalized').length > 0 ? (
+                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '12px', background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                                                {readinessData.evaluators.filter(e => e.status !== 'Finalized').length} Pending
                                             </span>
-                                        </div>
+                                        ) : (
+                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '12px', background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>Ready</span>
+                                        )}
                                     </div>
-
-                                    {/* Evaluators Table */}
-                                    <div className="eval-table-card" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                                        <table className="eval-table" style={{ margin: 0, width: '100%' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th>Evaluator Name</th>
-                                                    <th>Department</th>
-                                                    <th>Review Status</th>
-                                                    <th>Finalized Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {readinessData.evaluators.map((ev, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="eval-name">{ev.name}</td>
-                                                        <td>{ev.dept}</td>
-                                                        <td>{ev.status === 'Finalized'
-                                                            ? <span className="status-pill-finalized"><span className="dot-green" /> Finalized</span>
-                                                            : <span className="status-pill-pending"><span className="dot-yellow" /> Pending</span>
-                                                        }
-                                                        </td>
-                                                        <td style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '13px' }}>{ev.date}</td>
-                                                    </tr>
-                                                ))}
-                                                {readinessData.evaluators.length === 0 && (
-                                                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No evaluators assigned to this contest/round yet.</td></tr>
-                                                )}
-                                            </tbody>
-                                        </table>
+                                    <div style={{ padding: '0px' }}>
+                                        {readinessData.evaluators.length > 0 ? (
+                                            <div style={{ overflowX: 'auto' }}>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse', margin: 0, background: '#ffffff' }}>
+                                                    <thead>
+                                                        <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Judge Name</th>
+                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Grading Status</th>
+                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Update</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {readinessData.evaluators.map((ev, idx) => (
+                                                            <tr key={idx} style={{ borderBottom: '1.2px solid #e2e8f0' }}>
+                                                                <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600', fontSize: '13px' }}>{ev.name}</td>
+                                                                <td style={{ padding: '14px 16px' }}>{renderStatusBadge(ev.status, ev.status)}</td>
+                                                                <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '13px' }}>{ev.date || '—'}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div style={{ color: '#64748b', fontStyle: 'italic', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No judges assigned to this round yet.</div>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Ranking Result Table - CHỈ HIỂN THỊ KHI Ở VIEW_RANKING / COMPILATION_VIEW */}
+                                {/* 2. BOARD (Leaderboard Table & Stats) */}
                                 {result && (
-                                    <div className="result-card visible" style={{ marginTop: 24 }}>
-                                        <h2 className="result-card-title">✓ Ranking Generated Successfully</h2>
-                                        <p className="result-card-sub">Round: {result.roundName} · Top N = {currentCompiledTopN}</p>
-                                        <div className="result-stats">
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Qualified</div>
-                                                <div className="result-stat-val qualified">{currentCompiledTopN}</div>
+                                    <div style={{ background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                                        {/* Board Header */}
+                                        <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'monospace' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <strong style={{ fontSize: '14px', color: '#0f172a', letterSpacing: '0.05em' }}>
+                                                    BOARD {hasPendingJudges ? '(Locked until all judges finalize)' : '(Active & Compiled)'}
+                                                </strong>
                                             </div>
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Eliminated</div>
-                                                <div className="result-stat-val eliminated">{result.results.length - currentCompiledTopN}</div>
-                                            </div>
-                                            <div className="result-stat">
-                                                <div className="result-stat-label">Total Processed</div>
-                                                <div className="result-stat-val">{result.totalProcessed}</div>
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#0f172a' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>Qualified Teams Limit:</span>
+                                                    <input
+                                                        type="number"
+                                                        className="top-n-input"
+                                                        value={topN}
+                                                        min={0}
+                                                        max={readinessData.summary.totalTeams}
+                                                        onKeyDown={(e) => {
+                                                            if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                                        }}
+                                                        onWheel={(e) => e.target.blur()}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            if (!/^\d*$/.test(value)) return;
+                                                            if (value === '') { setTopN(''); return; }
+                                                            const num = Number(value);
+                                                            if (num < 0) { setTopN(1); }
+                                                            else if (num > readinessData.summary.totalTeams) { setTopN(readinessData.summary.totalTeams); }
+                                                            else { setTopN(num); }
+                                                        }}
+                                                        style={{
+                                                            width: '50px',
+                                                            height: '24px',
+                                                            background: '#eff6ff',
+                                                            border: '2px solid #2563eb',
+                                                            borderRadius: '6px',
+                                                            textAlign: 'center',
+                                                            fontWeight: '800',
+                                                            fontSize: '13px',
+                                                            outline: 'none',
+                                                            color: '#1d4ed8',
+                                                            boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.1)',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>|</span>
+
+                                                <div>
+                                                    QUALIFIED: <span style={{ color: '#16a34a', fontWeight: 'bold' }}>{currentCompiledTopN}</span>
+                                                </div>
+
+                                                <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>|</span>
+
+                                                <div>
+                                                    ELIMINATED: <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{result.results.length - currentCompiledTopN}</span>
+                                                </div>
+
+                                                <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>|</span>
+
+                                                <div>
+                                                    TOTAL: <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{result.totalProcessed}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
-                                            <h3 style={{ margin: 0, color: 'white' }}>Top Teams</h3>
-                                            <button onClick={handleDownloadCSV} style={{ padding: '6px 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: '1px solid #4b5563', borderRadius: '6px' }}>
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                Download Full Rankings CSV
-                                            </button>
-                                        </div>
-                                        <table className="eval-table" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ color: '#0f172a' }}>Rank</th>
-                                                    <th style={{ color: '#0f172a' }}>Team Name</th>
-                                                    <th style={{ color: '#0f172a' }}>Average Score</th>
-                                                    <th style={{ color: '#0f172a' }}>Status</th>
-                                                    {prizes.length > 0 && <th style={{ color: '#0f172a' }}>Prize</th>}
-                                                    <th style={{ color: '#0f172a', textAlign: 'right', paddingRight: '16px' }}>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {result.results.map(r => {
-                                                    const isQualified = r.rank <= currentCompiledTopN;
-                                                    const teamPrize = getPrizeForRank(r.rank);
-                                                    return (
-                                                        <tr key={r.rank}>
-                                                            <td>#{r.rank}</td>
-                                                            <td>{r.teamName}</td>
-                                                            <td>{r.averageScore}</td>
-                                                            <td>
-                                                                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: isQualified ? '#dcfce7' : '#fee2e2', color: isQualified ? '#166534' : '#991b1b' }}>
-                                                                    {isQualified ? 'QUALIFIED' : 'ELIMINATED'}
-                                                                </span>
-                                                            </td>
-                                                            {prizes.length > 0 && (
-                                                                <td>
-                                                                    {teamPrize ? (
-                                                                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-                                                                            🏆 {teamPrize}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span style={{ color: '#94a3b8' }}>—</span>
-                                                                    )}
-                                                                </td>
-                                                            )}
-                                                            <td style={{ textAlign: 'right', paddingRight: '16px' }}>
-                                                                <button
-                                                                    disabled={isResultPublished}
-                                                                    onClick={() => {
-                                                                        if (isResultPublished) return;
-                                                                        setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
-                                                                        setIsRevalModalOpen(true);
-                                                                    }}
-                                                                    style={{
-                                                                        background: isResultPublished ? '#f1f5f9' : '#fef2f2',
-                                                                        border: `1px solid ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
-                                                                        padding: '6px 10px',
-                                                                        borderRadius: '6px',
-                                                                        cursor: isResultPublished ? 'not-allowed' : 'pointer',
-                                                                        fontSize: '13px',
-                                                                        display: 'inline-flex',
-                                                                        alignItems: 'center',
-                                                                        gap: '6px',
-                                                                        color: isResultPublished ? '#94a3b8' : '#dc2626',
-                                                                        fontWeight: 600,
-                                                                        boxShadow: isResultPublished ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
-                                                                        opacity: isResultPublished ? 0.6 : 1
-                                                                    }}
-                                                                    title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
-                                                                >
-                                                                    ⚠️ Request Re-eval
-                                                                </button>
-                                                            </td>
+
+                                        {/* Table Content with Lock overlay */}
+                                        <div style={{ position: 'relative' }}>
+                                            {hasPendingJudges && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: 0, left: 0, right: 0, bottom: 0,
+                                                    background: 'rgba(255, 255, 255, 0.75)',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#1e293b',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '14px',
+                                                    zIndex: 10,
+                                                    gap: '10px',
+                                                    backdropFilter: 'blur(2px)',
+                                                    padding: '24px',
+                                                    textAlign: 'center'
+                                                }}>
+                                                    <div style={{ background: 'rgba(15, 23, 42, 0.08)', padding: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <svg width="24" height="24" fill="none" stroke="#64748b" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span style={{ fontSize: '15px', fontWeight: '800', fontFamily: 'monospace', color: '#0f172a' }}>Leaderboard locked until all judges finalize</span>
+                                                    <span style={{ fontSize: '12px', fontWeight: '500', color: '#475569', fontFamily: 'monospace' }}>Configure "Top N Cap" in header of board to prepare.</span>
+                                                </div>
+                                            )}
+
+                                            <div style={{
+                                                filter: hasPendingJudges ? 'blur(2px) grayscale(0.2)' : 'none',
+                                                opacity: hasPendingJudges ? 0.5 : 1,
+                                                pointerEvents: hasPendingJudges ? 'none' : 'auto'
+                                            }}>
+                                                <table className="eval-table" style={{ margin: 0, width: '100%', background: '#ffffff', border: 'none', borderCollapse: 'collapse', fontFamily: 'monospace' }}>
+                                                    <thead>
+                                                        <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>RANK</th>
+                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>TEAM NAME</th>
+                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>AVG SCORE</th>
+                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>STATUS</th>
+                                                            {prizes.length > 0 && <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>PRIZE</th>}
+                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>ACTION</th>
                                                         </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        {result.results.map(r => {
+                                                            const isQualified = r.rank <= currentCompiledTopN;
+                                                            const teamPrize = getPrizeForRank(r.rank);
+                                                            return (
+                                                                <tr key={r.rank} style={{ borderBottom: '1.2px solid #e2e8f0', transition: 'background-color 0.2s' }}>
+                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '800' }}>#{r.rank}</td>
+                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600' }}>{r.teamName}</td>
+                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '700' }}>{Number(r.averageScore).toFixed(1)}</td>
+                                                                    <td style={{ padding: '14px 16px' }}>
+                                                                        {renderStatusBadge(
+                                                                            isQualified ? 'qualified' : 'eliminated',
+                                                                            isQualified ? 'QUALIFIED' : 'ELIMINATED'
+                                                                        )}
+                                                                    </td>
+                                                                    {prizes.length > 0 && (
+                                                                        <td style={{ padding: '14px 16px' }}>
+                                                                            {(() => {
+                                                                                const cfg = PRIZE_STYLE_MAP[r.rank] || PRIZE_STYLE_MAP.default;
+                                                                                return teamPrize ? (
+                                                                                    <span style={{
+                                                                                        background: cfg.bg,
+                                                                                        color: cfg.text,
+                                                                                        border: `1px solid ${cfg.border}`,
+                                                                                        padding: '2px 8px',
+                                                                                        borderRadius: '4px',
+                                                                                        fontSize: '11px',
+                                                                                        fontWeight: 'bold',
+                                                                                        display: 'inline-flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: '6px'
+                                                                                    }}>
+                                                                                        <TrophyIcon color={cfg.text} />
+                                                                                        {teamPrize}
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span style={{ color: '#94a3b8' }}>—</span>
+                                                                                );
+                                                                            })()}
+                                                                        </td>
+                                                                    )}
+                                                                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                                                                        <button
+                                                                            disabled={isResultPublished}
+                                                                            onClick={() => {
+                                                                                if (isResultPublished) return;
+                                                                                setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
+                                                                                setIsRevalModalOpen(true);
+                                                                            }}
+                                                                            style={{
+                                                                                background: isResultPublished ? '#f1f5f9' : '#fef2f2',
+                                                                                border: `1px dashed ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
+                                                                                padding: '4px 10px',
+                                                                                borderRadius: '6px',
+                                                                                cursor: isResultPublished ? 'not-allowed' : 'pointer',
+                                                                                fontSize: '11px',
+                                                                                color: isResultPublished ? '#94a3b8' : '#dc2626',
+                                                                                fontWeight: 'bold',
+                                                                                opacity: isResultPublished ? 0.5 : 1,
+                                                                                transition: 'all 0.2s'
+                                                                            }}
+                                                                            title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
+                                                                        >
+                                                                            Request Re-eval
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
+
+                                {/* 3. Unified Bottom Actions & Export Footer */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '16px 20px',
+                                    background: '#ffffff',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    fontFamily: 'monospace',
+                                    color: '#0f172a',
+                                    fontSize: '13px',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                }}>
+                                    {/* Left Side: Publish Control */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        {/* Chart trigger */}
+                                        <button
+                                            type="button"
+                                            className="view-chart-btn"
+                                            onClick={() => setIsChartModalOpen(true)}
+                                            style={{
+                                                height: '32px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '0 12px',
+                                                background: '#f0f2ff',
+                                                color: '#4f46e5',
+                                                border: '1px solid #c7d2fe',
+                                                borderRadius: '6px',
+                                                fontWeight: 'bold',
+                                                fontSize: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                            View Chart
+                                        </button>
+
+                                        {!isResultPublished ? (
+                                            <>
+                                                <button
+                                                    id="btn-publish-score"
+                                                    onClick={handlePublishScore}
+                                                    disabled={!canPublishScore}
+                                                    style={{
+                                                        height: '32px',
+                                                        padding: '0 12px',
+                                                        background: canPublishScore ? '#7c3aed' : '#ede9fe',
+                                                        color: canPublishScore ? 'white' : '#a78bfa',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '12px',
+                                                        cursor: canPublishScore ? 'pointer' : 'not-allowed',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    {isScorePublished ? 'Update Scores' : 'Publish Score Review'}
+                                                </button>
+
+                                                <button
+                                                    id="btn-publish-result"
+                                                    onClick={() => setIsPublishWarningModalOpen(true)}
+                                                    disabled={!canPublishResult}
+                                                    title={hasPendingJudges ? 'Cannot publish results while grading is pending' : ''}
+                                                    style={{
+                                                        height: '32px',
+                                                        padding: '0 12px',
+                                                        background: canPublishResult ? '#2563eb' : '#dbeafe',
+                                                        color: canPublishResult ? 'white' : '#93c5fd',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '12px',
+                                                        cursor: canPublishResult ? 'pointer' : 'not-allowed',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    Publish Ranking Result
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <span style={{
+                                                height: '32px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                padding: '0 12px',
+                                                background: '#dcfce7',
+                                                color: '#15803d',
+                                                borderRadius: '6px',
+                                                fontWeight: 'bold',
+                                                fontSize: '12px',
+                                                whiteSpace: 'nowrap',
+                                                border: '1.5px solid #bbf7d0'
+                                            }}>
+                                                Results Published & Locked
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Separator pipe */}
+                                    <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '16px' }}>|</div>
+
+                                    {/* Right Side: Export Area */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <span style={{ fontWeight: 'bold', color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>EXPORT DATA:</span>
+
+                                        <button
+                                            onClick={() => {
+                                                const token = localStorage.getItem('shms_token');
+                                                const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
+                                                window.open(`${apiBaseUrl}/admin/results/export-csv?type=scores&contestId=${selectedContestId}&token=${token}`, '_blank');
+                                            }}
+                                            style={{
+                                                height: '32px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '0 12px',
+                                                background: 'transparent',
+                                                color: '#10b981',
+                                                border: '1.5px solid #10b981',
+                                                borderRadius: '6px',
+                                                fontWeight: 'bold',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#10b98115'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Export All Scores CSV
+                                        </button>
+
+                                        <button
+                                            onClick={handleExportTopNRankingCSV}
+                                            disabled={!result}
+                                            style={{
+                                                height: '32px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '0 12px',
+                                                background: 'transparent',
+                                                color: !result ? '#cbd5e1' : '#f59e0b',
+                                                border: !result ? '1.5px dashed #cbd5e1' : '1.5px solid #f59e0b',
+                                                borderRadius: '6px',
+                                                fontWeight: 'bold',
+                                                fontSize: '11px',
+                                                cursor: !result ? 'not-allowed' : 'pointer',
+                                                opacity: !result ? 0.5 : 1,
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            onMouseEnter={(e) => { if (result) e.currentTarget.style.background = '#f59e0b15'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15a4 4 0 0 0 4-4V5H8v6a4 4 0 0 0 4 4zM12 15v3M8 18h8M4 9c0-1 1-2 2-2h2v4H6c-1 0-2-1-2-2zM20 9c0-1-1-2-2-2h-2v4h2c1 0 2-1 2-2z" />
+                                            </svg>
+                                            Export Top N Ranking CSV
+                                        </button>
+                                    </div>
+                                </div>
                             </>
                         )}
 
@@ -1586,118 +1758,121 @@ const RankingsConsole = () => {
                             </div>
                         )}
                     </>
-                )}
+                )
+                }
 
-                {viewSubmissionModal.isOpen && viewSubmissionModal.team && (() => {
-                    const team = viewSubmissionModal.team;
-                    const reqsStr = roundProgress?.submissionRequirements;
-                    const parsedReqs = parseRequirements(reqsStr);
-                    const activeRequirements = parsedReqs.length > 0
-                        ? parsedReqs
-                        : ['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl'];
+                {
+                    viewSubmissionModal.isOpen && viewSubmissionModal.team && (() => {
+                        const team = viewSubmissionModal.team;
+                        const reqsStr = roundProgress?.submissionRequirements;
+                        const parsedReqs = parseRequirements(reqsStr);
+                        const activeRequirements = parsedReqs.length > 0
+                            ? parsedReqs
+                            : ['githubUrl', 'demoUrl', 'documentUrl', 'slideUrl'];
 
-                    const getAssetLinkClass = (url) => url ? 'asset-valid' : 'asset-missing';
-                    const renderModalAssetLink = (url, label, iconPath, key) => {
-                        const isValid = !!url;
+                        const getAssetLinkClass = (url) => url ? 'asset-valid' : 'asset-missing';
+                        const renderModalAssetLink = (url, label, iconPath, key) => {
+                            const isValid = !!url;
+                            return (
+                                <a key={key} href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
+                                    target="_blank" rel="noreferrer"
+                                    onClick={e => !isValid && e.preventDefault()}
+                                    style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                                        </svg>{label}
+                                    </div>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            );
+                        };
+
+                        let parsedData = {};
+                        try {
+                            if (team.submissionData) {
+                                parsedData = JSON.parse(team.submissionData);
+                            }
+                        } catch (e) {
+                            console.error("Error parsing submissionData:", e);
+                        }
+
+                        const getAssetDetails = (reqKey) => {
+                            const key = String(reqKey).trim();
+                            if (key === 'githubUrl' || key === 'repoUrl') {
+                                return {
+                                    label: 'GitHub Repository',
+                                    iconPath: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+                                    value: parsedData.githubUrl || parsedData.repoUrl || team.repoUrl || team.githubUrl || ''
+                                };
+                            }
+                            if (key === 'demoUrl') {
+                                return {
+                                    label: 'Live Demo',
+                                    iconPath: 'M13 10V3L4 14h7v7l9-11h-7z',
+                                    value: parsedData.demoUrl || team.demoUrl || ''
+                                };
+                            }
+                            if (key === 'documentUrl' || key === 'docUrl') {
+                                return {
+                                    label: 'Project Documentation',
+                                    iconPath: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                                    value: parsedData.documentUrl || parsedData.docUrl || team.docUrl || team.documentUrl || ''
+                                };
+                            }
+                            if (key === 'slideUrl') {
+                                return {
+                                    label: 'Presentation Slides',
+                                    iconPath: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12',
+                                    value: parsedData.slideUrl || team.slideUrl || ''
+                                };
+                            }
+
+                            const formatLabel = (str) => {
+                                let result = str.replace(/([A-Z])/g, ' $1');
+                                result = result.replace(/[_-]/g, ' ');
+                                return result.trim().replace(/\b\w/g, c => c.toUpperCase());
+                            };
+                            return {
+                                label: formatLabel(key),
+                                iconPath: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
+                                value: parsedData[key] || team[key] || ''
+                            };
+                        };
+
                         return (
-                            <a key={key} href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
-                                target="_blank" rel="noreferrer"
-                                onClick={e => !isValid && e.preventDefault()}
-                                style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                                    </svg>{label}
-                                </div>
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                            </a>
-                        );
-                    };
+                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '600px', maxWidth: '90%' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #d1d5db', paddingBottom: '12px' }}>
+                                        <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700 }}>Project Deliverables: {team.teamName}</h3>
+                                    </div>
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '24px', fontWeight: 500 }}>
+                                            The following links are required for this round's submission. Missing links are marked in red.
+                                        </p>
 
-                    let parsedData = {};
-                    try {
-                        if (team.submissionData) {
-                            parsedData = JSON.parse(team.submissionData);
-                        }
-                    } catch (e) {
-                        console.error("Error parsing submissionData:", e);
-                    }
-
-                    const getAssetDetails = (reqKey) => {
-                        const key = String(reqKey).trim();
-                        if (key === 'githubUrl' || key === 'repoUrl') {
-                            return {
-                                label: 'GitHub Repository',
-                                iconPath: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
-                                value: parsedData.githubUrl || parsedData.repoUrl || team.repoUrl || team.githubUrl || ''
-                            };
-                        }
-                        if (key === 'demoUrl') {
-                            return {
-                                label: 'Live Demo',
-                                iconPath: 'M13 10V3L4 14h7v7l9-11h-7z',
-                                value: parsedData.demoUrl || team.demoUrl || ''
-                            };
-                        }
-                        if (key === 'documentUrl' || key === 'docUrl') {
-                            return {
-                                label: 'Project Documentation',
-                                iconPath: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                                value: parsedData.documentUrl || parsedData.docUrl || team.docUrl || team.documentUrl || ''
-                            };
-                        }
-                        if (key === 'slideUrl') {
-                            return {
-                                label: 'Presentation Slides',
-                                iconPath: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12',
-                                value: parsedData.slideUrl || team.slideUrl || ''
-                            };
-                        }
-
-                        const formatLabel = (str) => {
-                            let result = str.replace(/([A-Z])/g, ' $1');
-                            result = result.replace(/[_-]/g, ' ');
-                            return result.trim().replace(/\b\w/g, c => c.toUpperCase());
-                        };
-                        return {
-                            label: formatLabel(key),
-                            iconPath: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
-                            value: parsedData[key] || team[key] || ''
-                        };
-                    };
-
-                    return (
-                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                            <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '600px', maxWidth: '90%' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #d1d5db', paddingBottom: '12px' }}>
-                                    <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700 }}>Project Deliverables: {team.teamName}</h3>
-                                </div>
-                                <div style={{ marginBottom: '24px' }}>
-                                    <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '24px', fontWeight: 500 }}>
-                                        The following links are required for this round's submission. Missing links are marked in red.
-                                    </p>
-
-                                    {activeRequirements.map((reqKey, idx) => {
-                                        const { label, iconPath, value } = getAssetDetails(reqKey);
-                                        return renderModalAssetLink(value, label, iconPath, idx);
-                                    })}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                    <button
-                                        style={{ padding: '8px 16px', fontSize: '14px', background: '#fff', color: '#334155', border: '1px solid #d1d5db', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
-                                        onClick={() => setViewSubmissionModal({ isOpen: false, team: null })}
-                                    >
-                                        Close
-                                    </button>
+                                        {activeRequirements.map((reqKey, idx) => {
+                                            const { label, iconPath, value } = getAssetDetails(reqKey);
+                                            return renderModalAssetLink(value, label, iconPath, idx);
+                                        })}
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <button
+                                            style={{ padding: '8px 16px', fontSize: '14px', background: '#fff', color: '#334155', border: '1px solid #d1d5db', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                                            onClick={() => setViewSubmissionModal({ isOpen: false, team: null })}
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })()}
-            </div>
+                        );
+                    })()
+                }
+            </div >
 
             {isRevalModalOpen && (
                 <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
@@ -1731,205 +1906,209 @@ const RankingsConsole = () => {
                 </div>
             )}
 
-            {isChartModalOpen && (
-                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-                    <div className="modal-content" style={{ background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '720px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-                            <div>
-                                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    📊 Score Distribution Chart
-                                </h2>
-                                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                                    Score distribution across teams for {selectedRound?.phaseName || 'Current Round'}
-                                </p>
+            {
+                isChartModalOpen && (
+                    <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+                        <div className="modal-content" style={{ background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '720px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                                <div>
+                                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        📊 Score Distribution Chart
+                                    </h2>
+                                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                                        Score distribution across teams for {selectedRound?.phaseName || 'Current Round'}
+                                    </p>
+                                </div>
+                                <button onClick={() => setIsChartModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px', borderRadius: '6px' }}>
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </div>
-                            <button onClick={() => setIsChartModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px', borderRadius: '6px' }}>
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                        </div>
 
-                        <div style={{ height: '340px', marginTop: '16px' }}>
-                            <Bar
-                                data={{
-                                    labels: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
-                                    datasets: [{
-                                        label: 'Teams',
-                                        data: readinessData.summary.bars,
-                                        backgroundColor: 'rgba(99, 102, 241, 0.85)',
-                                        borderColor: '#6366f1',
-                                        borderWidth: 1.5,
-                                        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
-                                        borderSkipped: false,
-                                        hoverBackgroundColor: '#4f46e5',
-                                        hoverBorderColor: '#4f46e5',
-                                        barThickness: 'flex',
-                                        maxBarThickness: 36
-                                    }]
-                                }}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: { display: false },
-                                        tooltip: {
-                                            backgroundColor: '#0f172a',
-                                            titleColor: '#ffffff',
-                                            bodyColor: '#cbd5e1',
-                                            padding: 10,
-                                            cornerRadius: 8,
-                                            displayColors: false,
-                                            titleFont: { size: 13, weight: '700', family: "'Inter', system-ui, sans-serif" },
-                                            bodyFont: { size: 13, family: "'Inter', system-ui, sans-serif" },
-                                            callbacks: {
-                                                label: (context) => ` ${context.parsed.y} Team(s)`
-                                            }
-                                        }
-                                    },
-                                    scales: {
-                                        x: {
-                                            grid: { display: false },
-                                            ticks: {
-                                                color: '#64748b',
-                                                font: { size: 11, weight: '600', family: "'Inter', system-ui, sans-serif" }
+                            <div style={{ height: '340px', marginTop: '16px' }}>
+                                <Bar
+                                    data={{
+                                        labels: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
+                                        datasets: [{
+                                            label: 'Teams',
+                                            data: readinessData.summary.bars,
+                                            backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                                            borderColor: '#6366f1',
+                                            borderWidth: 1.5,
+                                            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                                            borderSkipped: false,
+                                            hoverBackgroundColor: '#4f46e5',
+                                            hoverBorderColor: '#4f46e5',
+                                            barThickness: 'flex',
+                                            maxBarThickness: 36
+                                        }]
+                                    }}
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                backgroundColor: '#0f172a',
+                                                titleColor: '#ffffff',
+                                                bodyColor: '#cbd5e1',
+                                                padding: 10,
+                                                cornerRadius: 8,
+                                                displayColors: false,
+                                                titleFont: { size: 13, weight: '700', family: "'Inter', system-ui, sans-serif" },
+                                                bodyFont: { size: 13, family: "'Inter', system-ui, sans-serif" },
+                                                callbacks: {
+                                                    label: (context) => ` ${context.parsed.y} Team(s)`
+                                                }
                                             }
                                         },
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: {
-                                                color: '#f1f5f9',
-                                                drawBorder: false
+                                        scales: {
+                                            x: {
+                                                grid: { display: false },
+                                                ticks: {
+                                                    color: '#64748b',
+                                                    font: { size: 11, weight: '600', family: "'Inter', system-ui, sans-serif" }
+                                                }
                                             },
-                                            ticks: {
-                                                stepSize: 1,
-                                                color: '#64748b',
-                                                font: { size: 11, weight: '600', family: "'Inter', system-ui, sans-serif" }
+                                            y: {
+                                                beginAtZero: true,
+                                                grid: {
+                                                    color: '#f1f5f9',
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    stepSize: 1,
+                                                    color: '#64748b',
+                                                    font: { size: 11, weight: '600', family: "'Inter', system-ui, sans-serif" }
+                                                }
                                             }
                                         }
-                                    }
-                                }}
-                            />
-                        </div>
+                                    }}
+                                />
+                            </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-                            <button onClick={() => setIsChartModalOpen(false)} style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}>
-                                Close
-                            </button>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                                <button onClick={() => setIsChartModalOpen(false)} style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}>
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-            {isPublishWarningModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    background: 'rgba(15, 23, 42, 0.65)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999
-                }}>
-                    <style>{`
+                )
+            }
+            {
+                isPublishWarningModalOpen && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(15, 23, 42, 0.65)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999
+                    }}>
+                        <style>{`
                         @keyframes modalPop {
                             from { transform: scale(0.95); opacity: 0; }
                             to { transform: scale(1); opacity: 1; }
                         }
                     `}</style>
-                    <div style={{
-                        width: '500px',
-                        background: 'white',
-                        borderRadius: '16px',
-                        boxShadow: '0 25px 50px -12px rgba(220, 38, 38, 0.25)',
-                        border: '2px solid #ef4444',
-                        overflow: 'hidden',
-                        animation: 'modalPop 0.20s ease-out'
-                    }}>
                         <div style={{
-                            background: '#fee2e2',
-                            padding: '24px 24px 16px 24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            borderBottom: '1px solid #fca5a5'
+                            width: '500px',
+                            background: 'white',
+                            borderRadius: '16px',
+                            boxShadow: '0 25px 50px -12px rgba(220, 38, 38, 0.25)',
+                            border: '2px solid #ef4444',
+                            overflow: 'hidden',
+                            animation: 'modalPop 0.20s ease-out'
                         }}>
                             <div style={{
-                                background: '#ef4444',
-                                borderRadius: '50%',
-                                padding: '8px',
+                                background: '#fee2e2',
+                                padding: '24px 24px 16px 24px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                gap: '12px',
+                                borderBottom: '1px solid #fca5a5'
                             }}>
-                                <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#991b1b' }}>
-                                Critical Warning
-                            </h3>
-                        </div>
-
-                        <div style={{ padding: '24px' }}>
-                            <p style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', fontWeight: '600', lineHeight: 1.5 }}>
-                                Are you absolutely sure you want to publish the ranking results for <strong>{selectedRound?.phaseName}</strong>?
-                            </p>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '13.5px', color: '#8c1d1d', lineHeight: 1.6, padding: '12px', background: '#fff1f1', borderLeft: '4px solid #ef4444', borderRadius: '6px' }}>
-                                <strong>Important Impact:</strong> This action is permanent. Once published, you cannot modify the leaderboard, adjust evaluator scores, or recalculate rankings. Everyone will immediately see the final results.
-                            </p>
-                        </div>
-
-                        <div style={{
-                            background: '#f8fafc',
-                            padding: '16px 24px',
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            gap: '12px',
-                            borderTop: '1px solid #e2e8f0'
-                        }}>
-                            <button
-                                onClick={() => setIsPublishWarningModalOpen(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: 'white',
-                                    border: '1.5px solid #cbd5e1',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    color: '#475569',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s ease'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    setIsPublishWarningModalOpen(false);
-                                    await handlePublishDirectly();
-                                }}
-                                style={{
-                                    padding: '8px 20px',
+                                <div style={{
                                     background: '#ef4444',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s ease',
-                                    boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)'
-                                }}
-                            >
-                                Yes, Publish Results
-                            </button>
+                                    borderRadius: '50%',
+                                    padding: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#991b1b' }}>
+                                    Critical Warning
+                                </h3>
+                            </div>
+
+                            <div style={{ padding: '24px' }}>
+                                <p style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', fontWeight: '600', lineHeight: 1.5 }}>
+                                    Are you absolutely sure you want to publish the ranking results for <strong>{selectedRound?.phaseName}</strong>?
+                                </p>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '13.5px', color: '#8c1d1d', lineHeight: 1.6, padding: '12px', background: '#fff1f1', borderLeft: '4px solid #ef4444', borderRadius: '6px' }}>
+                                    <strong>Important Impact:</strong> This action is permanent. Once published, you cannot modify the leaderboard, adjust evaluator scores, or recalculate rankings. Everyone will immediately see the final results.
+                                </p>
+                            </div>
+
+                            <div style={{
+                                background: '#f8fafc',
+                                padding: '16px 24px',
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: '12px',
+                                borderTop: '1px solid #e2e8f0'
+                            }}>
+                                <button
+                                    onClick={() => setIsPublishWarningModalOpen(false)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'white',
+                                        border: '1.5px solid #cbd5e1',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        color: '#475569',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s ease'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        setIsPublishWarningModalOpen(false);
+                                        await handlePublishDirectly();
+                                    }}
+                                    style={{
+                                        padding: '8px 20px',
+                                        background: '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s ease',
+                                        boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)'
+                                    }}
+                                >
+                                    Yes, Publish Results
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
