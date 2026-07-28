@@ -34,21 +34,28 @@ public class EmailService {
     }
 
     @Async
-    public void sendExpertWelcomeEmailAsync(String toEmail, String fullName, String username, String password, String role) {
+    public void sendExpertWelcomeEmailAsync(String toEmail, String fullName, String username, String password, String role, java.time.LocalDateTime accessExpiry) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(toEmail);
             message.setSubject("SEAL Hackathon - Expert Account Credentials");
 
-            String textContent = "Welcome, " + fullName + "!\n\n" +
-                    "You have been successfully registered as a " + role + " for the SEAL Hackathon.\n\n" +
-                    "Here are your login credentials:\n" +
-                    "Username: " + username + "\n" +
-                    "Password: " + password + "\n\n" +
-                    "For security reasons, we strongly recommend changing your password after your first login.";
+            StringBuilder textContent = new StringBuilder();
+            textContent.append("Welcome, ").append(fullName).append("!\n\n");
+            textContent.append("You have been successfully registered as a ").append(role).append(" for the SEAL Hackathon.\n\n");
 
-            message.setText(textContent);
+            if (accessExpiry != null) {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                textContent.append("Please note that your account access will expire on: ").append(accessExpiry.format(formatter)).append(".\n\n");
+            }
+
+            textContent.append("Here are your login credentials:\n")
+                    .append("Username: ").append(username).append("\n")
+                    .append("Password: ").append(password).append("\n\n")
+                    .append("For security reasons, we strongly recommend changing your password after your first login.");
+
+            message.setText(textContent.toString());
 
             mailSender.send(message);
             log.info("Sent welcome email to expert: {}", toEmail);
