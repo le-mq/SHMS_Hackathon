@@ -34,18 +34,28 @@ public class EmailService {
     }
 
     @Async
-    public void sendExpertWelcomeEmailAsync(String toEmail, String fullName, String username, String password, String role) {
+    public void sendExpertWelcomeEmailAsync(String toEmail, String fullName, String username, String password, String role, java.time.LocalDateTime accessExpiry) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(toEmail);
             message.setSubject("SEAL Hackathon - Expert Account Credentials");
 
+            String displayRole = role;
+            String expiryNote = "";
+
+            if (accessExpiry != null) {
+                displayRole = "GUEST " + role;
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                expiryNote = "Please note that your guest account will automatically expire on " + accessExpiry.format(formatter) + ".\n\n";
+            }
+
             String textContent = "Welcome, " + fullName + "!\n\n" +
-                    "You have been successfully registered as a " + role + " for the SEAL Hackathon.\n\n" +
+                    "You have been successfully registered as a " + displayRole + " for the SEAL Hackathon.\n\n" +
                     "Here are your login credentials:\n" +
                     "Username: " + username + "\n" +
                     "Password: " + password + "\n\n" +
+                    expiryNote +
                     "For security reasons, we strongly recommend changing your password after your first login.";
 
             message.setText(textContent);

@@ -102,14 +102,15 @@ public class ExpertAdminService {
             }
         }
 
-        String rolesStr = String.join(" / ", distinctRoles);
+        String rolesStr = String.join(" / ", request.getRoleSelection()).toUpperCase();
         if (request.getProfessionalEmail() != null && !request.getProfessionalEmail().isEmpty()) {
             emailService.sendExpertWelcomeEmailAsync(
                     request.getProfessionalEmail(),
                     request.getFullName(),
                     request.getUsername(),
                     rawPassword,
-                    rolesStr
+                    rolesStr,
+                    request.getAccessExpiry()
             );
         }
     }
