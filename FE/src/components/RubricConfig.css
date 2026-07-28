@@ -168,7 +168,7 @@
     color: #4b5563;
 }
 
-.summary-card {
+.rt-summary-card {
     background: white;
     border-radius: 12px;
     padding: 24px;
@@ -177,7 +177,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
-.summary-title {
+.rt-summary-title {
     font-size: 16px;
     font-weight: 700;
     color: #111827;
@@ -257,8 +257,6 @@
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
-    margin-top: 12px;
-    margin-bottom: 12px;
     justify-content: center;
 }
 

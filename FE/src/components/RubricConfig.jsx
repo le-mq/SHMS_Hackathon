@@ -602,8 +602,8 @@ const RubricConfig = () => {
                         </div>
 
                         <div>
-                            <div className="summary-card">
-                                <h3 className="summary-title">Rubric Summary</h3>
+                            <div className="rt-summary-card">
+                                <h3 className="rt-summary-title">Rubric Summary</h3>
                                 <div className="weight-display">
                                     <div className="weight-display-label">Total Weightage</div>
                                     <div className="weight-display-value" style={{ color: isBalanced ? '#111827' : '#b91c1c' }}>{totalWeight}%</div>
@@ -622,9 +622,17 @@ const RubricConfig = () => {
                                     <span className="stats-value">{editingTemplate.criteria.length}</span>
                                 </div>
                                 <div className="rt-action-btns">
-                                    <button className="save-btn" onClick={handleSave} disabled={isLoading || !isBalanced || isCategoryMismatch} style={{ backgroundColor: (editingTemplate.bindContestId && editingTemplate.bindCategoryId && !isCategoryMismatch) ? '#10b981' : (isCategoryMismatch ? '#ef4444' : '#f59e0b'), color: '#fff', border: 'none', cursor: (isLoading || !isBalanced || isCategoryMismatch) ? 'not-allowed' : 'pointer' }}>
-                                        {isLoading ? 'SAVING...' : isCategoryMismatch ? 'FIX CATEGORY MISMATCH' : (editingTemplate.bindContestId && editingTemplate.bindCategoryId) ? (editorMode === 'edit' && editingTemplate.isOfficialBinding ? 'UPDATE OFFICIAL RUBRIC' : 'SAVE OFFICIAL RUBRIC') : (editorMode === 'edit' ? 'UPDATE TEMPLATE' : 'SAVE TEMPLATE')}
-                                    </button>
+                                    {(() => {
+                                        const isOfficialTarget = editingTemplate.isOfficialBinding || (editingTemplate.bindContestId && editingTemplate.bindCategoryId);
+                                        const isBtnDisabled = isLoading || !isBalanced || isCategoryMismatch || (editingTemplate.isOfficialBinding && (!editingTemplate.bindContestId || !editingTemplate.bindCategoryId));
+                                        const btnBgColor = isBtnDisabled ? '#9ca3af' : isCategoryMismatch ? '#ef4444' : isOfficialTarget ? '#10b981' : '#f59e0b';
+
+                                        return (
+                                            <button className="save-btn" onClick={handleSave} disabled={isBtnDisabled} style={{ backgroundColor: btnBgColor, color: '#fff', border: 'none', cursor: isBtnDisabled ? 'not-allowed' : 'pointer' }}>
+                                                {isLoading ? 'SAVING...' : isCategoryMismatch ? 'FIX CATEGORY MISMATCH' : isOfficialTarget ? (editorMode === 'edit' ? 'UPDATE OFFICIAL RUBRIC' : 'SAVE OFFICIAL RUBRIC') : (editorMode === 'edit' ? 'UPDATE TEMPLATE' : 'SAVE TEMPLATE')}
+                                            </button>
+                                        );
+                                    })()}
                                     <button className="preview-btn" onClick={cancelEditor}>CANCEL</button>
                                 </div>
                             </div>
