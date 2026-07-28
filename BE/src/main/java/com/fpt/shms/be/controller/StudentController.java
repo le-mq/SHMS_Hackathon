@@ -92,7 +92,10 @@ public class StudentController {
             studentRepository.findByUser(user)
                     .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findAll();
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            java.util.List<com.fpt.shms.be.model.Contest> allowedContests = contestRepository.findAll().stream()
+                    .filter(c -> c.getPublishedAt() == null || !now.isBefore(c.getPublishedAt()))
+                    .toList();
 
             return org.springframework.http.ResponseEntity.ok(allowedContests.stream()
                     .map(c -> {
