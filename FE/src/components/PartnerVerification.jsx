@@ -32,8 +32,8 @@ const PartnerVerification = () => {
         show: false,
         title: '',
         message: '',
-        onConfirm: () => {},
-        onCancel: () => {},
+        onConfirm: () => { },
+        onCancel: () => { },
         confirmText: 'OK',
         cancelText: 'Cancel',
         variant: 'primary'
@@ -76,7 +76,7 @@ const PartnerVerification = () => {
 
             const sorted = [...data].sort((a, b) => {
                 const aNew = currentNewPartners.includes(a.name);
-const bNew = currentNewPartners.includes(b.name);
+                const bNew = currentNewPartners.includes(b.name);
                 if (aNew && !bNew) return -1;
                 if (!aNew && bNew) return 1;
                 return 0;
@@ -146,7 +146,7 @@ const bNew = currentNewPartners.includes(b.name);
         const token = localStorage.getItem('shms_token');
         const payload = list.map(p => {
             const { ui_id, ...rest } = p;
-return typeof ui_id === 'string' && ui_id.startsWith('temp') ? rest : { ...rest, id: ui_id };
+            return typeof ui_id === 'string' && ui_id.startsWith('temp') ? rest : { ...rest, id: ui_id };
         });
 
         const response = await fetch(`${API_BASE}/admin/universities`, {
@@ -225,7 +225,7 @@ return typeof ui_id === 'string' && ui_id.startsWith('temp') ? rest : { ...rest,
                             ui_id: `temp-${Date.now()}`,
                             ...partnerData
                         },
-...partners
+                        ...partners
                     ];
                 }
 
@@ -302,7 +302,7 @@ return typeof ui_id === 'string' && ui_id.startsWith('temp') ? rest : { ...rest,
 
     const handleCreateOrUpdateStudent = (studentData) => {
         const isEditing = !!editStudent;
-const confirmTitle = isEditing ? 'Save Changes' : 'Confirm Student Addition';
+        const confirmTitle = isEditing ? 'Save Changes' : 'Confirm Student Addition';
         const confirmMsg = isEditing ? 'Save changes to this student?' : 'Are you sure you want to add this student?';
 
         setConfirmDialog({
@@ -372,7 +372,7 @@ const confirmTitle = isEditing ? 'Save Changes' : 'Confirm Student Addition';
             confirmText: 'OK',
             cancelText: 'Cancel',
             variant: 'danger',
-onConfirm: async () => {
+            onConfirm: async () => {
                 setConfirmDialog(prev => ({ ...prev, show: false }));
                 setIsSavingStudents(true);
                 const partner = partners.find(p => String(p.ui_id) === String(selectedStudentPartner));
@@ -434,7 +434,7 @@ onConfirm: async () => {
                 <div className="main-card" style={{ overflow: 'visible' }}>
                     <div className="card-header-flex">
                         <div>
-<h2 className="card-title-main">Verification Protocols</h2>
+                            <h2 className="card-title-main">Verification Protocols</h2>
                             <p className="card-subtitle-main">Global settings for academic partner validation.</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -447,54 +447,54 @@ onConfirm: async () => {
 
                     <table className="partners-table">
                         <thead>
-                        <tr>
-                            <th>Institution</th>
-                            <th>Code (ID)</th>
-                            <th>Sample Student Email</th>
-                            <th>Sample Student ID</th>
-                            <th style={{ textAlign: 'center' }}>Actions</th>
-                        </tr>
+                            <tr>
+                                <th>Institution</th>
+                                <th>Code (ID)</th>
+                                <th>Sample Student Email</th>
+                                <th>Sample Student ID</th>
+                                <th style={{ textAlign: 'center' }}>Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {partners.map(p => (
-                            <tr key={p.ui_id}>
-                                <td>
-                                    <div className="institution-cell">
-                                        <div className="institution-avatar">
-                                            {p.name ? p.name.charAt(0).toUpperCase() : 'U'}
+                            {partners.map(p => (
+                                <tr key={p.ui_id}>
+                                    <td>
+                                        <div className="institution-cell">
+                                            <div className="institution-avatar">
+                                                {p.name ? p.name.charAt(0).toUpperCase() : 'U'}
+                                            </div>
+                                            <span style={{ fontWeight: '600', color: '#1f2937' }}>{p.name}</span>
                                         </div>
-                                        <span style={{ fontWeight: '600', color: '#1f2937' }}>{p.name}</span>
-                                    </div>
-                                </td>
-                                <td>
+                                    </td>
+                                    <td>
                                         <span style={{ fontWeight: '500', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
                                             {p.universityCode}
                                         </span>
-                                </td>
-                                <td>
-                                    <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {formatEmailRegexToSamples(p.emailRegex).join(', ')}
-                                    </div>
-                                </td>
-                                <td>
-<div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {formatIdRegexToSamples(p.studentCodeRegex).join(', ')}
-                                    </div>
-                                </td>
-                                <td className="actions-td">
-                                    <div className="actions-cell">
-                                        <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdatePartnerClick(p)} title="Update Partner">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                            Update
-                                        </button>
-                                        <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeletePartnerClick(p.ui_id)} title="Delete Partner">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {(p.sampleEmails && p.sampleEmails.length > 0 ? p.sampleEmails : formatEmailRegexToSamples(p.emailRegex)).join(', ')}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'inline-block', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', color: '#334155', fontFamily: 'monospace', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {(p.sampleStudentIds && p.sampleStudentIds.length > 0 ? p.sampleStudentIds : formatIdRegexToSamples(p.studentCodeRegex)).join(', ')}
+                                        </div>
+                                    </td>
+                                    <td className="actions-td">
+                                        <div className="actions-cell">
+                                            <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdatePartnerClick(p)} title="Update Partner">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                Update
+                                            </button>
+                                            <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeletePartnerClick(p.ui_id)} title="Delete Partner">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
@@ -512,7 +512,7 @@ onConfirm: async () => {
                     </div>
 
                     <div style={{ padding: '24px 24px 16px' }}>
-<label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Partner Institution</label>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>Select Partner Institution</label>
                         <select
                             className="form-select"
                             style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: '6px', padding: '10px' }}
@@ -536,64 +536,64 @@ onConfirm: async () => {
                             <form onSubmit={(e) => e.preventDefault()}>
                                 <table className="partners-table">
                                     <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Student ID</th>
-                                        <th>Full Name</th>
-                                        <th>Email</th>
-                                        <th>Major</th>
-                                        <th style={{ textAlign: 'center' }}>Current</th>
-                                        <th style={{ textAlign: 'center' }}>Actions</th>
-                                    </tr>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Student ID</th>
+                                            <th>Full Name</th>
+                                            <th>Email</th>
+                                            <th>Major</th>
+                                            <th style={{ textAlign: 'center' }}>Current</th>
+                                            <th style={{ textAlign: 'center' }}>Actions</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                    {students.map((s, index) => (
-                                        <tr key={s.ui_id}>
-                                            <td>{index + 1}</td>
-                                            <td style={{ fontWeight: '600', color: '#1f2937' }}>{s.studentCode}</td>
-                                            <td style={{ fontWeight: '500', color: '#374151' }}>{s.fullName}</td>
-                                            <td style={{ color: '#4b5563' }}>{s.corporateEmail}</td>
-                                            <td>
-                                                <span style={{ fontWeight: '500', color: '#1e40af', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                                                    {s.major}
-                                                </span>
-                                            </td>
-<td style={{ textAlign: 'center' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={s.isCurrentStudent !== false}
-                                                    disabled
-                                                    style={{ width: '18px', height: '18px', cursor: 'default' }}
-                                                />
-                                            </td>
-                                            <td className="actions-td">
-                                                <div className="actions-cell">
-                                                    <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdateStudentClick(s)} title="Update Student">
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                        Update
-                                                    </button>
-                                                    <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeleteStudentClick(s.ui_id)} title="Delete Record">
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {students.length === 0 && (
-                                        <tr>
-                                            <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                                                No student records. Add a student to start.
-                                            </td>
-                                        </tr>
-                                    )}
+                                        {students.map((s, index) => (
+                                            <tr key={s.ui_id}>
+                                                <td>{index + 1}</td>
+                                                <td style={{ fontWeight: '600', color: '#1f2937' }}>{s.studentCode}</td>
+                                                <td style={{ fontWeight: '500', color: '#374151' }}>{s.fullName}</td>
+                                                <td style={{ color: '#4b5563' }}>{s.corporateEmail}</td>
+                                                <td>
+                                                    <span style={{ fontWeight: '500', color: '#1e40af', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                                        {s.major}
+                                                    </span>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={s.isCurrentStudent !== false}
+                                                        disabled
+                                                        style={{ width: '18px', height: '18px', cursor: 'default' }}
+                                                    />
+                                                </td>
+                                                <td className="actions-td">
+                                                    <div className="actions-cell">
+                                                        <button type="button" className="action-btn-text update-btn-text" onClick={() => handleUpdateStudentClick(s)} title="Update Student">
+                                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                            Update
+                                                        </button>
+                                                        <button type="button" className="action-btn-text delete-btn-text" onClick={() => handleDeleteStudentClick(s.ui_id)} title="Delete Record">
+                                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {students.length === 0 && (
+                                            <tr>
+                                                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                                                    No student records. Add a student to start.
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </form>
                         )
                     ) : (
                         <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
-Please select a partner institution above to view student records.
+                            Please select a partner institution above to view student records.
                         </div>
                     )}
 
