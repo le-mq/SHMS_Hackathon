@@ -214,7 +214,7 @@ public class RankingAdminService {
         }
         String actualCategoryName = round.getCategory().getName();
 
-        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+        if (round.getState() == Round.RoundState.CLOSED) {
             List<RankingResult> existingResults = rankingResultRepository.findByRoundId(round.getId());
             if (!existingResults.isEmpty()) {
                 List<RankingResult> sortedExisting = new ArrayList<>(existingResults);
@@ -365,13 +365,20 @@ public class RankingAdminService {
             throw new IllegalArgumentException("Leaderboard must be generated before publishing");
         }
 
-        if (round.getPublishResultAt() == null || round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+        if (round.getState() != Round.RoundState.CLOSED) {
             round.setPublishResultAt(LocalDateTime.now());
             round.setState(Round.RoundState.CLOSED);
             roundRepository.save(round);
         }
 
         for (RankingResult rr : results) {
+            if (request.getTopN() > 0) {
+                if (rr.getRankNo() <= request.getTopN()) {
+                    rr.setQualificationStatus("QUALIFIED");
+                } else {
+                    rr.setQualificationStatus("ELIMINATED");
+                }
+            }
             rr.setDatePublishedAt(LocalDateTime.now());
             rankingResultRepository.save(rr);
 
@@ -386,7 +393,7 @@ public class RankingAdminService {
         Round round = roundRepository.findById(roundId)
                 .orElseThrow(() -> new IllegalArgumentException("Round not found"));
 
-        if (round.getPublishResultAt() != null && !round.getPublishResultAt().isAfter(LocalDateTime.now())) {
+        if (round.getState() == Round.RoundState.CLOSED) {
             throw new IllegalArgumentException(
                     "Results have already been published. Cannot change the score publication state.");
         }
