@@ -51,3 +51,9 @@ body {
 .fab-animated {
     animation: fab-pulse 2s infinite;
 }
+.confirm-dialog-backdrop {
+    z-index: 999999 !important;
+}
+.confirm-dialog-modal {
+    z-index: 1000000 !important;
+}

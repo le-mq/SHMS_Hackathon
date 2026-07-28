@@ -368,17 +368,33 @@ function HackathonConfig() {
         if (!value) return;
 
         const shiftTime = (base, mins) => { const d = new Date(base); d.setMinutes(d.getMinutes() + mins); return toLocalISOString(d); };
+        const round = formik.values.rounds[roundIdx] || {};
+        const fields = ['submissionOpen', 'submissionDeadline', 'gradingDeadlineAt', 'reviewCalibrationAt', 'publishResultAt'];
+        const startIdx = fields.indexOf(field) + 1;
 
-        if (oldVal && value !== oldVal) {
+        let hasSubsequent = false;
+        for (let i = startIdx; i < fields.length; i++) {
+            if (round[fields[i]]) {
+                hasSubsequent = true;
+                break;
+            }
+        }
+
+        if (oldVal && hasSubsequent) {
             const delta = new Date(value) - new Date(oldVal);
-            if (delta !== 0) {
+            if (delta !== 0 && !isNaN(delta)) {
                 setShiftBanner({ roundIdx, delta, field, newVal: value });
+            } else {
+                setShiftBanner(null);
             }
         } else {
-            if (field === 'submissionDeadline' && !formik.values.rounds[roundIdx]?.gradingDeadlineAt) setSuggestions(p => ({ ...p, [`${roundIdx}_gradingDeadlineAt`]: shiftTime(value, 30) }));
-            else if (field === 'gradingDeadlineAt' && !formik.values.rounds[roundIdx]?.reviewCalibrationAt) setSuggestions(p => ({ ...p, [`${roundIdx}_reviewCalibrationAt`]: shiftTime(value, 1440) }));
-            else if (field === 'reviewCalibrationAt' && !formik.values.rounds[roundIdx]?.publishResultAt) setSuggestions(p => ({ ...p, [`${roundIdx}_publishResultAt`]: shiftTime(value, 30) }));
+            setShiftBanner(null);
         }
+
+        if (field === 'submissionDeadline' && !round?.gradingDeadlineAt) setSuggestions(p => ({ ...p, [`${roundIdx}_gradingDeadlineAt`]: shiftTime(value, 30) }));
+        else if (field === 'gradingDeadlineAt' && !round?.reviewCalibrationAt) setSuggestions(p => ({ ...p, [`${roundIdx}_reviewCalibrationAt`]: shiftTime(value, 1440) }));
+        else if (field === 'reviewCalibrationAt' && !round?.publishResultAt) setSuggestions(p => ({ ...p, [`${roundIdx}_publishResultAt`]: shiftTime(value, 30) }));
+
         setSuggestions(p => { const n = { ...p }; delete n[`${roundIdx}_${field}`]; return n; });
     };
 
@@ -401,7 +417,7 @@ function HackathonConfig() {
 
     const applyShiftAll = () => {
         if (!shiftBanner) return;
-        const { roundIdx, delta, field } = shiftBanner;
+        const { roundIdx, delta, field, newVal } = shiftBanner;
         const rounds = [...formik.values.rounds];
         const round = { ...rounds[roundIdx] };
         const shift = (s) => s ? toLocalISOString(new Date(new Date(s).getTime() + delta)) : '';
@@ -416,6 +432,7 @@ function HackathonConfig() {
         }
         rounds[roundIdx] = round;
         formik.setFieldValue('rounds', rounds);
+        setOriginalDates(p => ({ ...p, [`${roundIdx}_${field}`]: newVal }));
         setShiftBanner(null);
     };
 
@@ -583,7 +600,7 @@ function HackathonConfig() {
                             {showSearchDropdown && searchQuery && (
                                 <div className="hc-search-dropdown">
                                     {filteredContests.length > 0 ? filteredContests.map(c => {
-                                        const st = c.status;
+                                        const st = determineStatus(c.registrationStart, c.contestEndAt);
                                         return (
                                             <div key={c.id} className={`hc-search-item${selectedContestId === c.id ? ' selected' : ''}`} onClick={() => { handleSelectContest(c.id); setSearchQuery(''); setShowSearchDropdown(false); }}>
                                                 <div><div className="hc-search-name">{c.name}</div><div className="hc-search-season">{c.season} {c.year}</div></div>
@@ -857,8 +874,8 @@ function HackathonConfig() {
 
                                             return (
                                                 <button key={round.id} type="button" className={`hc-round-tab${isActiveTab ? ' active' : ''}`}
-                                                    style={{ background: bg, color: fg, borderColor: isActiveTab ? border : '#cbd5e1', opacity: isActiveTab ? 1 : 0.7 }}
-                                                    onClick={() => setActiveCategoryIdx(rIdx)}>
+                                                        style={{ background: bg, color: fg, borderColor: isActiveTab ? border : '#cbd5e1', opacity: isActiveTab ? 1 : 0.7 }}
+                                                        onClick={() => setActiveCategoryIdx(rIdx)}>
                                                     <span style={{ fontWeight: 'normal', opacity: 0.8, marginRight: 4 }}>#{rIdx + 1}</span>
                                                     {round.phaseName || `Round ${rIdx + 1}`}
                                                     {isActiveTab && <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', marginLeft: 6, background: border }} title="Currently configuring"></span>}
