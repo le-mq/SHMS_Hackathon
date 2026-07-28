@@ -41,21 +41,24 @@ public class EmailService {
             message.setTo(toEmail);
             message.setSubject("SEAL Hackathon - Expert Account Credentials");
 
-            StringBuilder textContent = new StringBuilder();
-            textContent.append("Welcome, ").append(fullName).append("!\n\n");
-            textContent.append("You have been successfully registered as a ").append(role).append(" for the SEAL Hackathon.\n\n");
+            String displayRole = role;
+            String expiryNote = "";
 
             if (accessExpiry != null) {
+                displayRole = "GUEST " + role;
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-                textContent.append("Please note that your account access will expire on: ").append(accessExpiry.format(formatter)).append(".\n\n");
+                expiryNote = "Please note that your guest account will automatically expire on " + accessExpiry.format(formatter) + ".\n\n";
             }
 
-            textContent.append("Here are your login credentials:\n")
-                    .append("Username: ").append(username).append("\n")
-                    .append("Password: ").append(password).append("\n\n")
-                    .append("For security reasons, we strongly recommend changing your password after your first login.");
+            String textContent = "Welcome, " + fullName + "!\n\n" +
+                    "You have been successfully registered as a " + displayRole + " for the SEAL Hackathon.\n\n" +
+                    "Here are your login credentials:\n" +
+                    "Username: " + username + "\n" +
+                    "Password: " + password + "\n\n" +
+                    expiryNote +
+                    "For security reasons, we strongly recommend changing your password after your first login.";
 
-            message.setText(textContent.toString());
+            message.setText(textContent);
 
             mailSender.send(message);
             log.info("Sent welcome email to expert: {}", toEmail);
