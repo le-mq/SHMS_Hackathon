@@ -42,9 +42,28 @@ public class PartnerAdminService {
                 dto.setId(u.getId());
                 dto.setStudentCodeRegex(u.getStudentCodeRegex());
                 dto.setEmailRegex(u.getEmailRegex());
+                dto.setUniversityCode(u.getUniversityCode());
+                if (u.getEmailSampleRegex() != null && !u.getEmailSampleRegex().isEmpty()) {
+                    dto.setSampleEmails(java.util.Arrays.stream(u.getEmailSampleRegex().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toList()));
+                } else {
+                    dto.setSampleEmails(new ArrayList<>());
+                }
+                if (u.getStudentCodeSampleRegex() != null && !u.getStudentCodeSampleRegex().isEmpty()) {
+                    dto.setSampleStudentIds(java.util.Arrays.stream(u.getStudentCodeSampleRegex().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toList()));
+                } else {
+                    dto.setSampleStudentIds(new ArrayList<>());
+                }
             } else {
                 dto.setStudentCodeRegex("");
                 dto.setEmailRegex("");
+                dto.setSampleEmails(new ArrayList<>());
+                dto.setSampleStudentIds(new ArrayList<>());
             }
             result.add(dto);
         }
@@ -63,12 +82,27 @@ public class PartnerAdminService {
             University u = universityRepository.findByName(dto.getName())
                     .orElseGet(() -> University.builder().name(dto.getName()).build());
             if (dto.getSampleStudentIds() != null && !dto.getSampleStudentIds().isEmpty()) {
-                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateStudentCodeRegex(dto.getSampleStudentIds());
-                if (genRegex != null) dto.setStudentCodeRegex(genRegex);
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil
+                        .generateStudentCodeRegex(dto.getSampleStudentIds());
+                if (genRegex != null)
+                    dto.setStudentCodeRegex(genRegex);
+                u.setStudentCodeSampleRegex(dto.getSampleStudentIds().stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(",")));
+            } else {
+                u.setStudentCodeSampleRegex(null);
             }
             if (dto.getSampleEmails() != null && !dto.getSampleEmails().isEmpty()) {
                 String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateEmailRegex(dto.getSampleEmails());
-                if (genRegex != null) dto.setEmailRegex(genRegex);
+                if (genRegex != null)
+                    dto.setEmailRegex(genRegex);
+                u.setEmailSampleRegex(dto.getSampleEmails().stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(",")));
+            } else {
+                u.setEmailSampleRegex(null);
             }
             u.setStudentCodeRegex(dto.getStudentCodeRegex());
             u.setEmailRegex(dto.getEmailRegex());
@@ -84,7 +118,8 @@ public class PartnerAdminService {
 
     @Transactional
     public void saveStudentVerificationData(List<StudentVerificationDataDto> dtos) {
-        if (dtos.isEmpty()) return;
+        if (dtos.isEmpty())
+            return;
         String inferredUni = dtos.get(0).getUniversity();
         if (inferredUni != null && !inferredUni.isBlank()) {
             saveStudentVerificationData(inferredUni, dtos);
@@ -100,7 +135,6 @@ public class PartnerAdminService {
         University university = universityRepository.findByName(universityName)
                 .orElseThrow(() -> new IllegalArgumentException("University not found"));
 
-
         List<StudentVerificationData> existingList = studentVerificationDataRepository.findByUniversity(universityName);
 
         List<String> incomingStudentCodes = dtos.stream()
@@ -111,12 +145,14 @@ public class PartnerAdminService {
         for (StudentVerificationData sv : existingList) {
             if (!incomingStudentCodes.contains(sv.getStudentCode())) {
                 studentVerificationDataRepository.delete(sv);
-                auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "ACTIVED", "DELETED", "Partner admin deleted student verification record for " + sv.getStudentCode());
+                auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "ACTIVED",
+                        "DELETED", "Partner admin deleted student verification record for " + sv.getStudentCode());
             }
         }
 
         for (StudentVerificationDataDto dto : dtos) {
-            if (dto.getStudentCode() == null || dto.getStudentCode().isEmpty()) continue;
+            if (dto.getStudentCode() == null || dto.getStudentCode().isEmpty())
+                continue;
 
             StudentVerificationData sv = studentVerificationDataRepository.findByStudentCode(dto.getStudentCode())
                     .orElse(null);
@@ -147,9 +183,12 @@ public class PartnerAdminService {
                 studentVerificationDataRepository.save(sv);
 
                 if (isNew) {
-                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "NONE", "CREATED", "Partner admin added student verification record for " + sv.getStudentCode());
+                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "NONE",
+                            "CREATED", "Partner admin added student verification record for " + sv.getStudentCode());
                 } else {
-                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(), "OLD_DATA", "UPDATED", "Partner admin updated student verification record for " + sv.getStudentCode());
+                    auditLogService.logUpdateStudentVerification(sv.getStudentCode() + " - " + sv.getFullName(),
+                            "OLD_DATA", "UPDATED",
+                            "Partner admin updated student verification record for " + sv.getStudentCode());
                 }
             }
         }
@@ -179,6 +218,22 @@ public class PartnerAdminService {
                     dto.setUniversityCode(u.getUniversityCode());
                     dto.setStudentCodeRegex(u.getStudentCodeRegex());
                     dto.setEmailRegex(u.getEmailRegex());
+                    if (u.getEmailSampleRegex() != null && !u.getEmailSampleRegex().isEmpty()) {
+                        dto.setSampleEmails(java.util.Arrays.stream(u.getEmailSampleRegex().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toList()));
+                    } else {
+                        dto.setSampleEmails(new ArrayList<>());
+                    }
+                    if (u.getStudentCodeSampleRegex() != null && !u.getStudentCodeSampleRegex().isEmpty()) {
+                        dto.setSampleStudentIds(java.util.Arrays.stream(u.getStudentCodeSampleRegex().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toList()));
+                    } else {
+                        dto.setSampleStudentIds(new ArrayList<>());
+                    }
                     return dto;
                 }).collect(Collectors.toList());
     }
@@ -188,7 +243,8 @@ public class PartnerAdminService {
         List<Long> keptIds = new ArrayList<>();
 
         for (UniversityDto dto : dtos) {
-            if (dto.getName() == null || dto.getName().isEmpty()) continue;
+            if (dto.getName() == null || dto.getName().isEmpty())
+                continue;
             if (dto.getUniversityCode() == null || dto.getUniversityCode().isEmpty()) {
                 throw new IllegalArgumentException("University code is required for " + dto.getName());
             }
@@ -206,12 +262,27 @@ public class PartnerAdminService {
             u.setName(dto.getName());
             u.setUniversityCode(dto.getUniversityCode());
             if (dto.getSampleStudentIds() != null && !dto.getSampleStudentIds().isEmpty()) {
-                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateStudentCodeRegex(dto.getSampleStudentIds());
-                if (genRegex != null) dto.setStudentCodeRegex(genRegex);
+                String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil
+                        .generateStudentCodeRegex(dto.getSampleStudentIds());
+                if (genRegex != null)
+                    dto.setStudentCodeRegex(genRegex);
+                u.setStudentCodeSampleRegex(dto.getSampleStudentIds().stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(",")));
+            } else {
+                u.setStudentCodeSampleRegex(null);
             }
             if (dto.getSampleEmails() != null && !dto.getSampleEmails().isEmpty()) {
                 String genRegex = com.fpt.shms.be.util.RegexGeneratorUtil.generateEmailRegex(dto.getSampleEmails());
-                if (genRegex != null) dto.setEmailRegex(genRegex);
+                if (genRegex != null)
+                    dto.setEmailRegex(genRegex);
+                u.setEmailSampleRegex(dto.getSampleEmails().stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(",")));
+            } else {
+                u.setEmailSampleRegex(null);
             }
             u.setStudentCodeRegex(dto.getStudentCodeRegex());
             u.setEmailRegex(dto.getEmailRegex());
@@ -219,7 +290,6 @@ public class PartnerAdminService {
             u = universityRepository.save(u);
             keptIds.add(u.getId());
         }
-
 
         List<University> allUnis = universityRepository.findAll();
         for (University u : allUnis) {
@@ -234,7 +304,8 @@ public class PartnerAdminService {
                 } else {
                     try {
 
-                        List<StudentVerificationData> childStudents = studentVerificationDataRepository.findByUniversity(u.getName());
+                        List<StudentVerificationData> childStudents = studentVerificationDataRepository
+                                .findByUniversity(u.getName());
                         if (childStudents != null && !childStudents.isEmpty()) {
                             studentVerificationDataRepository.deleteAll(childStudents);
                         }
