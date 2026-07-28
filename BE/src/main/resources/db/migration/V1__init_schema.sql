@@ -626,7 +626,7 @@ INSERT INTO Contest (semester_id, contest_name, theme, description, max_teams, m
 VALUES
 (1, 'National AI Challenge 2025', 'Artificial Intelligence', N'A national-scale AI competition for students passionate about artificial intelligence and advanced machine learning technologies.', 100, 3, 6, 'CLOSED', '2025-02-01', '2025-02-10', '2025-02-11 08:00:00', '2025-03-30 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"All source code must be 100% self-developed during the competition.","penalty":"Disqualified"},{"rule":"All teams must comply with AI ethics and integrity guidelines.","penalty":"Minus 20 points"}]', N'[{"rank":"First Prize","amount":"50,000,000 VND"},{"rank":"Second Prize","amount":"30,000,000 VND"},{"rank":"Third Prize","amount":"15,000,000 VND"}]', '2025-01-15 08:00:00'),
 (2, 'Global Blockchain Summit 2025', 'Blockchain & Web3', N'An arena for smart contract development and building highly secure Web3 decentralized application solutions.', 80, 3, 6, 'CLOSED', '2025-09-01', '2025-09-15', '2025-09-16 08:00:00', '2025-11-30 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"Smart contracts must be deployed and verified on Testnet or Mainnet.","penalty":"Disqualified"},{"rule":"Security audit and gas optimization report required prior to submission.","penalty":"Minus 15 points"}]', N'[{"rank":"First Prize","amount":"60,000,000 VND"},{"rank":"Second Prize","amount":"35,000,000 VND"},{"rank":"Third Prize","amount":"20,000,000 VND"}]', '2025-08-15 08:00:00'),
-(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', N'A breakthrough creative playground combining modern Software Engineering and pioneering AI Leadership.', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-15', '2026-07-16 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"All source code must be developed within the official hackathon timeline.","penalty":"Disqualified"},{"rule":"Participating teams must strictly follow student conduct and academic integrity rules.","penalty":"Minus 20 points"},{"rule":"The decision of the Judging Panel is final and binding.","penalty":"Warning"}]', N'[{"rank":"First Prize","amount":"100,000,000 VND"},{"rank":"Second Prize","amount":"50,000,000 VND"},{"rank":"Third Prize","amount":"25,000,000 VND"},{"rank":"Consolation Prize","amount":"10,000,000 VND"}]', '2026-04-15 08:00:00'),
+(3, 'SEAL Hackathon 2026', 'Software Engineering & AI Leadership', N'A breakthrough creative playground combining modern Software Engineering and pioneering AI Leadership.', 150, 3, 5, 'ACTIVED', '2026-07-01', '2026-07-29', '2026-07-29 08:00:00', '2026-08-31 23:59:59', N'FPT University HCM Campus, Lot E2a-7, D1 Street, Thu Duc City', N'[{"rule":"All source code must be developed within the official hackathon timeline.","penalty":"Disqualified"},{"rule":"Participating teams must strictly follow student conduct and academic integrity rules.","penalty":"Minus 20 points"},{"rule":"The decision of the Judging Panel is final and binding.","penalty":"Warning"}]', N'[{"rank":"First Prize","amount":"100,000,000 VND"},{"rank":"Second Prize","amount":"50,000,000 VND"},{"rank":"Third Prize","amount":"25,000,000 VND"},{"rank":"Consolation Prize","amount":"10,000,000 VND"}]', '2026-04-15 08:00:00'),
 (4, 'FPT Global Tech Championship 2026', 'Enterprise Cloud & Advanced AI', N'A high-level technology tournament focusing on enterprise-scale cloud architectures and deep AI models.', 200, 3, 6, 'CLOSED', '2026-02-01', '2026-02-15', '2026-02-16 08:00:00', '2026-04-25 23:59:59', N'FPT University Hanoi Campus, Hoa Lac High-Tech Park', N'[{"rule":"Source code must be original and developed during the hackathon.","penalty":"Disqualified"},{"rule":"Teams must comply with IP and open-source regulations.","penalty":"Minus 15 points"}]', N'[{"rank":"Grand Prize","amount":"150,000,000 VND"},{"rank":"First Runner-Up","amount":"80,000,000 VND"},{"rank":"Second Runner-Up","amount":"40,000,000 VND"},{"rank":"Excellence Award","amount":"15,000,000 VND"}]', '2026-01-15 08:00:00');
 GO
 
@@ -837,8 +837,8 @@ VALUES
 (4, 2, 5, 'Semifinal Round', 2, '2025-10-10 08:00:00', '2025-10-25 23:59:59', '2025-10-28 17:00:00', '2025-10-29 08:00:00', '2025-10-29 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
 (10, 2, 6, 'Final Presentation', 3, '2025-11-01 08:00:00', '2025-11-20 23:59:59', '2025-11-25 17:00:00', '2025-11-27 17:00:00', '2025-11-28 10:00:00', 'CLOSED', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation'),
 
-(5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-16 08:00:00', '2026-07-26 23:59:59', '2026-07-29 17:00:00', '2026-07-30 08:00:00', '2026-07-30 10:00:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
-(6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-08-01 08:00:00', '2026-08-11 23:59:59', '2026-08-14 17:00:00', '2026-08-15 08:00:00', '2026-08-15 10:00:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
+(5, 3, 7, 'AI & Web3 Innovation Round', 1, '2026-07-29 09:00:00', '2026-07-29 10:00:00', '2026-07-29 11:00:00', '2026-07-29 11:30:00', '2026-07-29 11:40:00', 'UPCOMING', N'Source Code URL,Live Demo URL,Presentation Slide URL', 'Remote Submission'),
+(6, 3, 8, 'Cloud & Big Data Architecture Round', 2, '2026-07-29 12:00:00', '2026-07-29 12:30:00', '2026-07-29 13:00:00', '2026-07-29 14:00:00', '2026-07-29 14:30:00', 'UPCOMING', N'Source Code URL,Documentation URL,Live Demo URL', 'Remote Submission'),
 
 (8, 4, 10, 'Global Championship Round', 1, '2026-02-16 09:00:00', '2026-04-18 23:59:59', '2026-04-22 17:00:00', '2026-04-23 17:00:00', '2026-04-24 10:00:00', 'CLOSED', N'Source Code URL,Documentation URL,Live Demo URL,Presentation Slide URL', 'Stage Presentation');
 SET IDENTITY_INSERT [Round] OFF;
@@ -949,15 +949,16 @@ SELECT @C4_T06_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-02-07 10:00:00' FROM [
 
 
 -- 6 TEAMS IN FORMING STATUS (Not yet enrolled into any specific contest)
-INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 'FORMING', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T01', 'Neural Pioneers', 3, 'APPROVED', '2026-07-02 10:00:00'); SET @SEAL_T01_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T02', 'Web3 Vanguard', 'FORMING', '2026-07-02 11:00:00'); SET @SEAL_T02_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T03', 'Cloud Architects', 'FORMING', '2026-07-03 10:00:00'); SET @SEAL_T03_ID = SCOPE_IDENTITY();
-INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T04', 'Data Synthesizers', 'FORMING', '2026-07-03 14:00:00'); SET @SEAL_T04_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T03', 'Cloud Architects', 3, 'APPROVED', '2026-07-03 10:00:00'); SET @SEAL_T03_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('SEAL_T04', 'Data Synthesizers', 3, 'APPROVED', '2026-07-03 14:00:00'); SET @SEAL_T04_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T05', 'IoT Innovators', 'FORMING', '2026-07-04 09:00:00'); SET @SEAL_T05_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, status, created_at) VALUES ('SEAL_T06', 'Smart Mobility', 'FORMING', '2026-07-04 15:00:00'); SET @SEAL_T06_ID = SCOPE_IDENTITY();
 
+-- Neural Pioneers: Nguyễn Trần Nhật Mỹ làm LEADER
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
+SELECT @SEAL_T01_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email = 'nhatmysocutedl@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T01_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 10:00:00' FROM [User] u WHERE u.email IN ('huongtuongyen1982@gmail.com', 'nguyendangduyquang@gmail.com');
 
@@ -966,15 +967,19 @@ SELECT @SEAL_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 11:00:00' FROM
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T02_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-02 11:00:00' FROM [User] u WHERE u.email IN ('vuxuanbach2508@gmail.com', 'buianhtuan123@gmail.com');
 
+-- Cloud Architects: Trần Thị Thu Hiền làm LEADER
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
+SELECT @SEAL_T03_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email = 'thuhien456@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T03_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 10:00:00' FROM [User] u WHERE u.email IN ('phuonguyen@gmail.com', '20120001@student.hcmus.edu.vn');
 
+-- Data Synthesizers: Hoàng Tự Nhiên làm LEADER
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email = 'dntotrinh@gmail.com';
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
-SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com', '20120002@student.hcmus.edu.vn');
+SELECT @SEAL_T04_ID, u.user_id, 'LEADER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email = '20120002@student.hcmus.edu.vn';
+INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
+SELECT @SEAL_T04_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-03 14:00:00' FROM [User] u WHERE u.email IN ('phannha@gmail.com');
 
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
 SELECT @SEAL_T05_ID, u.user_id, 'MEMBER', 'APPROVED', '2026-07-04 09:00:00' FROM [User] u WHERE u.email = '12345678@st.hcmuaf.edu.vn';

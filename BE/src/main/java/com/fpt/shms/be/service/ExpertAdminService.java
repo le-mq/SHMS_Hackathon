@@ -10,6 +10,7 @@ import com.fpt.shms.be.repository.MentorRepository;
 import com.fpt.shms.be.repository.RoleRepository;
 import com.fpt.shms.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class ExpertAdminService {
     private final com.fpt.shms.be.repository.MentorAssignmentRepository mentorAssignmentRepository;
 
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void createExpert(CreateExpertRequest request) {
@@ -66,7 +68,7 @@ public class ExpertAdminService {
                 .username(request.getUsername())
                 .email(request.getProfessionalEmail())
                 .fullName(request.getFullName())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(rawPassword))
                 .status(User.UserStatus.ACTIVE)
                 .isEmailVerified(true)
                 .roles(new HashSet<>())
