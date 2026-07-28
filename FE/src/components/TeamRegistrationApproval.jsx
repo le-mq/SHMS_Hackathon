@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import ConfirmDialog from './ConfirmDialog';
 import './TeamRegistrationApproval.css';
 import LatestAnnouncements from './LatestAnnouncements';
 
@@ -35,6 +36,25 @@ const TeamRegistrationApproval = () => {
         teamName: '',
         members: []
     });
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
 
     useEffect(() => {
         let canceled = false;
@@ -129,9 +149,9 @@ const TeamRegistrationApproval = () => {
         setCancelModal({ isOpen: false, type: 'CANCEL', teamId: null, teamName: '', reason: '' });
     };
 
-    const handleConfirmCancelStatus = async () => {
+    const handleConfirmCancelStatus = () => {
         if (!cancelModal.reason.trim()) {
-            alert(`Please enter the reason. ${cancelModal.type === 'CANCEL' ? 'Cancel' : 'Approve'} this team !`);
+            showAlert(`Please enter the reason. ${cancelModal.type === 'CANCEL' ? 'Cancel' : 'Approve'} this team !`, 'Validation Error', 'danger');
             return;
         }
         const isCancelAct = cancelModal.type === 'CANCEL';
@@ -139,64 +159,69 @@ const TeamRegistrationApproval = () => {
             ? `Are you sure you want to CANCEL Team "${cancelModal.teamName}" ?`
             : `Are you sure you want to APPROVE Team "${cancelModal.teamName}" ?`;
 
-        const confirmCheck = window.confirm(confirmText);
-        if (!confirmCheck) return;
+        setConfirmDialog({
+            show: true,
+            title: isCancelAct ? 'Cancel Registration' : 'Approve Registration',
+            message: confirmText,
+            variant: isCancelAct ? 'danger' : 'primary',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                try {
+                    const token = localStorage.getItem("shms_token");
+                    const targetStatus = isCancelAct ? "CANCELED" : "APPROVED";
+                    await axios.put(`${API_BASE}/admin/contests/teams/registration-status`, {
+                        teamId: Number(cancelModal.teamId),
+                        contestId: Number(selectedContestId),
+                        status: targetStatus,
+                        reason: cancelModal.reason.trim()
+                    }, { headers: { Authorization: `Bearer ${token}` } });
 
-        try {
-            const token = localStorage.getItem("shms_token");
-            const targetStatus = isCancelAct ? "CANCELED" : "APPROVED";
-            await axios.put(`${API_BASE}/admin/contests/teams/registration-status`, {
-                teamId: Number(cancelModal.teamId),
-                contestId: Number(selectedContestId),
-                status: targetStatus,
-                reason: cancelModal.reason.trim()
-            }, { headers: { Authorization: `Bearer ${token}` } });
+                    const targetTeam = selectedContest?.teams?.find(t => t.id === cancelModal.teamId);
+                    const prevStatus = (targetTeam?.status || 'ACTIVED').toUpperCase();
 
-            const targetTeam = selectedContest?.teams?.find(t => t.id === cancelModal.teamId);
-            const prevStatus = (targetTeam?.status || 'ACTIVED').toUpperCase();
+                    setDashboardData(prevData =>
+                        prevData.map(contest => {
+                            if (Number(contest.id) === Number(selectedContestId)) {
+                                let newPending = contest.pendingReview || 0;
+                                let newApproved = contest.approved || 0;
 
-            setDashboardData(prevData =>
-                prevData.map(contest => {
-                    if (Number(contest.id) === Number(selectedContestId)) {
-                        let newPending = contest.pendingReview || 0;
-                        let newApproved = contest.approved || 0;
-
-                        if (isCancelAct) {
-                            if (prevStatus === 'APPROVED') {
-                                newApproved = Math.max(0, newApproved - 1);
-                            } else if (prevStatus === 'PENDING' || prevStatus === 'PENDING_REVIEW') {
-                                newPending = Math.max(0, newPending - 1);
-                            }
-                        } else {
-                            newApproved = newApproved + 1;
-                        }
-                        return {
-                            ...contest,
-                            pendingReview: newPending,
-                            approved: newApproved,
-                            teams: contest.teams.map(team =>
-                                Number(team.id) === Number(cancelModal.teamId)
-                                    ? {
-                                        ...team,
-                                        status: isCancelAct ? 'CANCELED' : 'APPROVED',
-                                        track: isCancelAct ? 'Disqualified' : (team.track || 'ACTIVED')
+                                if (isCancelAct) {
+                                    if (prevStatus === 'APPROVED') {
+                                        newApproved = Math.max(0, newApproved - 1);
+                                    } else if (prevStatus === 'PENDING' || prevStatus === 'PENDING_REVIEW') {
+                                        newPending = Math.max(0, newPending - 1);
                                     }
-                                    : team
-                            )
-                        };
-                    }
-                    return contest;
-                })
-            );
+                                } else {
+                                    newApproved = newApproved + 1;
+                                }
+                                return {
+                                    ...contest,
+                                    pendingReview: newPending,
+                                    approved: newApproved,
+                                    teams: contest.teams.map(team =>
+                                        Number(team.id) === Number(cancelModal.teamId)
+                                            ? {
+                                                ...team,
+                                                status: isCancelAct ? 'CANCELED' : 'APPROVED',
+                                                track: isCancelAct ? 'Disqualified' : (team.track || 'ACTIVED')
+                                            }
+                                            : team
+                                    )
+                                };
+                            }
+                            return contest;
+                        })
+                    );
 
-            alert(`The ${cancelModal.teamName} team status update was successful.`);
-            handleCloseCancelModal();
+                    showAlert(`The ${cancelModal.teamName} team status update was successful.`, 'Success', 'success', () => handleCloseCancelModal());
 
-        } catch (err) {
-            console.error("Error updating team status:", err);
-            const serverMsg = err.response?.data?.message || err.message;
-            alert(`Update failed! Error details: ${serverMsg}`);
-        }
+                } catch (err) {
+                    console.error("Error updating team status:", err);
+                    const serverMsg = err.response?.data?.message || err.message;
+                    showAlert(`Update failed! Error details: ${serverMsg}`, 'Error', 'danger');
+                }
+            }
+        });
     };
 
     if (isLoading) {
@@ -674,6 +699,15 @@ const TeamRegistrationApproval = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };

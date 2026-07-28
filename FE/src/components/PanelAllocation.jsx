@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import ConfirmDialog from './ConfirmDialog';
 import './PanelAllocation.css';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
@@ -73,6 +74,25 @@ const PanelAllocation = () => {
     const [selectedRoundId, setSelectedRoundId] = useState('');
     const [selectedRound, setSelectedRound] = useState(null);
     const [allTeams, setAllTeams] = useState([]);
+    const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+
+    const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
+        setConfirmDialog({
+            show: true,
+            title,
+            message,
+            variant,
+            isAlert: true,
+            onConfirm: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            },
+            onCancel: () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                if (onClose) onClose();
+            }
+        });
+    };
     const [experts, setExperts] = useState([]);
     const [selectedExpertId, setSelectedExpertId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -297,7 +317,10 @@ const PanelAllocation = () => {
     };
 
     const handleSave = async () => {
-        if (!selectedRoundId) return alert("Please select Round.");
+        if (!selectedRoundId) {
+            showAlert("Please select Round.", "Warning", "warning");
+            return;
+        }
 
         const dirtyExperts = experts.filter(expert => {
             const expertId = String(expert.userId);
@@ -307,7 +330,7 @@ const PanelAllocation = () => {
         });
 
         if (dirtyExperts.length === 0) {
-            alert("No changes to save!");
+            showAlert("No changes to save!", "Information", "primary");
             return;
         }
 
@@ -336,35 +359,45 @@ const PanelAllocation = () => {
             });
 
             await Promise.all(savePromises);
-            alert("Save successfully!");
+            showAlert("Save successfully!", "Success", "success");
             setSavedAllocations(JSON.parse(JSON.stringify(allocations)));
         } catch (err) {
-            alert(err.message || "Save Fail!");
+            showAlert(err.message || "Save Fail!", "Error", "danger");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleNotifyExperts = async () => {
-        if (!selectedRoundId) return alert("Please select Round.");
-        if (!window.confirm("Are you sure you want to send allocation notification emails to all experts in this round?")) return;
-
-        setIsSendingMail(true);
-        try {
-            const response = await fetch(`${API_BASE}/admin/contests/allocations/notify?roundId=${selectedRoundId}`, {
-                method: "POST",
-                headers: headers
-            });
-            if (response.ok) {
-                alert("Email notifications have been queued to send!");
-            } else {
-                alert("Send Error");
-            }
-        } catch {
-            alert("Send Fail!");
-        } finally {
-            setIsSendingMail(false);
+    const handleNotifyExperts = () => {
+        if (!selectedRoundId) {
+            showAlert("Please select Round.", "Warning", "warning");
+            return;
         }
+        setConfirmDialog({
+            show: true,
+            title: 'Notify Experts',
+            message: 'Are you sure you want to send allocation notification emails to all experts in this round?',
+            variant: 'primary',
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, show: false }));
+                setIsSendingMail(true);
+                try {
+                    const response = await fetch(`${API_BASE}/admin/contests/allocations/notify?roundId=${selectedRoundId}`, {
+                        method: "POST",
+                        headers: headers
+                    });
+                    if (response.ok) {
+                        showAlert("Email notifications have been queued to send!", "Success", "success");
+                    } else {
+                        showAlert("Send Error", "Error", "danger");
+                    }
+                } catch {
+                    showAlert("Send Fail!", "Error", "danger");
+                } finally {
+                    setIsSendingMail(false);
+                }
+            }
+        });
     };
 
     const filteredExperts = useMemo(() =>
@@ -547,15 +580,27 @@ const PanelAllocation = () => {
 
                     <button
                         onClick={() => {
+                            const doReset = () => {
+                                setSelectedContestId('');
+                                setSelectedRoundId('');
+                                setSelectedRound(null);
+                                sessionStorage.removeItem('panelAllocSelectedContest');
+                                sessionStorage.removeItem('panelAllocSelectedRoundId');
+                            };
                             if (hasAnyUnsavedChanges(allocations, savedAllocations)) {
-                                const confirmSwitch = window.confirm("You have unsaved changes. Discard and go back?");
-                                if (!confirmSwitch) return;
+                                setConfirmDialog({
+                                    show: true,
+                                    title: 'Unsaved Changes',
+                                    message: 'You have unsaved changes. Discard and go back?',
+                                    variant: 'danger',
+                                    onConfirm: () => {
+                                        setConfirmDialog(prev => ({ ...prev, show: false }));
+                                        doReset();
+                                    }
+                                });
+                            } else {
+                                doReset();
                             }
-                            setSelectedContestId('');
-                            setSelectedRoundId('');
-                            setSelectedRound(null);
-                            sessionStorage.removeItem('panelAllocSelectedContest');
-                            sessionStorage.removeItem('panelAllocSelectedRoundId');
                         }}
                         style={{
                             padding: '8px 16px',
@@ -624,13 +669,25 @@ const PanelAllocation = () => {
                                     <div
                                         key={idx}
                                         onClick={() => {
+                                            const doSwitch = () => {
+                                                setSelectedRoundId(String(r.roundId));
+                                                setSelectedRound(r);
+                                                sessionStorage.setItem('panelAllocSelectedRoundId', String(r.roundId));
+                                            };
                                             if (hasAnyUnsavedChanges(allocations, savedAllocations)) {
-                                                const confirmSwitch = window.confirm("You have unsaved changes. Discard and switch round?");
-                                                if (!confirmSwitch) return;
+                                                setConfirmDialog({
+                                                    show: true,
+                                                    title: 'Unsaved Changes',
+                                                    message: 'You have unsaved changes. Discard and switch round?',
+                                                    variant: 'danger',
+                                                    onConfirm: () => {
+                                                        setConfirmDialog(prev => ({ ...prev, show: false }));
+                                                        doSwitch();
+                                                    }
+                                                });
+                                            } else {
+                                                doSwitch();
                                             }
-                                            setSelectedRoundId(String(r.roundId));
-                                            setSelectedRound(r);
-                                            sessionStorage.setItem('panelAllocSelectedRoundId', String(r.roundId));
                                         }}
                                         style={{
                                             padding: '12px 16px',
@@ -895,6 +952,15 @@ const PanelAllocation = () => {
                 </div>
 
             </div>
+            <ConfirmDialog
+                show={confirmDialog.show}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                variant={confirmDialog.variant}
+                isAlert={confirmDialog.isAlert}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 };
