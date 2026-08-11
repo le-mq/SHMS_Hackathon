@@ -7,7 +7,7 @@ import ConfirmDialog from './ConfirmDialog';
 
 const MENTOR_LINKS = [
     { label: 'Dashboard', path: '/mentor/workspace' },
-    { label: 'Result Review', path: '/mentor/result-review' },
+    { label: 'Calibration Review', path: '/mentor/result-review' },
     { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
