@@ -7,8 +7,8 @@ import ConfirmDialog from './ConfirmDialog';
 
 const JUDGE_LINKS = [
     { label: 'Dashboard', path: '/judge/workspace' },
-    { label: 'Historical', path: '/judge/history' },
-    { label: 'Result Review', path: '/judge/result-review' },
+    { label: 'Score History', path: '/judge/history' },
+    { label: 'Calibration Review', path: '/judge/result-review' },
     { label: 'Leaderboard', path: '/leaderboard' },
 ];
 

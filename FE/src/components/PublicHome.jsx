@@ -5,7 +5,20 @@ import NavbarHome from './NavbarHome.jsx';
 import NavbarStudent from './NavbarStudent.jsx';
 import NavbarJudge from './NavbarJudge.jsx';
 import NavbarMentor from './NavbarMentor.jsx';
-import ContestDetailModal from './ContestDetailModal';
+import ContestDetail from './ContestDetail';
+
+function humanizeStatus(status) {
+    if (!status) return '';
+    const map = {
+        'ACTIVED': 'Active',
+        'UPCOMING': 'Upcoming',
+        'CLOSED': 'Closed',
+        'ARCHIVED': 'Archived',
+        'OPEN': 'Open',
+        'SOON': 'Soon'
+    };
+    return map[status.toUpperCase()] || status;
+}
 
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
@@ -67,7 +80,8 @@ function ContestCard({ contest, onSelectContest }) {
         }
     }
 
-    const handlePrimaryClick = () => {
+    const handlePrimaryClick = (e) => {
+        e.stopPropagation();
         if (ctaAction) navigate(ctaAction);
     };
 
@@ -76,10 +90,10 @@ function ContestCard({ contest, onSelectContest }) {
     };
 
     return (
-        <div className="ph-contest-card">
+        <div className="ph-contest-card" onClick={handleViewDetails} style={{ cursor: 'pointer' }}>
             <div className="ph-contest-card-header">
                 <span className={`ph-season-badge ph-season-${season}`}>{season} {year}</span>
-                <span className={`ph-status-badge ph-status-${status}`}>{status}</span>
+                <span className={`ph-status-badge ph-status-${status}`}>{humanizeStatus(status)}</span>
             </div>
             <h3>{name}</h3>
             <div className="ph-contest-dates">
@@ -99,15 +113,8 @@ function ContestCard({ contest, onSelectContest }) {
                 </div>
             )}
 
-            <div className="ph-contest-action" style={{ display: 'grid', gridTemplateColumns: ctaAction ? '1fr 1fr' : '1fr', gap: '8px' }}>
-                <button
-                    className="ph-btn-card"
-                    onClick={handleViewDetails}
-                    style={{ background: 'transparent', color: '#0284c7', border: '1px solid #0284c7' }}
-                >
-                    View Details
-                </button>
-                {ctaAction && (
+            <div className="ph-contest-action" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', marginTop: '16px' }}>
+                {ctaAction ? (
                     <button
                         className={`ph-btn-card ${upperStatus === 'CLOSED' || upperStatus === 'ARCHIVED' ? 'ph-btn-card-closed' : ''}`}
                         onClick={handlePrimaryClick}
@@ -115,6 +122,13 @@ function ContestCard({ contest, onSelectContest }) {
                         style={Object.keys(customStyle).length > 0 ? customStyle : {}}
                     >
                         {ctaText}
+                    </button>
+                ) : (
+                    <button
+                        className="ph-btn-card"
+                        style={{ background: 'transparent', color: '#0284c7', border: '1px solid #0284c7' }}
+                    >
+                        View Details
                     </button>
                 )}
             </div>
@@ -238,23 +252,43 @@ export default function PublicHome() {
     }, [filteredContests, searchParams, contests]);
 
     useEffect(() => {
+        if (!contests || contests.length === 0 || displayContest) return;
         const urlId = searchParams.get('contestId');
-        if (!urlId) {
-            setDisplayContest(null);
-        } else if (contests.length > 0) {
+        if (urlId) {
             const target = contests.find(c => String(c.id) === String(urlId));
-            if (target && (!displayContest || String(displayContest.id) !== String(urlId))) {
+            if (target) {
+                setSelectedContest(target);
                 setDisplayContest(target);
             }
         }
     }, [searchParams, contests, displayContest]);
 
+    const heroContest = useMemo(() => {
+        if (!contests || contests.length === 0) return null;
+        const active = contests.find(c => c.status === 'ACTIVED' || c.status === 'OPEN' || c.status === 'UPCOMING');
+        return active || contests[0];
+    }, [contests]);
+
     if (loading) {
         return (
             <div className="ph-page">
-                <div className="ph-loading">
-                    <div className="ph-spinner" />
-                    <span>Loading Hackathon data...</span>
+                <NavbarHome isTransparent={true} />
+                <div className="ph-hero" style={{ height: '600px' }}>
+                    <div className="ph-hero-inner">
+                        <div style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div className="ph-skeleton" style={{ height: '24px', width: '120px', borderRadius: '20px' }}></div>
+                            <div className="ph-skeleton" style={{ height: '48px', width: '80%', borderRadius: '8px' }}></div>
+                            <div className="ph-skeleton" style={{ height: '48px', width: '60%', borderRadius: '8px' }}></div>
+                            <div className="ph-skeleton" style={{ height: '64px', width: '100%', borderRadius: '8px', marginTop: '16px' }}></div>
+                        </div>
+                    </div>
+                </div>
+                <div className="ph-container" style={{ marginTop: '40px' }}>
+                    <div className="ph-contests-grid">
+                        <div className="ph-skeleton" style={{ height: '280px', borderRadius: '16px' }}></div>
+                        <div className="ph-skeleton" style={{ height: '280px', borderRadius: '16px' }}></div>
+                        <div className="ph-skeleton" style={{ height: '280px', borderRadius: '16px' }}></div>
+                    </div>
                 </div>
             </div>
         );
@@ -263,13 +297,13 @@ export default function PublicHome() {
     const renderNavbar = () => {
         const token = localStorage.getItem('shms_token');
         const role = localStorage.getItem('shms_role') || '';
-        if (!token) return <NavbarHome />;
+        if (!token) return <NavbarHome isTransparent={true} />;
         switch (role) {
             case 'STUDENT': return <NavbarStudent />;
             case 'LEADER': return <NavbarStudent />;
             case 'JUDGE': return <NavbarJudge />;
             case 'MENTOR': return <NavbarMentor />;
-            default: return <NavbarHome />;
+            default: return <NavbarHome isTransparent={true} />;
         }
     };
 
@@ -277,20 +311,73 @@ export default function PublicHome() {
         <div className="ph-page">
             {renderNavbar()}
             <ContextBar />
-            <section className="ph-hero">
+            <section className="ph-hero fade-in">
                 <div className="ph-hero-inner">
-                    <div>
-                        <div className="ph-hero-label">FPT University</div>
-                        <h1>Welcome to <span>SEAL</span> Hackathon</h1>
-                        <p>The leading software engineering competition organized by the Department of Software Engineering, FPT University.</p>
+                    <div style={{ maxWidth: '600px' }}>
+                        <div className="ph-hero-label">S-HMS Platform</div>
+                        <h1>Where Vietnam's Best Engineers <span>Compete</span></h1>
+                        <p>SEAL Hackathon connects top software engineering talent across FPT University with real-world problem tracks, industry mentors, and competitive prizes.</p>
+                        <div className="ph-hero-actions" style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+                            <a href="#contests"><button className="ph-cta-primary">Explore Contests</button></a>
+                            {!localStorage.getItem('shms_token') && (
+                                <button className="ph-cta-secondary" onClick={() => navigate('/login')}>Sign In</button>
+                            )}
+                        </div>
                     </div>
-                    <div className="ph-hero-image">
-                        <img src="https://t3.ftcdn.net/jpg/03/27/84/86/360_F_327848677_rKdWq48QDo8apoN6kZlWa241HRlw5aWn.jpg" alt="Hackathon contest" />
+                    <div className="ph-hero-decoration">
+                        <div className="ph-decor-window">
+                            <div className="ph-decor-header">
+                                <span className="ph-decor-dot" style={{background:'#ef4444'}}></span>
+                                <span className="ph-decor-dot" style={{background:'#f59e0b'}}></span>
+                                <span className="ph-decor-dot" style={{background:'#22c55e'}}></span>
+                            </div>
+                            <div className="ph-decor-body">
+                                {heroContest ? (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--shms-text-muted)' }}>CURRENT CONTEST</div>
+                                            <span className={`ph-status-badge ph-status-${heroContest.status}`}>{humanizeStatus(heroContest.status)}</span>
+                                        </div>
+                                        <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--shms-text-primary)', marginBottom: '8px', lineHeight: 1.2 }}>{heroContest.name}</div>
+                                        {heroContest.theme && <div style={{ fontSize: '13px', color: 'var(--shms-text-secondary)', marginBottom: '16px' }}>{heroContest.theme}</div>}
+                                        <div className="ph-decor-stats">
+                                            <div className="ph-decor-stat">
+                                                <span className="label">Timeline</span>
+                                                <span className="value">{fmtShortDate(heroContest.startDate || heroContest.registrationStart)} - {fmtShortDate(heroContest.endDate || heroContest.contestEndAt)}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div style={{ height: '20px', width: '40%', background: 'var(--shms-border)', borderRadius: '4px' }}></div>
+                                        <div style={{ height: '40px', width: '100%', background: 'var(--shms-border)', borderRadius: '4px' }}></div>
+                                        <div style={{ height: '80px', width: '100%', background: 'var(--shms-surface-2)', borderRadius: '4px' }}></div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section className="ph-section ph-section-alt">
+            <div className="ph-stats-bar fade-in">
+                {universities && universities.length > 0 && (
+                    <div className="ph-stat-item">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '8px', color: 'var(--shms-accent-2)' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        <div className="ph-stat-value">{universities.length}</div>
+                        <div className="ph-stat-label">Universities</div>
+                    </div>
+                )}
+                {contests && contests.length > 0 && (
+                    <div className="ph-stat-item">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '8px', color: 'var(--shms-accent-2)' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        <div className="ph-stat-value">{contests.length}</div>
+                        <div className="ph-stat-label">Contests</div>
+                    </div>
+                )}
+            </div>
+
+            <section id="contests" className="ph-section ph-section-alt fade-in">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                         <div>
@@ -309,26 +396,40 @@ export default function PublicHome() {
                         </div>
                     </div>
                     {filteredContests.length === 0 ? (
-                        <div className="ph-no-data">No contests found matching your search.</div>
+                        <div className="ph-no-data" style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <svg width="48" height="48" fill="none" stroke="#cbd5e1" strokeWidth="1.5" viewBox="0 0 24 24" style={{ margin: '0 auto 16px auto', display: 'block' }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 8px 0' }}>No contests found</h3>
+                            <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 16px 0' }}>We couldn't find any hackathons matching your search.</p>
+                            <button onClick={() => setSearchTerm('')} style={{ background: 'var(--shms-surface-2)', border: 'none', color: 'var(--shms-text-primary)', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Clear search</button>
+                        </div>
                     ) : (<div className="ph-contests-grid">
                             {filteredContests.map(c => (<ContestCard key={c.id} contest={c}
-                                                                     onSelectContest={() => {
-                                                                         setSelectedContest(c);
-                                                                         setSearchParams({ contestId: c.id });
+                                                                     onSelectContest={(contest) => {
+                                                                         setSelectedContest(contest);
+                                                                         setDisplayContest(contest);
+                                                                         setSearchParams({ contestId: contest.id });
+                                                                         setTimeout(() => {
+                                                                             document.getElementById('contest-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                                         }, 100);
                                                                      }} />))}
+                        </div>
+                    )}
+
+                    {displayContest && (
+                        <div style={{ marginTop: '40px' }}>
+                            <ContestDetail contest={displayContest} onClose={() => {
+                                setDisplayContest(null);
+                                setSelectedContest(null);
+                                setSearchParams({});
+                            }} />
                         </div>
                     )}
                 </div>
             </section>
-            {displayContest && (
-                <ContestDetailModal contest={displayContest} onClose={() => {
-                    setDisplayContest(null);
-                    setSelectedContest(null);
-                    setSearchParams({});
-                }} />
-            )}
 
-            <section className="ph-section">
+            <section className="ph-section fade-in">
                 <div className="ph-container">
                     <div className="ph-section-header" style={{ textAlign: 'center' }}>
                         <h2>Partner Universities</h2>
