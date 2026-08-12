@@ -3,6 +3,7 @@ package com.fpt.shms.be.controller;
 import com.fpt.shms.be.repository.TeamRepository;
 import com.fpt.shms.be.repository.ScoreRepository;
 import com.fpt.shms.be.repository.SubmissionRepository;
+import com.fpt.shms.be.repository.TeamMembershipRepository;
 import com.fpt.shms.be.repository.TeamMentorRepository;
 import com.fpt.shms.be.repository.JudgeAssignmentRepository;
 import com.fpt.shms.be.model.Team;
