@@ -666,7 +666,7 @@ const TeamRegistrationApproval = () => {
                                         <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                             <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
                                             <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
-                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{typeof m.university === 'object' ? m.university?.name : m.university || 'N/A'}</td>
                                             <td style={{ padding: '12px', fontSize: '13px' }}>
                                                 {m.role === 'MEMBER' ? (
                                                     <span style={{ color: '#16a34a', fontWeight: '600' }}>MEMBER</span>
