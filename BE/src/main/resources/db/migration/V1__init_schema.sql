@@ -1566,6 +1566,65 @@ VALUES
 (8, 10, @C4_T04_ID, @Admin1_ID, 4, 89.50, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T05_ID, @Admin1_ID, 5, 87.00, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00');
+
+-- ========================================================
+-- ADDING MISSING MENTOR, SCORE, SCOREDETAIL FOR DEMO TEAMS
+-- ========================================================
+DECLARE @C1_NEW1_ID_M BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW1');
+DECLARE @C1_NEW2_ID_M BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C1_NEW2');
+DECLARE @C2_NEW1_ID_M BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW1');
+DECLARE @C2_NEW2_ID_M BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C2_NEW2');
+
+DECLARE @Mentor1_ID_M BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
+DECLARE @Mentor2_ID_M BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
+
+INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
+(@C1_NEW1_ID_M, @Mentor1_ID_M, 1, 'ACTIVE'),
+(@C1_NEW2_ID_M, @Mentor2_ID_M, 1, 'ACTIVE'),
+(@C2_NEW1_ID_M, @Mentor1_ID_M, 4, 'ACTIVE'),
+(@C2_NEW2_ID_M, @Mentor2_ID_M, 4, 'ACTIVE');
+
+DECLARE @Sub_C1_NEW1_R1 BIGINT = (SELECT submission_id FROM Submission WHERE team_id = @C1_NEW1_ID_M AND round_id = 1);
+DECLARE @Sub_C1_NEW2_R1 BIGINT = (SELECT submission_id FROM Submission WHERE team_id = @C1_NEW2_ID_M AND round_id = 1);
+DECLARE @Sub_C2_NEW1_R3 BIGINT = (SELECT submission_id FROM Submission WHERE team_id = @C2_NEW1_ID_M AND round_id = 3);
+DECLARE @Sub_C2_NEW2_R3 BIGINT = (SELECT submission_id FROM Submission WHERE team_id = @C2_NEW2_ID_M AND round_id = 3);
+
+DECLARE @Judge1_ID_M BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge1');
+DECLARE @Judge2_ID_M BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'judge2');
+
+INSERT INTO Score (submission_id, user_id, total_score, general_feedback, status) VALUES
+(@Sub_C1_NEW1_R1, @Judge1_ID_M, 75.00, N'Good effort.', 'PUBLISHED'),
+(@Sub_C1_NEW2_R1, @Judge2_ID_M, 70.00, N'Needs improvement.', 'PUBLISHED'),
+(@Sub_C2_NEW1_R3, @Judge1_ID_M, 75.00, N'Nice.', 'PUBLISHED'),
+(@Sub_C2_NEW2_R3, @Judge2_ID_M, 70.00, N'Okay.', 'PUBLISHED');
+
+DECLARE @Score_C1_NEW1_R1 BIGINT = (SELECT score_id FROM Score WHERE submission_id = @Sub_C1_NEW1_R1 AND user_id = @Judge1_ID_M);
+DECLARE @Score_C1_NEW2_R1 BIGINT = (SELECT score_id FROM Score WHERE submission_id = @Sub_C1_NEW2_R1 AND user_id = @Judge2_ID_M);
+DECLARE @Score_C2_NEW1_R3 BIGINT = (SELECT score_id FROM Score WHERE submission_id = @Sub_C2_NEW1_R3 AND user_id = @Judge1_ID_M);
+DECLARE @Score_C2_NEW2_R3 BIGINT = (SELECT score_id FROM Score WHERE submission_id = @Sub_C2_NEW2_R3 AND user_id = @Judge2_ID_M);
+
+DECLARE @CR1_D1_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Innovation & Creativity');
+DECLARE @CR1_D2_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Technical Complexity');
+DECLARE @CR1_D3_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 1) AND criteria_name = 'Feasibility & Impact');
+
+DECLARE @CR4_D1_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'Smart Contract Security');
+DECLARE @CR4_D2_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'Decentralization & Utility');
+DECLARE @CR4_D3_M BIGINT = (SELECT TOP 1 contest_rubric_detail_id FROM ContestRubricDetails WHERE contest_rubric_id = (SELECT TOP 1 contest_rubric_id FROM ContestRubric WHERE category_id = 4) AND criteria_name = 'UI/UX & Web3 Integration');
+
+INSERT INTO ScoreDetail (score_id, contest_rubric_detail_id, raw_score, weighted_score, feedback) VALUES
+(@Score_C1_NEW1_R1, @CR1_D1_M, 25.00, 25.00, N'Good innovation'),
+(@Score_C1_NEW1_R1, @CR1_D2_M, 25.00, 25.00, N'Good tech'),
+(@Score_C1_NEW1_R1, @CR1_D3_M, 25.00, 25.00, N'Good feasibility'),
+(@Score_C1_NEW2_R1, @CR1_D1_M, 20.00, 20.00, N'Okay innovation'),
+(@Score_C1_NEW2_R1, @CR1_D2_M, 25.00, 25.00, N'Good tech'),
+(@Score_C1_NEW2_R1, @CR1_D3_M, 25.00, 25.00, N'Good feasibility'),
+(@Score_C2_NEW1_R3, @CR4_D1_M, 25.00, 25.00, N'Good tokenomics'),
+(@Score_C2_NEW1_R3, @CR4_D2_M, 25.00, 25.00, N'Good decentralization'),
+(@Score_C2_NEW1_R3, @CR4_D3_M, 25.00, 25.00, N'Good UI'),
+(@Score_C2_NEW2_R3, @CR4_D1_M, 20.00, 20.00, N'Okay tokenomics'),
+(@Score_C2_NEW2_R3, @CR4_D2_M, 25.00, 25.00, N'Good decentralization'),
+(@Score_C2_NEW2_R3, @CR4_D3_M, 25.00, 25.00, N'Good UI');
+
 GO
 
 -- Normalize any DRAFT rubric status to TEMPLATE
