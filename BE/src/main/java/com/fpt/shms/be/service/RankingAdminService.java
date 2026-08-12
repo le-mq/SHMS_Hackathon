@@ -23,7 +23,7 @@ public class RankingAdminService {
     private final ScoreRepository scoreRepository;
     private final JudgeAssignmentRepository judgeAssignmentRepository;
     private final RankingResultRepository rankingResultRepository;
-
+    private final ContestRubricRepository contestRubricRepository;
     private final AuditLogService auditLogService;
     private final TeamRepository teamRepository;
 

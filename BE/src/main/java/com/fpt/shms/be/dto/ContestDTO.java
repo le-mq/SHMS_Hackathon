@@ -54,14 +54,14 @@ public record ContestDTO(
     public record CategoryDTO(Long id, String name, String description, String guidelineUrl, java.util.List<RoundDTO> rounds) {}
 
     public static ContestDTO from(Contest c) {
-        return from(c, null, null, 0L, 0L, 0);
+        return from(c, null, null);
     }
 
     public static ContestDTO from(Contest c, java.util.List<CategoryDTO> categories, java.util.List<RoundDTO> rounds) {
         return from(c, categories, rounds, 0L, 0L, 0);
     }
 
-    public static ContestDTO from(Contest c, java.util.List<CategoryDTO> categories, java.util.List<RoundDTO> rounds, Long totalTeams, Long totalSubmissions, Integer judgedPercent) {
+    public static ContestDTO from(Contest c, java.util.List<CategoryDTO> categories, java.util.List<RoundDTO> rounds, long totalTeams, long totalSubmissions, int judgedPercent) {
         return new ContestDTO(
                 c.getId(),
                 c.getName(),
@@ -83,9 +83,9 @@ public record ContestDTO(
                 c.getContestStartAt(),
                 categories != null ? categories : java.util.List.of(),
                 rounds != null ? rounds : java.util.List.of(),
-                totalTeams != null ? totalTeams : 0L,
-                totalSubmissions != null ? totalSubmissions : 0L,
-                judgedPercent != null ? judgedPercent : 0
+                totalTeams,
+                totalSubmissions,
+                judgedPercent
         );
     }
 }

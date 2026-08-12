@@ -19,7 +19,7 @@ public class StudentService {
 
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
-
+    private final VerificationTokenRepository tokenRepository;
     private final TeamMembershipRepository teamMembershipRepository;
     private final PasswordEncoder passwordEncoder;
 

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+
 public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
@@ -29,6 +29,40 @@ public class TeamService {
     private final RankingResultRepository rankingResultRepository;
     private final EmailService emailService;
     private final StudentVerificationDataRepository studentVerificationDataRepository;
+
+    public TeamService(TeamRepository teamRepository,
+                       TeamMembershipRepository teamMembershipRepository,
+                       UserRepository userRepository,
+                       StudentRepository studentRepository,
+                       RoleRepository roleRepository,
+                       ContestRepository contestRepository,
+                       CategoryRepository categoryRepository,
+                       RoundRepository roundRepository,
+                       SubmissionRepository submissionRepository,
+                       ContestUniversityRepository contestUniversityRepository,
+                       JwtUtils jwtUtils,
+                       AuditLogService auditLogService,
+                       AnnouncementRepository announcementRepository,
+                       RankingResultRepository rankingResultRepository,
+                       EmailService emailService,
+                       StudentVerificationDataRepository studentVerificationDataRepository) {
+        this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
+        this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
+        this.roleRepository = roleRepository;
+        this.contestRepository = contestRepository;
+        this.categoryRepository = categoryRepository;
+        this.roundRepository = roundRepository;
+        this.submissionRepository = submissionRepository;
+        this.contestUniversityRepository = contestUniversityRepository;
+        this.jwtUtils = jwtUtils;
+        this.auditLogService = auditLogService;
+        this.announcementRepository = announcementRepository;
+        this.rankingResultRepository = rankingResultRepository;
+        this.emailService = emailService;
+        this.studentVerificationDataRepository = studentVerificationDataRepository;
+    }
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, String leaderUsername) {
@@ -529,7 +563,7 @@ public class TeamService {
 
         long remainingCount = approvedMembers.size() - toRemove.size();
         int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
-
+        int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
         if (remainingCount < minMembers) {
             throw new IllegalArgumentException("Ineligible members removed. However, the team now has only "
                     + remainingCount
@@ -1024,7 +1058,10 @@ public class TeamService {
         }
     }
 
-
+    private Student requireStudent(User user) {
+        return studentRepository.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("User is not a registered student."));
+    }
 
     @Transactional(readOnly = true)
     public java.util.List<java.util.Map<String, Object>> searchStudents(String keyword) {
