@@ -152,7 +152,7 @@ async function copyToClipboard(text) {
             return true;
         }
     } catch {
-       
+
     }
 
     const textArea = document.createElement('textarea');
@@ -206,6 +206,7 @@ const StudentDashboard = () => {
     const [showRejectConfirm, setShowRejectConfirm] = useState(false);
     const [rejectToken, setRejectToken] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ show: false, title: '', message: '', onConfirm: null, variant: 'primary', isAlert: false });
+    const [userHasTeam, setUserHasTeam] = useState(false);
 
     const showAlert = (message, title = "Notification", variant = "primary", onClose = null) => {
         setConfirmDialog({
@@ -233,6 +234,10 @@ const StudentDashboard = () => {
         async function fetchHomeData() {
             try {
                 const token = localStorage.getItem('shms_token');
+                hasExistingTeam(token).then(status => {
+                    if (!cancelled) setUserHasTeam(status);
+                }).catch(e => console.warn(e));
+
                 const allowedRes = await axios.get(
                     API_STUDENT + '/contests',
                     { headers: { Authorization: `Bearer ${token}` } }
@@ -430,7 +435,7 @@ const StudentDashboard = () => {
     };
 
     return (
-        <div className="student-dash-container" style={{ paddingTop: '40px' }}>
+        <div className="student-dash-container page-enter" style={{ paddingTop: '40px' }}>
             <div className="dash-grid">
                 <div className="dash-left" style={{ gridColumn: '1 / 2' }}>
                     {/* Floating Explore Button */}
@@ -445,6 +450,65 @@ const StudentDashboard = () => {
                             Explore Hackathons
                         </button>
                     </div>
+                    {/* Next Action Banner */}
+                    <div style={{ background: 'linear-gradient(135deg, var(--shms-surface-2), var(--shms-surface))', border: '1px solid var(--shms-border)', borderRadius: 'var(--shms-radius-lg)', padding: '32px', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px', boxShadow: 'var(--shms-shadow-sm)' }}>
+                        {userHasTeam ? (
+                            <>
+                                <div>
+                                    <span style={{ textTransform: 'uppercase', fontSize: '12px', fontWeight: 800, color: 'var(--shms-green)', letterSpacing: '1px' }}>Current Status</span>
+                                    <h2 style={{ margin: '8px 0 12px 0', fontSize: '28px', fontWeight: 800, color: 'var(--shms-navy)', letterSpacing: '-0.5px' }}>
+                                        Active Workspace
+                                    </h2>
+                                    <p style={{ margin: 0, color: 'var(--shms-text-secondary)', fontSize: '15px' }}>
+                                        Check your team status, track deadlines, or submit your project.
+                                    </p>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '16px' }}>
+                                    <button className="shms-btn shms-btn-primary" onClick={() => navigate('/student/submission')}>
+                                        Submit Project &rarr;
+                                    </button>
+                                    <button className="shms-btn shms-btn-secondary" onClick={() => navigate('/student/team/status')}>
+                                        View Team Status &rarr;
+                                    </button>
+                                </div>
+                            </>
+                        ) : activeContests.length > 0 ? (
+                            <>
+                                <div>
+                                    <span style={{ textTransform: 'uppercase', fontSize: '12px', fontWeight: 800, color: 'var(--shms-accent)', letterSpacing: '1px' }}>Next Action</span>
+                                    <h2 style={{ margin: '8px 0 12px 0', fontSize: '28px', fontWeight: 800, color: 'var(--shms-navy)', letterSpacing: '-0.5px' }}>
+                                        Join or Create a Team
+                                    </h2>
+                                    <p style={{ margin: 0, color: 'var(--shms-text-secondary)', fontSize: '15px' }}>
+                                        You need a team to participate in the active competitions.
+                                    </p>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '16px' }}>
+                                    <button className="shms-btn shms-btn-primary" onClick={(e) => { e.preventDefault(); setShowCreateModal(true); setNewTeamName(''); setCreateError(''); }}>
+                                        Create New Team &rarr;
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <span style={{ textTransform: 'uppercase', fontSize: '12px', fontWeight: 800, color: 'var(--shms-text-muted)', letterSpacing: '1px' }}>Welcome</span>
+                                    <h2 style={{ margin: '8px 0 12px 0', fontSize: '28px', fontWeight: 800, color: 'var(--shms-navy)', letterSpacing: '-0.5px' }}>
+                                        Explore the Platform
+                                    </h2>
+                                    <p style={{ margin: 0, color: 'var(--shms-text-secondary)', fontSize: '15px' }}>
+                                        No active contests right now, but you can explore past results and projects.
+                                    </p>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', columnGap: '16px' }}>
+                                    <button className="shms-btn shms-btn-secondary" onClick={() => navigate('/leaderboard')}>
+                                        View Leaderboard &rarr;
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     <div className="dashboard-announcements-row">
                         <LatestAnnouncements />
                     </div>
@@ -453,9 +517,10 @@ const StudentDashboard = () => {
                         {loadingContest ? (
                             <div className="info-card">
                                 <div className="ic-header">ACTIVED CONTEST</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 0' }}>
-                                    <div className="global-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', marginBottom: 0 }}></div>
-                                    <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 'normal' }}>Loading...</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                                    <div className="skeleton-box" style={{ width: '100%', height: '24px' }}></div>
+                                    <div className="skeleton-box" style={{ width: '60%', height: '16px' }}></div>
+                                    <div className="skeleton-box" style={{ width: '80%', height: '16px', marginTop: '8px' }}></div>
                                 </div>
                             </div>
                         ) : activeContests.length > 0 ? (
@@ -542,12 +607,10 @@ const StudentDashboard = () => {
                                 </div>
                             ))
                         ) : (
-                            <div className="info-card">
-                                <div className="ic-header">CONTESTS</div>
-                                <div className="ic-title">No actived or upcoming contest</div>
-                                <div className="ic-subtitle">
-                                    No actived or upcoming contests found.
-                                </div>
+                            <div className="empty-state-container" style={{ gridColumn: '1 / -1' }}>
+                                <svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                <h3 className="empty-state-title">No Active Contests</h3>
+                                <p className="empty-state-desc">There are currently no active or upcoming contests available. Please check back later.</p>
                             </div>
                         )}
                     </div>

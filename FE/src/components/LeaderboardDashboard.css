@@ -18,47 +18,50 @@
 }
 
 .pod-card {
-    background: white;
-    border: 1.5px solid #94a3b8;
-    border-radius: 16px;
+    background: var(--shms-surface);
+    border: 1px solid var(--shms-border);
+    border-radius: var(--shms-radius-md);
     padding: 32px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shms-shadow-sm);
+    transition: transform var(--shms-t-base), box-shadow var(--shms-t-base);
+}
+
+.pod-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shms-shadow-md);
 }
 
 .pod-1 {
-    background: #0f172a;
-    color: white;
-    border: none;
-    padding: 48px 24px;
+    border-color: #fde047;
+    background: linear-gradient(180deg, #fffbeb 0%, var(--shms-surface) 100%);
+    box-shadow: 0 4px 12px rgba(234,179,8,0.1);
+    padding: 40px 24px;
     z-index: 10;
-    transform: translateY(-20px);
 }
 
 .pod-rank-bg {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    font-size: 80px;
+    font-size: 14px;
     font-weight: 800;
-    color: #C1C1C1;
-    line-height: 1;
-    opacity: 0.8;
+    color: var(--shms-text-muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .pod-1 .pod-rank-bg {
-    color: #ffd122;
+    color: #ca8a04;
 }
 
 .pod-name {
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 800;
+    color: var(--shms-navy);
     margin-bottom: 8px;
-    position: relative;
-    z-index: 2;
+    text-align: center;
 }
 
 .pod-1 .pod-name {

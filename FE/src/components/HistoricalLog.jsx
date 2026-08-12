@@ -51,10 +51,10 @@ const HistoricalLog = () => {
     }
     return (
         <>
-            <div className="historical-container">
+            <div className="historical-container page-enter">
                 <div className="historical-content">
                     <div className="historical-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div><h1 className="historical-title">Historical Evaluation Log</h1>
+                        <div><h1 className="historical-title">Score History</h1>
                             <p className="historical-subtitle">Review and manage your previous team assessments and scoring records.</p>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
@@ -82,7 +82,7 @@ const HistoricalLog = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            {displayRecords.map((rec, idx) => (
+                            {displayRecords.length > 0 ? displayRecords.map((rec, idx) => (
                                 <tr key={idx}>
                                     <td>
                                         <div className="hist-team-cell">
@@ -120,7 +120,17 @@ const HistoricalLog = () => {
                                             </svg>View Summary</button>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="6">
+                                        <div className="empty-state-container" style={{ margin: '20px 0', border: 'none', background: 'transparent' }}>
+                                            <svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                            <h3 className="empty-state-title">No Records Found</h3>
+                                            <p className="empty-state-desc">You have not evaluated any teams yet, or no teams match your filter.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                             </tbody>
                         </table>
                     </div>

@@ -13,7 +13,6 @@ import com.fpt.shms.be.model.Contest;
 import com.fpt.shms.be.model.Category;
 import com.fpt.shms.be.model.ContestRubric;
 import com.fpt.shms.be.model.Round;
-import com.fpt.shms.be.repository.RoundRepository;
 import com.fpt.shms.be.service.ContestAdminService;
 import com.fpt.shms.be.service.RubricAdminService;
 import com.fpt.shms.be.service.PartnerAdminService;

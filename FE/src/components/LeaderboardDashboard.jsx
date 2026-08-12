@@ -107,17 +107,17 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
             </div>
             <div className="top-pods-row">
                 {top3[1] ? (
-                    <div className="pod-card" style={{ height: '90%' }}>
-                        <div className="pod-rank-bg">2</div>
+                    <div className="pod-card" style={{ height: '90%', border: '2px solid #cbd5e1', boxShadow: '0 4px 12px rgba(148,163,184,0.3)' }}>
+                        <div className="pod-rank-bg" style={{ color: '#94a3b8' }}>2nd Place</div>
                         <div className="pod-name">{top3[1].teamName}</div>
                         <div className="pod-score">{top3[1].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
-                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#0ea5e9'}}>{getPrizeName(top3[1].rank)}</div>}
+                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#64748b'}}>{getPrizeName(top3[1].rank)}</div>}
                     </div>
                 ) : <div />}
                 {top3[0] ? (
                     <div className="pod-card pod-1">
-                        <div className="pod-rank-bg">1</div>
+                        <div className="pod-rank-bg">1st Place</div>
                         <div className="pod-name">{top3[0].teamName}</div>
                         <div className="pod-score">{top3[0].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
@@ -125,12 +125,12 @@ export const LeaderboardPresentation = ({ leaderboards, contestsInfo = [] }) => 
                     </div>
                 ) : <div />}
                 {top3[2] ? (
-                    <div className="pod-card" style={{ height: '75%' }}>
-                        <div className="pod-rank-bg">3</div>
+                    <div className="pod-card" style={{ height: '75%', border: '2px solid #fdba74', boxShadow: '0 4px 12px rgba(249,115,22,0.2)' }}>
+                        <div className="pod-rank-bg" style={{ color: '#f97316' }}>3rd Place</div>
                         <div className="pod-name">{top3[2].teamName}</div>
                         <div className="pod-score">{top3[2].averageScore}</div>
                         <div className="pod-pts-label">POINTS</div>
-                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#f97316'}}>{getPrizeName(top3[2].rank)}</div>}
+                        {isFinalRound && <div style={{marginTop: '8px', fontWeight: 'bold', color: '#ea580c'}}>{getPrizeName(top3[2].rank)}</div>}
                     </div>
                 ) : <div />}
             </div>
@@ -209,6 +209,8 @@ function processLeaderboardData(rawData) {
 export const LeaderboardContent = ({ leaderboards }) => {
     const [fetchedLeaderboards, setFetchedLeaderboards] = useState([]);
     const [contestsInfo, setContestsInfo] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     useEffect(() => {
         async function getLeaderboard() {
             try {
@@ -243,11 +245,52 @@ export const LeaderboardContent = ({ leaderboards }) => {
             }
         }
 
-        if (!leaderboards) {
-            getLeaderboard();
+        async function fetchData() {
+            setLoading(true);
+            try {
+                if (!leaderboards) {
+                    await getLeaderboard();
+                }
+                await getContests();
+            } finally {
+                setLoading(false);
+            }
         }
-        getContests();
+
+        fetchData();
     }, [leaderboards]);
+
+    if (loading) {
+        return (
+            <div className="leader-content" style={{ padding: '60px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+                    <div className="shms-skeleton" style={{ width: '250px', height: '36px', borderRadius: '8px' }}></div>
+                    <div className="shms-skeleton" style={{ width: '180px', height: '36px', borderRadius: '8px' }}></div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '48px' }}>
+                    <div className="shms-skeleton" style={{ height: '160px', borderRadius: 'var(--shms-radius-lg)' }}></div>
+                    <div className="shms-skeleton" style={{ height: '200px', borderRadius: 'var(--shms-radius-lg)' }}></div>
+                    <div className="shms-skeleton" style={{ height: '140px', borderRadius: 'var(--shms-radius-lg)' }}></div>
+                </div>
+                <div className="shms-skeleton" style={{ height: '400px', borderRadius: 'var(--shms-radius-lg)' }}></div>
+            </div>
+        );
+    }
+
+    if (error && fetchedLeaderboards.length === 0) {
+        return (
+            <div className="leader-content" style={{ padding: '60px 24px', maxWidth: '800px', margin: '0 auto' }}>
+                <div className="shms-error-state">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 16px auto' }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3 className="shms-error-title">Failed to load Leaderboard</h3>
+                    <p className="shms-error-desc">There was an error communicating with the server.</p>
+                    <button className="shms-btn shms-btn-secondary" onClick={() => window.location.reload()}>Retry Connection</button>
+                </div>
+            </div>
+        );
+    }
 
     return <LeaderboardPresentation leaderboards={leaderboards || fetchedLeaderboards} contestsInfo={contestsInfo} />;
 };

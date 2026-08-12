@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ContestDetailModal from './ContestDetailModal';
 
 const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
@@ -58,7 +59,7 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
         return <ContestDetailModal contest={evalData} onClose={onClose} />;
     }
 
-    return (
+    return createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
             <div style={{ background: '#fff', borderRadius: '12px', width: '700px', maxWidth: '90%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                 <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
@@ -224,7 +225,8 @@ const RoundDetailsModal = ({ roundId, contestId, mode = 'both', onClose }) => {
                     <button onClick={onClose} style={{ padding: '8px 24px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>Close</button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

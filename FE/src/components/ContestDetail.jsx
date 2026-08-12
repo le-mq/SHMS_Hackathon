@@ -101,13 +101,13 @@ export default function ContestDetail({ contest, onClose, hasParticipated }) {
             </div>
 
             {/* HERO BANNER */}
-            <div style={{ background: 'linear-gradient(150deg, var(--shms-navy) 0%, var(--shms-navy-mid) 100%)', color: '#fff', padding: '60px 32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'inline-block', background: 'rgba(56,189,248,0.1)', color: 'var(--shms-accent-2)', padding: '6px 16px', borderRadius: '40px', fontSize: '12px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '24px', border: '1px solid rgba(56,189,248,0.3)' }}>
+            <div style={{ background: 'var(--shms-surface)', borderBottom: '1px solid var(--shms-border)', padding: '48px 32px', textAlign: 'center' }}>
+                <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                    <div style={{ display: 'inline-block', background: 'var(--shms-surface-2)', color: 'var(--shms-text-secondary)', padding: '4px 12px', borderRadius: 'var(--shms-radius-pill)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '16px', border: '1px solid var(--shms-border)' }}>
                         {contest.term || contest.season || 'SEASON'} {contest.year || ''}
                     </div>
-                    <h2 style={{ fontSize: '36px', fontWeight: 800, margin: '0 0 16px 0', letterSpacing: '-0.5px', lineHeight: 1.2 }}>{contest.name}</h2>
-                    <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', margin: '0 auto', maxWidth: '700px', lineHeight: 1.6 }}>{contest.theme || 'Join the ultimate coding competition and showcase your software engineering skills.'}</p>
+                    <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', color: 'var(--shms-navy)', letterSpacing: '-0.5px' }}>{contest.name}</h2>
+                    <p style={{ fontSize: '16px', color: 'var(--shms-text-secondary)', margin: '0 auto', maxWidth: '700px', lineHeight: 1.6 }}>{contest.theme || 'Join the ultimate coding competition and showcase your software engineering skills.'}</p>
                 </div>
             </div>
 
@@ -192,10 +192,10 @@ export default function ContestDetail({ contest, onClose, hasParticipated }) {
 
                         <div>
                             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--shms-text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ color: 'var(--shms-red)' }}><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                                <div style={{ color: 'var(--shms-text-secondary)' }}><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
                                 Rules & Compliance
                             </h3>
-                            <div style={{ fontSize: '13px', color: 'var(--shms-text-secondary)', background: '#fff5f5', padding: '16px', borderRadius: 'var(--shms-radius-sm)', border: '1px solid #fecaca' }}>
+                            <div style={{ fontSize: '14px', color: 'var(--shms-text-secondary)', background: 'var(--shms-surface-2)', padding: '24px', borderRadius: 'var(--shms-radius-md)', border: '1px solid var(--shms-border)' }}>
                                 {renderComplianceRules(contest.complianceRules)}
                             </div>
                         </div>

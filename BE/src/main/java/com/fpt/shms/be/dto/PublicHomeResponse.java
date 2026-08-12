@@ -6,5 +6,6 @@ public record PublicHomeResponse(
         List<ContestDTO> contests,
         List<TrackDTO> tracks,
         List<String> universities,
-        List<String> geographicScopes) {
+        List<String> geographicScopes,
+        long totalParticipants) {
 }

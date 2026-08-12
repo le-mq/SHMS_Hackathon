@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 const formatJsDate = (str, options) =>
     str ? new Date(str).toLocaleDateString('en-GB', options) : '—';
 const fmtDate = (str) => formatJsDate(str, { day: '2-digit', month: 'short', year: 'numeric' });
@@ -93,7 +94,7 @@ export default function ContestDetailModal({ contest, onClose, hasParticipated }
         }
     };
 
-    return (
+    return createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f8fafc', zIndex: 99999, overflowY: 'auto' }}>
             {/* STICKY NAV */}
             <div style={{ position: 'sticky', top: 0, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e2e8f0', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
@@ -364,6 +365,7 @@ export default function ContestDetailModal({ contest, onClose, hasParticipated }
                     })()}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

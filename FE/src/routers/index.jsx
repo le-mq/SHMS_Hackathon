@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider, Outlet, useLocation, useNavigate } from "react-router-dom";
 import PublicHome from "../components/PublicHome.jsx";
 import Login from "../components/Login.jsx";
 import Register from "../components/Register.jsx";
@@ -30,10 +30,66 @@ import CompetitionRegistration from "../components/CompetitionRegistration.jsx";
 import JudgeResultReview from "../components/JudgeResultReview.jsx";
 import MentorResultReview from "../components/MentorResultReview.jsx";
 
+function DemoExitWidget() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const mockUsers = ['student', 'judge', 'mentor', 'admin'];
+    const currentUser = localStorage.getItem('shms_user');
+
+    if (!mockUsers.includes(currentUser) || location.pathname === '/' || location.pathname === '/login') {
+        return null;
+    }
+
+    const handleExit = () => {
+        localStorage.clear();
+        navigate('/');
+    };
+
+    return (
+        <button
+            onClick={handleExit}
+            style={{
+                position: 'fixed',
+                bottom: '24px',
+                right: '24px',
+                zIndex: 9999,
+                background: 'var(--shms-navy, #1e293b)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+        >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Exit Demo
+        </button>
+    );
+}
+
+function GlobalLayout() {
+    return (
+        <>
+            <Outlet />
+            <DemoExitWidget />
+        </>
+    );
+}
+
 function AppRouters() {
     const routers = createBrowserRouter([
         {
             path: "/",
+            element: <GlobalLayout />,
             children: [
                 { index: true, Component: PublicHome },
                 { path: "login", Component: Login },

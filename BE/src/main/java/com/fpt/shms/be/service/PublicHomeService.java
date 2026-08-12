@@ -30,6 +30,9 @@ public class PublicHomeService {
     private final AnnouncementRepository announcementRepository;
     private final RankingResultRepository rankingResultRepository;
     private final com.fpt.shms.be.repository.TeamMembershipRepository teamMembershipRepository;
+    private final com.fpt.shms.be.repository.TeamRepository teamRepository;
+    private final com.fpt.shms.be.repository.SubmissionRepository submissionRepository;
+    private final com.fpt.shms.be.repository.ScoreRepository scoreRepository;
 
     @Transactional
     public PublicHomeResponse getHomeData() {
@@ -83,7 +86,44 @@ public class PublicHomeService {
                                     r.getSubmissionRequirements(),
                                     r.getRoundFormat()))
                             .toList();
-                    return ContestDTO.from(c, categories, dtoRounds);
+                    List<com.fpt.shms.be.model.Team> teams = teamRepository.findByContestId(c.getId());
+                    long totalTeams = teams.size();
+                    List<Long> teamIds = teams.stream().map(com.fpt.shms.be.model.Team::getId).toList();
+                    long totalSubmissions = 0;
+                    int judgedPercent = 0;
+                    if (!teamIds.isEmpty()) {
+                        java.util.List<com.fpt.shms.be.model.Submission> subs = submissionRepository.findByTeamIdIn(teamIds);
+
+                        com.fpt.shms.be.model.Round currentRound = contestRounds.stream()
+                                .filter(r -> r.getState() == com.fpt.shms.be.model.Round.RoundState.ACTIVED)
+                                .findFirst()
+                                .orElse(null);
+
+                        if (currentRound == null) {
+                            currentRound = contestRounds.stream()
+                                    .max(java.util.Comparator.comparing(com.fpt.shms.be.model.Round::getId))
+                                    .orElse(null);
+                        }
+
+                        if (currentRound != null) {
+                            final Long currentRoundId = currentRound.getId();
+                            totalSubmissions = subs.stream()
+                                    .filter(s -> s.getRound() != null && s.getRound().getId().equals(currentRoundId))
+                                    .count();
+
+                            if (totalSubmissions > 0) {
+                                long evaluated = subs.stream()
+                                        .filter(s -> s.getRound() != null && s.getRound().getId().equals(currentRoundId))
+                                        .filter(s -> ("EVALUATED".equalsIgnoreCase(s.getStatus()) || "GRADED".equalsIgnoreCase(s.getStatus()) || scoreRepository.existsBySubmissionId(s.getId())))
+                                        .count();
+                                judgedPercent = (int) ((evaluated * 100) / totalSubmissions);
+                            }
+                        }
+                    }
+                    if (judgedPercent == 0 && c.getStatus() != null && (c.getStatus().name().equals("CLOSED") || c.getStatus().name().equals("ARCHIVED"))) {
+                        judgedPercent = 100;
+                    }
+                    return ContestDTO.from(c, categories, dtoRounds, totalTeams, totalSubmissions, judgedPercent);
                 })
                 .toList();
 
@@ -99,7 +139,8 @@ public class PublicHomeService {
                 .map(com.fpt.shms.be.model.University::getName)
                 .toList();
 
-        return new PublicHomeResponse(contests, tracks, universities, scopes);
+        long totalParticipants = teamMembershipRepository.countDistinctParticipants();
+        return new PublicHomeResponse(contests, tracks, universities, scopes, totalParticipants);
     }
 
     public List<String> getUniversities() {
