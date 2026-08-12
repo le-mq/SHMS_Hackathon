@@ -111,3 +111,364 @@ body {
 .confirm-dialog-modal {
     z-index: 1000000 !important;
 }
+
+/* Page Entry Animation */
+@keyframes page-enter-fade {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.page-enter {
+    animation: page-enter-fade 250ms var(--shms-t-base) forwards;
+}
+
+/* Skeletons */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+.skeleton-box {
+    background: #e2e8f0;
+    background-image: linear-gradient(to right, #e2e8f0 0%, #cbd5e1 20%, #e2e8f0 40%, #e2e8f0 100%);
+    background-repeat: no-repeat;
+    background-size: 1000px 100%;
+    animation: shimmer 1.5s infinite linear forwards;
+    border-radius: var(--shms-radius-sm);
+}
+
+/* Empty State Standard */
+.empty-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    background: var(--shms-surface);
+    border: 1px dashed var(--shms-border);
+    border-radius: var(--shms-radius-lg);
+    color: var(--shms-text-secondary);
+}
+.empty-state-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: var(--shms-text-muted);
+}
+.empty-state-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--shms-navy);
+    margin: 0 0 8px 0;
+}
+.empty-state-desc {
+    font-size: 0.875rem;
+    max-width: 400px;
+    margin: 0 0 20px 0;
+}
+
+/* ==========================================================================
+   PHASE 1: S-HMS DESIGN SYSTEM FOUNDATION
+   ========================================================================== */
+
+/* ICON POLICY: Use lucide-react or existing SVG. No emoji icons. */
+
+/* --- Buttons --- */
+.shms-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: var(--shms-text-sm);
+    border-radius: var(--shms-radius-md);
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all var(--shms-t-fast);
+    border: 1px solid transparent;
+    outline: none;
+    line-height: 1.25rem;
+}
+
+.shms-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+.shms-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.shms-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.shms-btn-primary {
+    background: var(--shms-accent);
+    color: #ffffff;
+    box-shadow: var(--shms-shadow-sm);
+}
+
+.shms-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8; /* Darker accent */
+}
+
+.shms-btn-secondary {
+    background: var(--shms-surface);
+    color: var(--shms-text-primary);
+    border-color: var(--shms-border);
+    box-shadow: var(--shms-shadow-sm);
+}
+
+.shms-btn-secondary:hover:not(:disabled) {
+    background: var(--shms-surface-2);
+}
+
+.shms-btn-ghost {
+    background: transparent;
+    color: var(--shms-text-secondary);
+}
+
+.shms-btn-ghost:hover:not(:disabled) {
+    background: var(--shms-surface-2);
+    color: var(--shms-text-primary);
+}
+
+.shms-btn-danger {
+    background: var(--shms-red);
+    color: #ffffff;
+    box-shadow: var(--shms-shadow-sm);
+}
+
+.shms-btn-danger:hover:not(:disabled) {
+    background: #dc2626; /* Darker red */
+}
+
+/* --- Badges --- */
+.shms-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--shms-radius-pill);
+    font-size: var(--shms-text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.shms-badge::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.shms-badge-green {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+.shms-badge-green::before { background: var(--shms-green); }
+
+.shms-badge-yellow {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.shms-badge-yellow::before { background: var(--shms-yellow); }
+
+.shms-badge-red {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.shms-badge-red::before { background: var(--shms-red); }
+
+.shms-badge-neutral {
+    background: var(--shms-surface-2);
+    color: var(--shms-text-secondary);
+    border: 1px solid var(--shms-border);
+}
+.shms-badge-neutral::before { background: var(--shms-text-muted); }
+
+/* --- Cards --- */
+.shms-card {
+    background: var(--shms-surface);
+    border: 1px solid var(--shms-border);
+    border-radius: var(--shms-radius-md);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    transition: box-shadow var(--shms-t-base), transform var(--shms-t-base), border-color var(--shms-t-base);
+}
+
+.shms-card:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    border-color: var(--shms-border-focus);
+    transform: translateY(-2px);
+}
+
+/* --- Loading Skeletons --- */
+.shms-skeleton {
+    background: linear-gradient(90deg, var(--shms-surface-2) 25%, #e2e8f0 50%, var(--shms-surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shms-shimmer 1.5s infinite;
+    border-radius: var(--shms-radius-sm);
+}
+@keyframes shms-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* --- Empty States --- */
+.shms-empty-state {
+    padding: 64px 24px;
+    text-align: center;
+    background: var(--shms-surface);
+    border: 1px solid var(--shms-border);
+    border-radius: var(--shms-radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.shms-empty-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--shms-text-muted);
+    margin-bottom: 16px;
+}
+.shms-empty-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--shms-navy);
+    margin: 0 0 8px 0;
+}
+.shms-empty-desc {
+    font-size: 14px;
+    color: var(--shms-text-secondary);
+    max-width: 400px;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+}
+
+/* --- Error States --- */
+.shms-error-state {
+    padding: 48px 24px;
+    text-align: center;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--shms-radius-md);
+    color: var(--shms-red);
+}
+.shms-error-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #991b1b;
+}
+.shms-error-desc {
+    font-size: 14px;
+    color: #b91c1c;
+    margin: 0 0 20px 0;
+}
+
+/* --- Inputs --- */
+.shms-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--shms-border);
+    border-radius: var(--shms-radius-md);
+    font-size: var(--shms-text-sm);
+    font-family: inherit;
+    color: var(--shms-text-primary);
+    background: var(--shms-surface);
+    transition: all var(--shms-t-fast);
+    outline: none;
+}
+
+.shms-input:focus {
+    border-color: var(--shms-border-focus);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.shms-input::placeholder {
+    color: var(--shms-text-muted);
+}
+
+/* --- Tables --- */
+.shms-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--shms-radius-lg);
+    border: 1px solid var(--shms-border);
+    background: var(--shms-surface);
+}
+
+.shms-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.shms-table th {
+    background: var(--shms-surface-2);
+    padding: 14px 16px;
+    font-size: var(--shms-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--shms-text-secondary);
+    border-bottom: 1px solid var(--shms-border);
+}
+
+.shms-table td {
+    padding: 16px;
+    font-size: var(--shms-text-sm);
+    color: var(--shms-text-primary);
+    border-bottom: 1px solid var(--shms-border);
+}
+
+.shms-table tr:last-child td {
+    border-bottom: none;
+}
+
+.shms-table tbody tr {
+    transition: background-color var(--shms-t-fast);
+}
+
+.shms-table tbody tr:hover {
+    background: var(--shms-surface-2);
+}
+
+/* --- Modal Transitions --- */
+@keyframes shms-modal-enter {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.shms-modal {
+    animation: shms-modal-enter var(--shms-t-base) forwards;
+}
+
+/* --- Toast / Feedback --- */
+@keyframes shms-toast-enter {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.shms-toast {
+    animation: shms-toast-enter var(--shms-t-base) forwards;
+    border-radius: var(--shms-radius-md);
+    box-shadow: var(--shms-shadow-lg);
+    background: var(--shms-surface);
+    border: 1px solid var(--shms-border);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}

@@ -398,7 +398,18 @@ const CompetitionRegistration = () => {
             }
         } catch (err) {
             console.error(err);
-            setError('Could not connect to server.');
+            try {
+                const fallbackRes = await fetch('/testFE.json');
+                const fallbackData = await fallbackRes.json();
+                if (fallbackData.competitionRegistration) {
+                    setCompetitions(fallbackData.competitionRegistration.contests || []);
+                    setMyTeams(fallbackData.competitionRegistration.teams || []);
+                } else {
+                    if (!preserveError) setError('Failed to load competitions (mock data missing).');
+                }
+            } catch (fallbackErr) {
+                if (!preserveError) setError('Failed to load competitions. Please try again later.');
+            }
         } finally {
             setIsLoading(false);
         }

@@ -9,20 +9,22 @@ const STUDENT_LINKS = [
     { label: 'Competitions', path: '/student/competitions' },
     { label: 'My Team', path: '/student/team/status' },
     { label: 'Submission', path: '/student/submission' },
-    { label: 'Results', path: '/student/results' },
+    { label: 'My Results', path: '/student/results' },
     { label: 'Leaderboard', path: '/leaderboard' },
 ];
 
 const NavbarStudent = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const username = localStorage.getItem('shms_fullname') || localStorage.getItem('shms_user') || 'Student';
+    const isDemo = localStorage.getItem('shms_is_demo') === 'true';
+    const username = isDemo ? 'Demo Student' : (localStorage.getItem('shms_fullname') || localStorage.getItem('shms_user') || 'Student');
 
     const handleLogout = () => {
         localStorage.removeItem('shms_token');
         localStorage.removeItem('shms_role');
         localStorage.removeItem('shms_user');
         localStorage.removeItem('shms_allRoles');
+        localStorage.removeItem('shms_is_demo');
         navigate('/');
     };
 
@@ -61,7 +63,7 @@ const NavbarStudent = () => {
                         <div className="nav-avatar">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         </div>
-                        <span>{username}</span>
+                        <span>{isDemo && <span style={{ background: 'var(--shms-orange)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, marginRight: '8px' }}>DEMO</span>}{username}</span>
 
                         {showDropdown && (
                             <div className="nav-dropdown">
@@ -71,7 +73,7 @@ const NavbarStudent = () => {
                                 </div>
                                 <div className="nav-dropdown-item logout" onClick={handleLogout}>
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                                    Logout
+                                    {isDemo ? 'Exit Demo' : 'Logout'}
                                 </div>
                             </div>
                         )}

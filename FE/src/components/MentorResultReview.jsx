@@ -36,7 +36,17 @@ const MentorResultReview = () => {
                     );
                 setAssignedTeams(allTeams);
             } catch (e) {
-                setError(e.message || 'Failed to load data');
+                try {
+                    const fallbackRes = await fetch('/testFE.json');
+                    const fallbackData = await fallbackRes.json();
+                    if (fallbackData.mentorResultReview && fallbackData.mentorResultReview.teams) {
+                        setAssignedTeams(fallbackData.mentorResultReview.teams);
+                    } else {
+                        throw new Error('Data missing in testFE.json');
+                    }
+                } catch (fallbackErr) {
+                    setError(e.message || 'Failed to load teams');
+                }
             } finally {
                 setLoading(false);
             }
@@ -87,11 +97,11 @@ const MentorResultReview = () => {
     });
 
     return (
-        <div className="mrr-page">
+        <div className="mrr-page page-enter">
             <div className="mrr-container">
                 <div className="mrr-header">
                     <div>
-                        <h1 className="mrr-title">Result Review</h1>
+                        <h1 className="mrr-title">Calibration Review</h1>
                         <p className="mrr-subtitle">View detailed evaluation scores for teams you have been assigned to mentor.</p>
                     </div>
                     <div className="mrr-badge">
@@ -101,9 +111,10 @@ const MentorResultReview = () => {
                 </div>
 
                 {loading && (
-                    <div className="mrr-loading">
-                        <div className="mrr-spinner" />
-                        <span>Loading teams...</span>
+                    <div style={{ padding: '32px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', marginTop: '24px' }}>
+                        <div className="skeleton-box" style={{ width: '100%', height: '80px', marginBottom: '16px' }}></div>
+                        <div className="skeleton-box" style={{ width: '100%', height: '80px', marginBottom: '16px' }}></div>
+                        <div className="skeleton-box" style={{ width: '100%', height: '80px' }}></div>
                     </div>
                 )}
 
@@ -122,12 +133,12 @@ const MentorResultReview = () => {
                         </div>
 
                         {publishedTeams.length === 0 ? (
-                            <div className="mrr-empty-full">
-                                <svg width="52" height="52" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" style={{ marginBottom: 20 }}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            <div className="empty-state-container" style={{ marginTop: '24px' }}>
+                                <svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
-                                <h3>Scores Not Yet Published</h3>
-                                <p>The administrator has not published scores yet. Check back later.</p>
+                                <h3 className="empty-state-title">Scores Not Yet Published</h3>
+                                <p className="empty-state-desc">The administrator has not published scores yet. Check back later.</p>
                             </div>
                         ) : (
                             <div className="mrr-layout">
@@ -210,28 +221,28 @@ const MentorResultReview = () => {
                                                             ) : (
                                                                 <table className="mrr-table">
                                                                     <thead>
-                                                                        <tr>
-                                                                            <th>Criteria</th>
-                                                                            <th>Weight</th>
-                                                                            <th>Avg. Score</th>
-                                                                            <th>Feedback</th>
-                                                                        </tr>
+                                                                    <tr>
+                                                                        <th>Criteria</th>
+                                                                        <th>Weight</th>
+                                                                        <th>Avg. Score</th>
+                                                                        <th>Feedback</th>
+                                                                    </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        {round.detailedScores.map((d, di) => (
-                                                                            <tr key={di}>
-                                                                                <td className="mrr-td-criteria">{d.criteriaName}</td>
-                                                                                <td className="mrr-td-center">{d.weight != null ? `${d.weight}%` : '—'}</td>
-                                                                                <td className="mrr-td-center mrr-td-points">{d.pointsAwarded ?? '—'}</td>
-                                                                                <td className="mrr-td-feedback">
-                                                                                    {d.feedback ? (
-                                                                                        <span style={{ whiteSpace: 'pre-wrap' }}>{d.feedback}</span>
-                                                                                    ) : (
-                                                                                        <em style={{ color: '#94a3b8' }}>No feedback</em>
-                                                                                    )}
-                                                                                </td>
-                                                                            </tr>
-                                                                        ))}
+                                                                    {round.detailedScores.map((d, di) => (
+                                                                        <tr key={di}>
+                                                                            <td className="mrr-td-criteria">{d.criteriaName}</td>
+                                                                            <td className="mrr-td-center">{d.weight != null ? `${d.weight}%` : '—'}</td>
+                                                                            <td className="mrr-td-center mrr-td-points">{d.pointsAwarded ?? '—'}</td>
+                                                                            <td className="mrr-td-feedback">
+                                                                                {d.feedback ? (
+                                                                                    <span style={{ whiteSpace: 'pre-wrap' }}>{d.feedback}</span>
+                                                                                ) : (
+                                                                                    <em style={{ color: '#94a3b8' }}>No feedback</em>
+                                                                                )}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
                                                                     </tbody>
                                                                 </table>
                                                             )}

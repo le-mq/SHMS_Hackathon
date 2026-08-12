@@ -220,6 +220,10 @@
     text-align: center;
     transition: all 0.2s;
     border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
 }
 
 .btn-primary {
@@ -407,8 +411,8 @@
     transition: all 0.2s;
 }
 
-.cancel-reg-btn:hover { 
-    background: #fef2f2; 
+.cancel-reg-btn:hover {
+    background: #fef2f2;
     border-color: #ef4444;
 }
 

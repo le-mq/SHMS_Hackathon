@@ -446,7 +446,7 @@ const MentorCategory = () => {
                                                         setFeedbackContent(team.mentorFeedback || '');
                                                         setFeedbackMessage('');
                                                     }} className={`feedback-btn ${team.hasGivenFeedback ? 'reviewed' : 'pending'}`}>
-                                                        {team.hasGivenFeedback ? 'Edit Feedback' : 'Review'}
+                                                        {team.hasGivenFeedback ? 'Edit Feedback' : 'Review Team Progress'}
                                                     </button>
                                                 ) : ( <span style={{ fontSize: '12px', color: '#94a3b8' }}>—</span> )}
                                                 </td>

@@ -30,7 +30,10 @@ public record ContestDTO(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime contestStartAt,
         java.util.List<CategoryDTO> categories,
-        java.util.List<RoundDTO> rounds
+        java.util.List<RoundDTO> rounds,
+        Long totalTeams,
+        Long totalSubmissions,
+        Integer judgedPercent
 ) {
     public record RoundDTO(
             String phaseName,
@@ -51,10 +54,14 @@ public record ContestDTO(
     public record CategoryDTO(Long id, String name, String description, String guidelineUrl, java.util.List<RoundDTO> rounds) {}
 
     public static ContestDTO from(Contest c) {
-        return from(c, null, null);
+        return from(c, null, null, 0L, 0L, 0);
     }
 
     public static ContestDTO from(Contest c, java.util.List<CategoryDTO> categories, java.util.List<RoundDTO> rounds) {
+        return from(c, categories, rounds, 0L, 0L, 0);
+    }
+
+    public static ContestDTO from(Contest c, java.util.List<CategoryDTO> categories, java.util.List<RoundDTO> rounds, Long totalTeams, Long totalSubmissions, Integer judgedPercent) {
         return new ContestDTO(
                 c.getId(),
                 c.getName(),
@@ -75,7 +82,10 @@ public record ContestDTO(
                 c.getPublishedAt(),
                 c.getContestStartAt(),
                 categories != null ? categories : java.util.List.of(),
-                rounds != null ? rounds : java.util.List.of()
+                rounds != null ? rounds : java.util.List.of(),
+                totalTeams != null ? totalTeams : 0L,
+                totalSubmissions != null ? totalSubmissions : 0L,
+                judgedPercent != null ? judgedPercent : 0
         );
     }
 }

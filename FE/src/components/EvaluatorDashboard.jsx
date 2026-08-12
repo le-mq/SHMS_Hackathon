@@ -193,7 +193,7 @@ const EvaluatorDashboard = () => {
     });
 
     return (
-        <div className="evaluator-container">
+        <div className="evaluator-container page-enter">
             <div style={{ padding: '20px', maxWidth: 1200, margin: 'auto' }}>
                 {/* Floating Explore Button */}
                 <div className="fab-animated" style={{ position: 'fixed', bottom: '40px', right: '40px', zIndex: 999, borderRadius: '30px' }}>
@@ -211,10 +211,14 @@ const EvaluatorDashboard = () => {
             </div>
             <div className="evaluator-content">
                 {isLoading ? (
-                    <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b', background: 'white', borderRadius: '12px', border: '1.5px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <div style={{ width: '40px', height: '40px', margin: '0 auto 16px', border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                        <p style={{ fontSize: '15px', fontWeight: 500 }}>Loading workspace...</p>
-                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    <div style={{ padding: '32px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div className="skeleton-box" style={{ width: '30%', height: '32px', marginBottom: '24px' }}></div>
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+                            <div className="skeleton-box" style={{ flex: 1, height: '100px' }}></div>
+                            <div className="skeleton-box" style={{ flex: 1, height: '100px' }}></div>
+                            <div className="skeleton-box" style={{ flex: 1, height: '100px' }}></div>
+                        </div>
+                        <div className="skeleton-box" style={{ width: '100%', height: '400px' }}></div>
                     </div>
                 ) : !selectedContest ? (
                     <div className="contest-list-view">
@@ -380,86 +384,24 @@ const EvaluatorDashboard = () => {
                             </div>
                         </div>
 
-                        <div className="stats-row">
-                            <div className="stat-box">
-                                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                        <span className="stat-label" style={{ marginBottom: 0 }}>GRADING TIME WINDOW</span>
-                                        <div className="stat-icon" style={{ margin: 0 }}>
-                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
-                                        {timeStatus && timeStatus === 'OPEN' && (
-                                            <span className="stat-val" style={{ fontSize: '18px', color: '#16a34a', display: 'block', marginBottom: '12px', textAlign: 'center' }}>
-                                                Closes in: {timeLeft}
-                                            </span>
-                                        )}
-                                        {timeStatus && timeStatus === 'CLOSED' && (
-                                            <span className="stat-val" style={{ fontSize: '18px', color: '#ef4444', display: 'block', marginBottom: '12px', textAlign: 'center' }}>
-                                                Grading Ended
-                                            </span>
-                                        )}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', width: '100%' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <span>Closes:</span>
-                                                <span style={{ fontWeight: 600, color: '#334155' }}>{formatScheduleDate(roundMap[selectedRound]?.gradingDeadlineAt, 'No Date Set', 'Invalid Date')}</span>
-                                            </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <span>Format:</span>
-                                                <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                                                    {roundMap[selectedRound]?.roundFormat || 'Not Specified'}
-                                                </span>
-                                            </div>
-                                            {roundMap[selectedRound]?.id && (
-                                                <button
-                                                    onClick={() => setPreviewRoundId(roundMap[selectedRound].id)}
-                                                    style={{ marginTop: '8px', width: '100%', padding: '8px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
-                                                >
-                                                    View Requirements & Rubric
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                            <div style={{ background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Grading Window</div>
+                                <div style={{ fontSize: '16px', fontWeight: 700, color: timeStatus === 'OPEN' ? '#16a34a' : '#ef4444' }}>
+                                    {timeStatus === 'OPEN' ? `Closes: ${timeLeft}` : 'Closed'}
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                    Format: {roundMap[selectedRound]?.roundFormat || 'N/A'}
                                 </div>
                             </div>
-
-                            <div className="stat-box">
-                                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                        <span className="stat-label" style={{ marginBottom: 0 }}>TOTAL ALLOCATED TEAMS</span>
-                                        <div className="stat-icon" style={{ margin: 0 }}>
-                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '8px' }}>
-                                        <span className="stat-val" style={{ fontSize: '40px', lineHeight: 1, margin: 0 }}>{filteredQueue.length}</span>
-                                        <span className="stat-sub" style={{ margin: 0 }}>Teams across all rounds.</span>
-                                    </div>
-                                </div>
+                            <div style={{ background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Assigned Teams</div>
+                                <div style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>{filteredQueue.length}</div>
                             </div>
-                            <div className="stat-box">
-                                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                        <span className="stat-label" style={{ marginBottom: 0 }}>EVALUATION PROGRESS</span>
-                                        <div className="stat-icon" style={{ margin: 0 }}>
-                                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '8px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', margin: 0 }}>
-                                            <span className="stat-val" style={{ fontSize: '40px', lineHeight: 1, margin: 0 }}>{evaluatedCount}/{effectiveTotalTeams}</span>
-                                            <span className="progress-small" style={{ margin: 0, marginLeft: '8px' }}>EVALUATED</span>
-                                        </div>
-                                        <span className="stat-sub" style={{ margin: 0 }}>{remainingToGrade} teams remaining to be graded.</span>
-                                    </div>
+                            <div style={{ background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Evaluation Progress</div>
+                                <div style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>
+                                    {evaluatedCount} <span style={{ fontSize: '16px', color: '#64748b' }}>/ {filteredQueue.length}</span>
                                 </div>
                             </div>
                         </div>
@@ -487,7 +429,7 @@ const EvaluatorDashboard = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {filteredQueue.map((team, idx) => (
+                                {filteredQueue.length > 0 ? filteredQueue.map((team, idx) => (
                                     <tr key={team.teamId || team.id || idx}>
                                         <td><div className="team-info">
                                             <span className="team-name-txt">{team.teamName || team.name}</span>
@@ -533,7 +475,7 @@ const EvaluatorDashboard = () => {
                                                 if (team.submissionState?.toUpperCase() === 'PENDING') {
                                                     return (
                                                         <button className="evaluate-btn" style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', border: '1px solid #cbd5e1' }} disabled>
-                                                            Evaluate
+                                                            Awaiting Submission
                                                         </button>
                                                     );
                                                 }
@@ -552,20 +494,31 @@ const EvaluatorDashboard = () => {
                                                             background: '#ef4444',
                                                             color: 'white', border: 'none'
                                                         }} onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                            Evaluate</button>
+                                                            Grade Zero</button>
                                                     );
                                                 }
 
                                                 return (
                                                     <button className="evaluate-btn"
+                                                            style={{ background: 'var(--shms-navy)', color: 'white', border: 'none' }}
                                                             onClick={() => navigate(`/judge/evaluate/${team.teamId || team.id}?roundId=${team.roundId}`)}>
-                                                        Evaluate</button>
+                                                        Continue Evaluation</button>
                                                 );
                                             })()
                                         )}
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan="6">
+                                            <div className="empty-state-container" style={{ margin: '20px 0', border: 'none', background: 'transparent' }}>
+                                                <svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                                <h3 className="empty-state-title">No Teams Found</h3>
+                                                <p className="empty-state-desc">There are no teams matching the current filter in this round.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
                                 </tbody>
                             </table>
                         </div>

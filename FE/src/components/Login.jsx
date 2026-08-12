@@ -1,15 +1,58 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import './Login.css';
 import NavbarHome from './NavbarHome.jsx';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1");
 const Login = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
     const [formData, setFormData] = useState({
         username: '',
         password: ''
     });
+
+    useEffect(() => {
+        const demoRole = searchParams.get('demoRole');
+        if (demoRole) {
+            const demoAccounts = {
+                'STUDENT': 'demostudent',
+                'JUDGE': 'demojudge',
+                'MENTOR': 'demomentor',
+                'ADMIN': 'demoadmin'
+            };
+            const username = demoAccounts[demoRole.toUpperCase()];
+            if (username) {
+                setFormData({
+                    username: username,
+                    password: '123456'
+                });
+                autoLoginMock(username, '123456');
+            }
+        }
+    }, [searchParams]);
+
+    async function autoLoginMock(username, password) {
+        setIsLoading(true);
+        try {
+            const localRes = await fetch("/testFE.json");
+            const localJson = await localRes.json();
+            const user = localJson.loginMock?.find(
+                u => u.username === username && u.password === password
+            );
+            if (user) {
+                loginSuccess(user);
+            } else {
+                setError("Demo account not found");
+                setIsLoading(false);
+            }
+        } catch (err) {
+            setError("Failed to load demo accounts");
+            setIsLoading(false);
+        }
+    }
+
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +68,7 @@ const Login = () => {
         setShowPassword(!showPassword);
     };
 
-    const loginSuccess = (data) => {
+    function loginSuccess(data) {
         localStorage.setItem('shms_token', data.token);
         if (data.role)
             localStorage.setItem('shms_role', data.role);
@@ -36,6 +79,11 @@ const Login = () => {
         if (data.fullName) {
             localStorage.setItem('shms_fullname', data.fullName);
             localStorage.setItem('shms_fullname_' + data.username, data.fullName);
+        }
+
+        const demoAccounts = ['demostudent', 'demojudge', 'demomentor', 'demoadmin'];
+        if (demoAccounts.includes(data.username)) {
+            localStorage.setItem('shms_is_demo', 'true');
         }
         const role = data.role || '';
         const roleRoutes = {
@@ -56,6 +104,25 @@ const Login = () => {
         }
         setIsLoading(true);
         setError('');
+
+        const demoAccounts = ['demostudent', 'demojudge', 'demomentor', 'demoadmin'];
+        if (demoAccounts.includes(formData.username)) {
+            try {
+                const localRes = await fetch("/testFE.json");
+                const localJson = await localRes.json();
+                const user = localJson.loginMock?.find(
+                    u => u.username === formData.username && u.password === formData.password
+                );
+                if (user) {
+                    loginSuccess(user);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (err) {
+                console.warn("Failed to load demo accounts");
+            }
+        }
+
         try {
             const response = await fetch(API_BASE + '/auth/login', {
                 method: 'POST',

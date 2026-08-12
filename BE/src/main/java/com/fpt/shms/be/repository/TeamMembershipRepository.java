@@ -20,12 +20,15 @@ public interface TeamMembershipRepository extends JpaRepository<TeamMembership, 
 
     long countByTeamId(Long teamId);
 
+    @Query("select count(distinct tm.user.id) from TeamMembership tm where tm.status = 'APPROVED'")
+    long countDistinctParticipants();
+
     Optional<TeamMembership> findByInvitationToken(String invitationToken);
 
     @Query("select tm from TeamMembership tm where tm.user.id = :userId and tm.team.contest.id = :contestId and tm.status in :statuses")
     List<TeamMembership> findByUserIdAndContestIdAndStatusIn(@org.springframework.data.repository.query.Param("userId") Long userId,
-                                                              @org.springframework.data.repository.query.Param("contestId") Long contestId,
-                                                              @org.springframework.data.repository.query.Param("statuses") List<String> statuses);
+                                                             @org.springframework.data.repository.query.Param("contestId") Long contestId,
+                                                             @org.springframework.data.repository.query.Param("statuses") List<String> statuses);
 
     @Query("select count(tm) from TeamMembership tm where tm.team.id = :teamId and tm.status in :statuses")
     long countByTeamIdAndStatusIn(@org.springframework.data.repository.query.Param("teamId") Long teamId,

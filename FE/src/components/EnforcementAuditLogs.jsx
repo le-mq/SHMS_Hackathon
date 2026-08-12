@@ -88,7 +88,17 @@ const EnforcementAuditLogs = () => {
                     }
                 }
             } catch (err) {
-                console.error('Cannot load audit logs.', err);
+                try {
+                    const fallbackRes = await fetch('/testFE.json');
+                    const fallbackData = await fallbackRes.json();
+                    if (fallbackData.enforcementAuditLogs && Array.isArray(fallbackData.enforcementAuditLogs)) {
+                        setLogs(fallbackData.enforcementAuditLogs);
+                    } else {
+                        console.error('Data missing in testFE.json');
+                    }
+                } catch (fallbackErr) {
+                    console.error('Cannot load audit logs.', err);
+                }
             } finally {
                 setInitialLoading(false);
             }

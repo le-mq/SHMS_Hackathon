@@ -55,7 +55,7 @@ function HackathonConfig() {
     const [isLoading, setIsLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [deletedCategories, setDeletedCategories] = useState([]);
-    const [activeTab, setActiveTab] = useState('core');
+    const [activeTab, setActiveTab] = useState('overview');
     const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
     const [suggestions, setSuggestions] = useState({});
     const [originalDates, setOriginalDates] = useState({});
@@ -561,7 +561,7 @@ function HackathonConfig() {
     const ganttBars = useMemo(() => buildAllGanttBars(), [formik.values.rounds, formik.values.registrationStart, formik.values.registrationEnd, formik.values.contestEndAt]);
 
     if (initialLoading) return (
-        <div className="hc-root">
+        <div className="hc-root page-enter">
             <div style={{ padding: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[80, 60, 70, 55].map((w, i) => <div key={i} className="hc-skeleton" style={{ height: 38, width: `${w}%`, borderRadius: 6 }} />)}
             </div>
@@ -585,7 +585,7 @@ function HackathonConfig() {
     }
 
     return (
-        <div className="hc-root">
+        <div className="hc-root page-enter">
             <FormikProvider value={formik}><Form onSubmit={formik.handleSubmit} style={{ display: 'contents' }}>
                 <div className="hc-topbar">
                     <div className="hc-topbar-left">
@@ -620,6 +620,13 @@ function HackathonConfig() {
                     {/* LEFT COLUMN */}
                     <div className="hc-sidebar">
                         <div className="hc-sidebar-scroll">
+                            <div className={`hc-nav-card${activeTab === 'overview' ? ' active' : ''}`} onClick={() => setActiveTab('overview')}>
+                                <div className="hc-nav-card-header">
+                                    <h3 className="hc-nav-card-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg> Operations Overview</h3>
+                                </div>
+                                <p className="hc-nav-card-desc">Readiness and live status</p>
+                            </div>
+
                             <div className={`hc-nav-card${activeTab === 'core' ? ' active' : ''}`} onClick={() => setActiveTab('core')}>
                                 <div className="hc-nav-card-header">
                                     <h3 className="hc-nav-card-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg> Contest Information</h3>
@@ -654,6 +661,45 @@ function HackathonConfig() {
 
                     {/* RIGHT COLUMN */}
                     <div className="hc-content">
+                        {activeTab === 'overview' && (
+                            <div className="hc-tab-scroll">
+                                <div>
+                                    <h2 className="hc-content-title">Operations Console</h2>
+                                    <p className="hc-content-subtitle">Real-time readiness for {formik.values.name || 'Unnamed Event'}</p>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '24px' }}>
+                                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'var(--shms-shadow-sm)' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Contest Status</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--shms-navy)', marginBottom: '8px' }}>
+                                            {formik.values.status || 'UNSAVED'}
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>Overall lifecycle state of the hackathon season.</p>
+                                    </div>
+                                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'var(--shms-shadow-sm)' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Registration Status</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--shms-navy)', marginBottom: '8px' }}>
+                                            {determineStatus(formik.values.registrationStart, formik.values.registrationEnd)}
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>Team formation and onboarding phase.</p>
+                                    </div>
+                                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'var(--shms-shadow-sm)' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Submission Status</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--shms-navy)', marginBottom: '8px' }}>
+                                            {formik.values.rounds.length > 0 ? determineStatus(formik.values.rounds[0].submissionOpen, formik.values.rounds[0].submissionDeadline) : 'N/A'}
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>Project submission phase for teams.</p>
+                                    </div>
+                                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'var(--shms-shadow-sm)' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Judging Readiness</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--shms-navy)', marginBottom: '8px' }}>
+                                            {formik.values.rounds.length > 0 ? (new Date(formik.values.rounds[0].submissionDeadline) < new Date() ? 'READY' : 'WAITING') : 'N/A'}
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>Evaluator panels and rubric configurations.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {activeTab === 'core' && (
                             <div className="hc-tab-scroll">
                                 <div>

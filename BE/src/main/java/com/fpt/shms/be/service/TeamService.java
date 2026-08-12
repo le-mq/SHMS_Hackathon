@@ -286,7 +286,7 @@ public class TeamService {
         long approvedMemberCount = allMemberships.stream()
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .count();
-        
+
         List<TeamMembership> approvedMembers = allMemberships.stream()
                 .filter(tm -> "APPROVED".equalsIgnoreCase(tm.getStatus()))
                 .toList();
@@ -529,7 +529,7 @@ public class TeamService {
 
         long remainingCount = approvedMembers.size() - toRemove.size();
         int minMembers = contest.getMinTeamMembers() != null ? contest.getMinTeamMembers() : 3;
-        int maxMembers = contest.getMaxTeamMembers() != null ? contest.getMaxTeamMembers() : 5;
+
         if (remainingCount < minMembers) {
             throw new IllegalArgumentException("Ineligible members removed. However, the team now has only "
                     + remainingCount
@@ -1024,10 +1024,7 @@ public class TeamService {
         }
     }
 
-    private Student requireStudent(User user) {
-        return studentRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("User is not a registered student."));
-    }
+
 
     @Transactional(readOnly = true)
     public java.util.List<java.util.Map<String, Object>> searchStudents(String keyword) {

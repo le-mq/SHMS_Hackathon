@@ -226,10 +226,11 @@ const TeamRegistrationApproval = () => {
 
     if (isLoading) {
         return (
-            <div className="approval-container">
-                <div className="global-loading">
-                    <div className="global-spinner"></div>
-                    <span>Loading registration approvals...</span>
+            <div className="approval-container page-enter">
+                <div style={{ padding: '32px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', marginTop: '24px' }}>
+                    <div className="skeleton-box" style={{ width: '100%', height: '80px', marginBottom: '16px' }}></div>
+                    <div className="skeleton-box" style={{ width: '100%', height: '80px', marginBottom: '16px' }}></div>
+                    <div className="skeleton-box" style={{ width: '100%', height: '80px' }}></div>
                 </div>
             </div>
         );
@@ -238,7 +239,7 @@ const TeamRegistrationApproval = () => {
 
     if (!selectedContestId) {
         return (
-            <div className="approval-container">
+            <div className="approval-container page-enter">
                 <div style={{ padding: '40px', maxWidth: 1800, margin: 'auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                         <div>
@@ -387,7 +388,7 @@ const TeamRegistrationApproval = () => {
     }
 
     return (
-        <div className="approval-container">
+        <div className="approval-container page-enter">
             <div className="approval-content">
                 <div className="approval-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
                     <div className="approval-title-area">
@@ -470,126 +471,132 @@ const TeamRegistrationApproval = () => {
                         <div className="stat-value">{totalParticipantsCount} Students</div>
                     </div>
                 </div>                <div className="table-section">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #d1d5db', background: '#f8fafc' }}>
-                        <button
-                            onClick={() => {
-                                const token = localStorage.getItem('shms_token');
-                                window.open(`${API_BASE}/admin/results/export-csv?type=teams&contestId=${selectedContestId}&token=${token}`, '_blank');
-                            }}
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '8px 16px',
-                                background: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.background = '#059669';
-                                e.currentTarget.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.3)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.background = '#10b981';
-                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
-                            }}
-                        >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Download Team List (CSV)
-                        </button>
-                    </div>
-                    <table className="teams-table">
-                        <thead>
-                            <tr>
-                                <th style={{ textAlign: 'left' }}>Team Name</th>
-                                <th style={{ textAlign: 'center', width: '20%' }}>Status</th>
-                                <th style={{ textAlign: 'center', width: '30%' }}>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredTeams.map(team => {
-                                const statusText = (team.status || 'ACTIVED').toLowerCase();
-                                const isCanceled = statusText === 'canceled';
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #d1d5db', background: '#f8fafc' }}>
+                    <button
+                        onClick={() => {
+                            const token = localStorage.getItem('shms_token');
+                            window.open(`${API_BASE}/admin/results/export-csv?type=teams&contestId=${selectedContestId}&token=${token}`, '_blank');
+                        }}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 16px',
+                            background: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = '#059669';
+                            e.currentTarget.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.3)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = '#10b981';
+                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                        }}
+                    >
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download Team List (CSV)
+                    </button>
+                </div>
+                <table className="teams-table">
+                    <thead>
+                    <tr>
+                        <th style={{ textAlign: 'left' }}>Team Name</th>
+                        <th style={{ textAlign: 'center', width: '20%' }}>Status</th>
+                        <th style={{ textAlign: 'center', width: '30%' }}>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {filteredTeams.map(team => {
+                        const statusText = (team.status || 'ACTIVED').toLowerCase();
+                        const isCanceled = statusText === 'canceled';
 
-                                let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
-                                if (statusText === 'approved') {
-                                    badgeStyle.backgroundColor = '#a9f8c5';
-                                    badgeStyle.color = '#15803d';
-                                } else if (isCanceled) {
-                                    badgeStyle.backgroundColor = '#f9bebe';
-                                    badgeStyle.color = '#b91c1c';
-                                } else {
-                                    badgeStyle.backgroundColor = '#f1f5f9';
-                                    badgeStyle.color = '#475569';
-                                }
+                        let badgeStyle = { padding: '4px 8px', width: '100px', borderRadius: '6px', fontSize: '12px', fontWeight: '680', textTransform: 'uppercase', display: 'inline-block' };
+                        if (statusText === 'approved') {
+                            badgeStyle.backgroundColor = '#a9f8c5';
+                            badgeStyle.color = '#15803d';
+                        } else if (isCanceled) {
+                            badgeStyle.backgroundColor = '#f9bebe';
+                            badgeStyle.color = '#b91c1c';
+                        } else {
+                            badgeStyle.backgroundColor = '#f1f5f9';
+                            badgeStyle.color = '#475569';
+                        }
 
-                                return (
-                                    <tr key={team.id}>
-                                        <td style={{ textAlign: 'left' }}>
-                                            <div className="team-name-col">
-                                                <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
-                                                <span className="team-name">{team.name}</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
+                        return (
+                            <tr key={team.id}>
+                                <td style={{ textAlign: 'left' }}>
+                                    <div className="team-name-col">
+                                        <div className="team-avatar">{team.name.substring(0, 2).toUpperCase()}</div>
+                                        <span className="team-name">{team.name}</span>
+                                    </div>
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
                                             <span style={badgeStyle}>
                                                 {team.status || 'ACTIVED'}
                                             </span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
-                                                <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
-                                                    style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                    onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
-                                                    onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+                                        <button onClick={() => setMembersModal({ isOpen: true, teamName: team.name, members: team.members || [] })}
+                                                style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #67a0e4', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                onMouseOver={(e) => e.target.style.backgroundColor = '#dbeafe'}
+                                                onMouseOut={(e) => e.target.style.backgroundColor = '#eff6ff'}
+                                        >
+                                            View Members
+                                        </button>
+
+                                        {!isContestClosed && (
+                                            isCanceled ? (
+                                                <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
+                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
                                                 >
-                                                    View Members
+                                                    Approve
                                                 </button>
+                                            ) : (
+                                                <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
+                                                        style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                        onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
+                                                        onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
+                                                >
+                                                    Cancel Team
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        );
+                    })}
 
-                                                {!isContestClosed && (
-                                                    isCanceled ? (
-                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'APPROVE')}
-                                                            style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#dcfce7', color: '#16a34a', border: '1px solid #4bcc78', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                            onMouseOver={(e) => e.target.style.backgroundColor = '#bbf7d0'}
-                                                            onMouseOut={(e) => e.target.style.backgroundColor = '#dcfce7'}
-                                                        >
-                                                            Approve
-                                                        </button>
-                                                    ) : (
-                                                        <button onClick={() => handleOpenActionModal(team.id, team.name, 'CANCEL')}
-                                                            style={{ padding: '4px 10px', width: '100px', fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #f04b4b', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                            onMouseOver={(e) => e.target.style.backgroundColor = '#fecaca'}
-                                                            onMouseOut={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                                                        >
-                                                            Cancel Team
-                                                        </button>
-                                                    )
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-
-                            {filteredTeams.length === 0 && (
-                                <tr>
-                                    <td colSpan="3" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No teams found</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                    <div style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>
-                        Showing {filteredTeams.length} teams
-                    </div>
+                    {filteredTeams.length === 0 && (
+                        <tr>
+                            <td colSpan="3">
+                                <div className="empty-state-container" style={{ margin: '20px 0', border: 'none', background: 'transparent' }}>
+                                    <svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    <h3 className="empty-state-title">No Teams Found</h3>
+                                    <p className="empty-state-desc">There are no teams matching the current filter in this contest.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
+                <div style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>
+                    Showing {filteredTeams.length} teams
                 </div>
+            </div>
 
                 {cancelModal.isOpen && (
                     <div style={{
@@ -612,21 +619,21 @@ const TeamRegistrationApproval = () => {
                             </p>
 
                             <textarea rows="4" value={cancelModal.reason}
-                                onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
-                                placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
-                                style={{
-                                    width: '100%', padding: '10px', borderRadius: '6px',
-                                    border: '1px solid #cbd5e1', fontSize: '14px',
-                                    boxSizing: 'border-box', resize: 'none', marginBottom: '20px'
-                                }} />
+                                      onChange={(e) => setCancelModal({ ...cancelModal, reason: e.target.value })}
+                                      placeholder={cancelModal.type === 'CANCEL' ? "Enter the reason for cancellation here..." : "Enter the reason for re-approval here..."}
+                                      style={{
+                                          width: '100%', padding: '10px', borderRadius: '6px',
+                                          border: '1px solid #cbd5e1', fontSize: '14px',
+                                          boxSizing: 'border-box', resize: 'none', marginBottom: '20px'
+                                      }} />
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                 <button onClick={handleCloseCancelModal}
-                                    style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer' }}>
+                                        style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '6px', color: '#475569', cursor: 'pointer' }}>
                                     Cancel
                                 </button>
                                 <button onClick={handleConfirmCancelStatus}
-                                    style={{ padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>
+                                        style={{ padding: '8px 16px', background: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>
                                     Confirmation
                                 </button>
                             </div>
@@ -647,28 +654,28 @@ const TeamRegistrationApproval = () => {
                             {membersModal.members && membersModal.members.length > 0 ? (
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: '#f8fafc' }}>
-                                        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>NAME</th>
-                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STUDENT ID</th>
-                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>UNIVERSITY</th>
-                                            <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>ROLE</th>
-                                        </tr>
+                                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>NAME</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>STUDENT ID</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>UNIVERSITY</th>
+                                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', color: '#64748b', fontWeight: '700' }}>ROLE</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {membersModal.members.map((m, idx) => (
-                                            <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
-                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
-                                                <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
-                                                <td style={{ padding: '12px', fontSize: '13px' }}>
-                                                    {m.role === 'MEMBER' ? (
-                                                        <span style={{ color: '#16a34a', fontWeight: '600' }}>MEMBER</span>
-                                                    ) : (
-                                                        <span style={{ color: '#dc2626', fontWeight: '600' }}>LEADER</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                    {membersModal.members.map((m, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#0f172a', fontWeight: '500' }}>{m.name || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.studentId || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px', color: '#475569' }}>{m.university || 'N/A'}</td>
+                                            <td style={{ padding: '12px', fontSize: '13px' }}>
+                                                {m.role === 'MEMBER' ? (
+                                                    <span style={{ color: '#16a34a', fontWeight: '600' }}>MEMBER</span>
+                                                ) : (
+                                                    <span style={{ color: '#dc2626', fontWeight: '600' }}>LEADER</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             ) : (

@@ -36,7 +36,17 @@ const JudgeResultReview = () => {
                 const data = await res.json();
                 setDashboardData(data);
             } catch (e) {
-                setError(e.message || 'Failed to load data');
+                try {
+                    const fallbackRes = await fetch('/testFE.json');
+                    const fallbackData = await fallbackRes.json();
+                    if (fallbackData.judgeResultReview) {
+                        setDashboardData(fallbackData.judgeResultReview);
+                    } else {
+                        throw new Error('Data missing in testFE.json');
+                    }
+                } catch (fallbackErr) {
+                    setError(e.message || 'Failed to load data');
+                }
             } finally {
                 setLoading(false);
             }
@@ -75,7 +85,7 @@ const JudgeResultReview = () => {
             <div className="jrr-container">
                 <div className="jrr-header">
                     <div>
-                        <h1 className="jrr-title">Result Review</h1>
+                        <h1 className="jrr-title">Calibration Review</h1>
                         <p className="jrr-subtitle">View the scores and feedback you submitted for each team after results are published.</p>
                     </div>
                     <div className="jrr-badge">

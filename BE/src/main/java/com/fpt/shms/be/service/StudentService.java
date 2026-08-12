@@ -19,7 +19,7 @@ public class StudentService {
 
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
-    private final VerificationTokenRepository tokenRepository;
+
     private final TeamMembershipRepository teamMembershipRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -60,10 +60,10 @@ public class StudentService {
         if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
             if (!passwordEncoder.matches(request.getCurrentPassword(),
                     user.getPassword())) {
-            throw new IllegalArgumentException("Current password is incorrect");
+                throw new IllegalArgumentException("Current password is incorrect");
             }
             if (request.getNewPassword().length() < 8) {
-             throw new IllegalArgumentException("New password must be at least 8 characters");
+                throw new IllegalArgumentException("New password must be at least 8 characters");
             }
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 

@@ -1007,7 +1007,7 @@ const RankingsConsole = () => {
     }
 
     return (
-        <div className="rankings-container">
+        <div className="rankings-container page-enter">
             <div className="rankings-content">
                 {viewMode === 'ROUNDS_LIST' ? (
                     <>
@@ -1264,20 +1264,20 @@ const RankingsConsole = () => {
                                             <div style={{ overflowX: 'auto' }}>
                                                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: 0, background: '#ffffff' }}>
                                                     <thead>
-                                                        <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
-                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Judge Name</th>
-                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Grading Status</th>
-                                                            <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Update</th>
-                                                        </tr>
+                                                    <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                                                        <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Judge Name</th>
+                                                        <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Grading Status</th>
+                                                        <th style={{ padding: '12px 16px', color: '#475569', fontSize: '11px', fontWeight: 'bold', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Update</th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {readinessData.evaluators.map((ev, idx) => (
-                                                            <tr key={idx} style={{ borderBottom: '1.2px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600', fontSize: '13px' }}>{ev.name}</td>
-                                                                <td style={{ padding: '14px 16px' }}>{renderStatusBadge(ev.status, ev.status)}</td>
-                                                                <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '13px' }}>{ev.date || '—'}</td>
-                                                            </tr>
-                                                        ))}
+                                                    {readinessData.evaluators.map((ev, idx) => (
+                                                        <tr key={idx} style={{ borderBottom: '1.2px solid #e2e8f0' }}>
+                                                            <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600', fontSize: '13px' }}>{ev.name}</td>
+                                                            <td style={{ padding: '14px 16px' }}>{renderStatusBadge(ev.status, ev.status)}</td>
+                                                            <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '13px' }}>{ev.date || '—'}</td>
+                                                        </tr>
+                                                    ))}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -1394,84 +1394,84 @@ const RankingsConsole = () => {
                                             }}>
                                                 <table className="eval-table" style={{ margin: 0, width: '100%', background: '#ffffff', border: 'none', borderCollapse: 'collapse', fontFamily: 'monospace' }}>
                                                     <thead>
-                                                        <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
-                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>RANK</th>
-                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>TEAM NAME</th>
-                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>AVG SCORE</th>
-                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>STATUS</th>
-                                                            {prizes.length > 0 && <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>PRIZE</th>}
-                                                            <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>ACTION</th>
-                                                        </tr>
+                                                    <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                                                        <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>RANK</th>
+                                                        <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>TEAM NAME</th>
+                                                        <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>AVG SCORE</th>
+                                                        <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>STATUS</th>
+                                                        {prizes.length > 0 && <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold' }}>PRIZE</th>}
+                                                        <th style={{ color: '#475569', padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>ACTION</th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {result.results.map(r => {
-                                                            const isQualified = r.rank <= currentCompiledTopN;
-                                                            const teamPrize = getPrizeForRank(r.rank);
-                                                            return (
-                                                                <tr key={r.rank} style={{ borderBottom: '1.2px solid #e2e8f0', transition: 'background-color 0.2s' }}>
-                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '800' }}>#{r.rank}</td>
-                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600' }}>{r.teamName}</td>
-                                                                    <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '700' }}>{Number(r.averageScore).toFixed(1)}</td>
-                                                                    <td style={{ padding: '14px 16px' }}>
-                                                                        {renderStatusBadge(
-                                                                            isQualified ? 'qualified' : 'eliminated',
-                                                                            isQualified ? 'QUALIFIED' : 'ELIMINATED'
-                                                                        )}
-                                                                    </td>
-                                                                    {prizes.length > 0 && (
-                                                                        <td style={{ padding: '14px 16px' }}>
-                                                                            {(() => {
-                                                                                const cfg = PRIZE_STYLE_MAP[r.rank] || PRIZE_STYLE_MAP.default;
-                                                                                return teamPrize ? (
-                                                                                    <span style={{
-                                                                                        background: cfg.bg,
-                                                                                        color: cfg.text,
-                                                                                        border: `1px solid ${cfg.border}`,
-                                                                                        padding: '2px 8px',
-                                                                                        borderRadius: '4px',
-                                                                                        fontSize: '11px',
-                                                                                        fontWeight: 'bold',
-                                                                                        display: 'inline-flex',
-                                                                                        alignItems: 'center',
-                                                                                        gap: '6px'
-                                                                                    }}>
-                                                                                        <TrophyIcon color={cfg.text} />
-                                                                                        {teamPrize}
-                                                                                    </span>
-                                                                                ) : (
-                                                                                    <span style={{ color: '#94a3b8' }}>—</span>
-                                                                                );
-                                                                            })()}
-                                                                        </td>
+                                                    {result.results.map(r => {
+                                                        const isQualified = r.rank <= currentCompiledTopN;
+                                                        const teamPrize = getPrizeForRank(r.rank);
+                                                        return (
+                                                            <tr key={r.rank} style={{ borderBottom: '1.2px solid #e2e8f0', transition: 'background-color 0.2s' }}>
+                                                                <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '800' }}>#{r.rank}</td>
+                                                                <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '600' }}>{r.teamName}</td>
+                                                                <td style={{ padding: '14px 16px', color: '#0f172a', fontWeight: '700' }}>{Number(r.averageScore).toFixed(1)}</td>
+                                                                <td style={{ padding: '14px 16px' }}>
+                                                                    {renderStatusBadge(
+                                                                        isQualified ? 'qualified' : 'eliminated',
+                                                                        isQualified ? 'QUALIFIED' : 'ELIMINATED'
                                                                     )}
-                                                                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                                                                        <button
-                                                                            disabled={isResultPublished}
-                                                                            onClick={() => {
-                                                                                if (isResultPublished) return;
-                                                                                setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
-                                                                                setIsRevalModalOpen(true);
-                                                                            }}
-                                                                            style={{
-                                                                                background: isResultPublished ? '#f1f5f9' : '#fef2f2',
-                                                                                border: `1px dashed ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
-                                                                                padding: '4px 10px',
-                                                                                borderRadius: '6px',
-                                                                                cursor: isResultPublished ? 'not-allowed' : 'pointer',
-                                                                                fontSize: '11px',
-                                                                                color: isResultPublished ? '#94a3b8' : '#dc2626',
-                                                                                fontWeight: 'bold',
-                                                                                opacity: isResultPublished ? 0.5 : 1,
-                                                                                transition: 'all 0.2s'
-                                                                            }}
-                                                                            title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
-                                                                        >
-                                                                            Request Re-eval
-                                                                        </button>
+                                                                </td>
+                                                                {prizes.length > 0 && (
+                                                                    <td style={{ padding: '14px 16px' }}>
+                                                                        {(() => {
+                                                                            const cfg = PRIZE_STYLE_MAP[r.rank] || PRIZE_STYLE_MAP.default;
+                                                                            return teamPrize ? (
+                                                                                <span style={{
+                                                                                    background: cfg.bg,
+                                                                                    color: cfg.text,
+                                                                                    border: `1px solid ${cfg.border}`,
+                                                                                    padding: '2px 8px',
+                                                                                    borderRadius: '4px',
+                                                                                    fontSize: '11px',
+                                                                                    fontWeight: 'bold',
+                                                                                    display: 'inline-flex',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '6px'
+                                                                                }}>
+                                                                                        <TrophyIcon color={cfg.text} />
+                                                                                    {teamPrize}
+                                                                                    </span>
+                                                                            ) : (
+                                                                                <span style={{ color: '#94a3b8' }}>—</span>
+                                                                            );
+                                                                        })()}
                                                                     </td>
-                                                                </tr>
-                                                            );
-                                                        })}
+                                                                )}
+                                                                <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                                                                    <button
+                                                                        disabled={isResultPublished}
+                                                                        onClick={() => {
+                                                                            if (isResultPublished) return;
+                                                                            setRevalData({ teamId: r.teamId, teamName: r.teamName, reason: '' });
+                                                                            setIsRevalModalOpen(true);
+                                                                        }}
+                                                                        style={{
+                                                                            background: isResultPublished ? '#f1f5f9' : '#fef2f2',
+                                                                            border: `1px dashed ${isResultPublished ? '#cbd5e1' : '#fecaca'}`,
+                                                                            padding: '4px 10px',
+                                                                            borderRadius: '6px',
+                                                                            cursor: isResultPublished ? 'not-allowed' : 'pointer',
+                                                                            fontSize: '11px',
+                                                                            color: isResultPublished ? '#94a3b8' : '#dc2626',
+                                                                            fontWeight: 'bold',
+                                                                            opacity: isResultPublished ? 0.5 : 1,
+                                                                            transition: 'all 0.2s'
+                                                                        }}
+                                                                        title={isResultPublished ? 'Results published — re-evaluation is locked' : 'Request Re-evaluation'}
+                                                                    >
+                                                                        Request Re-eval
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -1680,75 +1680,75 @@ const RankingsConsole = () => {
                                 <div className="eval-table-card">
                                     <table className="eval-table">
                                         <thead>
-                                            <tr>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Team Name</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Status</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Submitted At</th>
-                                                <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700, textAlign: 'right', paddingRight: '24px' }}>Action</th>
-                                            </tr>
+                                        <tr>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Team Name</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Status</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700 }}>Submitted At</th>
+                                            <th style={{ background: '#e2e8f0', color: '#1e293b', borderBottom: '2px solid #cbd5e1', fontWeight: 700, textAlign: 'right', paddingRight: '24px' }}>Action</th>
+                                        </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredSubmissions.map(team => {
-                                                const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
-                                                const isNotSubmitted = team.submissionState === 'Not Submitted';
-                                                const isMissing = isAutoZero || isNotSubmitted;
+                                        {filteredSubmissions.map(team => {
+                                            const isAutoZero = team.submissionState === 'MISSED_DEADLINE';
+                                            const isNotSubmitted = team.submissionState === 'Not Submitted';
+                                            const isMissing = isAutoZero || isNotSubmitted;
 
-                                                let displayText = team.submissionState;
-                                                let bgColor = '#dcfce7';
-                                                let textColor = '#15803d';
+                                            let displayText = team.submissionState;
+                                            let bgColor = '#dcfce7';
+                                            let textColor = '#15803d';
 
-                                                if (isMissing) {
-                                                    if (roundProgress && roundProgress.roundStatus === 'CLOSED') {
-                                                        displayText = 'Not Submitted';
-                                                        bgColor = '#fee2e2';
-                                                        textColor = '#b91c1c';
-                                                    } else {
-                                                        displayText = 'Awaiting Submission';
-                                                        bgColor = '#fef3c7';
-                                                        textColor = '#b45309';
-                                                    }
-                                                } else if (team.submissionState === 'OFFICIAL') {
-                                                    displayText = 'Submitted';
-                                                } else if (team.submissionState === 'DRAFT') {
-                                                    displayText = 'Draft';
-                                                    bgColor = '#f1f5f9';
-                                                    textColor = '#475569';
+                                            if (isMissing) {
+                                                if (roundProgress && roundProgress.roundStatus === 'CLOSED') {
+                                                    displayText = 'Not Submitted';
+                                                    bgColor = '#fee2e2';
+                                                    textColor = '#b91c1c';
+                                                } else {
+                                                    displayText = 'Awaiting Submission';
+                                                    bgColor = '#fef3c7';
+                                                    textColor = '#b45309';
                                                 }
+                                            } else if (team.submissionState === 'OFFICIAL') {
+                                                displayText = 'Submitted';
+                                            } else if (team.submissionState === 'DRAFT') {
+                                                displayText = 'Draft';
+                                                bgColor = '#f1f5f9';
+                                                textColor = '#475569';
+                                            }
 
-                                                return (
-                                                    <tr key={team.teamId}>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                <div style={{ width: '32px', height: '32px', background: '#0f172a', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>{team.teamName.substring(0, 2).toUpperCase()}</div>
-                                                                <span style={{ fontWeight: 700, color: '#0f172a' }}>{team.teamName}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db' }}>
+                                            return (
+                                                <tr key={team.teamId}>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                            <div style={{ width: '32px', height: '32px', background: '#0f172a', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>{team.teamName.substring(0, 2).toUpperCase()}</div>
+                                                            <span style={{ fontWeight: 700, color: '#0f172a' }}>{team.teamName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db' }}>
                                                             <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, background: bgColor, color: textColor }}>
                                                                 {displayText}
                                                             </span>
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db', color: '#4b5563', fontSize: '13px', fontWeight: 500 }}>
-                                                            {team.submittedAt || '--'}
-                                                        </td>
-                                                        <td style={{ borderBottom: '1px solid #d1d5db', textAlign: 'right', paddingRight: '24px' }}>
-                                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                                                <button
-                                                                    style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
-                                                                    onClick={() => setViewSubmissionModal({ isOpen: true, team })}
-                                                                >
-                                                                    View
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            {filteredSubmissions.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#4b5563' }}>No submissions found</td>
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db', color: '#4b5563', fontSize: '13px', fontWeight: 500 }}>
+                                                        {team.submittedAt || '--'}
+                                                    </td>
+                                                    <td style={{ borderBottom: '1px solid #d1d5db', textAlign: 'right', paddingRight: '24px' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                                            <button
+                                                                style={{ padding: '6px 12px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                                                                onClick={() => setViewSubmissionModal({ isOpen: true, team })}
+                                                            >
+                                                                View
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
-                                            )}
+                                            );
+                                        })}
+                                        {filteredSubmissions.length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#4b5563' }}>No submissions found</td>
+                                            </tr>
+                                        )}
                                         </tbody>
                                     </table>
                                     <div style={{ padding: '16px 24px', fontSize: '13px', color: '#4b5563', fontWeight: 600 }}>
@@ -1804,9 +1804,9 @@ const RankingsConsole = () => {
                             const isValid = !!url;
                             return (
                                 <a key={key} href={url ? getAssetUrl(url) : '#'} className={`asset-link ${getAssetLinkClass(url)}`}
-                                    target="_blank" rel="noreferrer"
-                                    onClick={e => !isValid && e.preventDefault()}
-                                    style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
+                                   target="_blank" rel="noreferrer"
+                                   onClick={e => !isValid && e.preventDefault()}
+                                   style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', border: '1px solid #d1d5db', borderRadius: '8px', textDecoration: 'none', color: isValid ? '#1e293b' : '#64748b', marginBottom: '8px', alignItems: 'center' }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
                                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
