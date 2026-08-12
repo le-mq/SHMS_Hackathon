@@ -926,6 +926,10 @@ INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES (
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T04', 'Cyber Synapse', 4, 'CLOSED', '2026-02-06 10:00:00'); SET @C4_T04_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T05', 'Vanguard Devs', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T05_ID = SCOPE_IDENTITY();
 INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T06', 'Apex Dynamics', 4, 'CLOSED', '2026-02-07 10:00:00'); SET @C4_T06_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T07', 'Solana Strikers', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T07_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T08', 'Polygon Force', 4, 'CLOSED', '2026-02-08 10:00:00'); SET @C4_T08_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T09', 'Avalanche Apex', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T09_ID = SCOPE_IDENTITY();
+INSERT INTO Team (team_code, team_name, contest_id, status, created_at) VALUES ('C4_T10', 'Near Velocity', 4, 'CLOSED', '2026-02-09 10:00:00'); SET @C4_T10_ID = SCOPE_IDENTITY();
 
 -- Assign Members to Contest 4 Teams
 INSERT INTO TeamMembership (team_id, user_id, member_role, status, joined_at)
@@ -1067,6 +1071,10 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 
 INSERT INTO TeamMentor (team_id, user_id, category_id, status) VALUES
 (@PastTeam1_ID, @Mentor1_ID, 1, 'ACTIVE'), (@PastTeam2_ID, @Mentor2_ID, 1, 'ACTIVE'), (@PastTeam3_ID, @Mentor1_ID, 4, 'ACTIVE'),
@@ -1094,6 +1102,10 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor1');
 DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
 
@@ -1134,14 +1146,14 @@ DECLARE @Mentor1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 
 DECLARE @Mentor2_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'mentor2');
 
 -- C1 NEW TEAMS SUBMISSIONS
-INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES 
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES
 (@C1_NEW1_ID, 1, N'{"Project Repository":"https://github.com/c1_new1"}', 1, '2025-02-18 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
 (@C1_NEW2_ID, 1, N'{"Project Repository":"https://github.com/c1_new2"}', 1, '2025-02-18 10:00:00', 'GRADED', N'Good.', @Mentor2_ID),
 (@C1_NEW1_ID, 2, N'{"Project Repository":"https://github.com/c1_new1_r2"}', 1, '2025-03-10 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
 (@C1_NEW1_ID, 9, N'{"Project Repository":"https://github.com/c1_new1_r9"}', 1, '2025-03-20 10:00:00', 'GRADED', N'Good.', @Mentor1_ID);
 
 -- C2 NEW TEAMS SUBMISSIONS
-INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES 
+INSERT INTO Submission (team_id, round_id, submission_data, version, submitted_at, status, mentor_feedback, mentor_id) VALUES
 (@C2_NEW1_ID, 3, N'{"Project Repository":"https://github.com/c2_new1"}', 1, '2025-10-10 10:00:00', 'GRADED', N'Good.', @Mentor1_ID),
 (@C2_NEW2_ID, 3, N'{"Project Repository":"https://github.com/c2_new2"}', 1, '2025-10-10 10:00:00', 'GRADED', N'Good.', @Mentor2_ID),
 (@C2_NEW1_ID, 4, N'{"Project Repository":"https://github.com/c2_new1_r4"}', 1, '2025-11-20 10:00:00', 'GRADED', N'Good.', @Mentor1_ID);
@@ -1512,17 +1524,21 @@ DECLARE @C4_T03_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C
 DECLARE @C4_T04_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T04');
 DECLARE @C4_T05_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T05');
 DECLARE @C4_T06_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T06');
+DECLARE @C4_T07_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T07');
+DECLARE @C4_T08_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T08');
+DECLARE @C4_T09_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T09');
+DECLARE @C4_T10_ID BIGINT = (SELECT TOP 1 team_id FROM Team WHERE team_code = 'C4_T10');
 DECLARE @Admin1_ID BIGINT = (SELECT TOP 1 user_id FROM [User] WHERE username = 'admin1');
 
 -- C1 NEW TEAMS RANKINGS
-INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES 
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES
 (1, 1, @C1_NEW1_ID, @Admin1_ID, 4, 75.00, 'QUALIFIED', '2025-02-28 10:00:00'),
 (1, 1, @C1_NEW2_ID, @Admin1_ID, 5, 70.00, 'ELIMINATED', '2025-02-28 10:00:00'),
 (2, 2, @C1_NEW1_ID, @Admin1_ID, 4, 75.00, 'ELIMINATED', '2025-03-15 10:00:00'),
 (9, 3, @C1_NEW1_ID, @Admin1_ID, 3, 75.00, 'QUALIFIED', '2025-03-25 10:00:00');
 
 -- C2 NEW TEAMS RANKINGS
-INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES 
+INSERT INTO RankingResult (round_id, category_id, team_id, user_id, rank_no, final_score, qualification_status, date_published_at) VALUES
 (3, 4, @C2_NEW1_ID, @Admin1_ID, 4, 75.00, 'QUALIFIED', '2025-10-31 10:00:00'),
 (3, 4, @C2_NEW2_ID, @Admin1_ID, 5, 70.00, 'ELIMINATED', '2025-10-31 10:00:00'),
 (4, 5, @C2_NEW1_ID, @Admin1_ID, 3, 75.00, 'QUALIFIED', '2025-11-25 10:00:00');
@@ -1565,7 +1581,11 @@ VALUES
 (8, 10, @C4_T03_ID, @Admin1_ID, 3, 91.80, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T04_ID, @Admin1_ID, 4, 89.50, 'QUALIFIED', '2026-04-25 10:00:00'),
 (8, 10, @C4_T05_ID, @Admin1_ID, 5, 87.00, 'QUALIFIED', '2026-04-25 10:00:00'),
-(8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00');
+(8, 10, @C4_T06_ID, @Admin1_ID, 6, 84.50, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T07_ID, @Admin1_ID, 7, 82.00, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T08_ID, @Admin1_ID, 8, 79.50, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T09_ID, @Admin1_ID, 9, 76.80, 'ELIMINATED', '2026-04-25 10:00:00'),
+(8, 10, @C4_T10_ID, @Admin1_ID, 10, 73.50, 'ELIMINATED', '2026-04-25 10:00:00');
 
 -- ========================================================
 -- ADDING MISSING MENTOR, SCORE, SCOREDETAIL FOR DEMO TEAMS
